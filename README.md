@@ -1,4 +1,7 @@
 # stackr
+
+[![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr)
+
 The goal of **stackr** is to make GBS/RAD data produced by STACKS easy to analyse in R.
 
 This is the development page of the **stackr** package for the R software.
