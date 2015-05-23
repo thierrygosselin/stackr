@@ -2,9 +2,7 @@
 % Please edit documentation in R/write_genepop.R
 \name{write_genepop}
 \alias{write_genepop}
-\title{Write Genepop file from a STACKS 'batch_x.haplotypes.tsv' file.
-This function can first filter the haplotypes file with a whitelist of loci
-and a blacklist of individuals (optional).}
+\title{Write Genepop file from a STACKS 'batch_x.haplotypes.tsv' file.}
 \usage{
 write_genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
   genepop.filename, genepop.header, pop.levels, pop.id.start, pop.id.end)
@@ -31,7 +29,6 @@ in the name of your individual sample.}
 \item{haplotype.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
 }
 \description{
-Write Genepop file from a STACKS 'batch_x.haplotypes.tsv' file.
 This function can first filter the haplotypes file with a whitelist of loci
 and a blacklist of individuals (optional).
 }
