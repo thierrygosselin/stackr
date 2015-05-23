@@ -1,10 +1,14 @@
 Package: stackr
 Type: Package
-Title: Tools to Analyse and Create Figures of GBS/RAD Data Created by Stacks Software
+Title: stackr: a R Package for the Analysis of GBS/RAD Data Created by the STACKS Software Pipeline
 Version: 1.0.0
 Date: 2015-05-02
+Encoding: UTF-8
 Author: Thierry Gosselin & Laura Benestan
-Maintainer: <thierrygosselin@icloud.com>
+Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: stackr is a set of tools to look at your GBS/RAD data created by Stacks software. 
 The functions to analyse and create figures can be 
-License: What license is it under?
+Depends: R (>= 2.14), dplyr (>= 0.4.1), reshape2, ggplot2, stringr, stringi, 
+Imports: utils, stats, MASS, igraph, ape, shiny, seqinr, parallel, spdep, boot
+License: GPL (>=2)
+LazyLoad: yes
