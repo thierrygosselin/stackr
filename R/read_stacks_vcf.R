@@ -1,5 +1,3 @@
-# Import a VCF file created in STACKS and modify to tidy format 
-
 #' @title Read VCF file.
 #' @description Import a VCF file created by STACKS and mofify to a tidy format.
 #' @param vcf.file The VCF file created by STACKS.
