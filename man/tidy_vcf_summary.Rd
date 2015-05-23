@@ -2,36 +2,14 @@
 % Please edit documentation in R/read_stacks_vcf.R
 \name{tidy_vcf_summary}
 \alias{tidy_vcf_summary}
-<<<<<<< HEAD
 \title{tidy_vcf_summary.}
-=======
-<<<<<<< HEAD
-\title{tidy_vcf_summary.}
-=======
-\title{Tidy VCF summary.}
->>>>>>> 9f0050b467fd7dfe3f6672d3211070c178b1f271
->>>>>>> 90f89518ff559b45103ba1344fd2add60304f11f
 \usage{
 tidy_vcf_summary(data)
 }
 \arguments{
-<<<<<<< HEAD
-\item{data}{The tidy VCF file created with 'read_stacks_vcf'.}
+\item{data}{The tidy VCF file created with read_stacks_vcf.}
 }
 \description{
-Summarise and prepare the tidy VCF. Summary, by population and markers (SNP), of frequency of the REF and the ALT alleles, the observed and the expected heterozygosity and the inbreeding coefficient. The Global MAF of Loci (with STACKS GBS/RAD loci = read or de novo haplotypes), is included and repeated over SNP.
-=======
-<<<<<<< HEAD
-\item{data}{The tidy VCF file created with 'read_stacks_vcf'.}
-}
-\description{
-Summarise and prepare the tidy VCF. Summary, by population and markers (SNP), of frequency of the REF and the ALT alleles, the observed and the expected heterozygosity and the inbreeding coefficient. The Global MAF of Loci (with STACKS GBS/RAD loci = read or de novo haplotypes), is included and repeated over SNP.
-=======
-\item{data}{The tidy VCF file.}
-}
-\description{
-Summarise and prepare for filter the tidy VCF. By population, frequency of REF and ALT alleles, observed and expected heterozygosity and inbreeding coefficient. Global MAF is also for each marker.
->>>>>>> 9f0050b467fd7dfe3f6672d3211070c178b1f271
->>>>>>> 90f89518ff559b45103ba1344fd2add60304f11f
+Summarise and prepare the tidy VCF. Summary, by population and markers (SNP), of frequency of the REF and the ALT alleles, the observed and the expected heterozygosity and the inbreeding coefficient. The Global MAF of Loci, with STACKS GBS/RAD loci = read or de novo haplotypes, is included and repeated over SNP.
 }
 

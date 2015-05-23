@@ -1,7 +1,7 @@
-#' @title Write Genepop file from a STACKS 'batch_x.haplotypes.tsv' file.
+#' @title write_genepop.
 #' @description This function can first filter the haplotypes file with a whitelist of loci
 #' and a blacklist of individuals (optional).
-#' @param haplotype.file The 'batch_x.haplotypes.tsv' created by STACKS.
+#' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
 #' @param whitelist.loci A whitelist of loci and a column header 'LOCUS'.
 #' @param blacklist.id A blacklist with individual ID and
 #' a column header 'SAMPLES'.
