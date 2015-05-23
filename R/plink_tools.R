@@ -1,7 +1,12 @@
-# PLINK tools
-
-# In ADMIXTURE to do bootstrap you need a tfam file,
-# the one in STACKS is not as good...
+#' @title make_tfam.
+#' @description  Make a tfam file for PLINK. Useful in ADMIXTURE for bootstrapping.
+#' @param population.map The population map or individuals listed in one column. No headers.
+#' @param pop.id.start The start of your population id 
+#' in the name of your individual sample.
+#' @param pop.id.end The end of your population id 
+#' in the name of your individual sample.
+#' @param pop.levels An optional character string with your populations ordered.
+#' @param filename The name of the file written in the directory.
 
 make_tfam <- function(population.map, pop.id.start, pop.id.end, pop.levels, filename) {
     

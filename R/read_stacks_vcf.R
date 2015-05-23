@@ -90,7 +90,11 @@ filename, getwd()
 vcf
 }
 
-vcf_filter_prep <- function(data) {
+#' @title Tidy VCF summary.
+#' @description Summarise and prepare for filter the tidy VCF. By population, frequency of REF and ALT alleles, observed and expected heterozygosity and inbreeding coefficient. Global MAF is also for each marker.
+#' @param data The tidy VCF file.
+
+tidy_vcf_summary <- function(data) {
 
   vcf.summary <- data %>%
     filter(GT != "./.") %>%

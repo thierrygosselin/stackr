@@ -1,4 +1,11 @@
-## Population map
+#' @title population_map Read a population map.
+#' @description Read the same population map used in STACKS populations module.
+#' @param data The population map or individuals listed in one column. No headers.
+#' @param pop.id.start The start of your population id 
+#' in the name of your individual sample.
+#' @param pop.id.end The end of your population id 
+#' in the name of your individual sample.
+#' @param pop.levels An optional character string with your populations ordered.
 
 population_map <- function (data, pop.id.start, pop.id.end, pop.levels) {
   
