@@ -1,5 +1,5 @@
 # stackr
-*stackr*: a R Package for the Analysis of GBS/RAD Data Created by STACKS Software
+*stackr*: a R Package for the Analysis of GBS/RAD Data Created by the STACKS Software Pipeline
 
 This is the development page of the *stackr* package for the R software.
 
