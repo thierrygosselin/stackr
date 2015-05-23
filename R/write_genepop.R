@@ -1,4 +1,4 @@
-#' @title write_genepop.
+#' @title Use the batch_x.haplotypes.tsv file to write a genpop file.
 #' @description This function can first filter the haplotypes file with a whitelist of loci
 #' and a blacklist of individuals (optional).
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.

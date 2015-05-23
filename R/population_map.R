@@ -1,4 +1,4 @@
-#' @title population_map Read a population map.
+#' @title Read and prepare a population map.
 #' @description Read the same population map used in STACKS populations module.
 #' @param data The population map or individuals listed in one column. No headers.
 #' @param pop.id.start The start of your population id 
