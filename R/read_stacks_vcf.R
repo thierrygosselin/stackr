@@ -91,8 +91,8 @@ vcf
 }
 
 #' @title tidy_vcf_summary.
-#' @description Summarise and prepare the tidy VCF. Summary, by population and markers (SNP), of frequency of the REF and the ALT alleles, the observed and the expected heterozygosity and the inbreeding coefficient. The Global MAF of Loci (with STACKS GBS/RAD loci = read or de novo haplotypes), is included and repeated over SNP.
-#' @param data The tidy VCF file created with 'read_stacks_vcf'.
+#' @description Summarise and prepare the tidy VCF. Summary, by population and markers (SNP), of frequency of the REF and the ALT alleles, the observed and the expected heterozygosity and the inbreeding coefficient. The Global MAF of Loci, with STACKS GBS/RAD loci = read or de novo haplotypes, is included and repeated over SNP.
+#' @param data The tidy VCF file created with read_stacks_vcf.
 
 tidy_vcf_summary <- function(data) {
 
