@@ -1,3 +1,18 @@
+# Import a VCF file created in STACKS and modify to tidy format 
+
+#' @title Read VCF file.
+#' @description Import a VCF file created by STACKS and mofify to a tidy format.
+#' @param vcf.file The VCF file created by STACKS.
+#' @param skip.line Default is 9 with vcf created in STACKS.
+#' @param max.read.lines The number of markers + the header line.
+#' @param pop.id.start The start of your population id 
+#' in the name of your individual sample.
+#' @param pop.id.end The end of your population id 
+#' in the name of your individual sample.
+#' @param pop.levels An optional character string with your populations ordered.
+#' @param filter To apply a filter to the vcf, use a file or object.
+#' @param filename The name of the file written in the directory.
+
 read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end, pop.levels, filter, filename) {
   
   vcf <- read_delim(
@@ -77,65 +92,35 @@ filename, getwd()
 vcf
 }
 
-read_stacks_vcf_old <- function(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end, pop.levels) {
-  read_delim(
-    vcf.file,
-    delim = "\t",
-    skip = skip.line,
-    n_max = max.read.lines,
-    progress = interactive()
-    ) %>%
-  select(-c(QUAL, FILTER, FORMAT)) %>%
-  rename(LOCUS = ID, CHROM = `#CHROM`) %>%
-  separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
-  mutate(
-    N = as.numeric(stri_replace_all_fixed(N, "NS=", "", vectorize_all=F)),
-    AF = stri_replace_all_fixed(AF, "AF=", "", vectorize_all=F)
-    ) %>%
-  separate(AF, c("REF_FREQ", "ALT_FREQ"), sep = ",", extra = "error") %>%
-  mutate(
-    REF_FREQ = as.numeric(REF_FREQ),
-    ALT_FREQ = as.numeric(ALT_FREQ)
-    ) %>%
-  melt(
-    id.vars = c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ",
-                "ALT_FREQ"),
-    variable.name = "INDIVIDUALS", 
-    value.name = "FORMAT"
-    ) %>%
-  separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"), sep = ":",
-           extra = "error") %>%
-  mutate(
-    READ_DEPTH = as.numeric(stri_replace_all_fixed(READ_DEPTH, "0", "NA",
-                                                   vectorize_all = F))
-    ) %>%
-  separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"), sep = ",",
-           extra = "error") %>%
-  separate(GT, c("ALLELE_P", "ALLELE_Q"), sep = "/", extra = "error",
-           remove = F) %>%
-  mutate(
-    CHROM = as.numeric(stri_replace_all_fixed(CHROM, "un", "1", 
-                                              vectorize_all=F)),
-    GL = as.numeric(stri_replace_all_fixed(GL, c(".,", ",."), "",
-                                           vectorize_all=F)),
-    ALLELE_P = ifelse (ALLELE_P == ".", "NA",
-                        ifelse(ALLELE_P == "0", REF, ALT)),
-    ALLELE_Q = ifelse (ALLELE_Q == ".", "NA",
-                        ifelse(ALLELE_Q == "0", REF, ALT)),
-    ALLELE_REF_DEPTH = as.numeric(stri_replace_all_fixed(ALLELE_REF_DEPTH,
-                                                         ".", "NA",
-                                                         vectorize_all=F)),
-    ALLELE_ALT_DEPTH = as.numeric(stri_replace_all_fixed(ALLELE_ALT_DEPTH,
-                                                         ".", "NA",
-                                                         vectorize_all=F)),
-    ALLELE_REF_DEPTH = ifelse(GT == "./.", "NA",
-                       ifelse(GT == "0/0", READ_DEPTH,
-                       ifelse(GT == "1/1", "NA", ALLELE_REF_DEPTH))),
-    ALLELE_ALT_DEPTH = ifelse(GT == "./.", "NA",
-                       ifelse(GT == "1/1", READ_DEPTH,
-                       ifelse(GT == "0/0", "NA", ALLELE_ALT_DEPTH))),
-    POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
-                    levels = pop.levels, ordered =T)
-    )
-}
+vcf_filter_prep <- function(data) {
 
+  vcf.summary <- data %>%
+    filter(GT != "./.") %>%
+    group_by(LOCUS, POS, POP_ID) %>%
+    summarise(
+      N = as.numeric(n()),
+      PP = as.numeric(length(GT[GT == "0/0"])),
+      PQ = as.numeric(length(GT[GT == "0/1" | GT == "1/0"])),
+      QQ = as.numeric(length(GT[GT == "1/1"]))
+      ) %>%
+    mutate(
+      FREQ_REF = ((PP*2) + PQ)/(2*N),
+      FREQ_ALT = ((QQ*2) + PQ)/(2*N),
+      HET_O = PQ/N,
+      HET_E = 2 * FREQ_REF * FREQ_ALT,
+      FIS = ifelse(HET_O == 0, 0, round (((HET_E - HET_O) / HET_E), 6))
+      )
+  
+  global.maf <- vcf.summary %>%
+    group_by(LOCUS, POS) %>%
+    summarise_each_(funs(sum), vars = c("N", "PP", "PQ", "QQ")) %>%
+    mutate(GLOBAL_MAF = (PQ + (2 * QQ)) / (2*N)) %>%
+    select(LOCUS, POS, GLOBAL_MAF)
+  
+  vcf.prep <- global.maf %>%
+    left_join(vcf.summary, by = c("LOCUS", "POS"))
+  
+  vcf.prep <- vcf.prep[c("LOCUS", "POS", "POP_ID", "N", "PP", "PQ", "QQ", "FREQ_REF", "FREQ_ALT", "GLOBAL_MAF", "HET_O", "HET_E", "FIS")]
+  
+  return(vcf.prep)
+}
