@@ -1,0 +1,10 @@
+Package: stackr
+Type: Package
+Title: Tools to Analyse and Create Figures of GBS/RAD Data Created by Stacks Software
+Version: 1.0.0
+Date: 2015-05-02
+Author: Thierry Gosselin & Laura Benestan
+Maintainer: <thierrygosselin@icloud.com>
+Description: stackr is a set of tools to look at your GBS/RAD data created by Stacks software. 
+The functions to analyse and create figures can be 
+License: What license is it under?
