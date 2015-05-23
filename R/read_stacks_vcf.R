@@ -1,4 +1,4 @@
-#' @title read_stacks_vcf2.
+#' @title read_stacks_vcf.
 #' @description Import a VCF file created by STACKS and mofify to a tidy format.
 #' @param vcf.file The VCF file created by STACKS.
 #' @param skip.line Default is 9 with vcf created in STACKS.
@@ -11,7 +11,7 @@
 #' @param filter To apply a filter to the vcf, use a file or object.
 #' @param filename The name of the file written in the directory.
 
-read_stacks_vcf2 <- function(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end, pop.levels, filter, filename) {
+read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end, pop.levels, filter, filename) {
   
   vcf <- read_delim(
     vcf.file,
