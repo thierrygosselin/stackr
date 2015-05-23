@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_stacks_vcf.R
 \name{tidy_vcf_summary}
 \alias{tidy_vcf_summary}
-\title{tidy_vcf_summary.}
+\title{Summary by population and markers of a tidy VCF.}
 \usage{
 tidy_vcf_summary(data)
 }

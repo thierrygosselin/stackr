@@ -2,7 +2,7 @@
 % Please edit documentation in R/population_map.R
 \name{population_map}
 \alias{population_map}
-\title{population_map Read a population map.}
+\title{Read and prepare a population map.}
 \usage{
 population_map(data, pop.id.start, pop.id.end, pop.levels)
 }

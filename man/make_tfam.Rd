@@ -2,7 +2,7 @@
 % Please edit documentation in R/plink_tools.R
 \name{make_tfam}
 \alias{make_tfam}
-\title{make_tfam.}
+\title{Write a PLINK tfam file from a population map.}
 \usage{
 make_tfam(population.map, pop.id.start, pop.id.end, pop.levels, filename)
 }

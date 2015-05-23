@@ -2,7 +2,7 @@
 % Please edit documentation in R/write_genepop.R
 \name{write_genepop}
 \alias{write_genepop}
-\title{write_genepop.}
+\title{Use the batch_x.haplotypes.tsv file to write a genpop file.}
 \usage{
 write_genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
   genepop.filename, genepop.header, pop.levels, pop.id.start, pop.id.end)
