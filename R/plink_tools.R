@@ -1,4 +1,4 @@
-#' @title make_tfam.
+#' @title Write a PLINK tfam file from a population map.
 #' @description  Make a tfam file for PLINK. Useful in ADMIXTURE for bootstrapping.
 #' @param population.map The population map or individuals listed in one column. No headers.
 #' @param pop.id.start The start of your population id 
