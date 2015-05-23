@@ -284,7 +284,7 @@ phistats_summary <- function(data, skip.lines) {
 
 
 
-#' @Title Erase genotypes in the batch_x.haplotypes.tsv that
+#' @title Erase genotypes in the batch_x.haplotypes.tsv that
 #' didn't pass min coverage threshold filter.
 #' @description This function modify the 'batch_x.haplotypes.tsv' file
 #' with a blacklist of loci and individuals.
