@@ -99,7 +99,7 @@ vcf
 #' is included and repeated over SNP.
 #' @param data The tidy VCF file created with read_stacks_vcf.
 
-tidy_vcf_summary <- function(data) {
+vcf_tidy_summary <- function(data) {
 
   vcf.summary <- data %>%
     filter(GT != "./.") %>%
