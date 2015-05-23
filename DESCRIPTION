@@ -20,6 +20,6 @@ LinkingTo:
   stringr,
   stringi 
 Imports: plyr, dplyr, reshape2, ggplot2, readr, stringr, stringi
-Suggests: utils, stats, MASS, igraph, ape, shiny, seqinr, parallel, spdep, boot, pegas, adegenet, hierfstat
+Suggests: ape, shiny, parallel, boot, pegas, adegenet, hierfstat
 License: GPL (>=2)
 LazyLoad: yes
