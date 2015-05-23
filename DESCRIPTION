@@ -4,10 +4,22 @@ Title: stackr: a R Package for the Analysis of GBS/RAD Data Created by the STACK
 Version: 1.0.0
 Date: 2015-05-02
 Encoding: UTF-8
-Authors@R: c(person("Thierry", "Gosselin", c("cre", "aut")), person("Laura", "Benestan", c("aut")))
+Authors@R: c(
+  person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
+  person("Laura", "Benestan", role = "aut"))
 Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: stackr is a set of tools to look at your GBS/RAD data created by Stacks software. 
-Depends: R (>= 2.14), dplyr (>= 0.4.1), reshape2, ggplot2, stringr, stringi, 
-Imports: utils, stats, MASS, igraph, ape, shiny, seqinr, parallel, spdep, boot, dplyr (>= 0.4.1), reshape2, ggplot2, stringr, stringi
+Depends: 
+  R (>= 3.0.1)
+LinkingTo:
+  plyr
+  dplyr (>= 0.4.1),
+  ggplot2,
+  readr,
+  reshape2,
+  stringr,
+  stringi 
+Imports: plyr, dplyr, reshape2, ggplot2, readr, stringr, stringi
+Suggests: utils, stats, MASS, igraph, ape, shiny, seqinr, parallel, spdep, boot, pegas, adegenet, hierfstat
 License: GPL (>=2)
 LazyLoad: yes
