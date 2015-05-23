@@ -2,12 +2,14 @@
 % Please edit documentation in R/write_genepop.R
 \name{write_genepop}
 \alias{write_genepop}
-\title{Write Genepop file from a STACKS 'batch_x.haplotypes.tsv' file.}
+\title{write_genepop.}
 \usage{
 write_genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
   genepop.filename, genepop.header, pop.levels, pop.id.start, pop.id.end)
 }
 \arguments{
+\item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
+
 \item{whitelist.loci}{A whitelist of loci and a column header 'LOCUS'.}
 
 \item{blacklist.id}{A blacklist with individual ID and
@@ -25,8 +27,6 @@ in the name of your individual sample.}
 
 \item{pop.id.end}{The end of your population id
 in the name of your individual sample.}
-
-\item{haplotype.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
 }
 \description{
 This function can first filter the haplotypes file with a whitelist of loci
