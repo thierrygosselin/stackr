@@ -1,6 +1,6 @@
 Package: stackr
 Type: Package
-Title: stackr: a R Package for the Analysis of GBS/RAD Data Created by the STACKS Software Pipeline
+Title: GBS/RAD data exploration, manipulation and visualization.
 Version: 1.0.0
 Date: 2015-05-02
 Encoding: UTF-8
@@ -8,7 +8,7 @@ Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
   person("Laura", "Benestan", role = "aut"))
 Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
-Description: stackr is a set of tools to look at your GBS/RAD data created by Stacks software. 
+Description: stackr is a set of tools to look at your GBS/RAD data created by STACKS software. 
 Depends: 
   R (>= 3.0.1),
 LinkingTo:
