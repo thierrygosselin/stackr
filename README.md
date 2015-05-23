@@ -12,7 +12,7 @@ This is the development page of the **stackr** package for the R software.
 
 
 
-### Installation*
+## Installation
 You can try out the dev version of *stackr*. You will need the package *devtools*.
 
 ```r
