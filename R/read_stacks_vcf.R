@@ -1,4 +1,4 @@
-#' @title Read VCF file.
+#' @title read_stacks_vcf.
 #' @description Import a VCF file created by STACKS and mofify to a tidy format.
 #' @param vcf.file The VCF file created by STACKS.
 #' @param skip.line Default is 9 with vcf created in STACKS.
@@ -90,9 +90,9 @@ filename, getwd()
 vcf
 }
 
-#' @title Tidy VCF summary.
-#' @description Summarise and prepare for filter the tidy VCF. By population, frequency of REF and ALT alleles, observed and expected heterozygosity and inbreeding coefficient. Global MAF is also for each marker.
-#' @param data The tidy VCF file.
+#' @title tidy_vcf_summary.
+#' @description Summarise and prepare the tidy VCF. Summary, by population and markers (SNP), of frequency of the REF and the ALT alleles, the observed and the expected heterozygosity and the inbreeding coefficient. The Global MAF of Loci (with STACKS GBS/RAD loci = read or de novo haplotypes), is included and repeated over SNP.
+#' @param data The tidy VCF file created with 'read_stacks_vcf'.
 
 tidy_vcf_summary <- function(data) {
 

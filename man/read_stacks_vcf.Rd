@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_stacks_vcf.R
 \name{read_stacks_vcf}
 \alias{read_stacks_vcf}
-\title{Read VCF file.}
+\title{read_stacks_vcf.}
 \usage{
 read_stacks_vcf(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end,
   pop.levels, filter, filename)
