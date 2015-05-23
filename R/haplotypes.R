@@ -206,7 +206,7 @@ hapstats_summary <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 #' @param x.title Title of the x-axis.
 #' @param y.title Title of the y-axis.
 
-figure_distribution_diversity <- function(data, aes.x, aes.colour,  x.title, y.title) {
+figure_distribution_diversity <- function(data, aes.x, aes.colour, x.title, y.title) {
   ggplot(hapstats.summary, aes.x)+
   geom_line(aes.colour, stat = "density", adjust = 0.8)+
 #   scale_colour_manual(name = "Populations", values = colour_palette_sites.pink, breaks = c("BUR", "GRA", "GUL", "LLI", "ANG", "WEI", "HAY", "GOD"))+
