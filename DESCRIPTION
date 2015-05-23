@@ -10,7 +10,14 @@ Authors@R: c(
 Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: stackr is a set of tools to look at your GBS/RAD data created by Stacks software. 
 Depends: 
-  R (>= 3.0.1)
+  R (>= 3.0.1),
+  plyr,
+  dplyr (>= 0.4.1),
+  ggplot2,
+  readr,
+  reshape2,
+  stringr,
+  stringi  
 LinkingTo:
   plyr,
   dplyr (>= 0.4.1),
