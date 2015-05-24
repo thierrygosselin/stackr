@@ -5,7 +5,7 @@
 \title{Import and prepare for analysis a batch_x.sumstats.tsv file produced by STACKS.}
 \usage{
 sumstats_prep(sumstats, skip.line, pop.num, pop.col.types, pop.integer.equi,
-  pop.levels)
+  pop.levels, filename)
 }
 \arguments{
 \item{sumstats}{The STACKS batch_x.susmtats.tsv file.}
@@ -19,6 +19,8 @@ sumstats_prep(sumstats, skip.line, pop.num, pop.col.types, pop.integer.equi,
 \item{pop.integer.equi}{When Integer was used for your population id, give the character equivalence}
 
 \item{pop.levels}{A character string with your populations in order.}
+
+\item{filename}{The name of the file written in the directory.}
 }
 \description{
 Import STACKS sumstats.tsv and add useful info (frequency of REF allele, Global MAF) for subsequent use. to a tidy format.

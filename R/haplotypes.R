@@ -1,10 +1,7 @@
 #' @title haplotypes summary
 #' @description STACKS batch_x.haplotypes.tsv file summary.
 #' Output summary table for populations with putative paralogs,
-#' consensus, monomorphic and polymorphic loci. 
-#' Write 3 files in the working directory:
-#' blacklist of unique putative paralogs and unique consensus loci.
-#' and a summary of the haplotypes file by population.
+#' consensus, monomorphic and polymorphic loci.
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
@@ -13,7 +10,15 @@
 #' @param pop.levels An optional character string with your populations ordered.
 #' @return The function returns a list with the summary, the paralogs and
 #' consensus loci by populations and unique loci (use $ to access each 
-#' components)
+#' components).
+#' Write 3 files in the working directory:
+#' blacklist of unique putative paralogs and unique consensus loci.
+#' and a summary of the haplotypes file by population.
+#' @details haplo.summary <- haplotype.file.summary$summary
+#' /code {paralogs.pop <- haplotype.file.summary$paralogs.pop
+#' paralogs.loci <- haplotype.file.summary$paralogs.loci
+#' consensus.pop <- haplotype.file.summary$consensus.pop
+#' consensus.loci <- haplotype.file.summary$consensus.loci}
 
 haplotype_file_summary <- function(haplotypes.file, pop.id.start, pop.id.end, pop.levels) {
   
@@ -148,7 +153,6 @@ The number of loci in the catalog with consensus alleles = %s LOCI
   return(results)
 
 }
-
 
 #' @title Import and summarise the batch_x.hapstats.tsv file.
 #' @description Import and summarise the batch_x.hapstats.tsv file.

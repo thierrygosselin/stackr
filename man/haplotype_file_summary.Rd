@@ -2,11 +2,13 @@
 % Please edit documentation in R/haplotypes.R
 \name{haplotype_file_summary}
 \alias{haplotype_file_summary}
-\title{STACKS batch_x.haplotypes.tsv file summary.}
+\title{haplotypes summary}
 \usage{
-haplotype_file_summary(haplotype.file, pop.id.start, pop.id.end, pop.levels)
+haplotype_file_summary(haplotypes.file, pop.id.start, pop.id.end, pop.levels)
 }
 \arguments{
+\item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
+
 \item{pop.id.start}{The start of your population id
 in the name of your individual sample.}
 
@@ -14,11 +16,18 @@ in the name of your individual sample.}
 in the name of your individual sample.}
 
 \item{pop.levels}{An optional character string with your populations ordered.}
-
-\item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
+}
+\value{
+The function returns a list with the summary, the paralogs and
+consensus loci by populations and unique loci (use $ to access each
+components)
 }
 \description{
-Output a blacklist of putative paralogs and consensus loci
+STACKS batch_x.haplotypes.tsv file summary.
+Output summary table for populations with putative paralogs,
+consensus, monomorphic and polymorphic loci.
+Write 3 files in the working directory:
+blacklist of unique putative paralogs and unique consensus loci.
 and a summary of the haplotypes file by population.
 }
 

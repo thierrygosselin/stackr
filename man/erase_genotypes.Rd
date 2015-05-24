@@ -5,10 +5,10 @@
 \title{Erase genotypes in the batch_x.haplotypes.tsv that
 didn't pass min coverage threshold filter.}
 \usage{
-erase_genotypes(haplotype.file, blacklist.genotypes, filename)
+erase_genotypes(haplotypes.file, blacklist.genotypes, filename)
 }
 \arguments{
-\item{haplotype.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
+\item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
 
 \item{blacklist.genotypes}{A blacklist of loci and genotypes
 containing at least 2 columns header 'LOCUS' and 'SAMPLES'.}
