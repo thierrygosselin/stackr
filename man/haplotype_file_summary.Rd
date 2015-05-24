@@ -20,14 +20,21 @@ in the name of your individual sample.}
 \value{
 The function returns a list with the summary, the paralogs and
 consensus loci by populations and unique loci (use $ to access each
-components)
+components).
+Write 3 files in the working directory:
+blacklist of unique putative paralogs and unique consensus loci.
+and a summary of the haplotypes file by population.
 }
 \description{
 STACKS batch_x.haplotypes.tsv file summary.
 Output summary table for populations with putative paralogs,
 consensus, monomorphic and polymorphic loci.
-Write 3 files in the working directory:
-blacklist of unique putative paralogs and unique consensus loci.
-and a summary of the haplotypes file by population.
+}
+\details{
+haplo.summary <- haplotype.file.summary$summary
+/code {paralogs.pop <- haplotype.file.summary$paralogs.pop
+paralogs.loci <- haplotype.file.summary$paralogs.loci
+consensus.pop <- haplotype.file.summary$consensus.pop
+consensus.loci <- haplotype.file.summary$consensus.loci}
 }
 

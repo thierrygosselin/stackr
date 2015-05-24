@@ -15,10 +15,10 @@
 #' blacklist of unique putative paralogs and unique consensus loci.
 #' and a summary of the haplotypes file by population.
 #' @details haplo.summary <- haplotype.file.summary$summary
-#' /code {paralogs.pop <- haplotype.file.summary$paralogs.pop
+#' paralogs.pop <- haplotype.file.summary$paralogs.pop
 #' paralogs.loci <- haplotype.file.summary$paralogs.loci
 #' consensus.pop <- haplotype.file.summary$consensus.pop
-#' consensus.loci <- haplotype.file.summary$consensus.loci}
+#' consensus.loci <- haplotype.file.summary$consensus.loci
 
 haplotype_file_summary <- function(haplotypes.file, pop.id.start, pop.id.end, pop.levels) {
   
@@ -86,7 +86,7 @@ haplotype_file_summary <- function(haplotypes.file, pop.id.start, pop.id.end, po
   consensus.pop  
   
   # Summary dataframe
-  summary <- batch_1.haplotypes %>%
+  summary.pop <- batch_1.haplotypes %>%
     filter(subset =! LOCUS %in% consensus.pop$LOCUS) %>%
     mutate(
       ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/")
@@ -125,6 +125,52 @@ haplotype_file_summary <- function(haplotypes.file, pop.id.start, pop.id.end, po
       PARALOG_PROP = round(PARALOGS/TOTAL, 4)
     )
   
+  total <- batch_1.haplotypes %>%
+    filter(subset =! LOCUS %in% consensus.pop$LOCUS) %>%
+    filter(HAPLOTYPES != "-") %>%
+    select(-Cnt, -SAMPLES, -POP_ID) %>%
+    group_by(LOCUS, HAPLOTYPES) %>%
+    distinct(HAPLOTYPES) %>%
+    mutate(
+      ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/")
+    ) %>%
+    arrange(LOCUS) %>%
+    group_by(LOCUS) %>%
+    summarise(
+      ALLELES_COUNT_MAX = max(ALLELES_COUNT)
+    ) %>%
+    mutate(
+      POLYMORPHISM = ifelse(ALLELES_COUNT_MAX == 0, "mono", "poly")
+    ) %>%
+    summarise(
+      MONOMORPHIC = length(POLYMORPHISM[POLYMORPHISM == "mono"]),
+      POLYMORPHIC = length(POLYMORPHISM[POLYMORPHISM == "poly"])
+    ) %>%
+    bind_cols(
+      blacklist.loci.consensus %>%
+        ungroup %>%
+        summarise(CONSENSUS = n()) %>% 
+        select(CONSENSUS)
+    ) %>%
+    mutate(
+      TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS
+    ) %>%
+    bind_cols(
+      blacklist.loci.paralogs %>%
+        ungroup %>%
+        summarise(PARALOGS = n()) %>% 
+        select(PARALOGS)
+    ) %>%
+    mutate(
+      MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
+      POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
+      PARALOG_PROP = round(PARALOGS/TOTAL, 4)
+    )
+  total.res <- data_frame(POP_ID="OVERALL") %>%
+    bind_cols(total)
+  
+  summary <- bind_rows(summary.pop, total.res)
+  
   write.table(summary, "haplotype.catalog.loci.summary.pop.tsv", 
               sep = "\t", row.names = F, col.names = T, quote = F)
   
@@ -149,9 +195,9 @@ The number of loci in the catalog with consensus alleles = %s LOCI
   results$paralogs.loci <- blacklist.loci.paralogs
   results$consensus.pop <- consensus.pop
   results$consensus.loci <- blacklist.loci.consensus
-
+  
   return(results)
-
+  
 }
 
 #' @title Import and summarise the batch_x.hapstats.tsv file.
