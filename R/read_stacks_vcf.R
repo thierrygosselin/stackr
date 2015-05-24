@@ -8,8 +8,11 @@
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
 #' @param pop.levels An optional character string with your populations ordered.
-#' @param filter To apply a filter to the vcf, use a file or object.
+#' @param filter An optional filter of loci can be applied to the vcf, using
+#' a file in the working directory (e.g. "myfile.txt") or an object
+#' in the global environment.
 #' @param filename The name of the file written in the directory.
+#' @export read_stacks_vcf
 
 read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end, pop.levels, filter, filename) {
   
@@ -89,5 +92,3 @@ Written in the directory:
   )))
   vcf
 }
-
-

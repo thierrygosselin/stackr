@@ -6,6 +6,7 @@
 #' with STACKS GBS/RAD loci = read or de novo haplotypes, 
 #' is included and repeated over SNP.
 #' @param data The tidy VCF file created with read_stacks_vcf.
+#' @export vcf_tidy_summary
 
 vcf_tidy_summary <- function(data) {
 
@@ -39,5 +40,3 @@ vcf_tidy_summary <- function(data) {
   
   return(vcf.prep)
 }
-# devtools::document()
-# devtools::load_all()

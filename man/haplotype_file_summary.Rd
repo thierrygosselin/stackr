@@ -32,9 +32,9 @@ consensus, monomorphic and polymorphic loci.
 }
 \details{
 haplo.summary <- haplotype.file.summary$summary
-/code {paralogs.pop <- haplotype.file.summary$paralogs.pop
+paralogs.pop <- haplotype.file.summary$paralogs.pop
 paralogs.loci <- haplotype.file.summary$paralogs.loci
 consensus.pop <- haplotype.file.summary$consensus.pop
-consensus.loci <- haplotype.file.summary$consensus.loci}
+consensus.loci <- haplotype.file.summary$consensus.loci
 }
 
