@@ -39,3 +39,5 @@ vcf_tidy_summary <- function(data) {
   
   return(vcf.prep)
 }
+# devtools::document()
+# devtools::load_all()

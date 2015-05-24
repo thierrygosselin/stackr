@@ -18,11 +18,10 @@ population_map <- function (data, pop.id.start, pop.id.end, pop.levels) {
     ) %>%
     arrange(INDIVIDUALS, POP_ID)
   
-  invisible(cat(sprintf("This is the order of your POPULATION MAP file %s",
-                        list(levels(pop.map$POP_ID))
-                        )
-                )
-            )
+  invisible(cat(sprintf(
+    "This is the order of your POPULATION MAP file %s",
+    list(levels(pop.map$POP_ID))
+  )))
   
-pop.map
+  pop.map
 }
