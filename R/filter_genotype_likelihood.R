@@ -24,7 +24,7 @@
 #' is higher so 
 #' @rdname filter_genotype_likelihood
 #' @export
-#' 
+
 filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold, gl.min.threshold, gl.diff.threshold, pop.threshold, percent, filename) {
   
   if (is.vector(tidy.vcf.file) == "TRUE") {
