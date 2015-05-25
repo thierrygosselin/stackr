@@ -97,7 +97,7 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     file.type <- "haplotypes"
     
     
-    if (is.vector(haplotypes.file) == "TRUE") {
+    if (is.vector(data) == "TRUE") {
       data <- read_tsv(data, col_names = T) %>%
         rename(LOCUS =`Catalog ID`)
       message("Using the file in your directory")
