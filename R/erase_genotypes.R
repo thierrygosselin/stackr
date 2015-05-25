@@ -55,14 +55,14 @@ blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele
   )
   
   invisible(cat(sprintf(
-    "Blacklist erase genotypes:
-1. Read depth thresold: %
-2. REF and ALT coverage threshold: %s
-3. Genotype likelihood threshold: %s
-Filename:
-%s
-Written in the directory:
-%s",
+  "Blacklist erase genotypes:
+  1. Read depth thresold: %s
+  2. REF and ALT coverage threshold: %s
+  3. Genotype likelihood threshold: %s
+  Filename:
+  %s
+  Written in the directory:
+  %s",
     read.depth.threshold,
     allele.depth.threshold,
     gl.threshold,
@@ -169,11 +169,9 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
       mutate(
         GT = ifelse(INDIVIDUALS %in% blacklist.genotypes$SAMPLES & LOCUS %in% blacklist.genotypes$LOCUS, "-", INDIVIDUALS)
       )
-    
   }
   
-  
-  write.table(new.file, filename, sep = "\t", row.names = F,
+    write.table(new.file, filename, sep = "\t", row.names = F,
               col.names = T, quote = F)
   
   
@@ -185,8 +183,7 @@ Filename:
 %s
 Written in the directory:
 %s",
-    file.type, erased.genotype.number, filename, getwd()
+    file.type, erased.genotype.number, total.genotype.number, filename, getwd()
   )))
   return(new.file)
 }
-
