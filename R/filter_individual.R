@@ -16,7 +16,7 @@
 #' @rdname individual_filter
 #' @export
 
-individual_filter <- function(data, is.vcf, population.map, pop.id.start, pop.id.end, pop.levels, ind.threshold, threshold.fixed ) {
+filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id.end, pop.levels, ind.threshold, threshold.fixed ) {
   
   if (is.vector(population.map) == "TRUE") {
     
