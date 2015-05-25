@@ -197,8 +197,7 @@ figure_box_plot_coverage <- function(data) {
 #' shows that setting the threshold of the genotype likelihood filter
 #' to the mean or close to it take care of the allelic coverage imbalance.
 #' #' e.g. fig <- figure_coverage_imbalance_diagnostic(
-#' tidy.vcf.file = vcf.tidy, pop.levels = SITES_LEVELS, 
-#' read.depth.threshold = 8, aes.colour = aes(y = ..count..), adjust.bin = 1)
+#' tidy.vcf.file, pop.levels, read.depth.threshold, aes.colour, adjust.bin)
 #' Use ( fig + facet_grid(GROUP_GL ~ GROUP_COVERAGE)).
 
 
