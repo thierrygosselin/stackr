@@ -172,7 +172,7 @@ figure_box_plot_coverage <- function(data) {
 
 
 
-#' @title Coverage imbalance visual diagnostic.
+#' @title Visual diagnostic of coverage imbalance.
 #' @description GBS data and STACKS pipeline sometimes output REF and ALT
 #' alleles that have coverage imbalance, i.e. the coverage is not equal 
 #' and skewed towards the REF or ALT alleles. 
