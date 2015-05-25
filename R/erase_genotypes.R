@@ -169,11 +169,9 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
       mutate(
         GT = ifelse(INDIVIDUALS %in% blacklist.genotypes$SAMPLES & LOCUS %in% blacklist.genotypes$LOCUS, "-", INDIVIDUALS)
       )
-    
   }
   
-  
-  write.table(new.file, filename, sep = "\t", row.names = F,
+    write.table(new.file, filename, sep = "\t", row.names = F,
               col.names = T, quote = F)
   
   
@@ -185,8 +183,7 @@ Filename:
 %s
 Written in the directory:
 %s",
-    file.type, erased.genotype.number, filename, getwd()
+    file.type, erased.genotype.number, total.genotype.number, filename, getwd()
   )))
   return(new.file)
 }
-
