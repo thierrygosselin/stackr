@@ -9,7 +9,7 @@
 #' @param percent Is the threshold a percentage ? TRUE or FALSE.
 
 # Population
-population_filter <- function(data, pop.threshold, percent, filename) {
+filter_individual <- function(data, pop.threshold, percent, filename) {
 
   if (is.vector(data) == "TRUE") {
     message("Using the file in your directory")
