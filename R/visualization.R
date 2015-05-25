@@ -187,7 +187,7 @@ figure_box_plot_coverage <- function(data) {
 #' @example fig <- figure_coverage_imbalance_diagnostic(
 #' tidy.vcf.file = vcf.tidy, pop.levels = SITES_LEVELS, 
 #' read.depth.threshold = 8, aes.colour = aes(y = ..count..), adjust.bin = 1)
-#' fig + facet_grid(GROUP_GL ~ GROUP_COVERAGE).
+#' Use ( fig + facet_grid(GROUP_GL ~ GROUP_COVERAGE)).
 #' @return 4-plots highlighting the different combination of under
 #'  or over the coverage threshold and mean genotype likelihood. 
 #'  Y- axis show the distribution of genotypes.
