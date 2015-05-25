@@ -169,6 +169,7 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     message("Erasing... Erasing...")
     erased.genotype.number <- length(blacklist.genotypes$STATUS)
     total.genotype.number <- length(vcf.tidy$GT[vcf.tidy$GT != "./."])
+
     percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
 
     new.file <- data %>%
