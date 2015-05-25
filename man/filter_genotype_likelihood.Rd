@@ -6,7 +6,7 @@
 \usage{
 filter_genotype_likelihood(tidy.vcf.file, allele.min.depth.threshold,
   read.depth.max.threshold, gl.mean.threshold, gl.min.threshold,
-  gl.diff.threshold, pop.threshold, percent)
+  gl.diff.threshold, pop.threshold, percent, filename)
 }
 \arguments{
 \item{tidy.vcf.file}{A data frame object or file (using ".tsv")

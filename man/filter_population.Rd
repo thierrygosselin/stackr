@@ -15,6 +15,8 @@ a tidy VCF file or any of the last two file format modified by other filters.}
 or fixed number e.g. 0.70, 70 or 15.}
 
 \item{percent}{Is the threshold a percentage ? TRUE or FALSE.}
+
+\item{filename}{Name of the file written to the working directory.}
 }
 \description{
 Filter loci based on population threshold with loci: number,

@@ -5,7 +5,7 @@
 \title{Individual filter}
 \usage{
 filter_individual(data, is.vcf, population.map, pop.id.start, pop.id.end,
-  pop.levels, ind.threshold, threshold.fixed)
+  pop.levels, ind.threshold, threshold.fixed, filename)
 }
 \arguments{
 \item{data}{A data frame object or file (using ".tsv")
@@ -26,6 +26,8 @@ in the name of your individual sample.}
 number e.g. 0.70, 70, 15.}
 
 \item{threshold.fixed}{Is the threshold fixed ? TRUE or FALSE.}
+
+\item{filename}{Name of the file written to the working directory.}
 }
 \description{
 Filter individuals number, percentage or fix threshold

@@ -21,11 +21,11 @@ coverage_summary <- function (tidy.vcf.file, pop.levels, filename) {
   if (is.vector(tidy.vcf.file) == "TRUE") {
     data <- read_tsv(tidy.vcf.file, col_names = T, col_types = "iiiiccddcdccddddc")
     message("Using the file in your directory")
-
+    
   } else {
     data = tidy.vcf.file
     message("Using the file from your global environment")
-
+    
   }
   
   coverage.sum.loci <- data %>%
@@ -56,7 +56,7 @@ coverage_summary <- function (tidy.vcf.file, pop.levels, filename) {
     coverage <- coverage.sum.loci %>%
       mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T))
   }
-
+  
   # by pop
   coverage.sum.pop <- data %>%
     group_by(POP_ID, INDIVIDUALS) %>%
@@ -101,8 +101,8 @@ coverage_summary <- function (tidy.vcf.file, pop.levels, filename) {
   write.table(coverage.summary.pop.total, filename, sep = "\t", row.names = F, col.names = T, quote = F)
   
   invisible(cat(sprintf(
-"Filename: %s
-Written in this directory: %s", 
+    "Filename: %s
+    Written in this directory: %s", 
     filename,
     getwd()
   )))
@@ -111,9 +111,9 @@ Written in this directory: %s",
   results <- list()
   results$coverage.summary.long <- coverage.sum.loci
   results$coverage.summary.pop <- coverage.summary.pop.total
-
+  
   return(results)
-
+  
 }
 
 
@@ -283,12 +283,17 @@ table_low_coverage_summary <- function(tidy.vcf.file,
                      col_names = T, 
                      col_types = "diidccddccccdddddc") %>%
       mutate(INDIVIDUALS = factor(INDIVIDUALS))
+    message("Using the file in your directory")
+    
   } else {
     data <- tidy.vcf.file
+    message("Using the file from your global environment")
+    
   }
   
   if (missing(pop.levels) == "TRUE") {
     data <- tidy.vcf.file
+    
   } else {
     data <- tidy.vcf.file %>%
       mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T))
@@ -339,7 +344,7 @@ table_low_coverage_summary <- function(tidy.vcf.file,
   invisible(
     cat(
       sprintf(
-        "2 files:
+"2 files:
 %s
 %s\n
 Written in the directory:
@@ -381,7 +386,7 @@ genotype_likelihood_summary <- function(tidy.vcf.file, pop.levels, filename){
   } else {
     data <- tidy.vcf.file
     message("Using the file from your global environment")
-
+    
   }
   
   GL.loci.pop <- data %>%
@@ -413,7 +418,7 @@ genotype_likelihood_summary <- function(tidy.vcf.file, pop.levels, filename){
               row.names = F,
               col.names = T,
               quote = F
-              )
+  )
   
   GL.pop <- data %>%
     group_by(POP_ID, INDIVIDUALS) %>%
@@ -444,7 +449,7 @@ genotype_likelihood_summary <- function(tidy.vcf.file, pop.levels, filename){
     dcast(POP_ID ~ GENOTYPE_LIKELIHOOD_GROUP, value.var = "VALUE")
   
   invisible(cat(sprintf(
-"Filename:
+    "Filename:
 %s
 Written in the directory:
 %s",
@@ -455,7 +460,7 @@ Written in the directory:
   results <- list()
   results$gl.summary.long <- GL.loci.pop.summary
   results$gl.summary.pop <- GL.pop.summary.table
-
+  
   return(results)
   
 }

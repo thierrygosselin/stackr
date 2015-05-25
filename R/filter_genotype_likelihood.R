@@ -39,15 +39,15 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
   
   if(stri_detect_fixed(pop.threshold, ".") & pop.threshold < 1) {
     multiplication.number <- 1/pop.number
-    message("Using a proportion threshold")
+    message("Using a proportion threshold...")
     threshold.id <- "of proportion"
   } else if (stri_detect_fixed(percent, "T")) {
     multiplication.number <- 100/pop.number
-    message("Using a percentage threshold")
+    message("Using a percentage threshold...")
     threshold.id <- "percent"
   } else {
     multiplication.number <- 1
-    message("Using a fixed threshold")
+    message("Using a fixed threshold...")
     threshold.id <- "population as a fixed"
     
   }
@@ -95,10 +95,10 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
 The number of markers before the GL filter: SNP = %s, LOCI = %s
 The number of markers removed by the GL filter: SNP = %s, LOCI = %s
 The number of markers after the GL filter: SNP = %s, LOCI = %s\n
-  Filename:
-  %s
-  Written in the directory:
-  %s",
+Filename:
+%s
+Written in the directory:
+%s",
     pop.threshold,
     threshold.id,
     allele.min.depth.threshold,
