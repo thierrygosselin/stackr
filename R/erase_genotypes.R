@@ -55,14 +55,14 @@ blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele
   )
   
   invisible(cat(sprintf(
-  "Blacklist erase genotypes:
-  1. Read depth thresold: %s
-  2. REF and ALT coverage threshold: %s
-  3. Genotype likelihood threshold: %s
-  Filename:
-  %s
-  Written in the directory:
-  %s",
+"Blacklist erase genotypes:
+1. Read depth threshold: %s
+2. REF and ALT coverage threshold: %s
+3. Genotype likelihood threshold: %s\n
+Filename:
+%s
+Written in the directory:
+%s",
     read.depth.threshold,
     allele.depth.threshold,
     gl.threshold,
@@ -76,12 +76,13 @@ blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele
 
 
 #' @title Erase genotypes.
-#' @description This function erase the genotype in
-#' the 'batch_x.haplotypes.tsv' or a tidy vcf file.
-#' @param data The 'batch_x.haplotypes.tsv' created by STACKS.
+#' @description This function erase the genotypes of individuals 
+#' based on coverage and genotype likelihood thresholds.
+#' @param data The 'batch_x.haplotypes.tsv' or a tidy vcf file.
 #' @param is.tidy.vcf Using a tidy VCF file: TRUE or FALSE.
 #' @param blacklist.genotypes A blacklist of loci and genotypes 
-#' containing at least 2 columns header 'LOCUS' and 'SAMPLES'.
+#' containing at least 2 columns header 'LOCUS' and 'SAMPLES'. The file is 
+#' in the global environment (myfile) or in the working directory ("myfile.tsv").
 #' @param filename The filename saved to the working directory.
 #' @details Genotypes below average quality: below threshold for the
 #' read coverage, REF and/or ALT depth coverage and genotype likelihood
@@ -108,10 +109,10 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     if (is.vector(blacklist.genotypes) == "TRUE") {
       blacklist.genotypes <- read_tsv(blacklist.genotypes, col_names = T)
-      message("Using the blacklist file in your directory")
+      message("Using the blacklist file in your directory...")
     } else {
       blacklist.genotypes <- blacklist.genotypes
-      message("Using the blacklist from your global environment")
+      message("Using the blacklist from your global environment...")
     }
     
     erased.genotype.number <- length(blacklist.genotypes$STATUS)
@@ -126,6 +127,8 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     total.genotype.number <- length(haplo.number)
     
+    percent <- (erased.genotype.number/total.genotype.number)*100
+
     # Erasing genotype with the blacklist
     new.file <- data %>%
       melt(id.vars = c("LOCUS", "Cnt"), variable.name = "SAMPLES", value.name = "HAPLOTYPES") %>%
@@ -155,15 +158,16 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     if (is.vector(blacklist.genotypes) == "TRUE") {
       blacklist.genotypes <- read_tsv(blacklist.genotypes, col_names = T)
-      message("Using the blacklist file in your directory")
+      message("Using the blacklist file in your directory...")
       
     } else {
       blacklist.genotypes <- blacklist.genotypes
-      message("Using the blacklist from your global environment")
+      message("Using the blacklist from your global environment...")
     }
     
     erased.genotype.number <- length(blacklist.genotypes$STATUS)
     total.genotype.number <- length(vcf.tidy$GT[vcf.tidy$GT != "./."])
+    percent <- (erased.genotype.number/total.genotype.number)*100
     
     new.file <- data %>%
       mutate(
@@ -177,13 +181,13 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
   
   invisible(cat(sprintf(
     "Erasing genotypes of individuals in the %s file.
-Erased genotypes: %s.
-Out of a total of %s genotypes.
+Out of a total of %s genotypes 
+Erased genotypes: %s (= %s percent)\n
 Filename:
 %s
 Written in the directory:
 %s",
-    file.type, erased.genotype.number, total.genotype.number, filename, getwd()
+    file.type, total.genotype.number, erased.genotype.number, percent, filename, getwd()
   )))
   return(new.file)
 }
