@@ -14,10 +14,10 @@
 #' coverage threshold. 3. Create a blacklist of genotypes to erase.
 #' @return The function returns the individuals genotypes, by loci and 
 #' individuals, to erase.
-#' @rdname blacklist_erase_genotype
+#' @rdname blacklist_erase_genotype.
 #' @export
 
-blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele.depth.threshold, gl.threshold, filename {
+blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele.depth.threshold, gl.threshold, filename) {
   
   
   if (is.vector(tidy.vcf.file) == "TRUE") {
@@ -28,9 +28,7 @@ blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele
     message("Using the tidy vcf file from your global environment")
   }
   
-  
   blacklist <- tidy.vcf.file %>%
-    #   filter(GT == "0/0" | GT == "1/1") %>%
     filter(GT != "./.") %>%
     filter(READ_DEPTH < read.depth.threshold) %>%
     filter(GL < gl.threshold) %>%
@@ -69,8 +67,8 @@ Written in the directory:
     allele.depth.threshold,
     gl.threshold,
     filename, getwd()
-    
   )))
+  
   return(blacklist)
 }
 
@@ -84,12 +82,6 @@ Written in the directory:
 #' @param is.tidy.vcf Using a tidy VCF file: TRUE or FALSE.
 #' @param blacklist.genotypes A blacklist of loci and genotypes 
 #' containing at least 2 columns header 'LOCUS' and 'SAMPLES'.
-#' @param pop.id.start The start of your population id 
-#' in the name of your individual sample.
-#' @param pop.id.end The end of your population id 
-#' in the name of your individual sample.
-#' @param pop.levels An optional character string with your populations ordered.
-
 #' @param filename The filename saved to the working directory.
 #' @details Genotypes below average quality: below threshold for the
 #' read coverage, REF and/or ALT depth coverage and genotype likelihood
@@ -168,33 +160,33 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     } else {
       blacklist.genotypes <- blacklist.genotypes
       message("Using the blacklist from your global environment")
-      
-      erased.genotype.number <- length(blacklist.genotypes$STATUS)
-      total.genotype.number <- length(vcf.tidy$GT[vcf.tidy$GT != "./."])
-      
-      new.file <- data %>%
-        mutate(
-          GT = ifelse(INDIVIDUALS %in% blacklist.genotypes$SAMPLES & LOCUS %in% blacklist.genotypes$LOCUS, "-", INDIVIDUALS)
-        ) %>%
     }
     
+    erased.genotype.number <- length(blacklist.genotypes$STATUS)
+    total.genotype.number <- length(vcf.tidy$GT[vcf.tidy$GT != "./."])
     
+    new.file <- data %>%
+      mutate(
+        GT = ifelse(INDIVIDUALS %in% blacklist.genotypes$SAMPLES & LOCUS %in% blacklist.genotypes$LOCUS, "-", INDIVIDUALS)
+      )
     
-    write.table(new.file, filename, sep = "\t", row.names = F,
-                col.names = T, quote = F)
-    
-    
-    invisible(cat(sprintf(
-      "Erasing genotypes of individuals in the %s file.
+  }
+  
+  
+  write.table(new.file, filename, sep = "\t", row.names = F,
+              col.names = T, quote = F)
+  
+  
+  invisible(cat(sprintf(
+    "Erasing genotypes of individuals in the %s file.
 Erased genotypes: %s.
 Out of a total of %s genotypes.
 Filename:
 %s
 Written in the directory:
 %s",
-      file.type, erased.genotype.number, filename, getwd()
-    )))
-    return(new.file)
-  }
-  
-  
+    file.type, erased.genotype.number, filename, getwd()
+  )))
+  return(new.file)
+}
+
