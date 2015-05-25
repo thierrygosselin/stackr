@@ -7,9 +7,11 @@
 #' @param pop.threshold A threshold number: proportion, percentage
 #' or fixed number e.g. 0.70, 70 or 15.
 #' @param percent Is the threshold a percentage ? TRUE or FALSE.
+#' @rdname filter_population
+#' @export
 
 # Population
-filter_individual <- function(data, pop.threshold, percent, filename) {
+filter_population <- function(data, pop.threshold, percent, filename) {
 
   if (is.vector(data) == "TRUE") {
     message("Using the file in your directory")

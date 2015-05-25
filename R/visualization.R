@@ -360,7 +360,7 @@ Written in the directory:
 ##### Genotype likelihood ###
 
 #' @title Genotype likelihood summary.
-#' @description This function create a table summary of the important
+#' @description This function create 2 tables summary of the important
 #' genotype likelihood statistics from the tidy vcf created with read_stacks_vcf.
 #' @param tidy.vcf.file The tidy VCF file created with read_stacks_vcf.
 #' @param pop.levels Character string defining your ordered populations.
