@@ -184,10 +184,6 @@ figure_box_plot_coverage <- function(data) {
 #' @param aes.colour GGPLOT2 aesthetics, 
 #' e.g. aes(y = ..count..).
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
-#' @example fig <- figure_coverage_imbalance_diagnostic(
-#' tidy.vcf.file = vcf.tidy, pop.levels = SITES_LEVELS, 
-#' read.depth.threshold = 8, aes.colour = aes(y = ..count..), adjust.bin = 1)
-#' Use ( fig + facet_grid(GROUP_GL ~ GROUP_COVERAGE)).
 #' @return 4-plots highlighting the different combination of under
 #'  or over the coverage threshold and mean genotype likelihood. 
 #'  Y- axis show the distribution of genotypes.
@@ -200,6 +196,11 @@ figure_box_plot_coverage <- function(data) {
 #' Ideally the lower left pannel of the 4-plot should be empty. If it is, this
 #' shows that setting the threshold of the genotype likelihood filter
 #' to the mean or close to it take care of the allelic coverage imbalance.
+#' #' e.g. fig <- figure_coverage_imbalance_diagnostic(
+#' tidy.vcf.file = vcf.tidy, pop.levels = SITES_LEVELS, 
+#' read.depth.threshold = 8, aes.colour = aes(y = ..count..), adjust.bin = 1)
+#' Use ( fig + facet_grid(GROUP_GL ~ GROUP_COVERAGE)).
+
 
 figure_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read.depth.threshold, aes.colour, adjust.bin) {
   
