@@ -22,7 +22,9 @@ in the name of your individual sample.}
 
 \item{pop.levels}{An optional character string with your populations ordered.}
 
-\item{filter}{To apply a filter to the vcf, use a file or object.}
+\item{filter}{An optional filter of loci can be applied to the vcf, using
+a file in the working directory (e.g. "myfile.txt") or an object
+in the global environment.}
 
 \item{filename}{The name of the file written in the directory.}
 }
