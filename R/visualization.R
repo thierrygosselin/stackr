@@ -627,8 +627,9 @@ figure_density_distribution_het <- function(data, pop.levels, het.group, aes.col
 
 
 
-# AFTER FILTERS
-# Distribution number of SNP per LOCUS BEFORE and AFTER filters
+#' @title Figure of the distribution of SNP per locus before and after filters.
+#' @param before.filter.data Data set before filter.
+#' @param after.filter.data Data set after filter.
 figure_snp_number_loci <- function(before.filter.data, after.filter.data) {
   
   if (is.vector(before.filter.data) == "TRUE") {
@@ -670,6 +671,11 @@ figure_snp_number_loci <- function(before.filter.data, after.filter.data) {
   
   graph
 }
+
+#' @title Figure of the distribution of SNP nucleotide position alond the read.
+#' @param before.filter.data Data set before filter.
+#' @param gl.blacklist Blacklist to show the impact of the filter on marker
+#' density distribution.
 
 #  Distribution of SNP nucleotide position along the read 
 nucleotide_number_position <- function(before.filter.data, 
