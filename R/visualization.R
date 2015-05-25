@@ -492,7 +492,16 @@ figure_density_distribution_genotype_likelihood <- function(data, aes.colour,
       strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold"))
 }
 
+
+
+
 # Figure: Box Plot of genotype likelihood summary of loci
+#' @title Figure box plot of genotype likelihood summary statistics.
+#' @description Create box plots of genotype likelihood summary statistics.
+#' Use the genotype likelihood summary file created
+#' with genotype_likelihood_summary function.
+#' @param data genotype likelihood summary file.
+
 figure_box_plot_genotype_likelihood <- function(data) {
   ggplot(data, aes(x = factor(POP_ID), y = VALUE, na.rm = T))+
     geom_violin(trim = F)+
@@ -513,7 +522,16 @@ figure_box_plot_genotype_likelihood <- function(data) {
 
 
 
-# MAF Figure
+#' @title Figure density distribution of minor allele frequency (MAF) 
+#' summary statistics.
+#' @description Create density distribution of MAF summary statistics.
+#' @param data sumstats or tidy vcf files.
+#' @param maf.group The GGPLOT2 aes (e.g. aes(x = FREQ_ALT, na.rm = F)).
+#' @param aes.colour GGPLOT2 aesthetics colour, 
+#' e.g. aes(y = ..scaled.., color = GROUP).
+#' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
+#' @param x.title Title of the x-axis.
+
 figure_density_distribution_maf <- function(data, maf.group, aes.colour, adjust.bin, x.title) {
   
   if (is.vector(data) == "TRUE") {
@@ -540,7 +558,23 @@ figure_density_distribution_maf <- function(data, maf.group, aes.colour, adjust.
     )
 }
 
+
+
+
+
 # HET Figure
+#' @title Figure density distribution of the observed heterozygosity
+#' summary statistics.
+#' @description Create density distribution of the observed heterozygosity
+#' summary statistics.
+#' @param data sumstats or tidy vcf files.
+#' @param pop.levels Character string defining your ordered populations.
+#' @param maf.group = aes(x = FREQ_ALT, na.rm = F)
+#' @param aes.colour GGPLOT2 aesthetics colour, 
+#' e.g. aes(y = ..scaled.., color = GROUP).
+#' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
+#' @param x.title Title of the x-axis.
+#' 
 figure_density_distribution_het <- function(data, pop.levels, het.group, aes.colour, adjust.bin, x.title){
   
   
