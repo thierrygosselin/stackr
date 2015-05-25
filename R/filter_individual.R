@@ -13,10 +13,11 @@
 #' @param ind.threshold The individual threshold, proportion, percentage or 
 #' number e.g. 0.70, 70, 15.
 #' @param threshold.fixed Is the threshold fixed ? TRUE or FALSE.
+#' @param filename Name of the file written to the working directory.
 #' @rdname individual_filter
 #' @export
 
-filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id.end, pop.levels, ind.threshold, threshold.fixed ) {
+filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id.end, pop.levels, ind.threshold, threshold.fixed, filename) {
   
   if (is.vector(population.map) == "TRUE") {
     
@@ -238,19 +239,31 @@ filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id
     }
     
   }
+  write.table(ind.filter,
+              filename,
+              sep = "\t",
+              row.names = F,
+              col.names = T,
+              quote = F
+  )
   
   invisible(cat(sprintf(
     "Individual filter: %s %s threshold of genotyped individuals per sampling sites to keep the marker
   The number of SNP removed by the individual filter = %s SNP
   The number of LOCI removed by the individual filter = %s LOCI
   The number of SNP after the individual filter = %s SNP
-  The number of LOCI after the individual filter = %s LOCI", 
+  The number of LOCI after the individual filter = %s LOCI
+  Filename:
+  %s
+  Written in the directory:
+  %s", 
     ind.threshold,
     threshold.id,
     n_distinct(data$POS)-n_distinct(ind.filter$POS),
     n_distinct(data$LOCUS)-n_distinct(ind.filter$LOCUS),
     n_distinct(ind.filter$POS),
-    n_distinct(ind.filter$LOCUS)
+    n_distinct(ind.filter$LOCUS),
+    filename, getwd()
   )))
   ind.filter
 }

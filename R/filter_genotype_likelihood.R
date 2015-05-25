@@ -25,7 +25,7 @@
 #' @rdname filter_genotype_likelihood
 #' @export
 #' 
-filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold, gl.min.threshold, gl.diff.threshold, pop.threshold, percent) {
+filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold, gl.min.threshold, gl.diff.threshold, pop.threshold, percent, filename) {
   
   if (is.vector(tidy.vcf.file) == "TRUE") {
     data <- read_tsv(tidy.vcf.file, col_names = T)
@@ -76,22 +76,37 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
     left_join(data, by = "LOCUS") %>%
     arrange(LOCUS, POS, POP_ID)  
   
+  
+  write.table(filter,
+              filename,
+              sep = "\t",
+              row.names = F,
+              col.names = T,
+              quote = F
+  )
+  
   # filter
   invisible(cat(sprintf(
-  "Genotype likelihood (GL) filter:
+    "Genotype likelihood (GL) filter:
 %s %s threshold of populations to keep the marker
 1. Min REF or ALT coverage threshold: %s
 2. Max read depth threshold: %s
 3. Mean, min and diff (max-min) loci GL threshold: %s mean GL, %s min GL, %s diff GL
 The number of markers before the GL filter: SNP = %s, LOCI = %s
 The number of markers removed by the GL filter: SNP = %s, LOCI = %s
-The number of markers after the GL filter: SNP = %s, LOCI = %s",
-  pop.threshold,
-  threshold.id,
-  allele.min.depth.threshold,
-  read.depth.max.threshold,
-  gl.mean.threshold, gl.min.threshold, gl.diff.threshold,
-  n_distinct(data$POS), n_distinct(data$LOCUS), (n_distinct(data$POS)-n_distinct(filter$POS)), (n_distinct(data$LOCUS)-n_distinct(filter$LOCUS)), n_distinct(filter$POS), n_distinct(filter$LOCUS)
+The number of markers after the GL filter: SNP = %s, LOCI = %s\n
+  Filename:
+  %s
+  Written in the directory:
+  %s",
+    pop.threshold,
+    threshold.id,
+    allele.min.depth.threshold,
+    read.depth.max.threshold,
+    gl.mean.threshold, gl.min.threshold, gl.diff.threshold,
+    n_distinct(data$POS), n_distinct(data$LOCUS), (n_distinct(data$POS)-n_distinct(filter$POS)), (n_distinct(data$LOCUS)-n_distinct(filter$LOCUS)), n_distinct(filter$POS), n_distinct(filter$LOCUS),
+    filename, getwd()
+    
   )))
   filter
 }

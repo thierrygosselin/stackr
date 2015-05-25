@@ -7,6 +7,7 @@
 #' @param pop.threshold A threshold number: proportion, percentage
 #' or fixed number e.g. 0.70, 70 or 15.
 #' @param percent Is the threshold a percentage ? TRUE or FALSE.
+#' @param filename Name of the file written to the working directory.
 #' @rdname filter_population
 #' @export
 
