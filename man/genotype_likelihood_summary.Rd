@@ -18,7 +18,7 @@ The short-format is more user-friendly and
 is written to the working directory.
 }
 \description{
-This function create a table summary of the important
+This function create 2 tables summary of the important
 genotype likelihood statistics from the tidy vcf created with read_stacks_vcf.
 }
 \details{

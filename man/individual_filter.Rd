@@ -4,7 +4,8 @@
 \alias{filter_individual}
 \title{Individual filter}
 \usage{
-filter_individual(data, pop.threshold, percent, filename)
+filter_individual(data, is.vcf, population.map, pop.id.start, pop.id.end,
+  pop.levels, ind.threshold, threshold.fixed)
 }
 \arguments{
 \item{data}{A data frame object or file (using ".tsv")
