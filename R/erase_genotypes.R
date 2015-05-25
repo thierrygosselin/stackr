@@ -109,12 +109,14 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     if (is.vector(blacklist.genotypes) == "TRUE") {
       blacklist.genotypes <- read_tsv(blacklist.genotypes, col_names = T)
-      message("Using the blacklist file in your directory...")
+      message("Using the blacklist file in your directory")
     } else {
       blacklist.genotypes <- blacklist.genotypes
-      message("Using the blacklist from your global environment...")
+      message("Using the blacklist from your global environment")
     }
     
+    message("Erasing... Erasing...")
+
     erased.genotype.number <- length(blacklist.genotypes$STATUS)
     
     haplo.number <- data %>%
@@ -127,7 +129,7 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     total.genotype.number <- length(haplo.number)
     
-    percent <- (erased.genotype.number/total.genotype.number)*100
+    percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
 
     # Erasing genotype with the blacklist
     new.file <- data %>%
@@ -158,17 +160,17 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     if (is.vector(blacklist.genotypes) == "TRUE") {
       blacklist.genotypes <- read_tsv(blacklist.genotypes, col_names = T)
-      message("Using the blacklist file in your directory...")
+      message("Using the blacklist file in your directory")
       
     } else {
       blacklist.genotypes <- blacklist.genotypes
-      message("Using the blacklist from your global environment...")
+      message("Using the blacklist from your global environment")
     }
-    
+    message("Erasing... Erasing...")
     erased.genotype.number <- length(blacklist.genotypes$STATUS)
     total.genotype.number <- length(vcf.tidy$GT[vcf.tidy$GT != "./."])
-    percent <- (erased.genotype.number/total.genotype.number)*100
-    
+    percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
+
     new.file <- data %>%
       mutate(
         GT = ifelse(INDIVIDUALS %in% blacklist.genotypes$SAMPLES & LOCUS %in% blacklist.genotypes$LOCUS, "-", INDIVIDUALS)
@@ -182,7 +184,7 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
   invisible(cat(sprintf(
     "Erasing genotypes of individuals in the %s file.
 Out of a total of %s genotypes 
-Erased genotypes: %s (= %s percent)\n
+Erased genotypes: %s (= %s )\n
 Filename:
 %s
 Written in the directory:

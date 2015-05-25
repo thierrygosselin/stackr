@@ -7,18 +7,19 @@
 erase_genotypes(data, is.tidy.vcf, blacklist.genotypes, filename)
 }
 \arguments{
-\item{data}{The 'batch_x.haplotypes.tsv' created by STACKS.}
+\item{data}{The 'batch_x.haplotypes.tsv' or a tidy vcf file.}
 
 \item{is.tidy.vcf}{Using a tidy VCF file: TRUE or FALSE.}
 
 \item{blacklist.genotypes}{A blacklist of loci and genotypes
-containing at least 2 columns header 'LOCUS' and 'SAMPLES'.}
+containing at least 2 columns header 'LOCUS' and 'SAMPLES'. The file is
+in the global environment (myfile) or in the working directory ("myfile.tsv").}
 
 \item{filename}{The filename saved to the working directory.}
 }
 \description{
-This function erase the genotype in
-the 'batch_x.haplotypes.tsv' or a tidy vcf file.
+This function erase the genotypes of individuals
+based on coverage and genotype likelihood thresholds.
 }
 \details{
 Genotypes below average quality: below threshold for the
