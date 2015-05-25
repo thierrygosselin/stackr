@@ -117,23 +117,25 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     message("Erasing... Erasing...")
 
-    erased.genotype.number <- length(blacklist.genotypes$STATUS)
-    
-    haplo.number <- data %>%
+    # haplotypes file preparation
+    haplo.prep <- data %>%
       melt(id.vars = c("LOCUS", "Cnt"), 
            variable.name = "SAMPLES",
            value.name = "HAPLOTYPES"
-      ) %>%
+      )
+    
+    # interesting stats.
+    erased.genotype.number <- length(blacklist.genotypes$STATUS)
+    
+    haplo.number <- haplo.prep %>%
       filter(HAPLOTYPES != "-") %>%
       select(HAPLOTYPES)
     
-    total.genotype.number <- length(haplo.number)
-    
+    total.genotype.number <- length(haplo.number$HAPLOTYPES)
     percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
 
     # Erasing genotype with the blacklist
-    new.file <- data %>%
-      melt(id.vars = c("LOCUS", "Cnt"), variable.name = "SAMPLES", value.name = "HAPLOTYPES") %>%
+    new.file <- haplo.prep %>%
       mutate(
         HAPLOTYPES = ifelse(SAMPLES %in% blacklist.genotypes$SAMPLES & LOCUS %in% blacklist.genotypes$LOCUS, "-", HAPLOTYPES)
       ) %>%
@@ -167,9 +169,10 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
       message("Using the blacklist from your global environment")
     }
     message("Erasing... Erasing...")
+
+    # interesting stats.
     erased.genotype.number <- length(blacklist.genotypes$STATUS)
     total.genotype.number <- length(vcf.tidy$GT[vcf.tidy$GT != "./."])
-
     percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
 
     new.file <- data %>%
