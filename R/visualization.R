@@ -192,8 +192,8 @@ figure_box_plot_coverage <- function(data) {
 #'  or over the coverage threshold and mean genotype likelihood. 
 #'  Y- axis show the distribution of genotypes.
 #'  X- axis show the coverage imbalance the 
-#'  Negative ratio (left x axis) : REF > ALT
-#'  Positive ratio (right x axis) : ALT > REF
+#'  Negative ratio (left x axis) : REF > ALT.
+#'  Positive ratio (right x axis) : ALT > REF.
 #' @details The figures shows the results of the of coverage threshold
 #' selected and mean genotype likelihood. 
 #' You can test different threshold to inspect your data.
@@ -569,7 +569,7 @@ figure_density_distribution_maf <- function(data, maf.group, aes.colour, adjust.
 #' summary statistics.
 #' @param data sumstats or tidy vcf files.
 #' @param pop.levels Character string defining your ordered populations.
-#' @param maf.group = aes(x = FREQ_ALT, na.rm = F)
+#' @param het.group = aes(x = HET_MAX, na.rm = F)
 #' @param aes.colour GGPLOT2 aesthetics colour, 
 #' e.g. aes(y = ..scaled.., color = GROUP).
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
