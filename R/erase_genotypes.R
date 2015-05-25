@@ -84,12 +84,6 @@ Written in the directory:
 #' @param is.tidy.vcf Using a tidy VCF file: TRUE or FALSE.
 #' @param blacklist.genotypes A blacklist of loci and genotypes 
 #' containing at least 2 columns header 'LOCUS' and 'SAMPLES'.
-#' @param pop.id.start The start of your population id 
-#' in the name of your individual sample.
-#' @param pop.id.end The end of your population id 
-#' in the name of your individual sample.
-#' @param pop.levels An optional character string with your populations ordered.
-
 #' @param filename The filename saved to the working directory.
 #' @details Genotypes below average quality: below threshold for the
 #' read coverage, REF and/or ALT depth coverage and genotype likelihood
@@ -168,16 +162,17 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     } else {
       blacklist.genotypes <- blacklist.genotypes
       message("Using the blacklist from your global environment")
-      
-      erased.genotype.number <- length(blacklist.genotypes$STATUS)
+    }
+    
+     erased.genotype.number <- length(blacklist.genotypes$STATUS)
       total.genotype.number <- length(vcf.tidy$GT[vcf.tidy$GT != "./."])
       
       new.file <- data %>%
         mutate(
           GT = ifelse(INDIVIDUALS %in% blacklist.genotypes$SAMPLES & LOCUS %in% blacklist.genotypes$LOCUS, "-", INDIVIDUALS)
-        ) %>%
-    }
-    
+        )
+      
+  }
     
     
     write.table(new.file, filename, sep = "\t", row.names = F,
@@ -196,5 +191,4 @@ Written in the directory:
     )))
     return(new.file)
   }
-  
   
