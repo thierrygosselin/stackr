@@ -1,3 +1,8 @@
+# Write a genepop file from STACKS haplotype file
+if(getRversion() >= "2.15.1")  utils::globalVariables(c(`Catalog ID`,"Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE_1", "ALLELE_2", "GENOTYPE"))
+
+
+
 #' @title Use the batch_x.haplotypes.tsv file to write a genpop file
 #' @description This function can first filter the haplotypes file with a whitelist of loci
 #' and a blacklist of individuals (optional).
@@ -13,6 +18,7 @@
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
+#' @import reshape2
 #' @import plyr
 #' @import dplyr
 #' @import tidyr
