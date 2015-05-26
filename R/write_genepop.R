@@ -27,12 +27,7 @@ if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
   # No filter
   haplotype.no.filter <- read_tsv(haplotypes.file, col_names = T) %>% 
     rename(Catalog.ID = `Catalog ID`) %>%
-    melt(
-      id.vars = c("Catalog.ID", "Cnt"),
-      variable.name = "SAMPLES",
-      value.name = "HAPLOTYPES",
-      factorAsStrings = F
-      ) %>%
+    gather(SAMPLES, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
     arrange(Catalog.ID)
 
   
@@ -45,10 +40,7 @@ if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
   # just whitelist.loci, NO Blacklist of individual
   haplotype.whitelist.loci <- read_tsv(haplotypes.file, col_names = T) %>%
     rename(Catalog.ID = `Catalog ID`) %>%
-    melt(id.vars = c("Catalog.ID", "Cnt"),
-         variable.name = "SAMPLES",
-         value.name = "HAPLOTYPES",
-         factorAsStrings = F) %>% 
+    gather(SAMPLES, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
     right_join(
       read_tsv(whitelist.loci, col_names = T) %>%
         rename(Catalog.ID = LOCUS),
@@ -64,12 +56,7 @@ if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
   # NO whitelist, JUST Blacklist of individual
   haplotype.blacklist <- read_tsv(haplotypes.file, col_names = T) %>%
     rename(Catalog.ID = `Catalog ID`) %>%
-    melt(
-      id.vars = c("Catalog.ID", "Cnt"),
-      variable.name = "SAMPLES",
-      value.name = "HAPLOTYPES",
-      factorAsStrings = F
-      ) %>% 
+    gather(SAMPLES, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
     anti_join(read_tsv(blacklist.id, col_names = T), by = "SAMPLES") %>%
     arrange(Catalog.ID)
   
@@ -83,11 +70,7 @@ if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
   # whitelist.loci + Blacklist of individual
   haplotype.whitelist.blacklist <- read_tsv(haplotypes.file, col_names = T) %>% 
     rename(Catalog.ID = `Catalog ID`) %>%
-    melt(
-      id.vars = c("Catalog.ID", "Cnt"),
-      variable.name = "SAMPLES",
-      value.name = "HAPLOTYPES",
-      factorAsStrings = F) %>%
+    gather(SAMPLES, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
     right_join(
       read_tsv(whitelist.loci, col_names = T) %>%
         rename(Catalog.ID = LOCUS),
@@ -124,12 +107,11 @@ if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
       ALLELE_2 = stri_replace_na(ALLELE_2, replacement = "no_allele"),
       ALLELE_2 = ifelse(ALLELE_2 == "no_allele", ALLELE_1, ALLELE_2)
       ) %>%
-    melt(
-      id.vars = c("Catalog.ID","Cnt", "SAMPLES"),
-      measure.vars = c("ALLELE_1", "ALLELE_2"), 
-      variable.name = "ALLELE", 
-      value.name = "NUCLEOTIDES"
-      ) %>%
+    melt(id.vars = c("Catalog.ID","Cnt", "SAMPLES"),
+         measure.vars = c("ALLELE_1", "ALLELE_2"), 
+         variable.name = "ALLELE", 
+         value.name = "NUCLEOTIDES"
+         ) %>%
     group_by(Catalog.ID) %>%
     mutate(
       NUCLEOTIDES = factor(NUCLEOTIDES),

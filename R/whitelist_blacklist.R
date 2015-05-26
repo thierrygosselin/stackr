@@ -1,4 +1,12 @@
 # Create a whitelist from an object with LOCUS column
+# whitelist_loci: no visible binding for global variable ‘LOCUS’
+# whitelist_loci_snp: no visible binding for global variable ‘LOCUS’
+# whitelist_loci_snp: no visible binding for global variable ‘POS’
+# whitelist_loci_vcf: no visible binding for global variable ‘POS’
+# whitelist_loci_vcf: no visible binding for global variable ‘CHROM’
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("LOCUS","POS", "CHROM"))
+
+
 
 #' @title Whitelist loci
 #' @description This function creates a whitelist of loci, used after applying a filter
