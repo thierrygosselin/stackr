@@ -77,13 +77,13 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
     arrange(LOCUS, POS, POP_ID)  
   
   
-  write.table(filter,
-              filename,
-              sep = "\t",
-              row.names = F,
-              col.names = T,
-              quote = F
-  )
+#   write.table(filter,
+#               filename,
+#               sep = "\t",
+#               row.names = F,
+#               col.names = T,
+#               quote = F
+#   )
   
   if (missing(filename) == "FALSE") {
     message("Saving the file in your working directory...")

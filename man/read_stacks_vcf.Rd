@@ -23,10 +23,6 @@ a file in the working directory (e.g. "myfile.txt") or an object
 in the global environment.}
 
 \item{filename}{The name of the file written in the directory.}
-
-\item{skip.line}{Default is 9 with vcf created in STACKS.}
-
-\item{max.read.lines}{The number of markers + the header line.}
 }
 \description{
 Import a VCF file created by STACKS and mofify to a tidy format.
