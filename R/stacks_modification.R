@@ -79,7 +79,7 @@ sumstats_prep <- function(sumstats, skip.line, pop.num, pop.col.types, pop.integ
     group_by(LOCUS, POS) %>%
     summarise(
       N = sum(N_SNP),
-      GLOBAL_MAF = N_SNP[ALLELE == "ALLELE_Q"] / (2*N)
+      GLOBAL_MAF = length(N_SNP[ALLELE == "ALLELE_Q"]) / (2*N)
     ) %>%
     select(-N) %>%
     full_join(sumstats.prep, by = c("LOCUS", "POS")) %>%

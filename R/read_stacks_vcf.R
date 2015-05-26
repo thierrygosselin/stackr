@@ -1,8 +1,6 @@
 #' @title Read a VCF file produced by STACKS and transform in tidy format.
 #' @description Import a VCF file created by STACKS and mofify to a tidy format.
 #' @param vcf.file The VCF file created by STACKS.
-#' @param skip.line Default is 9 with vcf created in STACKS.
-#' @param max.read.lines The number of markers + the header line.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 

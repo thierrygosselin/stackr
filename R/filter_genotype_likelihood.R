@@ -85,7 +85,15 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
               quote = F
   )
   
-  # filter
+  if (missing(filename) == "FALSE") {
+    message("Saving the file in your working directory...")
+    write_tsv(filter, filename, append = FALSE, col_names = TRUE)
+    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+  } else {
+    saving <- "Saving was not selected"
+  }
+  
+  
   invisible(cat(sprintf(
     "Genotype likelihood (GL) filter:
 %s %s threshold of populations to keep the marker
@@ -95,9 +103,8 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
 The number of markers before the GL filter: SNP = %s, LOCI = %s
 The number of markers removed by the GL filter: SNP = %s, LOCI = %s
 The number of markers after the GL filter: SNP = %s, LOCI = %s\n
-Filename:
-%s
-Written in the directory:
+%s\n
+Working directory:
 %s",
     pop.threshold,
     threshold.id,
@@ -105,7 +112,7 @@ Written in the directory:
     read.depth.max.threshold,
     gl.mean.threshold, gl.min.threshold, gl.diff.threshold,
     n_distinct(data$POS), n_distinct(data$LOCUS), (n_distinct(data$POS)-n_distinct(filter$POS)), (n_distinct(data$LOCUS)-n_distinct(filter$LOCUS)), n_distinct(filter$POS), n_distinct(filter$LOCUS),
-    filename, getwd()
+    saving, getwd()
     
   )))
   filter
