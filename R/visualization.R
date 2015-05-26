@@ -444,3 +444,64 @@ figure_nucleotide_number_position <- function(data, aes.colour, y.title) {
     )
 }
 
+
+
+
+#' @title Density distribution of diversity (Gene and Haplotypes).
+#' @description GGPLOT2 Density distribution of diversity (Gene and Haplotypes).
+#' @param data The hapstats summary file or object.
+#' @param aes.x GGPLOT2 aesthetics, 
+#' e.g. aes.x = aes(x = GENE_DIVERSITY, na.rm = T).
+#' @param aes.colour GGPLOT2 aesthetics colour, 
+#' e.g. aes.colour = aes(y = ..scaled.., colour = POP_ID).
+#' @param x.title Title of the x-axis.
+#' @param y.title Title of the y-axis.
+
+figure_distribution_diversity <- function(data, aes.x, aes.colour, x.title, y.title) {
+  ggplot(hapstats.summary, aes.x)+
+    geom_line(aes.colour, stat = "density", adjust = 0.8)+
+    #   scale_colour_manual(name = "Populations", values = colour_palette_sites.pink, breaks = c("BUR", "GRA", "GUL", "LLI", "ANG", "WEI", "HAY", "GOD"))+
+    #   geom_density(aes(fill=POP_ID, color=NA), alpha=0.4)+
+    #   scale_fill_manual(name="Populations", values=colour_palette_sites.pink, breaks = c("BUR", "GRA", "GUL", "LLI", "ANG", "WEI", "HAY", "GOD"))+
+    #   scale_color_manual(name="Populations", values=colour_palette_sites.pink, breaks = c("BUR", "GRA", "GUL", "LLI", "ANG", "WEI", "HAY", "GOD"))+
+    labs(x = x.title)+
+    labs(y = y.title)+
+    expand_limits(y=0)+
+    theme(
+      legend.position = "none",
+      axis.title.x=element_text(size=12, family="Helvetica",face="bold"),
+      axis.title.y=element_text(size=12, family="Helvetica",face="bold"),
+      legend.title=element_text(size=12, family="Helvetica",face="bold"),
+      legend.text=element_text(size=12, family="Helvetica",face="bold"),
+      strip.text.y=element_text(angle=0,size=12, family="Helvetica",face="bold"),
+      strip.text.x=element_text(size=12, family="Helvetica",face="bold")
+    )
+}
+
+
+
+
+#' @title Box plot of the diversity (Gene and Haplotypes).
+#' @description GGPLOT2 Box plot of the diversity (Gene and Haplotypes).
+#' @param data The hapstats summary file or object.
+#' @param aes.x.y The GGPLOT2 aesthetics, 
+#' e.g. aes.x.y = aes(x = factor(POP_ID), y = GENE_DIVERSITY, na.rm = T). 
+#' @param y.title Title of the y-axis.
+
+figure_box_plot_diversity <- function(data, aes.x.y, y.title) {
+  ggplot(data, aes.x.y)+
+    geom_violin(trim = F)+
+    geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
+    stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
+    labs(x = "Sampling sites")+
+    labs(y = y.title)+
+    theme(
+      legend.position = "none",
+      axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
+      axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
+      legend.title = element_text(size = 12, family = "Helvetica", face = "bold"),
+      legend.text = element_text(size = 12, family = "Helvetica", face = "bold"),
+      strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+    )
+}
+

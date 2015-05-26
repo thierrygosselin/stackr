@@ -1,5 +1,244 @@
 ## Summary and tables
 
+#' @title haplotypes summary
+#' @description STACKS batch_x.haplotypes.tsv file summary.
+#' Output summary table for populations with putative paralogs,
+#' consensus, monomorphic and polymorphic loci.
+#' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
+#' @param pop.id.start The start of your population id 
+#' in the name of your individual sample.
+#' @param pop.id.end The end of your population id 
+#' in the name of your individual sample.
+#' @param pop.levels An optional character string with your populations ordered.
+#' @return The function returns a list with the summary, the paralogs and
+#' consensus loci by populations and unique loci (use $ to access each 
+#' components).
+#' Write 3 files in the working directory:
+#' blacklist of unique putative paralogs and unique consensus loci.
+#' and a summary of the haplotypes file by population.
+#' @details haplo.summary <- haplotype.file.summary$summary
+#' paralogs.pop <- haplotype.file.summary$paralogs.pop
+#' paralogs.loci <- haplotype.file.summary$paralogs.loci
+#' consensus.pop <- haplotype.file.summary$consensus.pop
+#' consensus.loci <- haplotype.file.summary$consensus.loci
+
+summary_polymorphism_haplotype <- function(haplotypes.file, pop.id.start, pop.id.end, pop.levels) {
+  
+  # Import haplotype file
+  batch_1.haplotypes <- read_tsv(haplotypes.file, col_names = T) %>%
+    rename(LOCUS =`Catalog ID`) %>%
+    gather(SAMPLES, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
+    mutate(
+      POP_ID = str_sub(SAMPLES, pop.id.start, pop.id.end),
+      POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
+    )
+  
+  
+  # Locus with > 2 alleles by pop
+  # Create a blacklist of catalog loci with paralogs
+  
+  paralogs.pop <- batch_1.haplotypes %>%
+    mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/")) %>%
+    group_by(LOCUS, POP_ID) %>%
+    summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>%
+    filter(POLYMORPHISM_MAX > 1) %>%
+    mutate(PARALOGS = rep("paralogs", times = n())) %>%
+    select(LOCUS, POP_ID, PARALOGS)
+  
+  
+  
+  blacklist.loci.paralogs <- paralogs.pop %>%
+    group_by(LOCUS) %>%
+    select (LOCUS) %>%
+    distinct(LOCUS) %>%
+    arrange(LOCUS)
+  
+  write.table(blacklist.loci.paralogs,
+              "blacklist.loci.paralogs.tsv",
+              sep = "\t", row.names = F, col.names = T, quote = F)
+  
+  paralogs.pop
+  
+  # Locus with concensus alleles
+  consensus.pop <- batch_1.haplotypes %>%
+    mutate(CONSENSUS = stri_count_fixed(HAPLOTYPES, "consensus")) %>%
+    group_by(LOCUS, POP_ID) %>%
+    summarise(CONSENSUS_MAX = max(CONSENSUS)) %>%
+    filter(CONSENSUS_MAX > 0) %>%
+    mutate(CONSENSUS = rep("consensus", times = n())) %>%
+    select(LOCUS, POP_ID, CONSENSUS)
+  
+  
+  # Number of loci in the catalog with consensus alleles
+  
+  blacklist.loci.consensus <- consensus.pop %>%
+    group_by(LOCUS) %>%
+    select (LOCUS) %>%
+    distinct(LOCUS) %>%
+    arrange(LOCUS)
+  
+  write.table(blacklist.loci.consensus, 
+              "blacklist.loci.consensus.tsv",
+              sep = "\t", row.names = F, col.names = T, quote = F)
+  
+  consensus.pop  
+  
+  # Summary dataframe
+  summary.pop <- batch_1.haplotypes %>%
+    filter(subset =! LOCUS %in% consensus.pop$LOCUS) %>%
+    mutate(
+      ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/")
+    ) %>%
+    arrange(LOCUS) %>%
+    group_by(POP_ID, LOCUS) %>%
+    summarise(
+      ALLELES_COUNT_SUM = sum(ALLELES_COUNT)
+    ) %>%
+    mutate(
+      POP_LEVEL_POLYMORPHISM = ifelse(ALLELES_COUNT_SUM == 0, "mono", "poly")
+    ) %>%
+    summarise(
+      MONOMORPHIC = length(POP_LEVEL_POLYMORPHISM[POP_LEVEL_POLYMORPHISM == "mono"]),
+      POLYMORPHIC = length(POP_LEVEL_POLYMORPHISM[POP_LEVEL_POLYMORPHISM == "poly"])
+    ) %>%
+    full_join(
+      consensus.pop %>%
+        group_by(POP_ID) %>%
+        summarise(CONSENSUS = n_distinct(LOCUS)),
+      by = "POP_ID"
+    ) %>%
+    group_by(POP_ID) %>%
+    mutate(
+      TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS
+    ) %>%
+    full_join(
+      paralogs.pop %>%
+        group_by(POP_ID) %>%
+        summarise(PARALOGS = n_distinct(LOCUS)),
+      by = "POP_ID"
+    ) %>%
+    mutate(
+      MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
+      POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
+      PARALOG_PROP = round(PARALOGS/TOTAL, 4)
+    )
+  
+  total <- batch_1.haplotypes %>%
+    filter(subset =! LOCUS %in% consensus.pop$LOCUS) %>%
+    filter(HAPLOTYPES != "-") %>%
+    select(-Cnt, -SAMPLES, -POP_ID) %>%
+    group_by(LOCUS, HAPLOTYPES) %>%
+    distinct(HAPLOTYPES) %>%
+    mutate(
+      ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/")
+    ) %>%
+    arrange(LOCUS) %>%
+    group_by(LOCUS) %>%
+    summarise(
+      ALLELES_COUNT_MAX = max(ALLELES_COUNT)
+    ) %>%
+    mutate(
+      POLYMORPHISM = ifelse(ALLELES_COUNT_MAX == 0, "mono", "poly")
+    ) %>%
+    summarise(
+      MONOMORPHIC = length(POLYMORPHISM[POLYMORPHISM == "mono"]),
+      POLYMORPHIC = length(POLYMORPHISM[POLYMORPHISM == "poly"])
+    ) %>%
+    bind_cols(
+      blacklist.loci.consensus %>%
+        ungroup %>%
+        summarise(CONSENSUS = n()) %>% 
+        select(CONSENSUS)
+    ) %>%
+    mutate(
+      TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS
+    ) %>%
+    bind_cols(
+      blacklist.loci.paralogs %>%
+        ungroup %>%
+        summarise(PARALOGS = n()) %>% 
+        select(PARALOGS)
+    ) %>%
+    mutate(
+      MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
+      POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
+      PARALOG_PROP = round(PARALOGS/TOTAL, 4)
+    )
+  total.res <- data_frame(POP_ID="OVERALL") %>%
+    bind_cols(total)
+  
+  summary <- bind_rows(summary.pop, total.res)
+  
+  write.table(summary, "haplotype.catalog.loci.summary.pop.tsv", 
+              sep = "\t", row.names = F, col.names = T, quote = F)
+  
+  invisible(cat(sprintf(
+    "The number of loci in the catalog = %s LOCI
+The number of putative paralogs loci in the catalog (> 2 alleles) = %s LOCI
+The number of loci in the catalog with consensus alleles = %s LOCI
+3 files were written in this directory: %s
+1. blacklist.loci.paralogs.tsv
+2. blacklist.loci.consensus.tsv
+3. haplotype.catalog.loci.summary.pop.tsv", 
+    n_distinct(batch_1.haplotypes$LOCUS),
+    n_distinct(paralogs.pop$LOCUS),
+    n_distinct(consensus.pop$LOCUS),
+    getwd()
+  )))
+  
+  # Results
+  results <- list()
+  results$summary <- summary
+  results$paralogs.pop <- paralogs.pop
+  results$paralogs.loci <- blacklist.loci.paralogs
+  results$consensus.pop <- consensus.pop
+  results$consensus.loci <- blacklist.loci.consensus
+  
+  return(results)
+  
+}
+
+
+
+
+#' @title Import and summarise the batch_x.hapstats.tsv file.
+#' @description Import and summarise the batch_x.hapstats.tsv file.
+#' Necessary preparation for density distribution and box plot figures.
+#' @param data The 'batch_x.hapstats.tsv' created by STACKS.
+#' @param number.pop The number of populations analysed.
+#' @param pop.col.types Integer or Character used in STACKS populations module?
+#' @param pop.integer.equi When Integer was used for your population id,
+#' give the character equivalence
+#' @param pop.levels A character string with your populations in order.
+
+summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop.levels) {
+  
+  skip.lines <- pop.num + 1
+  
+  if(pop.col.types == "integer"){
+    col.types = "iiciiiiddddddc"
+  } 
+  if(pop.col.types == "character") {
+    col.types = "iiciciiddddddc"
+  } else {
+    col.types = NULL
+  }
+  hapstats <- read_tsv(data,
+                       na = "NA",
+                       skip = skip.lines,
+                       progress = interactive(),
+                       col_names = c("BATCH_ID", "LOCUS", "CHR", "BP", "POP_ID", "N", "HAPLOTYPE_CNT", "GENE_DIVERSITY", "SMOOTHED_GENE_DIVERSITY", "SMOOTHED_GENE_DIVERSITY_PVALUE", "HAPLOTYPE_DIVERSITY", "SMOOTHED_HAPLOTYPE_DIVERSITY", "SMOOTHED_HAPLOTYPE_DIVERSITY_PVALUE", "HAPLOTYPES"),
+                       col_types = col.types) %>%
+    mutate (
+      POP_ID = stri_replace_all_fixed(POP_ID, seq(from = 1, to = pop.num, by = 1), pop.integer.equi, vectorize_all=F),
+      POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
+    ) %>%
+    arrange(LOCUS, POP_ID)
+  #   separate(HAPLOTYPES, c("ALLELE_P", "ALLELE_Q"), sep = "/", extra = "error", remove = F) %>%
+}
+
+
+
 
 ## VCF
 #' @title Summary statistics of a tidy VCF by population and markers.
@@ -45,6 +284,7 @@ summary_vcf_tidy <- function(data) {
   
   return(vcf.prep)
 }
+
 
 
 
@@ -386,4 +626,29 @@ Written in the directory:
 }
 
 
+
+
+#' @title Import and summarise the batch_x.phistats.tsv file.
+#' @description Import and summarise the batch_x.phistats.tsv file.
+#' Necessary preparation for density distribution and box plot figures.
+#' @param data The 'batch_x.phistats.tsv' created by STACKS.
+#' @param skip.line The number of line without the header 
+#' to start reading the data.
+
+summary_phistats <- function(data, skip.lines) {
+  
+  phistats <- read_tsv(data,
+                       na = "NA",
+                       skip = skip.lines,
+                       progress = interactive(),
+                       col_types = "iiciiddddddddddddddd",
+                       col_names = c("BATCH_ID", "LOCUS", "CHR", "BP", "POP_COUNT", "PHI_ST", "SMOOTHED_PHI_ST", "SMOOTHED_PHI_ST_P_VALUE", "PHI_CT", "SMOOTHED_PHI_CT", "SMOOTHED_PHI_CT_P_VALUE", "PHI_SC", "SMOOTHED_PHI_SC", "SMOOTHED_PHI_SC_P_VALUE", "FST_PRIME", "SMOOTHED_FST_PRIME", "SMOOTHED_FST_PRIME_P_VALUE", "D_EST", "SMOOTHED_D_EST", "SMOOTHED_D_EST_P_VALUE")
+  ) %>%
+    select(-c(BATCH_ID, CHR, SMOOTHED_PHI_ST, SMOOTHED_PHI_ST_P_VALUE, SMOOTHED_PHI_CT, SMOOTHED_PHI_CT_P_VALUE, SMOOTHED_PHI_SC, SMOOTHED_PHI_SC_P_VALUE, SMOOTHED_FST_PRIME, SMOOTHED_FST_PRIME_P_VALUE, SMOOTHED_D_EST, SMOOTHED_D_EST_P_VALUE)) %>%
+    melt(
+      id.vars = c("LOCUS","BP","POP_COUNT"),
+      variable.name = c("PHI_ST", "FST_PRIME", "D_EST"),
+      value.name = "VALUE"
+    )
+}
 
