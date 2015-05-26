@@ -27,6 +27,7 @@
 #' @param number.pop The number of populations analysed.
 #' @import plyr
 #' @import dplyr
+#' @import readr
 
 assignment_genodive <- function(assignment.lmax, assignment.lhome, lmax.migrant.skip, lmax.number.migrant, lmax.skip, lhome.migrant.skip, lhome.number.migrant, lhome.skip, pop.levels, pop.id.start, pop.id.end, number.individual, number.pop) {
 
