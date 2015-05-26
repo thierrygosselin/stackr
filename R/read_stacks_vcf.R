@@ -87,17 +87,26 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filt
       left_join(vcf, by = "LOCUS")
   }
   
-  message("Saving the file in your working directory...")
-  write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
-#   write.table(vcf, filename, sep = "\t", row.names = F, col.names = T,
-#               quote = F)
+#   message("Saving the file in your working directory...")
+#   write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
+# #   write.table(vcf, filename, sep = "\t", row.names = F, col.names = T,
+# #               quote = F)
+
+ 
+  if (missing(filename) == "FALSE") {
+    message("Saving the file in your working directory...")
+    write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
+    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+  } else {
+    saving <- "Saving was not selected..."
+  }
+
   
   invisible(cat(sprintf(
-    "Stacks VCF filename:
-%s\n
-Written in the directory:
+    "%s\n
+Working directory:
 %s",
-    filename, getwd()
+    saving, getwd()
   )))
   vcf
 }
