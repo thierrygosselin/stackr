@@ -9,6 +9,7 @@
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
 #' @rdname whitelist_loci
 #' @export
+#' @import dplyr
 
 whitelist_loci <- function(data, filename, col.header) {
   

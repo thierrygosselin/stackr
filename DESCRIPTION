@@ -18,7 +18,14 @@ LinkingTo:
   reshape2,
   stringr,
   stringi 
-Imports: plyr, dplyr, reshape2, ggplot2, readr, stringr, stringi
+Imports:
+plyr,
+dplyr,
+reshape2,
+ggplot2,
+readr,
+stringr,
+stringi
 Suggests: ape, shiny, parallel, boot, pegas, adegenet, hierfstat
 License: GPL (>=2)
 LazyLoad: yes
