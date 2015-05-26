@@ -21,6 +21,8 @@
 #' paralogs.loci <- haplotype.file.summary$paralogs.loci
 #' consensus.pop <- haplotype.file.summary$consensus.pop
 #' consensus.loci <- haplotype.file.summary$consensus.loci
+#' @rdname summary_polymorphism_haplotype
+#' @export 
 
 summary_polymorphism_haplotype <- function(haplotypes.file, pop.id.start, pop.id.end, pop.levels) {
   
@@ -210,6 +212,8 @@ The number of loci in the catalog with consensus alleles = %s LOCI
 #' @param pop.integer.equi When Integer was used for your population id,
 #' give the character equivalence
 #' @param pop.levels A character string with your populations in order.
+#' @rdname summary_hapstats
+#' @export 
 
 summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop.levels) {
   
@@ -430,6 +434,8 @@ summary_coverage <- function (tidy.vcf.file, pop.levels, filename) {
 #' 1/1 : homozygote ALT allele.
 #' 0/1 : heterozygote with coverage REF > ALT allele.
 #' 1/0 : heterozygote with coverage REF < ALT allele.
+#' @rdname table_low_coverage_summary
+#' @export
 
 
 table_low_coverage_summary <- function(tidy.vcf.file,
@@ -537,6 +543,8 @@ Written in the directory:
 #' diff (max-min), of genotype likelihood by locus and populations. To access 
 #' the two tables, use $. The table that summarise by populations was created
 #' using average nested: loci -> individuals -> populations.
+#' @rdname summary_genotype_likelihood
+#' @export
 
 summary_genotype_likelihood <- function(tidy.vcf.file, pop.levels, filename){
   
@@ -634,6 +642,8 @@ Written in the directory:
 #' @param data The 'batch_x.phistats.tsv' created by STACKS.
 #' @param skip.line The number of line without the header 
 #' to start reading the data.
+#' @rdname summary_phistats
+#' @export
 
 summary_phistats <- function(data, skip.lines) {
   
