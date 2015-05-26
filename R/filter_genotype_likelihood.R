@@ -93,9 +93,8 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
 1. Min REF or ALT coverage threshold: %s
 2. Max read depth threshold: %s
 3. Mean, min and diff (max-min) loci GL threshold: %s mean GL, %s min GL, %s diff GL
-The number of markers before the GL filter: SNP = %s, LOCI = %s
 The number of markers removed by the GL filter: SNP = %s, LOCI = %s
-The number of markers after the GL filter: SNP = %s, LOCI = %s\n
+The number of markers before -> after the GL filter: %s -> %s SNP, %s -> %s LOCI\n
 %s\n
 Working directory:
 %s",
@@ -104,7 +103,8 @@ Working directory:
     allele.min.depth.threshold,
     read.depth.max.threshold,
     gl.mean.threshold, gl.min.threshold, gl.diff.threshold,
-    n_distinct(data$POS), n_distinct(data$LOCUS), (n_distinct(data$POS)-n_distinct(filter$POS)), (n_distinct(data$LOCUS)-n_distinct(filter$LOCUS)), n_distinct(filter$POS), n_distinct(filter$LOCUS),
+    (n_distinct(data$POS)-n_distinct(filter$POS)), (n_distinct(data$LOCUS)-n_distinct(filter$LOCUS)),
+    n_distinct(data$POS), n_distinct(filter$POS), n_distinct(data$LOCUS), n_distinct(filter$LOCUS),
     saving, getwd()
     
   )))

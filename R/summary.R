@@ -1,6 +1,6 @@
 ## Summary and tables
 
-#' @title haplotypes summary
+#' @title Haplotypes summary
 #' @description STACKS batch_x.haplotypes.tsv file summary.
 #' Output summary table for populations with putative paralogs,
 #' consensus, monomorphic and polymorphic loci.
@@ -21,10 +21,10 @@
 #' paralogs.loci <- haplotype.file.summary$paralogs.loci
 #' consensus.pop <- haplotype.file.summary$consensus.pop
 #' consensus.loci <- haplotype.file.summary$consensus.loci
-#' @rdname summary_polymorphism_haplotype
+#' @rdname summary_polymorphism_haplotypes
 #' @export 
 
-summary_polymorphism_haplotype <- function(haplotypes.file, pop.id.start, pop.id.end, pop.levels) {
+summary_polymorphism_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.levels) {
   
   # Import haplotype file
   batch_1.haplotypes <- read_tsv(haplotypes.file, col_names = T) %>%
