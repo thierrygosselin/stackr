@@ -10,6 +10,8 @@ summary_genotype_likelihood(tidy.vcf.file, pop.levels, filename)
 \item{tidy.vcf.file}{The tidy VCF file created with read_stacks_vcf.}
 
 \item{pop.levels}{Character string defining your ordered populations.}
+
+\item{filename}{The name of the file written in the directory.}
 }
 \value{
 A list with 2 tables: the long format of loci and populations

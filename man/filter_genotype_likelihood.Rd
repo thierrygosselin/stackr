@@ -29,6 +29,8 @@ the difference between the max and min GL over a loci/read/haplotype.}
 or fixed number e.g. 0.70, 70 or 15.}
 
 \item{percent}{Is the threshold a percentage ? TRUE or FALSE.}
+
+\item{filename}{Name of the file written to the working directory.}
 }
 \description{
 Filter markers based coverage and/or genotype likelihood
@@ -42,6 +44,5 @@ Here the filter focus on global trend accross pop for individual loci.
 The gl.diff.threshold can spot big difference in GL for a loci, e.g. when
 3 SNP have similar GL the difference will be close to 0, higher value, higher
 the difference between the SNP inside the loci.
-is higher so
 }
 

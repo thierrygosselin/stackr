@@ -11,6 +11,8 @@ filter_individual(data, is.vcf, population.map, pop.id.start, pop.id.end,
 \item{data}{A data frame object or file (using ".tsv")
 of class sumstats or tidy VCF.}
 
+\item{is.vcf}{Is the data a tidy vcf file ? TRUE or FALSE.}
+
 \item{population.map}{The population map or individuals listed in one column.
 No headers.}
 

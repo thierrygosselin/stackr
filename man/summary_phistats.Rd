@@ -9,7 +9,7 @@ summary_phistats(data, skip.lines)
 \arguments{
 \item{data}{The 'batch_x.phistats.tsv' created by STACKS.}
 
-\item{skip.line}{The number of line without the header
+\item{skip.lines}{The number of line without the header
 to start reading the data.}
 }
 \description{

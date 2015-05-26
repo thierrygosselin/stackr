@@ -340,8 +340,11 @@ figure_snp_number_loci <- function(before.filter.data, after.filter.data) {
 
 #' @title Figure of the distribution of SNP nucleotide position alond the read.
 #' @param before.filter.data Data set before filter.
-#' @param gl.blacklist Blacklist to show the impact of the filter on marker
-#' density distribution.
+#' @param gl.blacklist GL blacklist.
+#' @param maf.blacklist MAF blacklist.
+#' @param het.blacklist Het blacklist.
+#' @param fis.blacklist Fis blacklist.
+#' @param all.filters.blacklist A blacklist of all discarded loci.
 
 #  Distribution of SNP nucleotide position along the read 
 nucleotide_number_position <- function(before.filter.data, 
