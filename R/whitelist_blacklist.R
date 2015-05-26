@@ -44,7 +44,7 @@ filename, getwd()
 #' or file (using ".tsv") of class sumstats. 
 #' @param filename The name of the file written in the directory.
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
-#' @rdname whitelist_loci
+#' @rdname whitelist_loci_snp
 #' @export
 
 whitelist_loci_snp <- function(data, filename, col.header) {
