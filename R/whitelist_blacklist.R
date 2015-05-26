@@ -7,8 +7,9 @@
 #' or file (using ".tsv") of class sumstats. 
 #' @param filename The name of the file written in the directory.
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
+#' @rdname whitelist_loci
+#' @export
 
-# Whitelist loci function
 whitelist_loci <- function(data, filename, col.header) {
   
   if (is.vector(data) == "TRUE") {
@@ -33,15 +34,19 @@ filename, getwd()
   whitelist
 }
 
-#' @title Whitelist loci for VCF tools
-#' This function creates a whitelist of loci, used after applying a filter
-#' to keep track of the loci kept by a filter.
+
+
+
+#' @title Whitelist loci and snp.
+#' @description This function creates a whitelist of loci and snp,
+#' useful in the populations module of STACKS.
 #' @param data The data frame after the filter. Object
 #' or file (using ".tsv") of class sumstats. 
 #' @param filename The name of the file written in the directory.
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
+#' @rdname whitelist_loci
+#' @export
 
-# Whitelist loci and snp function
 whitelist_loci_snp <- function(data, filename, col.header) {
   
   if (is.vector(data) == "TRUE") {
@@ -70,14 +75,18 @@ filename, getwd()
   whitelist
 }
 
+
+
+
 #' @title Whitelist loci for VCF tools
-#' This function creates a whitelist of loci, used after applying a filter
-#' to keep track of the loci kept by a filter.
+#' @description This function creates a whitelist of loci for VCF tools.
+#' With 2 columns (CHROM and ID).
 #' @param data The data frame after the filter. Object
 #' or file (using ".tsv") of class sumstats. 
 #' @param filename The name of the file written in the directory.
+#' @rdname whitelist_loci_vcf
+#' @export
 
-# Whitelist loci function
 whitelist_loci_vcf <- function(data, filename) {
   
   if (is.vector(data) == "TRUE") {
@@ -106,6 +115,8 @@ filename, getwd()
   whitelist
 }
 
+
+
 #' @title Blacklist loci
 #' @description This function creates a blacklist of loci, used after applying a filter
 #' to keep track of the loci removed by a filter.
@@ -115,6 +126,8 @@ filename, getwd()
 #' or file (using ".tsv") of class sumstats. 
 #' @param filename The name of the file written in the directory.
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
+#' @rdname blacklist_loci
+#' @export
 
 blacklist_loci <- function(before.filter.data, after.filter.data, filename, 
                            col.header) {
