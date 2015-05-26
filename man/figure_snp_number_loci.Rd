@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{figure_snp_number_loci}
 \alias{figure_snp_number_loci}
-\title{Figure of the distribution of SNP per locus before and after filters.}
+\title{Figure of the distribution of SNP per locus before and after filters}
 \usage{
 figure_snp_number_loci(before.filter.data, after.filter.data)
 }
@@ -12,6 +12,6 @@ figure_snp_number_loci(before.filter.data, after.filter.data)
 \item{after.filter.data}{Data set after filter.}
 }
 \description{
-Figure of the distribution of SNP per locus before and after filters.
+Figure of the distribution of SNP per locus before and after filters
 }
 

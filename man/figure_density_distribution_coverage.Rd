@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{figure_density_distribution_coverage}
 \alias{figure_density_distribution_coverage}
-\title{Figure density distribution of coverage summary statistics.}
+\title{Figure density distribution of coverage summary statistics}
 \usage{
 figure_density_distribution_coverage(data, aes.colour, adjust.bin)
 }

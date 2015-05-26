@@ -210,7 +210,7 @@ The number of loci in the catalog with consensus alleles = %s LOCI
 #' @description Import and summarise the batch_x.hapstats.tsv file.
 #' Necessary preparation for density distribution and box plot figures.
 #' @param data The 'batch_x.hapstats.tsv' created by STACKS.
-#' @param number.pop The number of populations analysed.
+#' @param pop.num The number of populations analysed.
 #' @param pop.col.types Integer or Character used in STACKS populations module?
 #' @param pop.integer.equi When Integer was used for your population id,
 #' give the character equivalence
@@ -538,6 +538,7 @@ Written in the directory:
 #' genotype likelihood statistics from the tidy vcf created with read_stacks_vcf.
 #' @param tidy.vcf.file The tidy VCF file created with read_stacks_vcf.
 #' @param pop.levels Character string defining your ordered populations.
+#' @param filename The name of the file written in the directory.
 #' @return A list with 2 tables: the long format of loci and populations
 #' genotype likelihood statistics and the short format by populations.
 #' The short-format is more user-friendly and
@@ -643,7 +644,7 @@ Written in the directory:
 #' @description Import and summarise the batch_x.phistats.tsv file.
 #' Necessary preparation for density distribution and box plot figures.
 #' @param data The 'batch_x.phistats.tsv' created by STACKS.
-#' @param skip.line The number of line without the header 
+#' @param skip.lines The number of line without the header 
 #' to start reading the data.
 #' @rdname summary_phistats
 #' @export

@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{figure_distribution_diversity}
 \alias{figure_distribution_diversity}
-\title{Density distribution of diversity (Gene and Haplotypes).}
+\title{Density distribution of diversity (Gene and Haplotypes)}
 \usage{
 figure_distribution_diversity(data, aes.x, aes.colour, x.title, y.title)
 }

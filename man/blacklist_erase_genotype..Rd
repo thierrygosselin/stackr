@@ -2,7 +2,7 @@
 % Please edit documentation in R/erase_genotypes.R
 \name{blacklist_erase_genotype}
 \alias{blacklist_erase_genotype}
-\title{Blacklist erase genotypes.}
+\title{Blacklist erase genotypes}
 \usage{
 blacklist_erase_genotype(tidy.vcf.file, allele.depth.threshold, gl.threshold,
   filename)

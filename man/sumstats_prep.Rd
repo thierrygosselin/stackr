@@ -2,7 +2,7 @@
 % Please edit documentation in R/stacks_modification.R
 \name{sumstats_prep}
 \alias{sumstats_prep}
-\title{Import and prepare for analysis a batch_x.sumstats.tsv file produced by STACKS.}
+\title{Import and prepare for analysis a batch_x.sumstats.tsv file produced by STACKS}
 \usage{
 sumstats_prep(sumstats, skip.line, pop.num, pop.col.types, pop.integer.equi,
   pop.levels, filename)

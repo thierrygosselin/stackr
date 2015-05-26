@@ -14,6 +14,7 @@
 #' @param pop.threshold A threshold number: proportion, percentage
 #' or fixed number e.g. 0.70, 70 or 15.
 #' @param percent Is the threshold a percentage ? TRUE or FALSE.
+#' @param filename Name of the file written to the working directory.
 #' @details The summary statistics are averaged
 #' and nested SNP -> individuals -> population -> loci. e.g. the mean GL is the average
 #' genotype likelihood for all individuals of pop x for loci x.
@@ -21,7 +22,6 @@
 #' The gl.diff.threshold can spot big difference in GL for a loci, e.g. when
 #' 3 SNP have similar GL the difference will be close to 0, higher value, higher
 #' the difference between the SNP inside the loci.
-#' is higher so 
 #' @rdname filter_genotype_likelihood
 #' @export
 

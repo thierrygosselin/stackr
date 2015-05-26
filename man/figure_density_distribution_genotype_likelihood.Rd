@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{figure_density_distribution_genotype_likelihood}
 \alias{figure_density_distribution_genotype_likelihood}
-\title{Figure density distribution of genotype likelihood summary statistics.}
+\title{Figure density distribution of genotype likelihood summary statistics}
 \usage{
 figure_density_distribution_genotype_likelihood(data, aes.colour, adjust.bin)
 }

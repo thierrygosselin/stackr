@@ -2,7 +2,7 @@
 % Please edit documentation in R/whitelist_blacklist.R
 \name{whitelist_loci_snp}
 \alias{whitelist_loci_snp}
-\title{Whitelist loci and snp.}
+\title{Whitelist loci and snp}
 \usage{
 whitelist_loci_snp(data, filename, col.header)
 }

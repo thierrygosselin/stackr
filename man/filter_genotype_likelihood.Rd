@@ -2,7 +2,7 @@
 % Please edit documentation in R/filter_genotype_likelihood.R
 \name{filter_genotype_likelihood}
 \alias{filter_genotype_likelihood}
-\title{Genotype likelihood filter.}
+\title{Genotype likelihood filter}
 \usage{
 filter_genotype_likelihood(tidy.vcf.file, allele.min.depth.threshold,
   read.depth.max.threshold, gl.mean.threshold, gl.min.threshold,

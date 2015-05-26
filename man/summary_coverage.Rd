@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.R
 \name{summary_coverage}
 \alias{summary_coverage}
-\title{Coverage summary.}
+\title{Coverage summary}
 \usage{
 summary_coverage(tidy.vcf.file, pop.levels, filename)
 }

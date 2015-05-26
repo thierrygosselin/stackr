@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.R
 \name{summary_stats_vcf_tidy}
 \alias{summary_stats_vcf_tidy}
-\title{Summary statistics of a tidy VCF by population and markers.}
+\title{Summary statistics of a tidy VCF by population and markers}
 \usage{
 summary_stats_vcf_tidy(data)
 }

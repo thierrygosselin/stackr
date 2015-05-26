@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.R
 \name{table_low_coverage_summary}
 \alias{table_low_coverage_summary}
-\title{Table of low coverage genotypes.}
+\title{Table of low coverage genotypes}
 \usage{
 table_low_coverage_summary(tidy.vcf.file, pop.levels, read.depth.threshold,
   filename.low.coverage, filename.low.coverage.imbalance)

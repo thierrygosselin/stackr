@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.R
 \name{summary_hapstats}
 \alias{summary_hapstats}
-\title{Import and summarise the batch_x.hapstats.tsv file.}
+\title{Import and summarise the batch_x.hapstats.tsv file}
 \usage{
 summary_hapstats(data, pop.num, pop.col.types, pop.integer.equi, pop.levels)
 }

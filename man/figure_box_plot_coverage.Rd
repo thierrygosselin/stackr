@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{figure_box_plot_coverage}
 \alias{figure_box_plot_coverage}
-\title{Figure box plot of coverage summary statistics.}
+\title{Figure box plot of coverage summary statistics}
 \usage{
 figure_box_plot_coverage(data)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/erase_genotypes.R
 \name{erase_genotypes}
 \alias{erase_genotypes}
-\title{Erase genotypes.}
+\title{Erase genotypes}
 \usage{
 erase_genotypes(data, is.tidy.vcf, blacklist.genotypes, filename)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.R
 \name{summary_genotype_likelihood}
 \alias{summary_genotype_likelihood}
-\title{Genotype likelihood summary.}
+\title{Genotype likelihood summary}
 \usage{
 summary_genotype_likelihood(tidy.vcf.file, pop.levels, filename)
 }

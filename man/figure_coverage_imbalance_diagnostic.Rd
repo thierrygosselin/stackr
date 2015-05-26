@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{figure_coverage_imbalance_diagnostic}
 \alias{figure_coverage_imbalance_diagnostic}
-\title{Visual diagnostic of coverage imbalance.}
+\title{Visual diagnostic of coverage imbalance}
 \usage{
 figure_coverage_imbalance_diagnostic(tidy.vcf.file, pop.levels,
   read.depth.threshold, aes.colour, adjust.bin)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{figure_box_plot_diversity}
 \alias{figure_box_plot_diversity}
-\title{Box plot of the diversity (Gene and Haplotypes).}
+\title{Box plot of the diversity (Gene and Haplotypes)}
 \usage{
 figure_box_plot_diversity(data, aes.x.y, y.title)
 }

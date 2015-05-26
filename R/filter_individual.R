@@ -3,6 +3,7 @@
 #' in a sumstats prepared file or a tidy VCF file.
 #' @param data A data frame object or file (using ".tsv")
 #' of class sumstats or tidy VCF.
+#' @param is.vcf Is the data a tidy vcf file ? TRUE or FALSE.
 #' @param population.map The population map or individuals listed in one column.
 #' No headers.
 #' @param pop.id.start The start of your population id 

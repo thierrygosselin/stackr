@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.R
 \name{summary_phistats}
 \alias{summary_phistats}
-\title{Import and summarise the batch_x.phistats.tsv file.}
+\title{Import and summarise the batch_x.phistats.tsv file}
 \usage{
 summary_phistats(data, skip.lines)
 }

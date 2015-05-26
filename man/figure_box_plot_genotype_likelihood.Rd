@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{figure_box_plot_genotype_likelihood}
 \alias{figure_box_plot_genotype_likelihood}
-\title{Figure box plot of genotype likelihood summary statistics.}
+\title{Figure box plot of genotype likelihood summary statistics}
 \usage{
 figure_box_plot_genotype_likelihood(data)
 }

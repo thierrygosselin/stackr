@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_stacks_haplotypes_vcf.R
 \name{read_stacks_haplotypes_vcf}
 \alias{read_stacks_haplotypes_vcf}
-\title{Make a tidy format of the batch_x.haplotypes.vcf file.}
+\title{Make a tidy format of the batch_x.haplotypes.vcf file}
 \usage{
 read_stacks_haplotypes_vcf(haplotypes.vcf.file, pop.id.start, pop.id.end,
   pop.levels, filter, filename)
