@@ -24,7 +24,6 @@
 #' the difference between the SNP inside the loci.
 #' @rdname filter_genotype_likelihood
 #' @export
-#' @import plyr
 #' @import dplyr
 #' @import readr
 

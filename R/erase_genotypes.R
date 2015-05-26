@@ -14,7 +14,6 @@
 #' individuals, to erase.
 #' @rdname blacklist_erase_genotype.
 #' @export
-#' @import plyr
 #' @import dplyr
 #' @import readr
 
@@ -96,7 +95,6 @@ Written in the directory:
 #' in the haplotypes file.
 #' @rdname erase_genotypes
 #' @export
-#' @import plyr
 #' @import dplyr
 #' @import readr
 

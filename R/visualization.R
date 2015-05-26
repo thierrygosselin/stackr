@@ -8,7 +8,6 @@
 #' e.g. aes(y = ..scaled.., color = COVERAGE_GROUP).
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
 #' @import ggplot2
-#' @import plyr
 #' @import dplyr
 #' @import readr
 

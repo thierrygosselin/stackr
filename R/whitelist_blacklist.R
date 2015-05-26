@@ -17,7 +17,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("LOCUS","POS", "CHROM"))
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
 #' @rdname whitelist_loci
 #' @export
-#' @import plyr
 #' @import dplyr
 #' @import readr
 
@@ -57,7 +56,6 @@ filename, getwd()
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
 #' @rdname whitelist_loci_snp
 #' @export
-#' @import plyr
 #' @import dplyr
 #' @import readr
 
@@ -100,7 +98,6 @@ filename, getwd()
 #' @param filename The name of the file written in the directory.
 #' @rdname whitelist_loci_vcf
 #' @export
-#' @import plyr
 #' @import dplyr
 #' @import readr
 
@@ -145,7 +142,6 @@ filename, getwd()
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
 #' @rdname blacklist_loci
 #' @export
-#' @import plyr
 #' @import dplyr
 #' @import readr
 

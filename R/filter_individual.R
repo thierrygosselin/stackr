@@ -19,7 +19,6 @@
 #' @export
 #' @import stringi
 #' @import stringr
-#' @import plyr
 #' @import dplyr
 #' @import readr
 

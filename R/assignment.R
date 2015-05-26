@@ -25,7 +25,6 @@
 #' in the name of your individual sample.
 #' @param number.individual The number of individuals analysed.
 #' @param number.pop The number of populations analysed.
-#' @import plyr
 #' @import dplyr
 #' @import readr
 

@@ -12,7 +12,6 @@
 #' @param filename The name of the file written in the directory.
 #' @rdname read_stacks_vcf
 #' @export
-#' @import plyr
 #' @import dplyr
 #' @import readr
  

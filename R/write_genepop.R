@@ -19,7 +19,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
 #' @import reshape2
-#' @import plyr
 #' @import dplyr
 #' @import tidyr
 

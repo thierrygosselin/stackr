@@ -10,7 +10,6 @@
 #' @param filename Name of the file written to the working directory.
 #' @rdname filter_population
 #' @export
-#' @import plyr
 #' @import dplyr
 #' @import readr
 
