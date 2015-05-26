@@ -14,6 +14,9 @@
 #' @param filename The name of the file written in the directory.
 #' @rdname read_stacks_haplotypes_vcf
 #' @export 
+#' @import dplyr
+#' @import tidyr
+#' @import stringr
 
 read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id.end, pop.levels, filter, filename) {
   

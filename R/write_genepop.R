@@ -13,6 +13,8 @@
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
+#' @import dplyr
+#' @import tidyr
 
 write_genepop <- function(haplotypes.file, 
                           whitelist.loci = NULL, 
