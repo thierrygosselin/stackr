@@ -13,6 +13,7 @@
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
+#' @import plyr
 #' @import dplyr
 #' @import tidyr
 
