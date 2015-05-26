@@ -24,6 +24,9 @@
 #' the difference between the SNP inside the loci.
 #' @rdname filter_genotype_likelihood
 #' @export
+#' @import plyr
+#' @import dplyr
+#' @import readr
 
 filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold, gl.min.threshold, gl.diff.threshold, pop.threshold, percent, filename) {
   

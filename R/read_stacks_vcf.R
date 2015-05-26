@@ -11,7 +11,11 @@
 #' in the global environment.
 #' @param filename The name of the file written in the directory.
 #' @rdname read_stacks_vcf
-#' @export 
+#' @export
+#' @import plyr
+#' @import dplyr
+#' @import readr
+ 
 # read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end, pop.levels, filter, filename) {
 
 read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filter, filename) {

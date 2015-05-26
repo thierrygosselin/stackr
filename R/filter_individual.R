@@ -18,6 +18,10 @@
 #' @rdname individual_filter
 #' @export
 #' @import stringi
+#' @import stringr
+#' @import plyr
+#' @import dplyr
+#' @import readr
 
 filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id.end, pop.levels, ind.threshold, threshold.fixed, filename) {
   

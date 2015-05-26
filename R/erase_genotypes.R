@@ -14,6 +14,10 @@
 #' individuals, to erase.
 #' @rdname blacklist_erase_genotype.
 #' @export
+#' @import plyr
+#' @import dplyr
+#' @import readr
+
 
 blacklist_erase_genotype <- function(tidy.vcf.file, allele.depth.threshold, gl.threshold, filename) {
   
@@ -92,6 +96,9 @@ Written in the directory:
 #' in the haplotypes file.
 #' @rdname erase_genotypes
 #' @export
+#' @import plyr
+#' @import dplyr
+#' @import readr
 
 erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
   
