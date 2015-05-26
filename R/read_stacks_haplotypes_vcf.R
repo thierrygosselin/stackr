@@ -1,4 +1,4 @@
-#' @title Make a tidy format of the batch_x.haplotypes.vcf file.
+#' @title Make a tidy format of the batch_x.haplotypes.vcf file
 #' @description Import and transform in tidy format the batch_x.haplotypes.vcf
 #' file produced by STACKS.
 #' @param haplotypes.vcf.file The haplotypes VCF file.

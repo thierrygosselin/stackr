@@ -37,7 +37,7 @@ filename, getwd()
 
 
 
-#' @title Whitelist loci and snp.
+#' @title Whitelist loci and snp
 #' @description This function creates a whitelist of loci and snp,
 #' useful in the populations module of STACKS.
 #' @param data The data frame after the filter. Object

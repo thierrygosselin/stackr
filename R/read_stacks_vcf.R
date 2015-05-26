@@ -1,4 +1,4 @@
-#' @title Read a VCF file produced by STACKS and transform in tidy format.
+#' @title Read a VCF file produced by STACKS and transform in tidy format
 #' @description Import a VCF file created by STACKS and mofify to a tidy format.
 #' @param vcf.file The VCF file created by STACKS.
 #' @param pop.id.start The start of your population id 

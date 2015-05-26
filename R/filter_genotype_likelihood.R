@@ -1,4 +1,4 @@
-#' @title Genotype likelihood filter.
+#' @title Genotype likelihood filter
 #' @description Filter markers based coverage and/or genotype likelihood
 #' using a tidy VCF file.
 #' @param tidy.vcf.file A data frame object or file (using ".tsv")

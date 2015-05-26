@@ -1,6 +1,6 @@
 #### Visualization
 
-#' @title Figure density distribution of coverage summary statistics.
+#' @title Figure density distribution of coverage summary statistics
 #' @description Create density distribution of coverage summary statistics.
 #' Use the coverage summary file created with coverage_summary function.
 #' @param data Coverage summary file.
@@ -26,7 +26,7 @@ figure_density_distribution_coverage <- function(data, aes.colour, adjust.bin) {
 
 
 
-#' @title Figure box plot of coverage summary statistics.
+#' @title Figure box plot of coverage summary statistics
 #' @description Create box plots of coverage summary statistics.
 #' Use the coverage summary file created with coverage_summary function.
 #' @param data Coverage summary file.
@@ -53,7 +53,7 @@ figure_box_plot_coverage <- function(data) {
 
 
 
-#' @title Visual diagnostic of coverage imbalance.
+#' @title Visual diagnostic of coverage imbalance
 #' @description GBS data and STACKS pipeline sometimes output REF and ALT
 #' alleles that have coverage imbalance, i.e. the coverage is not equal 
 #' and skewed towards the REF or ALT alleles. 
@@ -129,7 +129,7 @@ figure_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read
 }
 
 
-#' @title Figure density distribution of genotype likelihood summary statistics.
+#' @title Figure density distribution of genotype likelihood summary statistics
 #' @description Create density distribution of genotype likelihood 
 #' summary statistics.
 #' Use the coverage summary file created with 
@@ -162,7 +162,7 @@ figure_density_distribution_genotype_likelihood <- function(data, aes.colour,
 
 
 # Figure: Box Plot of genotype likelihood summary of loci
-#' @title Figure box plot of genotype likelihood summary statistics.
+#' @title Figure box plot of genotype likelihood summary statistics
 #' @description Create box plots of genotype likelihood summary statistics.
 #' Use the genotype likelihood summary file created
 #' with genotype_likelihood_summary function.
@@ -293,7 +293,7 @@ figure_density_distribution_het <- function(data, pop.levels, het.group, aes.col
 
 
 
-#' @title Figure of the distribution of SNP per locus before and after filters.
+#' @title Figure of the distribution of SNP per locus before and after filters
 #' @param before.filter.data Data set before filter.
 #' @param after.filter.data Data set after filter.
 figure_snp_number_loci <- function(before.filter.data, after.filter.data) {
@@ -447,7 +447,7 @@ figure_nucleotide_number_position <- function(data, aes.colour, y.title) {
 
 
 
-#' @title Density distribution of diversity (Gene and Haplotypes).
+#' @title Density distribution of diversity (Gene and Haplotypes)
 #' @description GGPLOT2 Density distribution of diversity (Gene and Haplotypes).
 #' @param data The hapstats summary file or object.
 #' @param aes.x GGPLOT2 aesthetics, 
@@ -481,7 +481,7 @@ figure_distribution_diversity <- function(data, aes.x, aes.colour, x.title, y.ti
 
 
 
-#' @title Box plot of the diversity (Gene and Haplotypes).
+#' @title Box plot of the diversity (Gene and Haplotypes)
 #' @description GGPLOT2 Box plot of the diversity (Gene and Haplotypes).
 #' @param data The hapstats summary file or object.
 #' @param aes.x.y The GGPLOT2 aesthetics, 

@@ -1,4 +1,4 @@
-#' @title Blacklist erase genotypes.
+#' @title Blacklist erase genotypes
 #' @description This function creates a blacklist of loci and individual
 #' genotypes useful for the function erase_genotype.
 #' @param tidy.vcf.file A data frame object or file (using ".tsv")
@@ -77,7 +77,7 @@ Written in the directory:
 
 
 
-#' @title Erase genotypes.
+#' @title Erase genotypes
 #' @description This function erase the genotypes of individuals 
 #' based on coverage and genotype likelihood thresholds.
 #' @param data The 'batch_x.haplotypes.tsv' or a tidy vcf file.

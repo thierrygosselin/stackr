@@ -1,5 +1,5 @@
 #### STACKS SUMSTATS MODIFICATIONS  ############################################
-#' @title Import and prepare for analysis a batch_x.sumstats.tsv file produced by STACKS.
+#' @title Import and prepare for analysis a batch_x.sumstats.tsv file produced by STACKS
 #' @description Import STACKS sumstats.tsv and add useful info (frequency of REF allele, Global MAF) for subsequent use. to a tidy format.
 #' @param sumstats The STACKS batch_x.susmtats.tsv file.
 #' @param skip.line The number of line without the header to start reading the data

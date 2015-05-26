@@ -206,7 +206,7 @@ The number of loci in the catalog with consensus alleles = %s LOCI
 
 
 
-#' @title Import and summarise the batch_x.hapstats.tsv file.
+#' @title Import and summarise the batch_x.hapstats.tsv file
 #' @description Import and summarise the batch_x.hapstats.tsv file.
 #' Necessary preparation for density distribution and box plot figures.
 #' @param data The 'batch_x.hapstats.tsv' created by STACKS.
@@ -248,7 +248,7 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 
 
 ## VCF
-#' @title Summary statistics of a tidy VCF by population and markers.
+#' @title Summary statistics of a tidy VCF by population and markers
 #' @description Summarise and prepare the tidy VCF. 
 #' Summary, by population and markers (SNP), of frequency of the REF 
 #' and the ALT alleles, the observed and the expected heterozygosity 
@@ -296,7 +296,7 @@ summary_stats_vcf_tidy <- function(data) {
 
 
 ## Coverage
-#' @title Coverage summary.
+#' @title Coverage summary
 #' @description This function create a table summary of the important
 #' coverage statistics from the tidy vcf created with read_stacks_vcf.
 #' @param tidy.vcf.file The tidy VCF file created with read_stacks_vcf.
@@ -417,7 +417,7 @@ summary_coverage <- function (tidy.vcf.file, pop.levels, filename) {
 
 
 
-#' @title Table of low coverage genotypes.
+#' @title Table of low coverage genotypes
 #' @description This function create a table summary of the genotypes
 #' below a user-define threshold.
 #' coverage statistics by populations.
@@ -533,7 +533,7 @@ Written in the directory:
 
 ## Genotype likelihood ###
 
-#' @title Genotype likelihood summary.
+#' @title Genotype likelihood summary
 #' @description This function create 2 tables summary of the important
 #' genotype likelihood statistics from the tidy vcf created with read_stacks_vcf.
 #' @param tidy.vcf.file The tidy VCF file created with read_stacks_vcf.
@@ -639,7 +639,7 @@ Written in the directory:
 
 
 
-#' @title Import and summarise the batch_x.phistats.tsv file.
+#' @title Import and summarise the batch_x.phistats.tsv file
 #' @description Import and summarise the batch_x.phistats.tsv file.
 #' Necessary preparation for density distribution and box plot figures.
 #' @param data The 'batch_x.phistats.tsv' created by STACKS.
