@@ -17,6 +17,7 @@
 #' @param filename Name of the file written to the working directory.
 #' @rdname individual_filter
 #' @export
+#' @import stringi
 
 filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id.end, pop.levels, ind.threshold, threshold.fixed, filename) {
   
