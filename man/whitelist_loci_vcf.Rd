@@ -2,9 +2,7 @@
 % Please edit documentation in R/whitelist_blacklist.R
 \name{whitelist_loci_vcf}
 \alias{whitelist_loci_vcf}
-\title{Whitelist loci for VCF tools
-This function creates a whitelist of loci, used after applying a filter
-to keep track of the loci kept by a filter.}
+\title{Whitelist loci for VCF tools}
 \usage{
 whitelist_loci_vcf(data, filename)
 }
@@ -15,8 +13,7 @@ or file (using ".tsv") of class sumstats.}
 \item{filename}{The name of the file written in the directory.}
 }
 \description{
-Whitelist loci for VCF tools
-This function creates a whitelist of loci, used after applying a filter
-to keep track of the loci kept by a filter.
+This function creates a whitelist of loci for VCF tools.
+With 2 columns (CHROM and ID).
 }
 

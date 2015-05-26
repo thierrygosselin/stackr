@@ -6,7 +6,7 @@ Date: 2015-05-02
 Encoding: UTF-8
 Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
-  person("Laura", "Benestan", role = "aut"))
+  person("Laura", "Benestan", role = "ctb"))
 Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: stackr is a set of tools to look at your GBS/RAD data created by STACKS software. 
 Depends: 

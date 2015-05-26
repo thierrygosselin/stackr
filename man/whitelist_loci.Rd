@@ -2,11 +2,21 @@
 % Please edit documentation in R/whitelist_blacklist.R
 \name{whitelist_loci}
 \alias{whitelist_loci}
+\alias{whitelist_loci_snp}
 \title{Whitelist loci}
 \usage{
 whitelist_loci(data, filename, col.header)
+
+whitelist_loci_snp(data, filename, col.header)
 }
 \arguments{
+\item{data}{The data frame after the filter. Object
+or file (using ".tsv") of class sumstats.}
+
+\item{filename}{The name of the file written in the directory.}
+
+\item{col.header}{TRUE and the loci will have a column header 'LOCUS'.}
+
 \item{data}{The data frame after the filter. Object
 or file (using ".tsv") of class sumstats.}
 
@@ -17,5 +27,8 @@ or file (using ".tsv") of class sumstats.}
 \description{
 This function creates a whitelist of loci, used after applying a filter
 to keep track of the loci kept by a filter.
+
+This function creates a whitelist of loci and snp,
+useful in the populations module of STACKS.
 }
 
