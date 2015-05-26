@@ -1,5 +1,5 @@
 # Write a genepop file from STACKS haplotype file
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID","Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE_1", "ALLELE_2", "GENOTYPE"))
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = Catalog ID", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE_1", "ALLELE_2", "GENOTYPE", "NUCLEOTIDES"))
 
 
 
@@ -55,8 +55,8 @@ if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
     arrange(Catalog.ID)
   
   # Creates a vector containing the loci name
-  loci <- unique(haplotype.whitelist$Catalog.ID)
-  data <- haplotype.whitelist
+  loci <- unique(haplotype.whitelist.loci$Catalog.ID)
+  data <- haplotype.whitelist.loci
   
 } else if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == FALSE) {
   
