@@ -18,7 +18,6 @@
 #' @rdname individual_filter
 #' @export
 #' @import stringi
-#' @import stringr
 #' @import dplyr
 #' @import readr
 
