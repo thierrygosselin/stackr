@@ -1,6 +1,6 @@
 Package: stackr
 Type: Package
-Title: GBS/RAD data exploration, manipulation and visualization.
+Title: GBS/RAD data exploration, manipulation and visualization
 Version: 1.0.0
 Date: 2015-05-02
 Encoding: UTF-8
@@ -22,3 +22,4 @@ Imports: plyr, dplyr, reshape2, ggplot2, readr, stringr, stringi
 Suggests: ape, shiny, parallel, boot, pegas, adegenet, hierfstat
 License: GPL (>=2)
 LazyLoad: yes
+VignetteBuilder: knitr
