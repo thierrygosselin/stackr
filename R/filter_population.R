@@ -47,33 +47,32 @@ filter_population <- function(data, pop.threshold, percent, filename) {
     filter((n_distinct(POP_ID) * multiplication.number) >= pop.threshold) %>%
     arrange (LOCUS, POP_ID)
   
-  write.table(pop.filter,
-              filename,
-              sep = "\t",
-              row.names = F,
-              col.names = T,
-              quote = F
-              )
+  if (missing(filename) == "FALSE") {
+    message("Saving the file in your working directory...")
+    write_tsv(pop.filter, filename, append = FALSE, col_names = TRUE)
+    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+  } else {
+    saving <- "Saving was not selected"
+  }
   
-
   invisible(cat(sprintf(
   "Population filter: %s %s threshold as sampling sites/pop required to keep the marker
   The number of SNP removed by the population filter = %s SNP
   The number of LOCI removed by the population filter = %s LOCI
-  The number of SNP after the population filter = %s SNP
-  The number of LOCI after the population filter = %s LOCI
-  Filename:
-  %s
-  Written in the directory:
+  The number of SNP before -> after the population filter = %s -> %s SNP
+  The number of LOCI before -> after the population filter = %s -> %s LOCI\n
+  %s\n
+  Working directory:
   %s", 
   pop.threshold,
   threshold.id,
   n_distinct(data$POS)-n_distinct(pop.filter$POS),
   n_distinct(data$LOCUS)-n_distinct(pop.filter$LOCUS),
-  n_distinct(pop.filter$POS),
-  n_distinct(pop.filter$LOCUS),
-  filename, getwd()
+  n_distinct(data$POS), n_distinct(pop.filter$POS),
+  n_distinct(data$LOCUS), n_distinct(pop.filter$LOCUS),
+  saving, getwd()
   )))
   
-  pop.filter
+pop.filter
+  
 }

@@ -12,17 +12,21 @@
 #' a file in the working directory (e.g. "myfile.txt") or an object
 #' in the global environment.
 #' @param filename The name of the file written in the directory.
-#' @export read_stacks_vcf
+#' @rdname read_stacks_vcf
+#' @export 
+# read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end, pop.levels, filter, filename) {
 
-read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end, pop.levels, filter, filename) {
+read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filter, filename) {
+
+  message("Tidying the VCF...")
   
   vcf <- read_delim(
-    vcf.file,
-    delim = "\t",
-    skip = skip.line,
-    n_max = max.read.lines,
+    vcf.file, delim = "\t", 
+    skip = 9,#n_max = max.read.lines,
     progress = interactive()
-  ) %>%
+    )
+  
+  vcf <- vcf %>%
     select(-c(QUAL, FILTER, FORMAT)) %>%
     rename(LOCUS = ID, CHROM = `#CHROM`) %>%
     separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
@@ -34,13 +38,12 @@ read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, p
     mutate(
       REF_FREQ = as.numeric(REF_FREQ),
       ALT_FREQ = as.numeric(ALT_FREQ)
-    ) %>%
-    melt(
-      id.vars = c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ",
-                  "ALT_FREQ"),
-      variable.name = "INDIVIDUALS", 
-      value.name = "FORMAT"
-    ) %>%
+    )
+  
+  message("Gathering individuals in 1 column...")
+  
+  vcf <- vcf %>%
+    gather(INDIVIDUALS, FORMAT, -c(CHROM:ALT_FREQ)) %>%
     separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"), sep = ":",
              extra = "error") %>%
     mutate(
@@ -50,7 +53,11 @@ read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, p
     separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"), sep = ",",
              extra = "error") %>%
     separate(GT, c("ALLELE_P", "ALLELE_Q"), sep = "/", extra = "error",
-             remove = F) %>%
+             remove = F)
+  
+  message("Fixing columns...")
+
+  vcf <- vcf %>%
     mutate(
       CHROM = as.numeric(stri_replace_all_fixed(CHROM, "un", "1", 
                                                 vectorize_all=F)),
@@ -70,6 +77,8 @@ read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, p
                       levels = pop.levels, ordered =T)
     )
   
+  vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "ALLELE_P", "ALLELE_Q", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")]
+  
   if (missing(filter) == "TRUE") {
     vcf <- vcf
   } else if (is.vector(filter) == "TRUE") {
@@ -80,8 +89,10 @@ read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, p
       left_join(vcf, by = "LOCUS")
   }
   
-  write.table(vcf, filename, sep = "\t", row.names = F, col.names = T,
-              quote = F)
+  message("Saving the file in your working directory...")
+  write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
+#   write.table(vcf, filename, sep = "\t", row.names = F, col.names = T,
+#               quote = F)
   
   invisible(cat(sprintf(
     "Stacks VCF filename:
@@ -94,46 +105,3 @@ Written in the directory:
 }
 
 
-#' @title Summary statistics of a tidy VCF by population and markers.
-#' @description Summarise and prepare the tidy VCF. 
-#' Summary, by population and markers (SNP), of frequency of the REF 
-#' and the ALT alleles, the observed and the expected heterozygosity 
-#' and the inbreeding coefficient. The Global MAF of Loci, 
-#' with STACKS GBS/RAD loci = read or de novo haplotypes, 
-#' is included and repeated over SNP.
-#' @param data The tidy VCF file created with read_stacks_vcf.
-#' @export
-#' @rdname vcf_tidy_summary
-
-vcf_tidy_summary <- function(data) {
-
-  vcf.summary <- data %>%
-    filter(GT != "./.") %>%
-    group_by(LOCUS, POS, POP_ID) %>%
-    summarise(
-      N = as.numeric(n()),
-      PP = as.numeric(length(GT[GT == "0/0"])),
-      PQ = as.numeric(length(GT[GT == "0/1" | GT == "1/0"])),
-      QQ = as.numeric(length(GT[GT == "1/1"]))
-      ) %>%
-    mutate(
-      FREQ_REF = ((PP*2) + PQ)/(2*N),
-      FREQ_ALT = ((QQ*2) + PQ)/(2*N),
-      HET_O = PQ/N,
-      HET_E = 2 * FREQ_REF * FREQ_ALT,
-      FIS = ifelse(HET_O == 0, 0, round (((HET_E - HET_O) / HET_E), 6))
-      )
-  
-  global.maf <- vcf.summary %>%
-    group_by(LOCUS, POS) %>%
-    summarise_each_(funs(sum), vars = c("N", "PP", "PQ", "QQ")) %>%
-    mutate(GLOBAL_MAF = (PQ + (2 * QQ)) / (2*N)) %>%
-    select(LOCUS, POS, GLOBAL_MAF)
-  
-  vcf.prep <- global.maf %>%
-    left_join(vcf.summary, by = c("LOCUS", "POS"))
-  
-  vcf.prep <- vcf.prep[c("LOCUS", "POS", "POP_ID", "N", "PP", "PQ", "QQ", "FREQ_REF", "FREQ_ALT", "GLOBAL_MAF", "HET_O", "HET_E", "FIS")]
-  
-  return(vcf.prep)
-}

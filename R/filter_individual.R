@@ -43,15 +43,14 @@ filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id
       )
   }
   if (stri_detect_fixed(is.vcf, "F")) {
-    message("Using the sumstats file")
     
     if (is.vector(data) == "TRUE") {
       data <- read_tsv(data, col_names = TRUE)
-      message("Using the file in your directory")
+      message("Using the sumstats file in your directory")
       
     } else {
       data <- data
-      message("Using the file from your global environment")
+      message("Using the sumstats from your global environment")
     }
     
     if (stri_detect_fixed(threshold.fixed, "T")) {
@@ -140,15 +139,14 @@ filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id
     }
     
   } else {
-    message("Using the tidy vcf file")
     
     if (is.vector(data) == "TRUE") {
       data <- read_tsv(data, col_names = T)
-      message("Using the file in your directory")
+      message("Using the tidy vcf file in your directory")
       
     } else {
       data <- data
-      message("Using the file from your global environment")
+      message("Using the tidy vcf from your global environment")
     }
     
     if (stri_detect_fixed(threshold.fixed, "T")) {
@@ -239,31 +237,31 @@ filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id
     }
     
   }
-  write.table(ind.filter,
-              filename,
-              sep = "\t",
-              row.names = F,
-              col.names = T,
-              quote = F
-  )
+  
+  if (missing(filename) == "FALSE") {
+    message("Saving the file in your working directory...")
+    write_tsv(ind.filter, filename, append = FALSE, col_names = TRUE)
+    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+  } else {
+    saving <- "Saving was not selected"
+  }
   
   invisible(cat(sprintf(
     "Individual filter: %s %s threshold of genotyped individuals per sampling sites to keep the marker
   The number of SNP removed by the individual filter = %s SNP
   The number of LOCI removed by the individual filter = %s LOCI
-  The number of SNP after the individual filter = %s SNP
-  The number of LOCI after the individual filter = %s LOCI
-  Filename:
-  %s
-  Written in the directory:
+  The number of SNP before -> after the individual filter: %s -> %s SNP
+  The number of LOCI before -> after the individual filter: %s -> %s LOCI\n
+  %s\n
+  Working directory:
   %s", 
     ind.threshold,
     threshold.id,
     n_distinct(data$POS)-n_distinct(ind.filter$POS),
     n_distinct(data$LOCUS)-n_distinct(ind.filter$LOCUS),
-    n_distinct(ind.filter$POS),
-    n_distinct(ind.filter$LOCUS),
-    filename, getwd()
+    n_distinct(data$POS), n_distinct(ind.filter$POS),
+    n_distinct(data$LOCUS), n_distinct(ind.filter$LOCUS),
+    saving, getwd()
   )))
   ind.filter
 }

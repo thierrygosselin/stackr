@@ -3,8 +3,6 @@
 #' genotypes useful for the function erase_genotype.
 #' @param tidy.vcf.file A data frame object or file (using ".tsv")
 #' of class tidy VCF.
-#' @param read.depth.threshold Threshold number
-#' of maximum read depth.
 #' @param allele.depth.threshold Threshold number
 #' of min depth of REF or ALT alleles.
 #' @param gl.threshold Threshold number of mean genotype likelihood. 
@@ -17,20 +15,19 @@
 #' @rdname blacklist_erase_genotype.
 #' @export
 
-blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele.depth.threshold, gl.threshold, filename) {
+blacklist_erase_genotype <- function(tidy.vcf.file, allele.depth.threshold, gl.threshold, filename) {
   
   
   if (is.vector(tidy.vcf.file) == "TRUE") {
-    data <- read_tsv(tidy.vcf.file, col_names = T)
+    tidy.vcf.file <- read_tsv(tidy.vcf.file, col_names = T)
     message("Using the tidy vcf file in your directory")
   } else {
-    data <- tidy.vcf.file
+    tidy.vcf.file <- tidy.vcf.file
     message("Using the tidy vcf file from your global environment")
   }
   
   blacklist <- tidy.vcf.file %>%
     filter(GT != "./.") %>%
-    filter(READ_DEPTH < read.depth.threshold) %>%
     filter(GL < gl.threshold) %>%
     group_by(LOCUS, INDIVIDUALS, POP_ID) %>%
     summarise(
@@ -43,8 +40,7 @@ blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele
       STATUS = rep("erased", n()),
       INDIVIDUALS = as.character(INDIVIDUALS)
     ) %>%
-    rename(SAMPLES = INDIVIDUALS) %>%
-    arrange(LOCUS, SAMPLES)
+    arrange(LOCUS, INDIVIDUALS)
   
   write.table(blacklist,
               filename,
@@ -54,18 +50,24 @@ blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele
               quote = F
   )
   
+  # interesting stats.
+  erased.genotype.number <- length(blacklist$STATUS)
+  total.genotype.number <- length(tidy.vcf.file$GT[tidy.vcf.file$GT != "./."])
+  percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
+  
+  
   invisible(cat(sprintf(
-"Blacklist erase genotypes:
-1. Read depth threshold: %s
-2. REF and ALT coverage threshold: %s
-3. Genotype likelihood threshold: %s\n
+    "Blacklist erase genotypes:
+1. REF and ALT coverage threshold: %s
+2. Genotype likelihood threshold: %s
+3. %s of genotypes needs erasing with the function erase_genotypes\n
 Filename:
 %s
 Written in the directory:
 %s",
-    read.depth.threshold,
     allele.depth.threshold,
     gl.threshold,
+    percent,
     filename, getwd()
   )))
   
@@ -81,29 +83,29 @@ Written in the directory:
 #' @param data The 'batch_x.haplotypes.tsv' or a tidy vcf file.
 #' @param is.tidy.vcf Using a tidy VCF file: TRUE or FALSE.
 #' @param blacklist.genotypes A blacklist of loci and genotypes 
-#' containing at least 2 columns header 'LOCUS' and 'SAMPLES'. The file is 
+#' containing at least 2 columns header 'LOCUS' and 'INDIVIDUALS'. The file is 
 #' in the global environment (myfile) or in the working directory ("myfile.tsv").
 #' @param filename The filename saved to the working directory.
-#' @details Genotypes below average quality: below threshold for the
-#' read coverage, REF and/or ALT depth coverage and genotype likelihood
-#' are zeroed from the file.
+#' @details Genotypes below average quality i.e. below threshold for the
+#' coverage of REF and/or ALT allele and genotype likelihood
+#' are zeroed from the file. The function erase SNP in the VCF file and loci
+#' in the haplotypes file.
 #' @rdname erase_genotypes
 #' @export
 
 erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
   
   if (stri_detect_fixed(is.tidy.vcf, "F")) {
-    message("Using the haplotypes file")
     file.type <- "haplotypes"
     
     
     if (is.vector(data) == "TRUE") {
       data <- read_tsv(data, col_names = T) %>%
         rename(LOCUS =`Catalog ID`)
-      message("Using the file in your directory")
+      message("Using the haplotypes file in your directory")
     } else {
       data <- data
-      message("Using the file from your global environment")
+      message("Using the haplotypes file from your global environment")
     }
     
     
@@ -116,13 +118,11 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     }
     
     message("Erasing... Erasing...")
-
+    
     # haplotypes file preparation
     haplo.prep <- data %>%
-      melt(id.vars = c("LOCUS", "Cnt"), 
-           variable.name = "SAMPLES",
-           value.name = "HAPLOTYPES"
-      )
+      gather(SAMPLES, HAPLOTYPES, -c(LOCUS, Cnt))
+#       melt(id.vars = c("LOCUS", "Cnt"), variable.name = "SAMPLES", value.name = "HAPLOTYPES")
     
     # interesting stats.
     erased.genotype.number <- length(blacklist.genotypes$STATUS)
@@ -133,30 +133,26 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     total.genotype.number <- length(haplo.number$HAPLOTYPES)
     percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
-
+    
     # Erasing genotype with the blacklist
     new.file <- haplo.prep %>%
       mutate(
-        HAPLOTYPES = ifelse(SAMPLES %in% blacklist.genotypes$SAMPLES & LOCUS %in% blacklist.genotypes$LOCUS, "-", HAPLOTYPES)
+        HAPLOTYPES = ifelse(SAMPLES %in% blacklist.genotypes$INDIVIDUALS & LOCUS %in% blacklist.genotypes$LOCUS, "-", HAPLOTYPES)
       ) %>%
       rename(`Catalog ID` = LOCUS) %>%
-      dcast(`Catalog ID`+Cnt~SAMPLES, value.var="HAPLOTYPES")
-    
-    
+      spread(SAMPLES, HAPLOTYPES)
     
   } else {
-    message("Using the tidy vcf file")
     file.type <- "tidy vcf"
     
     
     if (is.vector(data) == "TRUE") {
-      data <- read_tsv(data, col_names = T) %>%
-        rename(LOCUS =`Catalog ID`)
-      message("Using the file in your directory")
+      data <- read_tsv(data, col_names = T)
+      message("Using the tidy vcf file in your directory")
       
     } else {
       data <- data
-      message("Using the file from your global environment")
+      message("Using the tidy vcf file from your global environment")
       
     }
     
@@ -168,22 +164,50 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
       blacklist.genotypes <- blacklist.genotypes
       message("Using the blacklist from your global environment")
     }
-    message("Erasing... Erasing...")
 
+    message("Erasing... Erasing...")
+    
     # interesting stats.
     erased.genotype.number <- length(blacklist.genotypes$STATUS)
-    total.genotype.number <- length(vcf.tidy$GT[vcf.tidy$GT != "./."])
+    total.genotype.number <- length(data$GT[data$GT != "./."])
     percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
-
-    new.file <- data %>%
+    
+    order.vcf <- names(data)
+    
+    erase <- blacklist.genotypes %>% 
+      select(LOCUS, INDIVIDUALS, STATUS) %>%
+      left_join(data, by = c("LOCUS", "INDIVIDUALS")) %>%
+      mutate(GT = rep("./.", n())) %>%
+      gather(GROUP, VALUE, ALLELE_P:ALLELE_COVERAGE_RATIO) %>%
+      mutate(VALUE = rep("NA", n())) %>%
+      spread(GROUP, VALUE) %>%
       mutate(
-        GT = ifelse(INDIVIDUALS %in% blacklist.genotypes$SAMPLES & LOCUS %in% blacklist.genotypes$LOCUS, "-", INDIVIDUALS)
+        READ_DEPTH = as.numeric(READ_DEPTH),
+        ALLELE_REF_DEPTH = as.numeric(ALLELE_REF_DEPTH),
+        ALLELE_ALT_DEPTH = as.numeric(ALLELE_ALT_DEPTH),
+        ALLELE_COVERAGE_RATIO = as.numeric(ALLELE_COVERAGE_RATIO),
+        GL = as.numeric(GL)
+        )
+      
+      erase <- erase[order.vcf]
+
+    keep <- data %>% 
+      anti_join(
+        blacklist.genotypes %>%
+          select(LOCUS, INDIVIDUALS, STATUS),
+        by = c("LOCUS", "INDIVIDUALS")
       )
+    
+    new.file <- bind_rows(erase, keep) %>%
+      arrange(LOCUS, POS, POP_ID, INDIVIDUALS)
+    
   }
-  
-    write.table(new.file, filename, sep = "\t", row.names = F,
-              col.names = T, quote = F)
-  
+    
+  message("Saving the file in your working directory...")
+
+#   write.table(new.file, filename, sep = "\t", row.names = F, col.names = T, quote = F)
+  write_tsv(new.file, filename, append = FALSE, col_names = TRUE)
+
   
   invisible(cat(sprintf(
     "Erasing genotypes of individuals in the %s file.
