@@ -17,6 +17,7 @@
 #' @import dplyr
 #' @import tidyr
 #' @import stringr
+#' @import stringi
 
 read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id.end, pop.levels, filter, filename) {
   
