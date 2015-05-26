@@ -12,7 +12,7 @@ erase_genotypes(data, is.tidy.vcf, blacklist.genotypes, filename)
 \item{is.tidy.vcf}{Using a tidy VCF file: TRUE or FALSE.}
 
 \item{blacklist.genotypes}{A blacklist of loci and genotypes
-containing at least 2 columns header 'LOCUS' and 'SAMPLES'. The file is
+containing at least 2 columns header 'LOCUS' and 'INDIVIDUALS'. The file is
 in the global environment (myfile) or in the working directory ("myfile.tsv").}
 
 \item{filename}{The filename saved to the working directory.}
@@ -22,8 +22,9 @@ This function erase the genotypes of individuals
 based on coverage and genotype likelihood thresholds.
 }
 \details{
-Genotypes below average quality: below threshold for the
-read coverage, REF and/or ALT depth coverage and genotype likelihood
-are zeroed from the file.
+Genotypes below average quality i.e. below threshold for the
+coverage of REF and/or ALT allele and genotype likelihood
+are zeroed from the file. The function erase SNP in the VCF file and loci
+in the haplotypes file.
 }
 

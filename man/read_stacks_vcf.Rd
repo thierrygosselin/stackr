@@ -4,15 +4,11 @@
 \alias{read_stacks_vcf}
 \title{Read a VCF file produced by STACKS and transform in tidy format.}
 \usage{
-read_stacks_vcf(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end,
-  pop.levels, filter, filename)
+read_stacks_vcf(vcf.file, pop.id.start, pop.id.end, pop.levels, filter,
+  filename)
 }
 \arguments{
 \item{vcf.file}{The VCF file created by STACKS.}
-
-\item{skip.line}{Default is 9 with vcf created in STACKS.}
-
-\item{max.read.lines}{The number of markers + the header line.}
 
 \item{pop.id.start}{The start of your population id
 in the name of your individual sample.}
@@ -27,6 +23,10 @@ a file in the working directory (e.g. "myfile.txt") or an object
 in the global environment.}
 
 \item{filename}{The name of the file written in the directory.}
+
+\item{skip.line}{Default is 9 with vcf created in STACKS.}
+
+\item{max.read.lines}{The number of markers + the header line.}
 }
 \description{
 Import a VCF file created by STACKS and mofify to a tidy format.

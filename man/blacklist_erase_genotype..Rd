@@ -4,15 +4,12 @@
 \alias{blacklist_erase_genotype}
 \title{Blacklist erase genotypes.}
 \usage{
-blacklist_erase_genotype(tidy.vcf.file, read.depth.threshold,
-  allele.depth.threshold, gl.threshold, filename)
+blacklist_erase_genotype(tidy.vcf.file, allele.depth.threshold, gl.threshold,
+  filename)
 }
 \arguments{
 \item{tidy.vcf.file}{A data frame object or file (using ".tsv")
 of class tidy VCF.}
-
-\item{read.depth.threshold}{Threshold number
-of maximum read depth.}
 
 \item{allele.depth.threshold}{Threshold number
 of min depth of REF or ALT alleles.}
