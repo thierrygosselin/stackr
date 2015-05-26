@@ -35,57 +35,70 @@ read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id
   
   
   message("Gathering individuals in 1 column...")
-
-vcf <- vcf %>%
-  gather(INDIVIDUALS, FORMAT, -c(CHROM:AF)) %>%
-  separate(FORMAT, c("GT", "READ_DEPTH"), sep = ":",
-           extra = "error") %>%
-  separate(AF, c("REF_FREQ", stri_join("ALT_FREQ", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_")), sep = ",", extra = "drop") %>%
-  separate(ALT, stri_join("ALT", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_"), extra = "drop") %>%
-  gather(ALT_GROUP, ALT_NUC, -c(CHROM:REF, N:READ_DEPTH)) %>%
-  gather(ALT_FREQ_GROUP, ALT_FREQ, -c(CHROM:REF_FREQ, INDIVIDUALS:ALT_NUC))
-
-message("Fixing columns...")
   
-
-vcf <- vcf %>%
-  mutate(
-    READ_DEPTH = ifelse (READ_DEPTH == "0", "NA", READ_DEPTH),
-    CHROM = stri_replace_all_fixed(CHROM, "un", "1", vectorize_all=F),
-    CHROM = as.integer(CHROM),
-    REF_FREQ = as.numeric(REF_FREQ),
-    ALT_FREQ = as.numeric(ALT_FREQ),
-    READ_DEPTH = as.numeric(READ_DEPTH),
-    POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
-                    levels = pop.levels, ordered =T)
-  )
-
-
-if (missing(filter) == "TRUE") {
-  vcf <- vcf
-} else if (is.vector(filter) == "TRUE") {
-  vcf <- read_tsv(filter, col_names = T) %>%
-    left_join(vcf, by = "LOCUS")
-} else {
-  vcf <- filter %>%
-    left_join(vcf, by = "LOCUS")
-}
-
-
-if (missing(filename) == "FALSE") {
-  message("Saving the file in your working directory...")
-  write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
-  saving <- paste("Saving was selected, the filename:", filename, sep = " ")
-} else {
-  saving <- "Saving was not selected..."
-}
-
-
-invisible(cat(sprintf(
-  "%s\n
+  vcf <- vcf %>%
+    gather(INDIVIDUALS, FORMAT, -c(CHROM:AF)) %>%
+    separate(FORMAT, c("GT", "READ_DEPTH"), sep = ":",
+             extra = "error") %>%
+    separate(AF, c("REF_FREQ", stri_join("ALT_FREQ", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_")), sep = ",", extra = "drop") %>%
+    separate(ALT, stri_join("ALT", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_"), extra = "drop")
+  
+#   %>%
+#     gather(ALT_GROUP, ALT_NUC, -c(CHROM:REF, N:READ_DEPTH)) %>%
+#     gather(ALT_FREQ_GROUP, ALT_FREQ, -c(CHROM:REF_FREQ, INDIVIDUALS:ALT_NUC))
+  
+  message("Fixing columns...")
+  
+#   vcf <- vcf %>%
+#     mutate(
+#       READ_DEPTH = ifelse (READ_DEPTH == "0", "NA", READ_DEPTH),
+#       CHROM = stri_replace_all_fixed(CHROM, "un", "1", vectorize_all=F),
+#       CHROM = as.integer(CHROM),
+#       REF_FREQ = as.numeric(REF_FREQ),
+#       ALT_FREQ = as.numeric(ALT_FREQ),
+#       READ_DEPTH = as.numeric(READ_DEPTH),
+#       POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+#                       levels = pop.levels, ordered =T)
+#     )
+  
+  vcf <- vcf %>%
+    mutate(
+      READ_DEPTH = ifelse (READ_DEPTH == "0", "NA", READ_DEPTH),
+      CHROM = stri_replace_all_fixed(CHROM, "un", "1", vectorize_all=F),
+      CHROM = as.integer(CHROM),
+      REF_FREQ = as.numeric(REF_FREQ),
+      READ_DEPTH = as.numeric(READ_DEPTH),
+      POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+                      levels = pop.levels, ordered =T)
+    )
+  
+  
+  
+  if (missing(filter) == "TRUE") {
+    vcf <- vcf
+  } else if (is.vector(filter) == "TRUE") {
+    vcf <- read_tsv(filter, col_names = T) %>%
+      left_join(vcf, by = "LOCUS")
+  } else {
+    vcf <- filter %>%
+      left_join(vcf, by = "LOCUS")
+  }
+  
+  
+  if (missing(filename) == "FALSE") {
+    message("Saving the file in your working directory...")
+    write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
+    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+  } else {
+    saving <- "Saving was not selected..."
+  }
+  
+  
+  invisible(cat(sprintf(
+    "%s\n
 Working directory:
 %s",
-  saving, getwd()
-)))
-vcf
+    saving, getwd()
+  )))
+  vcf
 }
