@@ -203,6 +203,9 @@ The number of loci in the catalog with consensus alleles = %s LOCI
 
 
 
+
+
+
 #' @title Import and summarise the batch_x.hapstats.tsv file.
 #' @description Import and summarise the batch_x.hapstats.tsv file.
 #' Necessary preparation for density distribution and box plot figures.
@@ -253,10 +256,10 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 #' with STACKS GBS/RAD loci = read or de novo haplotypes, 
 #' is included and repeated over SNP.
 #' @param data The tidy VCF file created with read_stacks_vcf.
-#' @rdname summary_vcf_tidy
+#' @rdname summary_stats_vcf_tidy
 #' @export
 
-summary_vcf_tidy <- function(data) {
+summary_stats_vcf_tidy <- function(data) {
 
   vcf.summary <- data %>%
     filter(GT != "./.") %>%
