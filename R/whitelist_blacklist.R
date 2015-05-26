@@ -9,7 +9,7 @@
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
 #' @rdname whitelist_loci
 #' @export
-#' @import dplyr
+#' @import dplyr, readr
 
 whitelist_loci <- function(data, filename, col.header) {
   
@@ -47,6 +47,7 @@ filename, getwd()
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
 #' @rdname whitelist_loci_snp
 #' @export
+#' @import dplyr, readr
 
 whitelist_loci_snp <- function(data, filename, col.header) {
   
@@ -87,6 +88,7 @@ filename, getwd()
 #' @param filename The name of the file written in the directory.
 #' @rdname whitelist_loci_vcf
 #' @export
+#' @import dplyr, readr
 
 whitelist_loci_vcf <- function(data, filename) {
   
@@ -129,6 +131,7 @@ filename, getwd()
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
 #' @rdname blacklist_loci
 #' @export
+#' @import dplyr, readr
 
 blacklist_loci <- function(before.filter.data, after.filter.data, filename, 
                            col.header) {
