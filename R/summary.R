@@ -235,6 +235,11 @@ The number of loci in the catalog with consensus alleles = %s LOCI
 
 summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop.levels) {
   
+  POP_ID <- NULL
+
+  
+  
+  
   skip.lines <- pop.num + 1
   
   if(pop.col.types == "integer"){
@@ -351,6 +356,14 @@ summary_stats_vcf_tidy <- function(data) {
 #' @export
 
 summary_coverage <- function (tidy.vcf.file, pop.levels, filename) {
+  
+  POP_ID <- NULL
+  READ_DEPTH <- NULL
+  ALLELE_REF_DEPTH <- NULL
+  ALLELE_ALT_DEPTH <- NULL
+  INDIVIDUALS <- NULL
+  
+  
   
   if (is.vector(tidy.vcf.file) == "TRUE") {
     data <- read_tsv(tidy.vcf.file, col_names = T, col_types = "iiiiccddcdccddddc")
