@@ -4,8 +4,8 @@
 \alias{read_stacks_vcf}
 \title{Read a VCF file produced by STACKS and transform in tidy format}
 \usage{
-read_stacks_vcf(vcf.file, pop.id.start, pop.id.end, pop.levels, filter,
-  filename)
+read_stacks_vcf(vcf.file, pop.id.start, pop.id.end, pop.levels, whitelist,
+  blacklist, filename)
 }
 \arguments{
 \item{vcf.file}{The VCF file created by STACKS.}
@@ -18,7 +18,11 @@ in the name of your individual sample.}
 
 \item{pop.levels}{An optional character string with your populations ordered.}
 
-\item{filter}{An optional filter of loci can be applied to the vcf, using
+\item{whitelist}{An optional filter of loci can be applied to the vcf, using
+a file in the working directory (e.g. "myfile.txt") or an object
+in the global environment.}
+
+\item{blacklist}{An optional filter of loci can be applied to the vcf, using
 a file in the working directory (e.g. "myfile.txt") or an object
 in the global environment.}
 

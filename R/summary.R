@@ -71,7 +71,7 @@ summary_polymorphism_haplotypes <- function(haplotypes.file, pop.id.start, pop.i
     arrange(LOCUS)
   
   write.table(blacklist.loci.paralogs,
-              "blacklist.loci.paralogs.tsv",
+              "blacklist.loci.paralogs.txt",
               sep = "\t", row.names = F, col.names = T, quote = F)
   
   paralogs.pop
@@ -95,7 +95,7 @@ summary_polymorphism_haplotypes <- function(haplotypes.file, pop.id.start, pop.i
     arrange(LOCUS)
   
   write.table(blacklist.loci.consensus, 
-              "blacklist.loci.consensus.tsv",
+              "blacklist.loci.consensus.txt",
               sep = "\t", row.names = F, col.names = T, quote = F)
   
   consensus.pop  
@@ -194,9 +194,9 @@ summary_polymorphism_haplotypes <- function(haplotypes.file, pop.id.start, pop.i
 The number of putative paralogs loci in the catalog (> 2 alleles) = %s LOCI
 The number of loci in the catalog with consensus alleles = %s LOCI
 3 files were written in this directory: %s
-1. blacklist.loci.paralogs.tsv
-2. blacklist.loci.consensus.tsv
-3. haplotype.catalog.loci.summary.pop.tsv", 
+1. blacklist.loci.paralogs.txt
+2. blacklist.loci.consensus.txt
+3. haplotype.catalog.loci.summary.pop.txt", 
     n_distinct(batch_1.haplotypes$LOCUS),
     n_distinct(paralogs.pop$LOCUS),
     n_distinct(consensus.pop$LOCUS),
