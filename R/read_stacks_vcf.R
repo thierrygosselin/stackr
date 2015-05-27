@@ -42,11 +42,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filt
   ALLELE_Q <- NULL
   ALLELE_REF_DEPTH <- NULL
   ALLELE_ALT_DEPTH <- NULL
-  
-  
-  . <- NULL
-  
-  
+
   
   message("Tidying the VCF...")
   

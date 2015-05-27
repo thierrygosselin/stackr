@@ -447,6 +447,15 @@ table_low_coverage_summary <- function(tidy.vcf.file,
                                        filename.low.coverage,
                                        filename.low.coverage.imbalance) {
   
+  INDIVIDUALS <- NULL
+  POP_ID <- NULL
+  GT <- NULL
+  READ_DEPTH <- NULL
+  ALLELE_COVERAGE_RATIO <- NULL
+  SAMPLE_NUMBER <- NULL
+  TOTAL_NUMBER <- NULL
+  IMBALANCE_NUMBER <- NULL
+  
   if (is.vector(tidy.vcf.file) == "TRUE") {
     data <- read_tsv(tidy.vcf.file, 
                      col_names = T, 

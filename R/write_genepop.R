@@ -21,6 +21,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @import reshape2
 #' @import dplyr
 #' @import tidyr
+#' @importFrom stringr str_pad
 
 write_genepop <- function(haplotypes.file, 
                           whitelist.loci = NULL, 

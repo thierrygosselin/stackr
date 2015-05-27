@@ -13,6 +13,30 @@
 
 sumstats_prep <- function(sumstats, skip.line, pop.num, pop.col.types, pop.integer.equi, pop.levels, filename) {
   
+BATCH <- NULL
+LOCUS <- NULL
+CHROM <- NULL
+POS <- NULL
+COL <- NULL
+POP_ID <- NULL
+ALLELE_P <- NULL
+ALLELE_Q <- NULL
+N <- NULL
+FREQ_ALLELE_P <- NULL
+HET_O <- NULL
+HOM_O <- NULL
+HET_E <- NULL
+HOM_E <- NULL
+PI <- NULL
+SMOOTHED_PI <- NULL
+SMOOTHED_PI_P_VALUE <- NULL
+FIS <- NULL
+SMOOTHED_FIS <- NULL
+SMOOTHED_FIS_P_VALUE <- NULL
+PRIVATE <- NULL
+
+  
+  
   if(pop.col.types == "integer"){
     
     sumstats.prep <- read_delim(sumstats,
