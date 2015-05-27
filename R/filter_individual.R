@@ -15,7 +15,7 @@
 #' number e.g. 0.70, 70, 15.
 #' @param threshold.fixed Is the threshold fixed ? TRUE or FALSE.
 #' @param filename Name of the file written to the working directory.
-#' @rdname individual_filter
+#' @rdname filter_individual
 #' @export
 #' @import stringi
 #' @import dplyr
@@ -72,7 +72,7 @@ filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id
       
     } else {
       data <- data
-      message("Using the sumstats from your global environment")
+      message("Using the sumstats file from your global environment")
     }
     
     if (stri_detect_fixed(threshold.fixed, "T")) {
