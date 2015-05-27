@@ -14,7 +14,6 @@
 blacklist_loci_filter <- function (data, blacklist, type) {
   
   LOCUS <- NULL
-  POP <- NULL
   POP_ID <- NULL
   
   if (is.vector(blacklist) == "TRUE") {
@@ -39,7 +38,7 @@ blacklist_loci_filter <- function (data, blacklist, type) {
   
   blacklist.filter <- data %>%
   anti_join(blacklist.loci, by = "LOCUS") %>%
-  arrange(LOCUS, POS, POP_ID)
+  arrange(LOCUS, POP_ID)
   
 invisible(cat(sprintf(
 "Blacklist %s filter:

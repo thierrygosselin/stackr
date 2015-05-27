@@ -2,6 +2,7 @@
 
 export(blacklist_erase_genotype)
 export(blacklist_loci)
+export(blacklist_loci_filter)
 export(erase_genotypes)
 export(filter_genotype_likelihood)
 export(filter_individual)
