@@ -6,7 +6,10 @@
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
 #' @param pop.levels An optional character string with your populations ordered.
-#' @param filter An optional filter of loci can be applied to the vcf, using
+#' @param whitelist An optional filter of loci can be applied to the vcf, using
+#' a file in the working directory (e.g. "myfile.txt") or an object
+#' in the global environment.
+#' @param blacklist An optional filter of loci can be applied to the vcf, using
 #' a file in the working directory (e.g. "myfile.txt") or an object
 #' in the global environment.
 #' @param filename The name of the file written in the directory.
@@ -15,9 +18,8 @@
 #' @import dplyr
 #' @import readr
 
-# read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end, pop.levels, filter, filename) {
 
-read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filter, filename) {
+read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whitelist, blacklist, filename) {
   
   X1 <- NULL
   POP_ID <- NULL
@@ -44,17 +46,57 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filt
   ALLELE_ALT_DEPTH <- NULL
   
   
-  message("Tidying the VCF...")
+  message("Importing the VCF...")
   
   vcf <- read_delim(
     vcf.file, delim = "\t", 
     skip = 9,#n_max = max.read.lines,
     progress = interactive()
-  )
+  ) %>% 
+    select(-c(QUAL, FILTER, FORMAT)) %>%
+    rename(LOCUS = ID, CHROM = `#CHROM`)
+  
+  if (missing(whitelist) == "TRUE") {
+    vcf <- vcf
+    message("No whitelist to apply to the VCF...")
+    
+  } else if (is.vector(whitelist) == "TRUE") {
+    vcf <- read_tsv(whitelist, col_names = T) %>%
+      left_join(vcf, by = "LOCUS")
+    message("Filtering the VCF with the whitelist from your directory")
+    
+  } else {
+    vcf <- whitelist %>%
+      left_join(vcf, by = "LOCUS")
+    message("Filtering the VCF with the whitelist from your global environment")
+    
+  }
+  
+  if (missing(blacklist) == "TRUE") {
+    vcf <- vcf
+    message("No blacklist to apply to the VCF...")
+    
+  } else if (is.vector(blacklist) == "TRUE") {
+    message("Filtering the VCF with the blacklist from your directory")
+    
+    vcf <- vcf  %>% 
+      anti_join(
+        read_tsv(blacklist, col_names = T),
+        by = "LOCUS"
+      )
+    
+  } else {
+    message("Filtering the VCF with the blacklist from your global environment")
+    
+    vcf <- vcf %>% 
+      anti_join(blacklist, by = "LOCUS")
+    
+  }
+  
+  
+  message("Tidying the VCF...")
   
   vcf <- vcf %>%
-    select(-c(QUAL, FILTER, FORMAT)) %>%
-    rename(LOCUS = ID, CHROM = `#CHROM`) %>%
     separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
     mutate(
       N = as.numeric(stri_replace_all_fixed(N, "NS=", "", vectorize_all=F)),
@@ -104,21 +146,6 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filt
     )
   
   vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "ALLELE_P", "ALLELE_Q", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")]
-  
-  if (missing(filter) == "TRUE") {
-    vcf <- vcf
-  } else if (is.vector(filter) == "TRUE") {
-    vcf <- read_tsv(filter, col_names = T) %>%
-      left_join(vcf, by = "LOCUS")
-  } else {
-    vcf <- filter %>%
-      left_join(vcf, by = "LOCUS")
-  }
-  
-  #   message("Saving the file in your working directory...")
-  #   write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
-  # #   write.table(vcf, filename, sep = "\t", row.names = F, col.names = T,
-  # #               quote = F)
   
   
   if (missing(filename) == "FALSE") {
