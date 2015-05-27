@@ -41,6 +41,7 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
   READ_DEPTH_MAX <- NULL
   GL_MEAN <- NULL
   GL_DIFF <- NULL
+  POP_ID <- NULL
   
   
   

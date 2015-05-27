@@ -23,6 +23,24 @@
 
 filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id.end, pop.levels, ind.threshold, threshold.fixed, filename) {
   
+  X1 <- NULL
+  INDIVIDUALS <- NULL
+  POP_ID <- NULL
+  N <- NULL
+  LOCUS_N <- NULL
+  IND <- NULL
+  POP <- NULL
+  N_TOT <- NULL
+  N_SUM <- NULL
+  N_MIN <- NULL
+  GT <- NULL
+  N_VCF <- NULL
+  POP_ID <- NULL
+  
+  
+  
+  
+  
   if (is.vector(population.map) == "TRUE") {
     
     message("Using the population map in your directory")
