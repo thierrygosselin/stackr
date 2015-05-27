@@ -11,7 +11,7 @@
 #' @export
 #' @rdname filter_loci_blacklist
 
-blacklist_loci_filter <- function (data, blacklist, type) {
+filter_loci_blacklist <- function (data, blacklist, type) {
   
   LOCUS <- NULL
   POP_ID <- NULL
