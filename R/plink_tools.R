@@ -10,6 +10,11 @@
 
 make_tfam <- function(population.map, pop.id.start, pop.id.end, pop.levels, filename) {
     
+  
+  X1 <- NULL
+  INDIVIDUALS <- NULL
+  POP_ID <- NULL
+  
   if (is.vector(population.map) == "TRUE") {
     population.map <- read_tsv(population.map, col_names = F)
   } else {

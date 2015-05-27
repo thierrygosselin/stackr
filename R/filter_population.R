@@ -16,6 +16,9 @@
 # Population
 filter_population <- function(data, pop.threshold, percent, filename) {
 
+  POP_ID <- NULL
+  
+  
   if (is.vector(data) == "TRUE") {
     message("Using the file in your directory")
     data <- read_tsv(data, col_names = T)
