@@ -94,27 +94,22 @@ sumstats_prep <- function(sumstats, skip.line, pop.num, pop.col.types, pop.integ
   }
   
   # Global MAF and duplicating columns
+  
   sumstats <- sumstats.prep %>%
-    melt(
-      id.vars = c("LOCUS", "POS", "POP_ID", "N", "FREQ_ALLELE_P", "FREQ_ALLELE_Q"),
-      measure.vars = c("ALLELE_P", "ALLELE_Q"), 
-      variable.name = "ALLELE", 
-      value.name = "NUCLEOTIDE"
-    ) %>%
-    filter(NUCLEOTIDE != "-") %>%
+    select(c(LOCUS, POS, POP_ID, N, FREQ_ALLELE_P)) %>%
+    group_by(LOCUS, POS, POP_ID) %>%
     mutate(
-      N_IND_POP = ifelse(ALLELE == "ALLELE_P", floor(N * FREQ_ALLELE_P), ceiling(N * FREQ_ALLELE_Q))
-    ) %>%
-    group_by(LOCUS, POS, ALLELE, NUCLEOTIDE) %>%
-    summarise(
-      N_SNP = sum(N_IND_POP)
+      NP_P = 2 * N * FREQ_ALLELE_P
     ) %>%
     group_by(LOCUS, POS) %>%
     summarise(
-      N = sum(N_SNP),
-      GLOBAL_MAF = length(N_SNP[ALLELE == "ALLELE_Q"]) / (2*N)
+      NP_L = sum(NP_P),
+      NTOT = sum(N)
     ) %>%
-    select(-N) %>%
+    mutate(
+      GLOBAL_MAF = ((2*NTOT)-NP_L) / (2*NTOT)
+    ) %>%
+    select(-NP_L, -NTOT) %>%
     full_join(sumstats.prep, by = c("LOCUS", "POS")) %>%
     mutate(
       REF = ALLELE_P,
@@ -123,6 +118,7 @@ sumstats_prep <- function(sumstats, skip.line, pop.num, pop.col.types, pop.integ
       FREQ_ALT = FREQ_ALLELE_Q,
       MAF = FREQ_ALT
     )
+  
   
   #Change the order of the columns
   sumstats <- sumstats[c("BATCH","LOCUS","CHROM","POS","COL","POP_ID","N","ALLELE_P","ALLELE_Q","FREQ_ALLELE_P","FREQ_ALLELE_Q","HET_O","HOM_O","HET_E","HOM_E","PI","SMOOTHED_PI","SMOOTHED_PI_P_VALUE","FIS","SMOOTHED_FIS","SMOOTHED_FIS_P_VALUE","PRIVATE", "REF", "ALT", "FREQ_REF", "FREQ_ALT", "MAF", "GLOBAL_MAF")]
