@@ -236,9 +236,6 @@ The number of loci in the catalog with consensus alleles = %s LOCI
 summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop.levels) {
   
   POP_ID <- NULL
-
-  
-  
   
   skip.lines <- pop.num + 1
   
