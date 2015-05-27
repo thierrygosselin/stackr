@@ -2,10 +2,11 @@
 
 export(blacklist_erase_genotype)
 export(blacklist_loci)
-export(blacklist_loci_filter)
 export(erase_genotypes)
 export(filter_genotype_likelihood)
+export(filter_id_whitelist)
 export(filter_individual)
+export(filter_loci_blacklist)
 export(filter_population)
 export(read_stacks_haplotypes_vcf)
 export(read_stacks_vcf)

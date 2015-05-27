@@ -8,6 +8,8 @@
 #' @param pop.integer.equi When Integer was used for your population id, give the character equivalence
 #' @param pop.levels A character string with your populations in order.
 #' @param filename The name of the file written in the directory.
+#' @export
+#' @rdname sumstats_prep
 #' @import dplyr
 #' @import readr
 
