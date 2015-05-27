@@ -597,6 +597,14 @@ Written in the directory:
 
 summary_genotype_likelihood <- function(tidy.vcf.file, pop.levels, filename){
   
+  POP_ID <- NULL
+  GL <- NULL
+  GL_MAX <- NULL
+  GL_MIN <- NULL
+  INDIVIDUALS <- NULL
+  
+  
+  
   if (is.vector(tidy.vcf.file) == "TRUE") {
     data <- read_tsv(tidy.vcf.file, col_names = T, col_types = "iiiiccddcdccddddc")
     message("Using the file in your directory")
@@ -695,6 +703,29 @@ Written in the directory:
 #' @export
 
 summary_phistats <- function(data, skip.lines) {
+  
+  BATCH_ID <- NULL
+  LOCUS <- NULL
+  CHR <- NULL
+  BP <- NULL
+  POP_COUNT <- NULL
+  PHI_ST <- NULL
+  SMOOTHED_PHI_ST <- NULL
+  SMOOTHED_PHI_ST_P_VALUE <- NULL
+  PHI_CT <- NULL
+  SMOOTHED_PHI_CT <- NULL
+  SMOOTHED_PHI_CT_P_VALUE <- NULL
+  PHI_SC <- NULL
+  SMOOTHED_PHI_SC <- NULL
+  SMOOTHED_PHI_SC_P_VALUE <- NULL
+  FST_PRIME <- NULL
+  SMOOTHED_FST_PRIME <- NULL
+  SMOOTHED_FST_PRIME_P_VALUE <- NULL
+  D_EST <- NULL
+  SMOOTHED_D_EST <- NULL
+  SMOOTHED_D_EST_P_VALUE <- NULL
+  
+  
   
   phistats <- read_tsv(data,
                        na = "NA",
