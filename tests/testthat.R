@@ -1,4 +1,4 @@
-// library(testthat)
-// library(stackr)
+# library(testthat)
+# library(stackr)
 
-// test_check("stackr")
+# test_check("stackr")
