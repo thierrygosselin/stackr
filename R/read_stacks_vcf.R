@@ -19,6 +19,35 @@
 
 read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filter, filename) {
 
+  X1 <- NULL
+  POP_ID <- NULL
+  QUAL <- NULL
+  FILTER <- NULL
+  FORMAT <- NULL
+  ID <- NULL
+  `#CHROM` <- NULL
+  INFO <- NULL
+  N <- NULL
+  AF <- NULL
+  INDIVIDUALS <- NULL
+  REF <- NULL
+  ALT <- NULL
+  READ_DEPTH <- NULL
+  REF_FREQ <- NULL
+  ALT_FREQ <- NULL
+  ALLELE_DEPTH <- NULL
+  GT <- NULL
+  GL <- NULL
+  ALLELE_P <- NULL
+  ALLELE_Q <- NULL
+  ALLELE_REF_DEPTH <- NULL
+  ALLELE_ALT_DEPTH <- NULL
+  
+  
+  . <- NULL
+  
+  
+  
   message("Tidying the VCF...")
   
   vcf <- read_delim(
