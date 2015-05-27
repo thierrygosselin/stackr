@@ -7,10 +7,11 @@
 #' @param aes.colour GGPLOT2 aesthetics colour, 
 #' e.g. aes(y = ..scaled.., color = COVERAGE_GROUP).
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
+#' @export
+#' @rdname figure_density_distribution_coverage
 #' @import ggplot2
 #' @import dplyr
 #' @import readr
-
 
 figure_density_distribution_coverage <- function(data, aes.colour, adjust.bin) {
   
@@ -39,6 +40,8 @@ figure_density_distribution_coverage <- function(data, aes.colour, adjust.bin) {
 #' @description Create box plots of coverage summary statistics.
 #' Use the coverage summary file created with coverage_summary function.
 #' @param data Coverage summary file.
+#' @export
+#' @rdname figure_box_plot_coverage
 
 figure_box_plot_coverage <- function(data) {
   
@@ -95,6 +98,8 @@ figure_box_plot_coverage <- function(data) {
 #' #' e.g. fig <- figure_coverage_imbalance_diagnostic(
 #' tidy.vcf.file, pop.levels, read.depth.threshold, aes.colour, adjust.bin)
 #' Use ( fig + facet_grid(GROUP_GL ~ GROUP_COVERAGE)).
+#' @export
+#' @rdname figure_coverage_imbalance_diagnostic
 
 
 figure_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read.depth.threshold, aes.colour, adjust.bin) {
@@ -163,6 +168,8 @@ figure_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read
 #' @param aes.colour GGPLOT2 aesthetics colour, 
 #' e.g. aes(y = ..scaled.., color = GENOTYPE_LIKELIHOOD_GROUP).
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
+#' @export
+#' @rdname figure_density_distribution_genotype_likelihood
 
 figure_density_distribution_genotype_likelihood <- function(data, aes.colour, 
                                                             adjust.bin) {
@@ -198,6 +205,8 @@ figure_density_distribution_genotype_likelihood <- function(data, aes.colour,
 #' Use the genotype likelihood summary file created
 #' with genotype_likelihood_summary function.
 #' @param data genotype likelihood summary file.
+#' @export
+#' @rdname figure_box_plot_genotype_likelihood
 
 figure_box_plot_genotype_likelihood <- function(data) {
   
@@ -234,6 +243,8 @@ figure_box_plot_genotype_likelihood <- function(data) {
 #' e.g. aes(y = ..scaled.., color = GROUP).
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
 #' @param x.title Title of the x-axis.
+#' @export
+#' @rdname figure_density_distribution_maf
 
 figure_density_distribution_maf <- function(data, maf.group, aes.colour, adjust.bin, x.title) {
   
@@ -277,7 +288,9 @@ figure_density_distribution_maf <- function(data, maf.group, aes.colour, adjust.
 #' e.g. aes(y = ..scaled.., color = GROUP).
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
 #' @param x.title Title of the x-axis.
-#' 
+#' @export
+#' @rdname figure_density_distribution_het
+
 figure_density_distribution_het <- function(data, pop.levels, het.group, aes.colour, adjust.bin, x.title){
   
   POP_ID <- NULL
@@ -338,6 +351,9 @@ figure_density_distribution_het <- function(data, pop.levels, het.group, aes.col
 #' @title Figure of the distribution of SNP per locus before and after filters
 #' @param before.filter.data Data set before filter.
 #' @param after.filter.data Data set after filter.
+#' @export
+#' @rdname figure_snp_number_loci
+
 figure_snp_number_loci <- function(before.filter.data, after.filter.data) {
   
   GROUP <- NULL
@@ -385,103 +401,17 @@ figure_snp_number_loci <- function(before.filter.data, after.filter.data) {
   graph
 }
 
-#' @title Figure of the distribution of SNP nucleotide position alond the read.
-#' @param before.filter.data Data set before filter.
-#' @param gl.blacklist GL blacklist.
-#' @param maf.blacklist MAF blacklist.
-#' @param het.blacklist Het blacklist.
-#' @param fis.blacklist Fis blacklist.
-#' @param all.filters.blacklist A blacklist of all discarded loci.
 
-#  Distribution of SNP nucleotide position along the read 
-nucleotide_number_position <- function(before.filter.data, 
-                                       gl.blacklist, 
-                                       maf.blacklist, het.blacklist, fis.blacklist, all.filters.blacklist) {
-  
-  POP_ID <- NULL
-  COL <- NULL
-  VALUE <- NULL
-  FILTERS <- NULL
-  
-  
-  if (is.vector(before.filter.data) == "TRUE") {
-    data <- read_tsv(before.filter.data, col_names = T)
-  } else {
-    data <- before.filter.data
-  }
-  
-  if (is.vector(gl.blacklist) == "TRUE") {
-    gl.bl <- read_tsv(gl.blacklist, col_names = T)
-  } else {
-    gl.bl <- gl.blacklist
-  }
-  
-  if (is.vector(maf.blacklist) == "TRUE") {
-    maf.bl <- read_tsv(maf.blacklist, col_names = T)
-  } else {
-    maf.bl <- maf.blacklist
-  }
-  
-  if (is.vector(het.blacklist) == "TRUE") {
-    het.bl <- read_tsv(gl.blacklist, col_names = T)
-  } else {
-    het.bl <- het.blacklist
-  }
-  
-  if (is.vector(fis.blacklist) == "TRUE") {
-    fis.bl <- read_tsv(fis.blacklist, col_names = T)
-  } else {
-    fis.bl <- fis.blacklist
-  }
-  
-  if (is.vector(all.filters.blacklist) == "TRUE") {
-    all.filters <- read_tsv(all.filters.blacklist, col_names = T)
-  } else {
-    all.filters <- all.filters.blacklist
-  }
-  
-  GL  <-   gl.bl$LOCUS
-  MAF <-  maf.bl$LOCUS
-  HET <-  het.bl$LOCUS
-  FIS <-  fis.bl$LOCUS
-  ALL <-  all.filters$LOCUS
-  
-  data <- data %>%
-    select(POP_ID, LOCUS, POS, COL) %>%
-    mutate(
-      PRE_FILTERS = rep("pre-filters", n()),
-      COL = as.numeric(COL),
-      GL_FILTER = ifelse(LOCUS %in% GL, "blacklist", "gl.whitelist"),
-      MAF_FILTER = ifelse(LOCUS %in% MAF, "blacklist", "maf.whitelist"),
-      HET_FILTER = ifelse(LOCUS %in% HET, "blacklist", "het.whitelist"),
-      FIS_FILTER = ifelse(LOCUS %in% FIS, "blacklist", "fis.whitelist"),
-      ALL_FILTERS = ifelse(LOCUS %in% ALL, "blacklist", "all.whitelist")
-    ) %>%
-    melt(
-      id.vars = c("POP_ID", "LOCUS", "POS", "COL"),
-      variable.name = "FILTERS", 
-      value.name = "VALUE"
-    ) %>%
-    filter(VALUE != "blacklist") %>%
-    select(-VALUE) %>%
-    mutate(
-      FILTERS = factor(FILTERS,
-                       levels = c("PRE_FILTERS", "GL_FILTER","MAF_FILTER", "HET_FILTER", "FIS_FILTER", "ALL_FILTERS")),
-      GL = ifelse(FILTERS == "PRE_FILTERS" | FILTERS == "GL_FILTER", "GL", "delete"),
-      MAF = ifelse(FILTERS == "PRE_FILTERS" | FILTERS == "MAF_FILTER", "MAF", "delete"),
-      HET = ifelse(FILTERS == "PRE_FILTERS" | FILTERS == "HET_FILTER", "HET", "delete"),
-      FIS = ifelse(FILTERS == "PRE_FILTERS" | FILTERS == "FIS_FILTER", "FIS", "delete"),
-      ALL = ifelse(FILTERS == "PRE_FILTERS" | FILTERS == "ALL_FILTERS", "ALL", "delete")
-    ) %>%
-    melt(
-      id.vars = c("POP_ID", "LOCUS", "POS", "COL", "FILTERS"),
-      measure.vars = c("GL", "MAF", "HET", "FIS", "ALL"),
-      variable.name = "GROUP", 
-      value.name = "VALUE"
-    ) %>%
-    filter(VALUE != "delete") %>%
-    select(-VALUE)
-}
+
+
+#' @title Figure of the distribution of SNP nucleotide position alond the read
+#' @param data Data for the figure.
+#' @param aes.colour GGPLOT2 aesthetic.
+#' @param y.title Title of the Y-axis.
+#' @export
+#' @rdname figure_nucleotide_number_position
+
+
 
 figure_nucleotide_number_position <- function(data, aes.colour, y.title) {
   
@@ -515,6 +445,8 @@ figure_nucleotide_number_position <- function(data, aes.colour, y.title) {
 #' e.g. aes.colour = aes(y = ..scaled.., colour = POP_ID).
 #' @param x.title Title of the x-axis.
 #' @param y.title Title of the y-axis.
+#' @export
+#' @rdname figure_distribution_diversity
 
 figure_distribution_diversity <- function(data, aes.x, aes.colour, x.title, y.title) {
   
@@ -550,7 +482,8 @@ figure_distribution_diversity <- function(data, aes.x, aes.colour, x.title, y.ti
 #' @param aes.x.y The GGPLOT2 aesthetics, 
 #' e.g. aes.x.y = aes(x = factor(POP_ID), y = GENE_DIVERSITY, na.rm = T). 
 #' @param y.title Title of the y-axis.
-
+#' @export
+#' @rdname figure_box_plot_diversity
 figure_box_plot_diversity <- function(data, aes.x.y, y.title) {
   ggplot(data, aes.x.y)+
     geom_violin(trim = F)+
