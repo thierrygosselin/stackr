@@ -304,7 +304,7 @@ summary_stats_vcf_tidy <- function(data) {
     summarise(
       N = as.numeric(n()),
       PP = as.numeric(length(GT[GT == "0/0"])),
-      PQ = as.numeric(length(GT[GT != "0/0" | GT != "1/1"])),
+      PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
       QQ = as.numeric(length(GT[GT == "1/1"]))
     ) %>%
     mutate(
