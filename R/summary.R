@@ -278,8 +278,7 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 
 summary_stats_vcf_tidy <- function(data) {
   
-  message("This function is not ready yet... ")
-  
+
   GT <- NULL
   GL <- NULL
   INDIVIDUALS <- NULL

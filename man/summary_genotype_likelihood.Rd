@@ -14,8 +14,9 @@ summary_genotype_likelihood(tidy.vcf.file, pop.levels, filename)
 \item{filename}{The name of the file written in the directory.}
 }
 \value{
-A list with 2 tables: the long format of loci and populations
-genotype likelihood statistics and the short format by populations.
+A list with 2 tables: the long format of loci ($gl.summary.long)
+and populations genotype likelihood statistics
+and the short format by populations ($gl.summary.pop).
 The short-format is more user-friendly and
 is written to the working directory.
 }

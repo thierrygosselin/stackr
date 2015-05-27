@@ -17,7 +17,10 @@ e.g. aes(y = ..scaled.., color = GENOTYPE_LIKELIHOOD_GROUP).}
 \description{
 Create density distribution of genotype likelihood
 summary statistics.
-Use the coverage summary file created with
-genotype_likelihood_summary function.
+Use the long version of coverage summary file created with
+genotype_likelihood_summary function ($gl.summary.long).
+}
+\seealso{
+\link{summary_genotype_likelihood}
 }
 
