@@ -261,6 +261,24 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 
 summary_stats_vcf_tidy <- function(data) {
 
+
+
+GT <- NULL
+GL <- NULL
+INDIVIDUALS <- NULL
+POP_ID <- NULL
+N <- NULL
+HET_O <- NULL
+HOM_O <- NULL
+HET_E <- NULL
+HOM_E <- NULL
+FREQ_ALT <- NULL
+FREQ_REF <- NULL
+GLOBAL_MAF <- NULL
+  
+  
+  
+  
   vcf.summary <- data %>%
     filter(GT != "./.") %>%
     group_by(LOCUS, POS, POP_ID) %>%
@@ -452,7 +470,7 @@ table_low_coverage_summary <- function(tidy.vcf.file,
   GT <- NULL
   READ_DEPTH <- NULL
   ALLELE_COVERAGE_RATIO <- NULL
-  SAMPLE_NUMBER <- NULL
+  SAMPLES_NUMBER <- NULL
   TOTAL_NUMBER <- NULL
   IMBALANCE_NUMBER <- NULL
   

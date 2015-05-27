@@ -34,9 +34,14 @@ FIS <- NULL
 SMOOTHED_FIS <- NULL
 SMOOTHED_FIS_P_VALUE <- NULL
 PRIVATE <- NULL
+FREQ_ALLELE_P <- NULL
+FREQ_ALLELE_Q <- NULL
+ALLELE <- NULL
+NUCLEOTIDE <- NULL
+N_IND_POP <- NULL
+N_SNP <- NULL
+FREQ_ALT <- NULL
 
-  
-  
   if(pop.col.types == "integer"){
     
     sumstats.prep <- read_delim(sumstats,
