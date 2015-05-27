@@ -9,8 +9,9 @@
 #' @export
 #' @import dplyr
 #' @import readr
-#' @details Highly recommended to look at the distribution of MAF.
-#' @seealso \link{figure_density_distribution_maf, filter_maf}
+#' @details Highly recommended to look at the distribution of MAF
+#' \link{figure_density_distribution_maf}.
+#' @seealso \link{filter_maf}
 
 
 diagnostic_maf <- function(data, group.rank, filename){
@@ -20,6 +21,9 @@ diagnostic_maf <- function(data, group.rank, filename){
   FREQ_ALT <- NULL
   RANK <- NULL
   GLOBAL_MAF <- NULL
+  MAF_P <- NULL
+  MAF_L <- NULL
+  test.maf <- NULL
   
   if (is.vector(data) == "TRUE") {
     data <- read_tsv(data, col_names = TRUE)

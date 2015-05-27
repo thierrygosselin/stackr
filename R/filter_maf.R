@@ -15,10 +15,18 @@
 #' @import readr
 #' @details To help choose a threshold for the local and global MAF, look
 #' at the function \link{diagnostic_maf}
-#' @seealso \link{summary_stats_vcf_tidy, sumstats_prep}
+#' @seealso \link{sumstats_prep}
+#' @seealso \link{summary_stats_vcf_tidy}
 
 
 filter_maf <- function(data, local.maf.threshold, global.maf.threshold, pop.threshold, filename) {
+  
+  POP_ID <- NULL
+  FREQ_ALT <- NULL
+  GLOBAL_MAF <- NULL
+  LOCAL_MAF <- NULL
+  
+  
   
   if (is.vector(data) == "TRUE") {
     data <- read_tsv(data, col_names = T)
