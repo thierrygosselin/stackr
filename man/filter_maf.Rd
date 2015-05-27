@@ -28,6 +28,8 @@ To help choose a threshold for the local and global MAF, look
 at the function \link{diagnostic_maf}
 }
 \seealso{
-\link{summary_stats_vcf_tidy, sumstats_prep}
+\link{sumstats_prep}
+
+\link{summary_stats_vcf_tidy}
 }
 

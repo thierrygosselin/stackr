@@ -23,7 +23,6 @@ diagnostic_maf <- function(data, group.rank, filename){
   GLOBAL_MAF <- NULL
   MAF_P <- NULL
   MAF_L <- NULL
-  test.maf <- NULL
   
   if (is.vector(data) == "TRUE") {
     data <- read_tsv(data, col_names = TRUE)
@@ -67,7 +66,7 @@ diagnostic_maf <- function(data, group.rank, filename){
   
   if (missing(filename) == "FALSE") {
     message("Saving the table in your working directory...")
-    write_tsv(test.maf, filename, append = FALSE, col_names = TRUE)
+    write_tsv(maf.diagnostic, filename, append = FALSE, col_names = TRUE)
     saving <- paste("Saving was selected, the filename:", filename, sep = " ")
   } else {
     saving <- "Saving was not selected..."
@@ -82,6 +81,6 @@ Working directory:
     saving, getwd()
   )))
   
-  return(test.maf)
+  return(maf.diagnostic)
   
 }

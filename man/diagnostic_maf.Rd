@@ -18,9 +18,10 @@ of class sumstats or tidy VCF.}
 Minor Allele Frequency diagnostic, help choose a filter threshold.
 }
 \details{
-Highly recommended to look at the distribution of MAF.
+Highly recommended to look at the distribution of MAF
+\link{figure_density_distribution_maf}.
 }
 \seealso{
-\link{figure_density_distribution_maf, filter_maf}
+\link{filter_maf}
 }
 
