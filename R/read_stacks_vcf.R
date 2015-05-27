@@ -14,11 +14,11 @@
 #' @export
 #' @import dplyr
 #' @import readr
- 
+
 # read_stacks_vcf <- function(vcf.file, skip.line, max.read.lines, pop.id.start, pop.id.end, pop.levels, filter, filename) {
 
 read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filter, filename) {
-
+  
   X1 <- NULL
   POP_ID <- NULL
   QUAL <- NULL
@@ -42,7 +42,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filt
   ALLELE_Q <- NULL
   ALLELE_REF_DEPTH <- NULL
   ALLELE_ALT_DEPTH <- NULL
-
+  
   
   message("Tidying the VCF...")
   
@@ -50,7 +50,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filt
     vcf.file, delim = "\t", 
     skip = 9,#n_max = max.read.lines,
     progress = interactive()
-    )
+  )
   
   vcf <- vcf %>%
     select(-c(QUAL, FILTER, FORMAT)) %>%
@@ -82,7 +82,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filt
              remove = F)
   
   message("Fixing columns...")
-
+  
   vcf <- vcf %>%
     mutate(
       CHROM = as.numeric(stri_replace_all_fixed(CHROM, "un", "1", 
@@ -115,12 +115,12 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filt
       left_join(vcf, by = "LOCUS")
   }
   
-#   message("Saving the file in your working directory...")
-#   write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
-# #   write.table(vcf, filename, sep = "\t", row.names = F, col.names = T,
-# #               quote = F)
-
- 
+  #   message("Saving the file in your working directory...")
+  #   write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
+  # #   write.table(vcf, filename, sep = "\t", row.names = F, col.names = T,
+  # #               quote = F)
+  
+  
   if (missing(filename) == "FALSE") {
     message("Saving the file in your working directory...")
     write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
@@ -128,7 +128,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, filt
   } else {
     saving <- "Saving was not selected..."
   }
-
+  
   
   invisible(cat(sprintf(
     "%s\n

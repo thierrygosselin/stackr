@@ -33,7 +33,7 @@ read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id
   READ_DEPTH <- NULL
   REF_FREQ <- NULL
   . <- NULL
-    
+  
   
   message("Tidying the Haplotypes VCF")
   
@@ -61,23 +61,23 @@ read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id
     separate(AF, c("REF_FREQ", stri_join("ALT_FREQ", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_")), sep = ",", extra = "drop") %>%
     separate(ALT, stri_join("ALT", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_"), extra = "drop")
   
-#   %>%
-#     gather(ALT_GROUP, ALT_NUC, -c(CHROM:REF, N:READ_DEPTH)) %>%
-#     gather(ALT_FREQ_GROUP, ALT_FREQ, -c(CHROM:REF_FREQ, INDIVIDUALS:ALT_NUC))
+  #   %>%
+  #     gather(ALT_GROUP, ALT_NUC, -c(CHROM:REF, N:READ_DEPTH)) %>%
+  #     gather(ALT_FREQ_GROUP, ALT_FREQ, -c(CHROM:REF_FREQ, INDIVIDUALS:ALT_NUC))
   
   message("Fixing columns...")
   
-#   vcf <- vcf %>%
-#     mutate(
-#       READ_DEPTH = ifelse (READ_DEPTH == "0", "NA", READ_DEPTH),
-#       CHROM = stri_replace_all_fixed(CHROM, "un", "1", vectorize_all=F),
-#       CHROM = as.integer(CHROM),
-#       REF_FREQ = as.numeric(REF_FREQ),
-#       ALT_FREQ = as.numeric(ALT_FREQ),
-#       READ_DEPTH = as.numeric(READ_DEPTH),
-#       POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
-#                       levels = pop.levels, ordered =T)
-#     )
+  #   vcf <- vcf %>%
+  #     mutate(
+  #       READ_DEPTH = ifelse (READ_DEPTH == "0", "NA", READ_DEPTH),
+  #       CHROM = stri_replace_all_fixed(CHROM, "un", "1", vectorize_all=F),
+  #       CHROM = as.integer(CHROM),
+  #       REF_FREQ = as.numeric(REF_FREQ),
+  #       ALT_FREQ = as.numeric(ALT_FREQ),
+  #       READ_DEPTH = as.numeric(READ_DEPTH),
+  #       POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+  #                       levels = pop.levels, ordered =T)
+  #     )
   
   vcf <- vcf %>%
     mutate(
