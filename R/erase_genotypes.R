@@ -19,7 +19,14 @@
 
 
 blacklist_erase_genotype <- function(tidy.vcf.file, allele.depth.threshold, gl.threshold, filename) {
-  
+  GT <- NULL
+  GL <- NULL
+  INDIVIDUALS <- NULL
+  POP_ID <- NULL
+  ALLELE_REF_DEPTH <- NULL
+  ALLELE_ALT_DEPTH <- NULL
+  MIN_REF <- NULL
+  MIN_ALT <- NULL
   
   if (is.vector(tidy.vcf.file) == "TRUE") {
     tidy.vcf.file <- read_tsv(tidy.vcf.file, col_names = T)
