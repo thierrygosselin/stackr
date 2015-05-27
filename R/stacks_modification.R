@@ -43,6 +43,9 @@ sumstats_prep <- function(sumstats, skip.line, pop.num, pop.col.types, pop.integ
   N_IND_POP <- NULL
   N_SNP <- NULL
   FREQ_ALT <- NULL
+  N_P <- NULL
+  NTOT <- NULL
+  
   
   if(pop.col.types == "integer"){
     
@@ -99,17 +102,17 @@ sumstats_prep <- function(sumstats, skip.line, pop.num, pop.col.types, pop.integ
     select(c(LOCUS, POS, POP_ID, N, FREQ_ALLELE_P)) %>%
     group_by(LOCUS, POS, POP_ID) %>%
     mutate(
-      NP_P = 2 * N * FREQ_ALLELE_P
+      N_P = 2 * N * FREQ_ALLELE_P # by locus, snp and pop
     ) %>%
     group_by(LOCUS, POS) %>%
     summarise(
-      NP_L = sum(NP_P),
+      N_P = sum(N_P), # by locus and snp only
       NTOT = sum(N)
     ) %>%
     mutate(
-      GLOBAL_MAF = ((2*NTOT)-NP_L) / (2*NTOT)
+      GLOBAL_MAF = ((2*NTOT)-N_P) / (2*NTOT)
     ) %>%
-    select(-NP_L, -NTOT) %>%
+    select(-N_P, -NTOT) %>%
     full_join(sumstats.prep, by = c("LOCUS", "POS")) %>%
     mutate(
       REF = ALLELE_P,
