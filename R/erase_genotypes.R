@@ -107,6 +107,19 @@ Written in the directory:
 
 erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
   
+  GL <- NULL
+  INDIVIDUALS <- NULL
+  POP_ID <- NULL
+  STATUS <- NULL
+  GROUP <- NULL
+  VALUE <- NULL
+  ALLELE_P <- NULL
+  ALLELE_COVERAGE_RATIO <- NULL
+  READ_DEPTH <- NULL
+  ALLELE_REF_DEPTH <- NULL
+  ALLELE_ALT_DEPTH <- NULL
+
+  
   if (stri_detect_fixed(is.tidy.vcf, "F")) {
     file.type <- "haplotypes"
     
