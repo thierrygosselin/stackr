@@ -175,6 +175,14 @@ assignment_genodive <- function(assignment.lmax, assignment.lhome, lmax.migrant.
 
 figure_assignment <- function(assignment.summary) {
   
+  Individual <- NULL
+  Current <- NULL
+  Inferred <- NULL
+  STATUS <- NULL
+  IND <- NULL
+  DISCRIMINATE <- NULL
+  POUR <- NULL
+
   ggplot(assignment.summary, aes(x = Inferred, y = Current, size = (POUR*100)))+
     #    geom_jitter(shape = 21, alpha = 0.5, aes(fill = STATUS), position = position_jitter(width = 0.05))+
     geom_point(shape = 21, alpha = 0.5, aes(fill = STATUS))+
@@ -196,15 +204,26 @@ figure_assignment <- function(assignment.summary) {
     facet_wrap(~ STATISTICS, scales = "free_x")
 } 
 
+
+
+
 #' @title Classic stacked bar plot figure of assignement results.
 #' @description GGPLOT2 stacked bar plot figure of assignment results.
 #' @param assignment.summary The assignment summary file created 
 #' with assignment_genodive function.
+#' @param pop.levels An optional character string with your populations ordered.
 
-figure_assignment_stacked_bar <- function(assignment.summary) {
+
+figure_assignment_stacked_bar <- function(assignment.summary, pop.levels) {
+  
+  Current <- NULL
+  Inferred <- NULL
+  STATUS <- NULL
+  IND <- NULL
+
   
   assignment_summary_stacked <- assignment.summary %>%
-    mutate(Current = factor(Current, levels = SITES_LEVELS, ordered = T)) %>%
+    mutate(Current = factor(Current, levels = pop.levels, ordered = T)) %>%
     arrange(STATUS)
   
   ggplot(assignment_summary_stacked, aes(x = Current, y = IND, fill = factor(STATUS)))+
