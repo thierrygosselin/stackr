@@ -20,6 +20,19 @@
 
 read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id.end, pop.levels, filter, filename) {
   
+  QUAL <- NULL
+  FILTER <- NULL
+  FORMAT <- NULL
+  ID <- NULL
+  `#CHROM` <- NULL
+  INFO <- NULL
+  N <- NULL
+  AF <- NULL
+  INDIVIDUALS <- NULL
+  ALT <- NULL
+  READ_DEPTH <- NULL
+  REF_FREQ <- NULL
+    
   
   message("Tidying the Haplotypes VCF")
   
