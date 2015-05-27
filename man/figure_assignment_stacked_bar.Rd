@@ -4,11 +4,13 @@
 \alias{figure_assignment_stacked_bar}
 \title{Classic stacked bar plot figure of assignement results.}
 \usage{
-figure_assignment_stacked_bar(assignment.summary)
+figure_assignment_stacked_bar(assignment.summary, pop.levels)
 }
 \arguments{
 \item{assignment.summary}{The assignment summary file created
 with assignment_genodive function.}
+
+\item{pop.levels}{An optional character string with your populations ordered.}
 }
 \description{
 GGPLOT2 stacked bar plot figure of assignment results.

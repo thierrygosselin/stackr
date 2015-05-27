@@ -12,6 +12,7 @@ Description: stackr is a set of tools to look at your GBS/RAD data created by ST
 Depends: 
   R (>= 3.0.1),
 Imports: dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr
-Suggests: ape, shiny, parallel, boot, pegas, adegenet, hierfstat, plyr
+Suggests: ape, shiny, parallel, boot, pegas, adegenet, hierfstat, plyr,
+    testthat
 License: GPL (>=2)
 LazyLoad: yes

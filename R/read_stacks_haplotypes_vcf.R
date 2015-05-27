@@ -20,6 +20,7 @@
 
 read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id.end, pop.levels, filter, filename) {
   
+  
   message("Tidying the Haplotypes VCF")
   
   vcf <- read_delim(
