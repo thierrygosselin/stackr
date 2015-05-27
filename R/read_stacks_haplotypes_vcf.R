@@ -32,6 +32,7 @@ read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id
   ALT <- NULL
   READ_DEPTH <- NULL
   REF_FREQ <- NULL
+  . <- NULL
     
   
   message("Tidying the Haplotypes VCF")
