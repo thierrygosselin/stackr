@@ -26,6 +26,21 @@
 
 summary_polymorphism_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.levels) {
   
+  POP_ID <- NULL
+  POLYMORPHISM <- NULL
+  POLYMORPHISM_MAX <- NULL
+  PARALOGS <- NULL
+  CONSENSUS <- NULL
+  CONSENSUS_MAX <- NULL
+  ALLELES_COUNT <- NULL
+  ALLELES_COUNT_SUM <- NULL
+  POP_LEVEL_POLYMORPHISM <- NULL
+  MONOMORPHIC <- NULL
+  POLYMORPHIC <- NULL
+  TOTAL <- NULL
+  ALLELES_COUNT_MAX <- NULL
+  
+  
   # Import haplotype file
   batch_1.haplotypes <- read_tsv(haplotypes.file, col_names = T) %>%
     rename(LOCUS =`Catalog ID`) %>%
@@ -260,21 +275,24 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 #' @export
 
 summary_stats_vcf_tidy <- function(data) {
-
-
-
-GT <- NULL
-GL <- NULL
-INDIVIDUALS <- NULL
-POP_ID <- NULL
-N <- NULL
-HET_O <- NULL
-HOM_O <- NULL
-HET_E <- NULL
-HOM_E <- NULL
-FREQ_ALT <- NULL
-FREQ_REF <- NULL
-GLOBAL_MAF <- NULL
+  
+  
+  
+  GT <- NULL
+  GL <- NULL
+  INDIVIDUALS <- NULL
+  POP_ID <- NULL
+  N <- NULL
+  HET_O <- NULL
+  HOM_O <- NULL
+  HET_E <- NULL
+  HOM_E <- NULL
+  FREQ_ALT <- NULL
+  FREQ_REF <- NULL
+  GLOBAL_MAF <- NULL
+  PP <- NULL
+  PQ <- NULL
+  QQ <- NULL
   
   
   
@@ -287,14 +305,14 @@ GLOBAL_MAF <- NULL
       PP = as.numeric(length(GT[GT == "0/0"])),
       PQ = as.numeric(length(GT[GT == "0/1" | GT == "1/0"])),
       QQ = as.numeric(length(GT[GT == "1/1"]))
-      ) %>%
+    ) %>%
     mutate(
       FREQ_REF = ((PP*2) + PQ)/(2*N),
       FREQ_ALT = ((QQ*2) + PQ)/(2*N),
       HET_O = PQ/N,
       HET_E = 2 * FREQ_REF * FREQ_ALT,
       FIS = ifelse(HET_O == 0, 0, round (((HET_E - HET_O) / HET_E), 6))
-      )
+    )
   
   global.maf <- vcf.summary %>%
     group_by(LOCUS, POS) %>%
@@ -540,7 +558,7 @@ table_low_coverage_summary <- function(tidy.vcf.file,
   invisible(
     cat(
       sprintf(
-"2 files:
+        "2 files:
 %s
 %s\n
 Written in the directory:
