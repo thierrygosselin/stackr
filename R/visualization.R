@@ -398,6 +398,12 @@ nucleotide_number_position <- function(before.filter.data,
                                        gl.blacklist, 
                                        maf.blacklist, het.blacklist, fis.blacklist, all.filters.blacklist) {
   
+  POP_ID <- NULL
+  COL <- NULL
+  VALUE <- NULL
+  FILTERS <- NULL
+  
+  
   if (is.vector(before.filter.data) == "TRUE") {
     data <- read_tsv(before.filter.data, col_names = T)
   } else {

@@ -9,6 +9,12 @@
 
 population_map <- function (data, pop.id.start, pop.id.end, pop.levels) {
   
+  X1 <- NULL
+  INDIVIDUALS <- NULL
+  POP_ID <- NULL
+  
+  
+  
   pop.map <- read_tsv(data, col_names = F) %>%
     select(INDIVIDUALS=X1) %>%
     mutate(
