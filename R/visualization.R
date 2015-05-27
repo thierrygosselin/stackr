@@ -13,6 +13,11 @@
 
 
 figure_density_distribution_coverage <- function(data, aes.colour, adjust.bin) {
+  
+  VALUE <- NULL
+
+  
+  
   ggplot(data, aes(x = VALUE, na.rm = T))+
     geom_line(aes.colour, stat = "density", size = 0.5, adjust = adjust.bin)+
     labs(x = "Depth of coverage(read number)")+
@@ -37,6 +42,12 @@ figure_density_distribution_coverage <- function(data, aes.colour, adjust.bin) {
 
 figure_box_plot_coverage <- function(data) {
   
+  POP_ID <- NULL
+  VALUE <- NULL
+  POP_ID <- NULL
+  VALUE <- NULL
+  
+
   ggplot(data, aes(x = factor(POP_ID), y = VALUE, na.rm = T))+
     geom_violin(trim = F)+
     geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
@@ -87,6 +98,16 @@ figure_box_plot_coverage <- function(data) {
 
 
 figure_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read.depth.threshold, aes.colour, adjust.bin) {
+  
+  INDIVIDUALS <- NULL
+  POP_ID <- NULL
+  READ_DEPTH <- NULL
+  GL <- NULL
+  GROUP_COVERAGE <- NULL
+  GROUP_GL <- NULL
+  ALLELE_COVERAGE_RATIO <- NULL
+  
+  
   
   if (is.vector(tidy.vcf.file) == "TRUE") {
     data <- read_tsv(tidy.vcf.file, col_names = T, col_types = "diidccddccccdddddc") %>%
@@ -145,6 +166,12 @@ figure_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read
 
 figure_density_distribution_genotype_likelihood <- function(data, aes.colour, 
                                                             adjust.bin) {
+  
+  VALUE <- NULL
+
+  
+  
+  
   # BREAKS <- seq(0, 150, by = 20)
   ggplot(data, aes(x = VALUE, na.rm = T))+
     geom_line(aes.colour, stat = "density", size = 0.5, adjust = adjust.bin)+
@@ -173,6 +200,12 @@ figure_density_distribution_genotype_likelihood <- function(data, aes.colour,
 #' @param data genotype likelihood summary file.
 
 figure_box_plot_genotype_likelihood <- function(data) {
+  
+  POP_ID <- NULL
+  VALUE <- NULL
+  
+  
+  
   ggplot(data, aes(x = factor(POP_ID), y = VALUE, na.rm = T))+
     geom_violin(trim = F)+
     geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
@@ -247,6 +280,11 @@ figure_density_distribution_maf <- function(data, maf.group, aes.colour, adjust.
 #' 
 figure_density_distribution_het <- function(data, pop.levels, het.group, aes.colour, adjust.bin, x.title){
   
+  POP_ID <- NULL
+  HET_O <- NULL
+  HET_MAX <- NULL
+  HET_MIN <- NULL
+  VALUE <- NULL
   
   if (is.vector(data) == "TRUE") {
     data <- read_tsv(data, col_names = T)
@@ -301,6 +339,11 @@ figure_density_distribution_het <- function(data, pop.levels, het.group, aes.col
 #' @param before.filter.data Data set before filter.
 #' @param after.filter.data Data set after filter.
 figure_snp_number_loci <- function(before.filter.data, after.filter.data) {
+  
+  GROUP <- NULL
+  SNP_N <- NULL
+  POP_ID <- NULL
+  
   
   if (is.vector(before.filter.data) == "TRUE") {
     before.filter.data <- read_tsv(before.filter.data, col_names = T)
@@ -436,6 +479,9 @@ nucleotide_number_position <- function(before.filter.data,
 
 figure_nucleotide_number_position <- function(data, aes.colour, y.title) {
   
+  COL <- NULL
+  
+  
   ggplot(data, aes(x = COL, na.rm = T))+
     geom_line((aes.colour), stat = "density", size = 1, adjust = 0.7)+
     scale_x_continuous(breaks = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90))+
@@ -465,6 +511,10 @@ figure_nucleotide_number_position <- function(data, aes.colour, y.title) {
 #' @param y.title Title of the y-axis.
 
 figure_distribution_diversity <- function(data, aes.x, aes.colour, x.title, y.title) {
+  
+  hapstats.summary <- NULL
+
+  
   ggplot(hapstats.summary, aes.x)+
     geom_line(aes.colour, stat = "density", adjust = 0.8)+
     #   scale_colour_manual(name = "Populations", values = colour_palette_sites.pink, breaks = c("BUR", "GRA", "GUL", "LLI", "ANG", "WEI", "HAY", "GOD"))+

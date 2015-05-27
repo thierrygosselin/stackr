@@ -29,6 +29,22 @@
 
 filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold, gl.min.threshold, gl.diff.threshold, pop.threshold, percent, filename) {
   
+  
+  ALLELE_REF_DEPTH <- NULL
+  ALLELE_ALT_DEPTH <- NULL
+  READ_DEPTH <- NULL
+  GL <- NULL
+  GL_MAX <- NULL
+  GL_MIN <- NULL
+  MIN_REF <- NULL
+  MIN_ALT <- NULL
+  READ_DEPTH_MAX <- NULL
+  GL_MEAN <- NULL
+  GL_DIFF <- NULL
+  
+  
+  
+  
   if (is.vector(tidy.vcf.file) == "TRUE") {
     data <- read_tsv(tidy.vcf.file, col_names = T)
     message("Using the tidy vcf file in your directory")
