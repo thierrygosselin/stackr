@@ -647,13 +647,6 @@ summary_genotype_likelihood <- function(tidy.vcf.file, pop.levels, filename){
       arrange(POP_ID)
   }
   
-  write.table(GL.loci.pop.summary, 
-              filename,
-              sep = "\t",
-              row.names = F,
-              col.names = T,
-              quote = F
-  )
   
   GL.pop <- data %>%
     group_by(POP_ID, INDIVIDUALS) %>%
@@ -682,6 +675,17 @@ summary_genotype_likelihood <- function(tidy.vcf.file, pop.levels, filename){
   
   GL.pop.summary.table <- GL.pop.summary %>%
     dcast(POP_ID ~ GENOTYPE_LIKELIHOOD_GROUP, value.var = "VALUE")
+  
+  
+  message("Saving the table in your working directory")
+  write.table(GL.pop.summary.table, 
+              filename,
+              sep = "\t",
+              row.names = F,
+              col.names = T,
+              quote = F
+  )
+  
   
   invisible(cat(sprintf(
     "Filename:
