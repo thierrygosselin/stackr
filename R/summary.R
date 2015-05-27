@@ -594,8 +594,9 @@ Written in the directory:
 #' @param tidy.vcf.file The tidy VCF file created with read_stacks_vcf.
 #' @param pop.levels Character string defining your ordered populations.
 #' @param filename The name of the file written in the directory.
-#' @return A list with 2 tables: the long format of loci and populations
-#' genotype likelihood statistics and the short format by populations.
+#' @return A list with 2 tables: the long format of loci ($gl.summary.long)
+#' and populations genotype likelihood statistics
+#' and the short format by populations ($gl.summary.pop).
 #' The short-format is more user-friendly and
 #' is written to the working directory.
 #' @details The table contains summary statistics: mean, median, min, max and 
@@ -677,7 +678,7 @@ summary_genotype_likelihood <- function(tidy.vcf.file, pop.levels, filename){
     dcast(POP_ID ~ GENOTYPE_LIKELIHOOD_GROUP, value.var = "VALUE")
   
   
-  message("Saving the table in your working directory")
+  message("Saving the summary table by pop in your working directory")
   write.table(GL.pop.summary.table, 
               filename,
               sep = "\t",

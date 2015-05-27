@@ -162,23 +162,21 @@ figure_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read
 #' @title Figure density distribution of genotype likelihood summary statistics
 #' @description Create density distribution of genotype likelihood 
 #' summary statistics.
-#' Use the coverage summary file created with 
-#' genotype_likelihood_summary function.
+#' Use the long version of coverage summary file created with 
+#' genotype_likelihood_summary function ($gl.summary.long).
 #' @param data Genotype likelihood summary file.
 #' @param aes.colour GGPLOT2 aesthetics colour, 
 #' e.g. aes(y = ..scaled.., color = GENOTYPE_LIKELIHOOD_GROUP).
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
 #' @export
 #' @rdname figure_density_distribution_genotype_likelihood
+#' @seealso \link{summary_genotype_likelihood}
 
 figure_density_distribution_genotype_likelihood <- function(data, aes.colour, 
                                                             adjust.bin) {
   
   VALUE <- NULL
 
-  
-  
-  
   # BREAKS <- seq(0, 150, by = 20)
   ggplot(data, aes(x = VALUE, na.rm = T))+
     geom_line(aes.colour, stat = "density", size = 0.5, adjust = adjust.bin)+
