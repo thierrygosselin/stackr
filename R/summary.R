@@ -272,13 +272,14 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 #' and the inbreeding coefficient. The Global MAF of Loci, 
 #' with STACKS GBS/RAD loci = read or de novo haplotypes, 
 #' is included and repeated over SNP.
+#' @param filename (optional) Name of the file written to the working directory.
 #' @param data The tidy VCF file created with read_stacks_vcf.
 #' @rdname summary_stats_vcf_tidy
 #' @export
 
-summary_stats_vcf_tidy <- function(data) {
+summary_stats_vcf_tidy <- function(data, filename) {
   
-
+  
   GT <- NULL
   GL <- NULL
   INDIVIDUALS <- NULL
@@ -325,6 +326,14 @@ summary_stats_vcf_tidy <- function(data) {
     left_join(vcf.summary, by = c("LOCUS", "POS"))
   
   vcf.prep <- vcf.prep[c("LOCUS", "POS", "POP_ID", "N", "PP", "PQ", "QQ", "FREQ_REF", "FREQ_ALT", "GLOBAL_MAF", "HET_O", "HET_E", "FIS")]
+  
+  if (missing(filename) == "FALSE") {
+    message("Saving the file in your working directory...")
+    write_tsv(vcf.prep, filename, append = FALSE, col_names = TRUE)
+    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+  } else {
+    saving <- "Saving was not selected"
+  }
   
   return(vcf.prep)
 }
