@@ -87,6 +87,7 @@ filter_all <- function (haplotypes, vcf,
   IND <- NULL
   INDIVIDUALS <- NULL
   INFO <- NULL
+  MAF <- NULL
   LOCAL_MAF <- NULL
   LOCUS_N <- NULL
   MIN_ALT <- NULL
