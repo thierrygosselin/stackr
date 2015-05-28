@@ -4,12 +4,16 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 
 
 #' @title Use the batch_x.haplotypes.tsv file to write a genpop file
-#' @description This function can first filter the haplotypes file with a whitelist of loci
+#' @description This function can first filter the haplotypes file 
+#' with a whitelist of loci
 #' and a blacklist of individuals (optional).
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
-#' @param whitelist.loci (optional) A whitelist of loci and a column header 'LOCUS'.
+#' @param whitelist.loci (optional) A whitelist of loci and 
+#' a column header 'LOCUS'.
+#' The whitelist is in the directory (e.g. "whitelist.txt").
 #' @param blacklist.id (optional) A blacklist with individual ID and
-#' a column header 'SAMPLES'.
+#' a column header 'INDIVIDUALS'. The blacklist is in the directory
+#'  (e.g. "blacklist.txt").
 #' @param genepop.filename The name of the file written to the directory.
 #' @param genepop.header The first line of the Genepop file 
 #' (ex: genepop of 10 pop of Acipenser fulvescens filtered MAF 0.05).
@@ -31,16 +35,49 @@ write_genepop <- function(haplotypes.file,
                           genepop.filename, genepop.header, 
                           pop.levels, pop.id.start, pop.id.end) {
   
+  # Whitelist
+  if (missing(whitelist) == "FALSE") & (is.vector(whitelist) == "TRUE") {
+    message("Using the whitelist from the directory")
+    whitelist <- read_tsv(whitelist.loci, col_names = T) %>%
+      rename(Catalog.ID = LOCUS)
+  } else if (missing(whitelist) == "FALSE") & (is.vector(whitelist) == "FALSE") {
+    message("Using whitelist from your global environment")
+    whitelist <- whitelist %>%
+      rename(Catalog.ID = LOCUS)
+  } else {
+    message("No whitelist")
+    whitelist <- NULL
+  }
+  
+  
+  # Blacklist
+  if (missing(blacklist.id) == "FALSE") & (is.vector(blacklist.id) == "TRUE") {
+    message("Using the blacklist of id from the directory")
+    blacklist.id <- read_tsv(blacklist.id, col_names = T)    
+  } else if (missing(blacklist.id) == "FALSE") & (is.vector(blacklist.id) == "FALSE") {
+    message("Using blacklist of id from your global environment")
+    blacklist.id <- blacklist.id
+    
+  } else {
+    message("No blacklist of id")
+    blacklist.id <- NULL
+  }
+  
+  
+  # Haplotype file
+  haplotype <- read_tsv(haplotypes.file, col_names = T) %>% 
+      rename(Catalog.ID = `Catalog ID`) %>%
+      gather(INDIVIDUALS, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
+      arrange(Catalog.ID)
+  
+  
+  
   if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
     
-    message("No whitelist, No blacklist of id to apply to the haplotypes file")
+    message("Combination 1: No whitelist and No blacklist")
     
     # No filter
-    haplotype.no.filter <- read_tsv(haplotypes.file, col_names = T) %>% 
-      rename(Catalog.ID = `Catalog ID`) %>%
-      gather(SAMPLES, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
-      arrange(Catalog.ID)
-    
+    haplotype.no.filter <- haplotype    
     
     # Creates a vector containing the loci name
     loci <- unique(haplotype.no.filter$Catalog.ID)
@@ -48,16 +85,11 @@ write_genepop <- function(haplotypes.file,
     
   } else if (is.null(whitelist.loci) == FALSE & is.null(blacklist.id) == TRUE) {
     
-    message("Using whitelist, but No blacklist of id to apply to the haplotypes file")
+    message("Combination 2: Using whitelist, but No blacklist")
     
     # just whitelist.loci, NO Blacklist of individual
-    haplotype.whitelist.loci <- read_tsv(haplotypes.file, col_names = T) %>%
-      rename(Catalog.ID = `Catalog ID`) %>%
-      gather(SAMPLES, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
-      right_join(
-        read_tsv(whitelist.loci, col_names = T) %>%
-          rename(Catalog.ID = LOCUS),
-        by = "Catalog.ID") %>%
+    haplotype.whitelist.loci <- haplotype %>%
+      right_join(whitelist, by = "Catalog.ID") %>%
       arrange(Catalog.ID)
     
     # Creates a vector containing the loci name
@@ -65,13 +97,11 @@ write_genepop <- function(haplotypes.file,
     data <- haplotype.whitelist.loci
     
   } else if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == FALSE) {
-    message("Using a blacklist of id, but No whitelist to apply to the haplotypes file")
+    message("Combination 3: Using a blacklist of id, but No whitelist")
     
     # NO whitelist, JUST Blacklist of individual
-    haplotype.blacklist <- read_tsv(haplotypes.file, col_names = T) %>%
-      rename(Catalog.ID = `Catalog ID`) %>%
-      gather(SAMPLES, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
-      anti_join(read_tsv(blacklist.id, col_names = T), by = "SAMPLES") %>%
+    haplotype.blacklist <- haplotype %>%
+      anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
     
     
@@ -80,17 +110,12 @@ write_genepop <- function(haplotypes.file,
     data <- haplotype.blacklist
     
   } else {
-    message("Using a whitelist and blacklist of id to apply to the haplotypes file")
+    message("Combination 4: Using a whitelist and blacklist")
     
     # whitelist.loci + Blacklist of individual
-    haplotype.whitelist.blacklist <- read_tsv(haplotypes.file, col_names = T) %>% 
-      rename(Catalog.ID = `Catalog ID`) %>%
-      gather(SAMPLES, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
-      right_join(
-        read_tsv(whitelist.loci, col_names = T) %>%
-          rename(Catalog.ID = LOCUS),
-        by = "Catalog.ID") %>% 
-      anti_join(read_tsv(blacklist.id, col_names = T),by = "SAMPLES") %>%
+    haplotype.whitelist.blacklist <- haplotype %>%
+      right_join(whitelist, by = "Catalog.ID") %>% 
+      anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
     
     # Creates a vector containing the loci name
