@@ -22,11 +22,11 @@ in the name of your individual sample.}
 a file in the working directory (e.g. "myfile.txt") or an object
 in the global environment.}
 
-\item{blacklist}{An optional filter of loci can be applied to the vcf, using
-a file in the working directory (e.g. "myfile.txt") or an object
-in the global environment.}
+\item{blacklist}{(optional) Blacklist file with loci to filter out
+of the vcf, using a file in the working directory (e.g. "myfile.txt")
+or an object in the global environment.}
 
-\item{filename}{The name of the file written in the directory.}
+\item{filename}{(optional) The name of the file written in the directory.}
 }
 \description{
 Import a VCF file created by STACKS and mofify to a tidy format.

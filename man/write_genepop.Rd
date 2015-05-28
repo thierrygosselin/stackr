@@ -10,9 +10,9 @@ write_genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
 
-\item{whitelist.loci}{A whitelist of loci and a column header 'LOCUS'.}
+\item{whitelist.loci}{(optional) A whitelist of loci and a column header 'LOCUS'.}
 
-\item{blacklist.id}{A blacklist with individual ID and
+\item{blacklist.id}{(optional) A blacklist with individual ID and
 a column header 'SAMPLES'.}
 
 \item{genepop.filename}{The name of the file written to the directory.}
