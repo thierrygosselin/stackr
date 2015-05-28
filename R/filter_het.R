@@ -7,6 +7,7 @@
 #' @param het.threshold Number (0 - 0.5)
 #' @param het.diff.threshold Number (0 - 1).
 #' @param pop.threshold Fixed number of pop required to keep the locus.
+#' @param percent Is the threshold a percentage ? TRUE or FALSE.
 #' @param filename Name of the file written to the working directory (optional).
 #' @rdname filter_het
 #' @export
