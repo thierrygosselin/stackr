@@ -6,6 +6,13 @@
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
 #' @param pop.levels An optional character string with your populations ordered.
+#' @export
+#' @rdname population_map
+#' @import stringi
+#' @import dplyr
+#' @import readr
+
+
 
 population_map <- function (data, pop.id.start, pop.id.end, pop.levels) {
   
