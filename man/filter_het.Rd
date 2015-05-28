@@ -17,6 +17,8 @@ of class sumstats or a tidy VCF summarised.}
 
 \item{pop.threshold}{Fixed number of pop required to keep the locus.}
 
+\item{percent}{Is the threshold a percentage ? TRUE or FALSE.}
+
 \item{filename}{Name of the file written to the working directory (optional).}
 }
 \description{
