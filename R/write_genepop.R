@@ -1,5 +1,5 @@
 # Write a genepop file from STACKS haplotype file
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "ALLELE_1", "ALLELE_2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS"))
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE_1", "ALLELE_2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS"))
 
 
 
@@ -149,7 +149,7 @@ write_genepop <- function(haplotypes.file,
       ALLELE_2 = stri_replace_na(ALLELE_2, replacement = "no_allele"),
       ALLELE_2 = ifelse(ALLELE_2 == "no_allele", ALLELE_1, ALLELE_2)
     ) %>%
-    melt(id.vars = c("Catalog.ID","Cnt", "SAMPLES"),
+    melt(id.vars = c("Catalog.ID","Cnt", "INDIVIDUALS"),
          measure.vars = c("ALLELE_1", "ALLELE_2"), 
          variable.name = "ALLELE", 
          value.name = "NUCLEOTIDES"
@@ -162,16 +162,16 @@ write_genepop <- function(haplotypes.file,
       NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
     ) %>%
     select(-Cnt) %>%
-    dcast(Catalog.ID+SAMPLES~ALLELE, value.var="NUCLEOTIDES") %>%
+    dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "NUCLEOTIDES") %>%
     unite(GENOTYPE, ALLELE_1:ALLELE_2, sep = "") %>%
-    dcast(SAMPLES~Catalog.ID, value.var="GENOTYPE") %>%
-    mutate(SAMPLES = paste(SAMPLES, ",", sep = ""))
+    dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>%
+    mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
   
   # Create a vector with the population ordered by levels
   if (missing(pop.levels) == "TRUE") {
-    pop <- substr(genepop$SAMPLES, pop.id.start, pop.id.end)
+    pop <- substr(genepop$INDIVIDUALS, pop.id.start, pop.id.end)
   } else {
-    pop <- factor(substr(genepop$SAMPLES, 
+    pop <- factor(substr(genepop$INDIVIDUALS, 
                          pop.id.start, pop.id.end),
                   levels = pop.levels, ordered = T
     )  
