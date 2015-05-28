@@ -61,6 +61,10 @@ filter_all <- function (haplotypes, vcf,
   ALT <- NULL
   ALT_FREQ <- NULL
   FILTER <- NULL
+  FIS <- NULL
+  FIS_MAX <- NULL
+  FIS_MIN <- NULL
+  FIS_DIFF <- NULL
   FORMAT <- NULL
   FREQ_ALT <- NULL
   FREQ_REF <- NULL
@@ -72,6 +76,7 @@ filter_all <- function (haplotypes, vcf,
   GLOBAL_MAF <- NULL
   GROUP <- NULL
   GT <- NULL
+  HET <- NULL
   HET_DIFF <- NULL
   HET_E <- NULL
   HET_MAX <- NULL
@@ -102,7 +107,11 @@ filter_all <- function (haplotypes, vcf,
   REF_FREQ <- NULL
   STATUS <- NULL
   VALUE <- NULL
-  X1 <- NULL  
+  X1 <- NULL
+  POLYMORPHISM <- NULL
+  POLYMORPHISM_MAX <- NULL
+  QQ <- NULL
+  SNP_N <- NULL
   
   
   # Haplotypes file
@@ -462,7 +471,7 @@ filter_all <- function (haplotypes, vcf,
     }
     
     
-    all.filters <- vcf.tidy.paralogs.erased.gl.ind.pop.sum %>%
+    all.filters <- vcf.prep %>%
       select(LOCUS, POS, POP_ID, GLOBAL_MAF, FREQ_ALT, HET_O, FIS) %>%
       group_by(LOCUS, POP_ID) %>%
       summarise(
