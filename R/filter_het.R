@@ -82,7 +82,6 @@ Markers with an observed heterozygosity <= %s and with a difference of <= %s
 between the max and min observed heterozygosity along the reads
 (independent of the number of SNP/reads)
 in at least %s percent of sites/pop are kept\n
-
 The number of SNP removed by the HET filter = %s SNP
 The number of LOCI removed by the HET filter = %s LOCI
 The number of SNP before -> after the HET filter: %s -> %s SNP
