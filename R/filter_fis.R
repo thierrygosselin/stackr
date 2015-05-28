@@ -21,6 +21,7 @@ filter_fis <- function(data, fis.min.threshold, fis.max.threshold, fis.diff.thre
   
   POP_ID <- NULL
   LOCUS <- NULL
+  FIS <- NULL
   FIS_MIN <- NULL
   FIS_MAX <- NULL
   FIS_DIFF <- NULL
