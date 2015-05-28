@@ -10,10 +10,13 @@ write_genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
 
-\item{whitelist.loci}{(optional) A whitelist of loci and a column header 'LOCUS'.}
+\item{whitelist.loci}{(optional) A whitelist of loci and
+a column header 'LOCUS'.
+The whitelist is in the directory (e.g. "whitelist.txt").}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'SAMPLES'.}
+a column header 'INDIVIDUALS'. The blacklist is in the directory
+ (e.g. "blacklist.txt").}
 
 \item{genepop.filename}{The name of the file written to the directory.}
 
@@ -29,7 +32,8 @@ in the name of your individual sample.}
 in the name of your individual sample.}
 }
 \description{
-This function can first filter the haplotypes file with a whitelist of loci
+This function can first filter the haplotypes file
+with a whitelist of loci
 and a blacklist of individuals (optional).
 }
 
