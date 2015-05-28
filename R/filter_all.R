@@ -1,27 +1,36 @@
 #' @title Combination of all filters
 #' @description under construction...
 #' @param haplotypes Working on it.
-#' @param vcfpop.id.start Working on it.
+#' @param vcf Working on it.
+#' @param pop.id.start Working on it.
 #' @param pop.id.end Working on it.
-#' @param pop.levelsallele.depth.threshold Working on it.
-#' @param gl.thresholdallele.min.depth.threshold Working on it.
+#' @param pop.levels Working on it.
+#' @param allele.depth.threshold Working on it.
+#' @param gl.threshold Working on it.
+#' @param allele.min.depth.threshold Working on it.
 #' @param read.depth.max.threshold Working on it.
 #' @param gl.mean.threshold Working on it.
 #' @param gl.min.threshold Working on it.
 #' @param gl.diff.threshold Working on it.
 #' @param gl.pop.threshold Working on it.
-#' @param gl.percentind.threshold Working on it.
-#' @param threshold.fixedpop.threshold Working on it.
-#' @param pop.percentlocal.maf.threshold Working on it.
+#' @param gl.percent Working on it.
+#' @param ind.threshold Working on it.
+#' @param threshold.fixed Working on it.
+#' @param pop.threshold Working on it.
+#' @param pop.percent Working on it.
+#' @param local.maf.threshold Working on it.
 #' @param global.maf.threshold Working on it.
-#' @param maf.pop.thresholdhet.threshold Working on it.
+#' @param maf.pop.threshold Working on it.
+#' @param het.threshold Working on it.
 #' @param het.diff.threshold Working on it.
 #' @param het.pop.threshold Working on it.
-#' @param het.percentfis.min.threshold Working on it.
+#' @param het.percent Working on it.
+#' @param fis.min.threshold Working on it.
 #' @param fis.max.threshold Working on it.
 #' @param fis.diff.threshold Working on it.
 #' @param fis.pop.threshold Working on it.
-#' @param fis.percentmax.snp.number Working on it.
+#' @param fis.percent Working on it.
+#' @param max.snp.number Working on it.
 #' @rdname filter_all
 #' @export
 #' @import stringi
