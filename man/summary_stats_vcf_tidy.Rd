@@ -4,10 +4,12 @@
 \alias{summary_stats_vcf_tidy}
 \title{Summary statistics of a tidy VCF by population and markers}
 \usage{
-summary_stats_vcf_tidy(data)
+summary_stats_vcf_tidy(data, filename)
 }
 \arguments{
 \item{data}{The tidy VCF file created with read_stacks_vcf.}
+
+\item{filename}{(optional) Name of the file written to the working directory.}
 }
 \description{
 Summarise and prepare the tidy VCF.
