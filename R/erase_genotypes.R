@@ -118,7 +118,7 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
   READ_DEPTH <- NULL
   ALLELE_REF_DEPTH <- NULL
   ALLELE_ALT_DEPTH <- NULL
-
+  
   
   if (stri_detect_fixed(is.tidy.vcf, "F")) {
     file.type <- "haplotypes"
@@ -146,8 +146,9 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     # haplotypes file preparation
     haplo.prep <- data %>%
-      gather(SAMPLES, HAPLOTYPES, -c(LOCUS, Cnt))
-#       melt(id.vars = c("LOCUS", "Cnt"), variable.name = "SAMPLES", value.name = "HAPLOTYPES")
+      gather(INDIVIDUALS, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
+      filter(HAPLOTYPES != "consensus") %>%
+      mutate(INDIVIDUALS = as.character(INDIVIDUALS))
     
     # interesting stats.
     erased.genotype.number <- length(blacklist.genotypes$STATUS)
@@ -160,12 +161,22 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
     
     # Erasing genotype with the blacklist
-    new.file <- haplo.prep %>%
-      mutate(
-        HAPLOTYPES = ifelse(SAMPLES %in% blacklist.genotypes$INDIVIDUALS & LOCUS %in% blacklist.genotypes$LOCUS, "-", HAPLOTYPES)
-      ) %>%
+    erase <- blacklist.genotypes %>% 
+      select(LOCUS, INDIVIDUALS) %>%
+      left_join(haplo.prep, by = c("LOCUS", "INDIVIDUALS")) %>%
+      mutate(HAPLOTYPES = rep("-", n()))
+    
+    keep <- haplo.prep %>% 
+      anti_join(
+        blacklist.genotypes %>%
+          select(LOCUS, INDIVIDUALS),
+        by = c("LOCUS", "INDIVIDUALS")
+      )
+    
+    new.file <- bind_rows(erase, keep) %>%
+      arrange(LOCUS, INDIVIDUALS) %>%
       rename(`Catalog ID` = LOCUS) %>%
-      spread(SAMPLES, HAPLOTYPES)
+      spread(INDIVIDUALS, HAPLOTYPES)
     
   } else {
     file.type <- "tidy vcf"
@@ -189,7 +200,7 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
       blacklist.genotypes <- blacklist.genotypes
       message("Using the blacklist from your global environment")
     }
-
+    
     message("Erasing... Erasing...")
     
     # interesting stats.
@@ -212,10 +223,10 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
         ALLELE_ALT_DEPTH = as.numeric(ALLELE_ALT_DEPTH),
         ALLELE_COVERAGE_RATIO = as.numeric(ALLELE_COVERAGE_RATIO),
         GL = as.numeric(GL)
-        )
-      
-      erase <- erase[order.vcf]
-
+      )
+    
+    erase <- erase[order.vcf]
+    
     keep <- data %>% 
       anti_join(
         blacklist.genotypes %>%
@@ -227,12 +238,12 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
       arrange(LOCUS, POS, POP_ID, INDIVIDUALS)
     
   }
-    
+  
   message("Saving the file in your working directory...")
-
-#   write.table(new.file, filename, sep = "\t", row.names = F, col.names = T, quote = F)
+  
+  #   write.table(new.file, filename, sep = "\t", row.names = F, col.names = T, quote = F)
   write_tsv(new.file, filename, append = FALSE, col_names = TRUE)
-
+  
   
   invisible(cat(sprintf(
     "Erasing genotypes of individuals in the %s file.

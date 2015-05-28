@@ -9,10 +9,10 @@
 #' @param whitelist An optional filter of loci can be applied to the vcf, using
 #' a file in the working directory (e.g. "myfile.txt") or an object
 #' in the global environment.
-#' @param blacklist An optional filter of loci can be applied to the vcf, using
-#' a file in the working directory (e.g. "myfile.txt") or an object
-#' in the global environment.
-#' @param filename The name of the file written in the directory.
+#' @param blacklist (optional) Blacklist file with loci to filter out
+#' of the vcf, using a file in the working directory (e.g. "myfile.txt")
+#' or an object in the global environment.
+#' @param filename (optional) The name of the file written in the directory.
 #' @rdname read_stacks_vcf
 #' @export
 #' @import dplyr
