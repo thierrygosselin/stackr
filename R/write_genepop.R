@@ -36,11 +36,11 @@ write_genepop <- function(haplotypes.file,
                           pop.levels, pop.id.start, pop.id.end) {
   
   # Whitelist
-  if (missing(whitelist) == "FALSE") & (is.vector(whitelist) == "TRUE") {
+  if (missing(whitelist) == "FALSE" & is.vector(whitelist) == "TRUE") {
     message("Using the whitelist from the directory")
     whitelist <- read_tsv(whitelist.loci, col_names = T) %>%
       rename(Catalog.ID = LOCUS)
-  } else if (missing(whitelist) == "FALSE") & (is.vector(whitelist) == "FALSE") {
+  } else if (missing(whitelist) == "FALSE" & is.vector(whitelist) == "FALSE") {
     message("Using whitelist from your global environment")
     whitelist <- whitelist %>%
       rename(Catalog.ID = LOCUS)
@@ -51,10 +51,10 @@ write_genepop <- function(haplotypes.file,
   
   
   # Blacklist
-  if (missing(blacklist.id) == "FALSE") & (is.vector(blacklist.id) == "TRUE") {
+  if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "TRUE") {
     message("Using the blacklist of id from the directory")
     blacklist.id <- read_tsv(blacklist.id, col_names = T)    
-  } else if (missing(blacklist.id) == "FALSE") & (is.vector(blacklist.id) == "FALSE") {
+  } else if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "FALSE") {
     message("Using blacklist of id from your global environment")
     blacklist.id <- blacklist.id
     
@@ -66,9 +66,9 @@ write_genepop <- function(haplotypes.file,
   
   # Haplotype file
   haplotype <- read_tsv(haplotypes.file, col_names = T) %>% 
-      rename(Catalog.ID = `Catalog ID`) %>%
-      gather(INDIVIDUALS, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
-      arrange(Catalog.ID)
+    rename(Catalog.ID = `Catalog ID`) %>%
+    gather(INDIVIDUALS, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
+    arrange(Catalog.ID)
   
   
   
