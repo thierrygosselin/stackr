@@ -15,7 +15,7 @@
 
 
 
-snp_number_filter <- function(data, max.snp.number, pop.threshold, percent, filename) {
+filter_snp_number <- function(data, max.snp.number, pop.threshold, percent, filename) {
   
   
   
