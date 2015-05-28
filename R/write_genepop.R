@@ -36,13 +36,13 @@ write_genepop <- function(haplotypes.file,
                           pop.levels, pop.id.start, pop.id.end) {
   
   # Whitelist
-  if (missing(whitelist) == "FALSE" & is.vector(whitelist) == "TRUE") {
+  if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
     message("Using the whitelist from the directory")
     whitelist <- read_tsv(whitelist.loci, col_names = T) %>%
       rename(Catalog.ID = LOCUS)
-  } else if (missing(whitelist) == "FALSE" & is.vector(whitelist) == "FALSE") {
+  } else if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "FALSE") {
     message("Using whitelist from your global environment")
-    whitelist <- whitelist %>%
+    whitelist <- whitelist.loci %>%
       rename(Catalog.ID = LOCUS)
   } else {
     message("No whitelist")
