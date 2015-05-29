@@ -353,44 +353,29 @@ summary_stats_vcf_tidy <- function(data, filename) {
 summary_stats_pop <- function(data, filename) {
   
   
-  GT <- NULL
-  GL <- NULL
-  INDIVIDUALS <- NULL
   POP_ID <- NULL
   N <- NULL
   HET_O <- NULL
-  HOM_O <- NULL
   HET_E <- NULL
-  HOM_E <- NULL
-  FREQ_ALT <- NULL
   FREQ_REF <- NULL
-  GLOBAL_MAF <- NULL
-  PP <- NULL
-  PQ <- NULL
-  QQ <- NULL
   FIS <- NULL
-  
+  SNP <- NULL
+  LOCUS <- NULL
   
   
   vcf.summary <- data %>%
-    filter(GT != "./.") %>%
     group_by(POP_ID) %>%
     summarise(
-      N = as.numeric(n()),
-      PP = as.numeric(length(GT[GT == "0/0"])),
-      PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
-      QQ = as.numeric(length(GT[GT == "1/1"]))
+      SNP = length(unique(POS)),
+      LOCUS = length(unique(LOCUS)),
+      N = max(N, na.rm = TRUE),
+      FREQ_REF = mean(FREQ_REF, na.rm = TRUE),
+      HET_O = mean(HET_O, na.rm = TRUE),
+      HET_E = mean(HET_E, na.rm = TRUE),
+      FIS = mean(FIS, na.rm = TRUE)
     ) %>%
-    mutate(
-      FREQ_REF = ((PP*2) + PQ)/(2*N),
-      FREQ_ALT = ((QQ*2) + PQ)/(2*N),
-      HET_O = PQ/N,
-      HET_E = 2 * FREQ_REF * FREQ_ALT,
-      FIS = ifelse(HET_O == 0, 0, round (((HET_E - HET_O) / HET_E), 6))
-    ) %>%
-    select(POP_ID, N, FREQ_REF, HET_O, HET_E, FIS)
+    select(POP_ID, N, SNP, LOCUS, FREQ_REF, HET_O, HET_E, FIS)  
   
-
   
   if (missing(filename) == "FALSE") {
     message("Saving the file in your working directory...")
