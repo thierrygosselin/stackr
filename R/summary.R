@@ -338,6 +338,70 @@ summary_stats_vcf_tidy <- function(data, filename) {
   return(vcf.prep)
 }
 
+#' @title Summary statistics of a tidy VCF by population
+#' @description Summarise the tidy VCF. 
+#' The populations summary on :  frequency of the REF 
+#' and the ALT alleles, the observed and the expected heterozygosity 
+#' and the inbreeding coefficient. The Global MAF of Loci, 
+#' with STACKS GBS/RAD loci = read or de novo haplotypes, 
+#' is included and repeated over SNP.
+#' @param filename (optional) Name of the file written to the working directory.
+#' @param data The tidy VCF file created with read_stacks_vcf.
+#' @rdname summary_stats_pop
+#' @export
+
+summary_stats_pop <- function(data, filename) {
+  
+  
+  GT <- NULL
+  GL <- NULL
+  INDIVIDUALS <- NULL
+  POP_ID <- NULL
+  N <- NULL
+  HET_O <- NULL
+  HOM_O <- NULL
+  HET_E <- NULL
+  HOM_E <- NULL
+  FREQ_ALT <- NULL
+  FREQ_REF <- NULL
+  GLOBAL_MAF <- NULL
+  PP <- NULL
+  PQ <- NULL
+  QQ <- NULL
+  FIS <- NULL
+  
+  
+  
+  vcf.summary <- data %>%
+    filter(GT != "./.") %>%
+    group_by(POP_ID) %>%
+    summarise(
+      N = as.numeric(n()),
+      PP = as.numeric(length(GT[GT == "0/0"])),
+      PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
+      QQ = as.numeric(length(GT[GT == "1/1"]))
+    ) %>%
+    mutate(
+      FREQ_REF = ((PP*2) + PQ)/(2*N),
+      FREQ_ALT = ((QQ*2) + PQ)/(2*N),
+      HET_O = PQ/N,
+      HET_E = 2 * FREQ_REF * FREQ_ALT,
+      FIS = ifelse(HET_O == 0, 0, round (((HET_E - HET_O) / HET_E), 6))
+    ) %>%
+    select(POP_ID, N, FREQ_REF, HET_O, HET_E, FIS)
+  
+
+  
+  if (missing(filename) == "FALSE") {
+    message("Saving the file in your working directory...")
+    write_tsv(vcf.summary, filename, append = FALSE, col_names = TRUE)
+    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+  } else {
+    saving <- "Saving was not selected"
+  }
+  
+  return(vcf.summary)
+}
 
 
 

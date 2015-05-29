@@ -174,6 +174,8 @@ assignment_genodive <- function(assignment.lmax, assignment.lhome, lmax.migrant.
 #' @description GGPLOT2 Cleveland dot plot figure of assignment results.
 #' @param assignment.summary The assignment summary file created 
 #' with assignment_genodive function.
+#' @export 
+#' @rdname figure_assignment
 
 figure_assignment <- function(assignment.summary) {
   
@@ -214,6 +216,8 @@ figure_assignment <- function(assignment.summary) {
 #' @param assignment.summary The assignment summary file created 
 #' with assignment_genodive function.
 #' @param pop.levels An optional character string with your populations ordered.
+#' @export 
+#' @rdname figure_assignment_stacked_bar
 
 
 figure_assignment_stacked_bar <- function(assignment.summary, pop.levels) {
