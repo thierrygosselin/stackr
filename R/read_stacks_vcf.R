@@ -143,7 +143,8 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
                                                 ((ALLELE_ALT_DEPTH - ALLELE_REF_DEPTH)/(ALLELE_ALT_DEPTH + ALLELE_REF_DEPTH)))),
       POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
                       levels = pop.levels, ordered =T)
-    )
+    ) %>%
+    arrange(LOCUS, POS, POP_ID, INDIVIDUALS)
   
   vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "ALLELE_P", "ALLELE_Q", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")]
   

@@ -75,6 +75,6 @@ Written in the directory:
 %s",
     filename, getwd()
   )))
-  whitelist.id.filter
+  return(whitelist.id.filter)
 }
 

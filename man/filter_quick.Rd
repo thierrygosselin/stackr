@@ -5,13 +5,14 @@
 \title{Combination of all filters with a tidy vcf}
 \usage{
 filter_quick(vcf.tidy, pop.id.start, pop.id.end, pop.levels,
-  allele.depth.threshold, gl.threshold, allele.min.depth.threshold,
-  read.depth.max.threshold, gl.mean.threshold, gl.min.threshold,
-  gl.diff.threshold, gl.pop.threshold, gl.percent, ind.threshold,
-  threshold.fixed, pop.threshold, pop.percent, local.maf.threshold,
-  global.maf.threshold, maf.pop.threshold, het.threshold, het.diff.threshold,
-  het.pop.threshold, het.percent, fis.min.threshold, fis.max.threshold,
-  fis.diff.threshold, fis.pop.threshold, fis.percent, max.snp.number)
+  read.depth.threshold, allele.depth.threshold, allele.imbalance.threshold,
+  allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold,
+  gl.min.threshold, gl.diff.threshold, gl.pop.threshold, gl.percent,
+  ind.threshold, threshold.fixed, pop.threshold, pop.percent,
+  local.maf.threshold, global.maf.threshold, maf.pop.threshold, het.threshold,
+  het.diff.threshold, het.pop.threshold, het.percent, fis.min.threshold,
+  fis.max.threshold, fis.diff.threshold, fis.pop.threshold, fis.percent,
+  max.snp.number, filename)
 }
 \arguments{
 \item{vcf.tidy}{Working on it.}
@@ -22,9 +23,11 @@ filter_quick(vcf.tidy, pop.id.start, pop.id.end, pop.levels,
 
 \item{pop.levels}{Working on it.}
 
+\item{read.depth.threshold}{Working on it.}
+
 \item{allele.depth.threshold}{Working on it.}
 
-\item{gl.threshold}{Working on it.}
+\item{allele.imbalance.threshold}{Working on it.}
 
 \item{allele.min.depth.threshold}{Working on it.}
 
@@ -73,6 +76,11 @@ filter_quick(vcf.tidy, pop.id.start, pop.id.end, pop.levels,
 \item{fis.percent}{Working on it.}
 
 \item{max.snp.number}{Working on it.}
+
+\item{filename}{Name of the whitelist file written to the directory.}
+}
+\value{
+A list with 3 dataframes (whitelist, blacklist.genotypes, tidy.vcf.filtered)
 }
 \description{
 under construction...

@@ -3,10 +3,11 @@
 #' @param haplotypes Working on it.
 #' @param vcf Working on it.
 #' @param pop.id.start Working on it.
-#' @param pop.id.end Working on it.
+#' @param pop.id.end Working on it. 
 #' @param pop.levels Working on it.
+#' @param read.depth.threshold Working on it.
 #' @param allele.depth.threshold Working on it.
-#' @param gl.threshold Working on it.
+#' @param allele.imbalance.threshold Working on it.
 #' @param allele.min.depth.threshold Working on it.
 #' @param read.depth.max.threshold Working on it.
 #' @param gl.mean.threshold Working on it.
@@ -39,7 +40,8 @@
 
 filter_all <- function (haplotypes, vcf,
                         pop.id.start, pop.id.end, pop.levels,
-                        allele.depth.threshold, gl.threshold,
+                        read.depth.threshold, allele.depth.threshold, 
+                        allele.imbalance.threshold,
                         allele.min.depth.threshold, read.depth.max.threshold, 
                         gl.mean.threshold, gl.min.threshold, gl.diff.threshold, 
                         gl.pop.threshold, gl.percent,
@@ -214,55 +216,39 @@ filter_all <- function (haplotypes, vcf,
   message("Inspecting tidy VCF for coverage problems...")
   
   
-  blacklist.genotypes <- vcf.tidy %>%
-    select(GT, GL, LOCUS, POS, INDIVIDUALS, POP_ID, ALLELE_REF_DEPTH, ALLELE_ALT_DEPTH) %>%
-    filter(GT != "./." & GL < gl.threshold) %>%
-    group_by(LOCUS, INDIVIDUALS, POP_ID) %>%
-    summarise(
-      MIN_REF = min(ALLELE_REF_DEPTH, na.rm = T),
-      MIN_ALT = min(ALLELE_ALT_DEPTH, na.rm = T)
-    ) %>%
-    filter(MIN_REF < allele.depth.threshold | MIN_ALT < allele.depth.threshold)
+  blacklist <- vcf.tidy %>%
+    filter(GT != "./." & GT != "0/0" & GT != "1/1" ) %>%
+    filter(READ_DEPTH == read.depth.threshold) %>%
+    filter(ALLELE_REF_DEPTH < allele.depth.threshold | ALLELE_ALT_DEPTH < allele.depth.threshold) %>%
+    filter(ALLELE_COVERAGE_RATIO < -allele.imbalance.threshold | ALLELE_COVERAGE_RATIO > allele.imbalance.threshold) %>%
+    select(LOCUS, POS, POP_ID, INDIVIDUALS)
   
   # interesting stats.
-  erased.genotype.number <- length(blacklist.genotypes$INDIVIDUALS)
+  erased.genotype.number <- length(blacklist$INDIVIDUALS)
   total.genotype.number <- length(vcf.tidy$GT[vcf.tidy$GT != "./."])
   
   
-  erasing <- stri_join("Erasing", round(((erased.genotype.number/total.genotype.number)*100), 2), "% of", total.genotype.number, "genotypes", sep = " ")
+  erasing <- stri_join("Erasing", round(((erased.genotype.number/total.genotype.number)*100), 2), "% of", total.genotype.number, "genotypes...", sep = " ")
   message(erasing)
   
   
-  erase <- blacklist.genotypes%>% 
-    select(LOCUS, INDIVIDUALS) %>%
-    left_join(vcf.tidy, by = c("LOCUS", "INDIVIDUALS")) %>%
-    mutate(GT = rep("./.", n())) %>%
-    gather(GROUP, VALUE, ALLELE_P:ALLELE_COVERAGE_RATIO) %>%
-    mutate(VALUE = rep("NA", n())) %>%
-    spread(GROUP, VALUE) %>%
+  vcf.erased <- vcf.tidy %>%
     mutate(
-      READ_DEPTH = as.numeric(READ_DEPTH),
-      ALLELE_REF_DEPTH = as.numeric(ALLELE_REF_DEPTH),
-      ALLELE_ALT_DEPTH = as.numeric(ALLELE_ALT_DEPTH),
-      ALLELE_COVERAGE_RATIO = as.numeric(ALLELE_COVERAGE_RATIO),
-      GL = as.numeric(GL)
+      GT = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "./.", GT),
+      READ_DEPTH = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", READ_DEPTH)),
+      ALLELE_REF_DEPTH = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_REF_DEPTH)),
+      ALLELE_ALT_DEPTH = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_ALT_DEPTH)),
+      ALLELE_COVERAGE_RATIO = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_COVERAGE_RATIO)),
+      GL = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", GL)),
+      ALLELE_P = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_P),
+      ALLELE_Q = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_Q)
     )
   
-  
-  keep <- vcf.tidy %>% 
-    anti_join(
-      blacklist.genotypes %>%
-        select(LOCUS, INDIVIDUALS),
-      by = c("LOCUS", "INDIVIDUALS")
-    )
-  
-  vcf.erased <- bind_rows(erase, keep) %>%
-    arrange(LOCUS, POS, POP_ID, INDIVIDUALS)
   
   message("Filter: Genotype likelihood ...")
   
   
-  pop.number <- n_distinct(vcf.erased$POP_ID)
+  pop.number <- n_distinct(vcf.tidy$POP_ID)
   
   if(stri_detect_fixed(gl.pop.threshold, ".") & gl.pop.threshold < 1) {
     multiplication.number <- 1/pop.number
@@ -387,114 +373,114 @@ filter_all <- function (haplotypes, vcf,
       )  
     
   }
-    message("Filter: populations...")
+  message("Filter: populations...")
+  
+  if(stri_detect_fixed(pop.threshold, ".") & pop.threshold < 1) {
+    message("Using a proportion threshold")
+    threshold.id <- "of proportion"
     
-    if(stri_detect_fixed(pop.threshold, ".") & pop.threshold < 1) {
-      message("Using a proportion threshold")
-      threshold.id <- "of proportion"
-      
-      multiplication.number <- 1/pop.number
-      
-    } else if (stri_detect_fixed(pop.percent, "T")) {
-      message("Using a percentage threshold")
-      threshold.id <- "percent"
-      multiplication.number <- 100/pop.number
-      
-    } else {
-      message("Using a fixed threshold")
-      threshold.id <- "population(s) as a fixed"
-      multiplication.number <- 1
-      
-    }
+    multiplication.number <- 1/pop.number
     
-    pop.filter <- ind.filter %>%
-      group_by (LOCUS) %>%
-      filter((n_distinct(POP_ID) * multiplication.number) >= pop.threshold)  
+  } else if (stri_detect_fixed(pop.percent, "T")) {
+    message("Using a percentage threshold")
+    threshold.id <- "percent"
+    multiplication.number <- 100/pop.number
     
-    message("Calculating summary statistics...")
-    
-    vcf.summary <- pop.filter %>%
-      filter(GT != "./.") %>%
-      group_by(LOCUS, POS, POP_ID) %>%
-      summarise(
-        N = as.numeric(n()),
-        PP = as.numeric(length(GT[GT == "0/0"])),
-        PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
-        QQ = as.numeric(length(GT[GT == "1/1"]))
-      ) %>%
-      mutate(
-        FREQ_REF = ((PP*2) + PQ)/(2*N),
-        FREQ_ALT = ((QQ*2) + PQ)/(2*N),
-        HET_O = PQ/N,
-        HET_E = 2 * FREQ_REF * FREQ_ALT,
-        FIS = ifelse(HET_O == 0, 0, round (((HET_E - HET_O) / HET_E), 6))
-      )
-    
-    global.maf <- vcf.summary %>%
-      group_by(LOCUS, POS) %>%
-      summarise_each_(funs(sum), vars = c("N", "PP", "PQ", "QQ")) %>%
-      mutate(GLOBAL_MAF = (PQ + (2 * QQ)) / (2*N)) %>%
-      select(LOCUS, POS, GLOBAL_MAF)
-    
-    vcf.prep <- global.maf %>%
-      left_join(vcf.summary, by = c("LOCUS", "POS"))
-    
-    
-    
-    message("Filtering: MAF, HET and Fis")
-    
-    if(stri_detect_fixed(het.pop.threshold, ".") & het.pop.threshold < 1) {
-      multiplication.number <- 1/pop.number
-      message("Using a proportion for the HET threshold...")
-      het.threshold.id <- "of proportion"
-    } else if (stri_detect_fixed(het.percent, "T")) {
-      multiplication.number <- 100/pop.number
-      message("Using a percentage for the HET threshold...")
-      het.threshold.id <- "percent"
-    } else {
-      multiplication.number <- 1
-      message("Using a fixed HET threshold...")
-      het.threshold.id <- "population as a fixed"
-    }
-    
-    if(stri_detect_fixed(fis.pop.threshold, ".") & fis.pop.threshold < 1) {
-      multiplication.number <- 1/pop.number
-      message("Using a proportion for the Fis threshold...")
-      fis.threshold.id <- "of proportion"
-    } else if (stri_detect_fixed(fis.percent, "T")) {
-      multiplication.number <- 100/pop.number
-      message("Using a percentage for the Fis threshold...")
-      fis.threshold.id <- "percent"
-    } else {
-      multiplication.number <- 1
-      message("Using a fixed Fis threshold...")
-      fis.threshold.id <- "population as a fixed"
-    }
-    
-    
-    all.filters <- vcf.prep %>%
-      select(LOCUS, POS, POP_ID, GLOBAL_MAF, FREQ_ALT, HET_O, FIS) %>%
-      group_by(LOCUS, POP_ID) %>%
-      summarise(
-        GLOBAL_MAF = mean(GLOBAL_MAF, na.rm = TRUE),  
-        LOCAL_MAF = min(FREQ_ALT, na.rm = TRUE),
-        HET_DIFF = max(HET_O) - min(HET_O),
-        HET_MAX = max(HET_O),
-        FIS_MIN = min(FIS),
-        FIS_MAX = max(FIS),
-        FIS_DIFF = FIS_MAX-FIS_MIN,
-        SNP_N = n_distinct(POS)
-      ) %>%
-      group_by(LOCUS) %>%
-      summarise(
-        MAF = length(POP_ID[LOCAL_MAF >= local.maf.threshold | GLOBAL_MAF >= global.maf.threshold]),
-        HET = length(POP_ID[HET_DIFF <= het.diff.threshold & HET_MAX <= het.threshold]),
-        FIS = length(POP_ID[FIS_MIN >= fis.min.threshold & FIS_MAX <= fis.max.threshold & FIS_DIFF <= fis.diff.threshold]),
-        SNP_N = max(SNP_N)
-      ) %>%
-      filter(MAF >= maf.pop.threshold) %>% 
-      filter((HET * multiplication.number) >= het.pop.threshold) %>%
-      filter((FIS * multiplication.number) >= fis.pop.threshold) %>%
-      filter(SNP_N <= max.snp.number)
+  } else {
+    message("Using a fixed threshold")
+    threshold.id <- "population(s) as a fixed"
+    multiplication.number <- 1
     
   }
+  
+  pop.filter <- ind.filter %>%
+    group_by (LOCUS) %>%
+    filter((n_distinct(POP_ID) * multiplication.number) >= pop.threshold)  
+  
+  message("Calculating summary statistics...")
+  
+  vcf.summary <- pop.filter %>%
+    filter(GT != "./.") %>%
+    group_by(LOCUS, POS, POP_ID) %>%
+    summarise(
+      N = as.numeric(n()),
+      PP = as.numeric(length(GT[GT == "0/0"])),
+      PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
+      QQ = as.numeric(length(GT[GT == "1/1"]))
+    ) %>%
+    mutate(
+      FREQ_REF = ((PP*2) + PQ)/(2*N),
+      FREQ_ALT = ((QQ*2) + PQ)/(2*N),
+      HET_O = PQ/N,
+      HET_E = 2 * FREQ_REF * FREQ_ALT,
+      FIS = ifelse(HET_O == 0, 0, round (((HET_E - HET_O) / HET_E), 6))
+    )
+  
+  global.maf <- vcf.summary %>%
+    group_by(LOCUS, POS) %>%
+    summarise_each_(funs(sum), vars = c("N", "PP", "PQ", "QQ")) %>%
+    mutate(GLOBAL_MAF = (PQ + (2 * QQ)) / (2*N)) %>%
+    select(LOCUS, POS, GLOBAL_MAF)
+  
+  vcf.prep <- global.maf %>%
+    left_join(vcf.summary, by = c("LOCUS", "POS"))
+  
+  
+  
+  message("Filtering: MAF, HET and Fis")
+  
+  if(stri_detect_fixed(het.pop.threshold, ".") & het.pop.threshold < 1) {
+    multiplication.number <- 1/pop.number
+    message("Using a proportion for the HET threshold...")
+    het.threshold.id <- "of proportion"
+  } else if (stri_detect_fixed(het.percent, "T")) {
+    multiplication.number <- 100/pop.number
+    message("Using a percentage for the HET threshold...")
+    het.threshold.id <- "percent"
+  } else {
+    multiplication.number <- 1
+    message("Using a fixed HET threshold...")
+    het.threshold.id <- "population as a fixed"
+  }
+  
+  if(stri_detect_fixed(fis.pop.threshold, ".") & fis.pop.threshold < 1) {
+    multiplication.number <- 1/pop.number
+    message("Using a proportion for the Fis threshold...")
+    fis.threshold.id <- "of proportion"
+  } else if (stri_detect_fixed(fis.percent, "T")) {
+    multiplication.number <- 100/pop.number
+    message("Using a percentage for the Fis threshold...")
+    fis.threshold.id <- "percent"
+  } else {
+    multiplication.number <- 1
+    message("Using a fixed Fis threshold...")
+    fis.threshold.id <- "population as a fixed"
+  }
+  
+  
+  all.filters <- vcf.prep %>%
+    select(LOCUS, POS, POP_ID, GLOBAL_MAF, FREQ_ALT, HET_O, FIS) %>%
+    group_by(LOCUS, POP_ID) %>%
+    summarise(
+      GLOBAL_MAF = mean(GLOBAL_MAF, na.rm = TRUE),  
+      LOCAL_MAF = min(FREQ_ALT, na.rm = TRUE),
+      HET_DIFF = max(HET_O) - min(HET_O),
+      HET_MAX = max(HET_O),
+      FIS_MIN = min(FIS),
+      FIS_MAX = max(FIS),
+      FIS_DIFF = FIS_MAX-FIS_MIN,
+      SNP_N = n_distinct(POS)
+    ) %>%
+    group_by(LOCUS) %>%
+    summarise(
+      MAF = length(POP_ID[LOCAL_MAF >= local.maf.threshold | GLOBAL_MAF >= global.maf.threshold]),
+      HET = length(POP_ID[HET_DIFF <= het.diff.threshold & HET_MAX <= het.threshold]),
+      FIS = length(POP_ID[FIS_MIN >= fis.min.threshold & FIS_MAX <= fis.max.threshold & FIS_DIFF <= fis.diff.threshold]),
+      SNP_N = max(SNP_N)
+    ) %>%
+    filter(MAF >= maf.pop.threshold) %>% 
+    filter((HET * multiplication.number) >= het.pop.threshold) %>%
+    filter((FIS * multiplication.number) >= fis.pop.threshold) %>%
+    filter(SNP_N <= max.snp.number)
+  
+}

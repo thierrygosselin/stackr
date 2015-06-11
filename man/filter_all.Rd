@@ -5,13 +5,14 @@
 \title{Combination of all filters}
 \usage{
 filter_all(haplotypes, vcf, pop.id.start, pop.id.end, pop.levels,
-  allele.depth.threshold, gl.threshold, allele.min.depth.threshold,
-  read.depth.max.threshold, gl.mean.threshold, gl.min.threshold,
-  gl.diff.threshold, gl.pop.threshold, gl.percent, ind.threshold,
-  threshold.fixed, pop.threshold, pop.percent, local.maf.threshold,
-  global.maf.threshold, maf.pop.threshold, het.threshold, het.diff.threshold,
-  het.pop.threshold, het.percent, fis.min.threshold, fis.max.threshold,
-  fis.diff.threshold, fis.pop.threshold, fis.percent, max.snp.number)
+  read.depth.threshold, allele.depth.threshold, allele.imbalance.threshold,
+  allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold,
+  gl.min.threshold, gl.diff.threshold, gl.pop.threshold, gl.percent,
+  ind.threshold, threshold.fixed, pop.threshold, pop.percent,
+  local.maf.threshold, global.maf.threshold, maf.pop.threshold, het.threshold,
+  het.diff.threshold, het.pop.threshold, het.percent, fis.min.threshold,
+  fis.max.threshold, fis.diff.threshold, fis.pop.threshold, fis.percent,
+  max.snp.number)
 }
 \arguments{
 \item{haplotypes}{Working on it.}
@@ -24,9 +25,11 @@ filter_all(haplotypes, vcf, pop.id.start, pop.id.end, pop.levels,
 
 \item{pop.levels}{Working on it.}
 
+\item{read.depth.threshold}{Working on it.}
+
 \item{allele.depth.threshold}{Working on it.}
 
-\item{gl.threshold}{Working on it.}
+\item{allele.imbalance.threshold}{Working on it.}
 
 \item{allele.min.depth.threshold}{Working on it.}
 

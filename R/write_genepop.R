@@ -1,5 +1,5 @@
 # Write a genepop file from STACKS haplotype file
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE_1", "ALLELE_2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS"))
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE_1", "ALLELE_2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX"))
 
 
 
@@ -89,7 +89,11 @@ write_genepop <- function(haplotypes.file,
     
     # just whitelist.loci, NO Blacklist of individual
     haplotype.whitelist.loci <- haplotype %>%
-      right_join(whitelist, by = "Catalog.ID") %>%
+      semi_join(whitelist, by = "Catalog.ID") %>% # instead of right_join
+#       might result in less loci then the whitelist, but this make sure
+#   we don't end up with unwanted or un-caracterized locus, e.g. comparing
+#   adults and juveniles samples... the whitelist is developed with the adults,
+#   but the haplotype file comes from the juveniles... 
       arrange(Catalog.ID)
     
     # Creates a vector containing the loci name
@@ -101,6 +105,7 @@ write_genepop <- function(haplotypes.file,
     
     # NO whitelist, JUST Blacklist of individual
     haplotype.blacklist <- haplotype %>%
+      mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
     
@@ -114,7 +119,8 @@ write_genepop <- function(haplotypes.file,
     
     # whitelist.loci + Blacklist of individual
     haplotype.whitelist.blacklist <- haplotype %>%
-      right_join(whitelist, by = "Catalog.ID") %>% 
+      semi_join(whitelist, by = "Catalog.ID") %>%
+      mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
     
@@ -132,9 +138,27 @@ write_genepop <- function(haplotypes.file,
   # 6. merge the 2 alleles
   # 7. pivot the table 
   # 8. add a ',' at the end of the sample id
+  
+  
+  # Paralogs..
+  message("Looking for paralogs...")
+  
+  paralogs <- data %>%
+    mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/")) %>%
+    group_by(Catalog.ID) %>%
+    summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>%
+    filter(POLYMORPHISM_MAX > 1) %>%
+    group_by(Catalog.ID) %>%
+    select(Catalog.ID) %>%
+    distinct(Catalog.ID)
+  
+  nparalogs <- stri_join("Found and removed", n_distinct(paralogs$Catalog.ID), "paralogs", sep = " ")
+  message(nparalogs)
+  
   message("Haplotypes into Genepop factory ...")
   
   genepop <- data %>%
+    anti_join(paralogs, by = "Catalog.ID") %>%
     filter(HAPLOTYPES != "consensus") %>%    
     mutate(
       HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
@@ -173,8 +197,8 @@ write_genepop <- function(haplotypes.file,
   } else {
     pop <- factor(substr(genepop$INDIVIDUALS, 
                          pop.id.start, pop.id.end),
-                  levels = pop.levels, ordered = T
-    )  
+                  levels = pop.levels, ordered = T)
+    
   }
   
   # split that genepop dataframe by populations (with the population vector)

@@ -2,12 +2,12 @@
 % Please edit documentation in R/assignment.R
 \name{assignment_genodive}
 \alias{assignment_genodive}
-\title{Prepare and summarise the assignment results from GENODIVE.}
+\title{Prepare and summarise the assignment results from GENODIVE}
 \usage{
 assignment_genodive(assignment.lmax, assignment.lhome, lmax.migrant.skip,
   lmax.number.migrant, lmax.skip, lhome.migrant.skip, lhome.number.migrant,
-  lhome.skip, pop.levels, pop.id.start, pop.id.end, number.individual,
-  number.pop)
+  lhome.skip, sites.levels, pop.labels, pop.levels, pop.id.start, pop.id.end,
+  number.individuals, number.pop)
 }
 \arguments{
 \item{assignment.lmax}{The file with likelihood ratio assignment results
@@ -34,6 +34,11 @@ in the home likelihood assignment results.}
 \item{lhome.skip}{The number of lines to skip before the individuals info
 in the home likelihood assignment results.}
 
+\item{sites.levels}{An optional character string with your sites names in
+the same order as the pop levels.}
+
+\item{pop.labels}{The pop label to identify your sampling sites.}
+
 \item{pop.levels}{An optional character string with your populations ordered.}
 
 \item{pop.id.start}{The start of your population id
@@ -42,7 +47,7 @@ in the name of your individual sample.}
 \item{pop.id.end}{The end of your population id
 in the name of your individual sample.}
 
-\item{number.individual}{The number of individuals analysed.}
+\item{number.individuals}{The number of individuals analysed.}
 
 \item{number.pop}{The number of populations analysed.}
 }

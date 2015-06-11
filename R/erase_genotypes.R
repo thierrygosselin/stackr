@@ -3,9 +3,10 @@
 #' genotypes useful for the function erase_genotype.
 #' @param tidy.vcf.file A data frame object or file (using ".tsv")
 #' of class tidy VCF.
-#' @param allele.depth.threshold Threshold number
-#' of min depth of REF or ALT alleles.
-#' @param gl.threshold Threshold number of mean genotype likelihood. 
+#' @param read.depth.threshold Threshold number.
+#' @param allele.depth.threshold Threhold number for the min depth 
+#' of REF or ALT alleles.
+#' @param allele.imbalance.threshold Working on it.
 #' @param filename Name of the file written to the working directory.
 #' @details 1. Keep the genotypes below the read depth and the 
 #' genotype likelihood threshold. 2. Keep the REF and ALT allele below the
@@ -18,7 +19,8 @@
 #' @import readr
 
 
-blacklist_erase_genotype <- function(tidy.vcf.file, allele.depth.threshold, gl.threshold, filename) {
+blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele.depth.threshold, allele.imbalance.threshold, filename) {
+  
   GT <- NULL
   GL <- NULL
   INDIVIDUALS <- NULL
@@ -27,6 +29,8 @@ blacklist_erase_genotype <- function(tidy.vcf.file, allele.depth.threshold, gl.t
   ALLELE_ALT_DEPTH <- NULL
   MIN_REF <- NULL
   MIN_ALT <- NULL
+  READ_DEPTH <- NULL
+  ALLELE_COVERAGE_RATIO <- NULL
   
   if (is.vector(tidy.vcf.file) == "TRUE") {
     tidy.vcf.file <- read_tsv(tidy.vcf.file, col_names = T)
@@ -37,20 +41,14 @@ blacklist_erase_genotype <- function(tidy.vcf.file, allele.depth.threshold, gl.t
   }
   
   blacklist <- tidy.vcf.file %>%
-    filter(GT != "./.") %>%
-    filter(GL < gl.threshold) %>%
-    group_by(LOCUS, INDIVIDUALS, POP_ID) %>%
-    summarise(
-      MIN_REF = min(ALLELE_REF_DEPTH, na.rm = T),
-      MIN_ALT = min(ALLELE_ALT_DEPTH, na.rm = T)
-    ) %>%
-    filter(MIN_REF < allele.depth.threshold | MIN_ALT < allele.depth.threshold) %>%
-    ungroup() %>%
-    mutate(
-      STATUS = rep("erased", n()),
-      INDIVIDUALS = as.character(INDIVIDUALS)
-    ) %>%
-    arrange(LOCUS, INDIVIDUALS)
+    filter(GT != "./." & GT != "0/0" & GT != "1/1" ) %>%
+    filter(READ_DEPTH == read.depth.threshold) %>%
+    filter(ALLELE_REF_DEPTH < allele.depth.threshold | ALLELE_ALT_DEPTH < allele.depth.threshold) %>%
+    filter(ALLELE_COVERAGE_RATIO < -allele.imbalance.threshold | ALLELE_COVERAGE_RATIO > allele.imbalance.threshold) %>%
+    select(LOCUS, POS, POP_ID, INDIVIDUALS) %>%
+    arrange(LOCUS, POS, POP_ID, INDIVIDUALS)
+  
+  
   
   write.table(blacklist,
               filename,
@@ -61,29 +59,30 @@ blacklist_erase_genotype <- function(tidy.vcf.file, allele.depth.threshold, gl.t
   )
   
   # interesting stats.
-  erased.genotype.number <- length(blacklist$STATUS)
+  erased.genotype.number <- length(blacklist$INDIVIDUALS)
   total.genotype.number <- length(tidy.vcf.file$GT[tidy.vcf.file$GT != "./."])
   percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
   
   
   invisible(cat(sprintf(
     "Blacklist erase genotypes:
-1. REF and ALT coverage threshold: %s
-2. Genotype likelihood threshold: %s
-3. %s of genotypes needs erasing with the function erase_genotypes\n
+1. Read depth threshold: %s
+2. REF and ALT coverage threshold: %s
+3. Allele imbalance ratio threshold: %s
+4. %s of genotypes needs erasing with the function erase_genotypes\n
 Filename:
 %s
 Written in the directory:
 %s",
+    read.depth.threshold,
     allele.depth.threshold,
-    gl.threshold,
+    allele.imbalance.threshold,
     percent,
     filename, getwd()
   )))
   
   return(blacklist)
 }
-
 
 
 
@@ -110,7 +109,6 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
   GL <- NULL
   INDIVIDUALS <- NULL
   POP_ID <- NULL
-  STATUS <- NULL
   GROUP <- NULL
   VALUE <- NULL
   ALLELE_P <- NULL
@@ -118,6 +116,10 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
   READ_DEPTH <- NULL
   ALLELE_REF_DEPTH <- NULL
   ALLELE_ALT_DEPTH <- NULL
+  CONSENSUS <- NULL
+  CONSENSUS_MAX <- NULL
+  GT <- NULL
+  ALLELE_Q <- NULL
   
   
   if (stri_detect_fixed(is.tidy.vcf, "F")) {
@@ -135,10 +137,16 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     
     if (is.vector(blacklist.genotypes) == "TRUE") {
-      blacklist.genotypes <- read_tsv(blacklist.genotypes, col_names = T)
+      blacklist <- read_tsv(blacklist.genotypes, col_names = T) %>%
+        mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
+        select(LOCUS, INDIVIDUALS) %>%
+        distinct(LOCUS, INDIVIDUALS)
       message("Using the blacklist file in your directory")
     } else {
-      blacklist.genotypes <- blacklist.genotypes
+      blacklist <- blacklist.genotypes %>%
+        mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
+        select(LOCUS, INDIVIDUALS) %>%
+        distinct(LOCUS, INDIVIDUALS)
       message("Using the blacklist from your global environment")
     }
     
@@ -147,11 +155,20 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     # haplotypes file preparation
     haplo.prep <- data %>%
       gather(INDIVIDUALS, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
-      filter(HAPLOTYPES != "consensus") %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS))
     
+    
+    # consensus
+    consensus.pop <- haplo.prep %>%
+      mutate(CONSENSUS = stri_count_fixed(HAPLOTYPES, "consensus")) %>%
+      group_by(LOCUS) %>%
+      summarise(CONSENSUS_MAX = max(CONSENSUS)) %>%
+      filter(CONSENSUS_MAX > 0) %>%
+      select(LOCUS)
+    
+    
     # interesting stats.
-    erased.genotype.number <- length(blacklist.genotypes$STATUS)
+    erased.genotype.number <- length(blacklist$INDIVIDUALS)
     
     haplo.number <- haplo.prep %>%
       filter(HAPLOTYPES != "-") %>%
@@ -160,15 +177,17 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     total.genotype.number <- length(haplo.number$HAPLOTYPES)
     percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
     
+    
     # Erasing genotype with the blacklist
-    erase <- blacklist.genotypes %>% 
+    erase <- blacklist %>% 
       select(LOCUS, INDIVIDUALS) %>%
       left_join(haplo.prep, by = c("LOCUS", "INDIVIDUALS")) %>%
       mutate(HAPLOTYPES = rep("-", n()))
     
-    keep <- haplo.prep %>% 
+    keep <- haplo.prep %>%
+      anti_join(consensus.pop, by = "LOCUS") %>%
       anti_join(
-        blacklist.genotypes %>%
+        blacklist %>%
           select(LOCUS, INDIVIDUALS),
         by = c("LOCUS", "INDIVIDUALS")
       )
@@ -177,6 +196,8 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
       arrange(LOCUS, INDIVIDUALS) %>%
       rename(`Catalog ID` = LOCUS) %>%
       spread(INDIVIDUALS, HAPLOTYPES)
+    
+    
     
   } else {
     file.type <- "tidy vcf"
@@ -193,51 +214,37 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     }
     
     if (is.vector(blacklist.genotypes) == "TRUE") {
-      blacklist.genotypes <- read_tsv(blacklist.genotypes, col_names = T)
+      blacklist <- read_tsv(blacklist.genotypes, col_names = T)
       message("Using the blacklist file in your directory")
       
     } else {
-      blacklist.genotypes <- blacklist.genotypes
+      blacklist <- blacklist.genotypes
       message("Using the blacklist from your global environment")
     }
     
     message("Erasing... Erasing...")
     
     # interesting stats.
-    erased.genotype.number <- length(blacklist.genotypes$STATUS)
+    erased.genotype.number <- length(blacklist$INDIVIDUALS)
     total.genotype.number <- length(data$GT[data$GT != "./."])
     percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
     
-    order.vcf <- names(data)
+    message("Inspecting tidy VCF for coverage problems...")
     
-    erase <- blacklist.genotypes %>% 
-      select(LOCUS, INDIVIDUALS, STATUS) %>%
-      left_join(data, by = c("LOCUS", "INDIVIDUALS")) %>%
-      mutate(GT = rep("./.", n())) %>%
-      gather(GROUP, VALUE, ALLELE_P:ALLELE_COVERAGE_RATIO) %>%
-      mutate(VALUE = rep("NA", n())) %>%
-      spread(GROUP, VALUE) %>%
+    
+    new.file <- data %>%
       mutate(
-        READ_DEPTH = as.numeric(READ_DEPTH),
-        ALLELE_REF_DEPTH = as.numeric(ALLELE_REF_DEPTH),
-        ALLELE_ALT_DEPTH = as.numeric(ALLELE_ALT_DEPTH),
-        ALLELE_COVERAGE_RATIO = as.numeric(ALLELE_COVERAGE_RATIO),
-        GL = as.numeric(GL)
+        GT = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "./.", GT),
+        READ_DEPTH = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", READ_DEPTH)),
+        ALLELE_REF_DEPTH = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_REF_DEPTH)),
+        ALLELE_ALT_DEPTH = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_ALT_DEPTH)),
+        ALLELE_COVERAGE_RATIO = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_COVERAGE_RATIO)),
+        GL = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", GL)),
+        ALLELE_P = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_P),
+        ALLELE_Q = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_Q)
       )
-    
-    erase <- erase[order.vcf]
-    
-    keep <- data %>% 
-      anti_join(
-        blacklist.genotypes %>%
-          select(LOCUS, INDIVIDUALS, STATUS),
-        by = c("LOCUS", "INDIVIDUALS")
-      )
-    
-    new.file <- bind_rows(erase, keep) %>%
-      arrange(LOCUS, POS, POP_ID, INDIVIDUALS)
-    
   }
+  
   
   message("Saving the file in your working directory...")
   
@@ -257,3 +264,6 @@ Written in the directory:
   )))
   return(new.file)
 }
+
+
+

@@ -285,6 +285,6 @@ filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id
     n_distinct(data$LOCUS), n_distinct(ind.filter$LOCUS),
     saving, getwd()
   )))
-  ind.filter
+  return(ind.filter)
 }
 
