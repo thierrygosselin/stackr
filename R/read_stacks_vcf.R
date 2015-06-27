@@ -17,6 +17,16 @@
 #' @export
 #' @import dplyr
 #' @import readr
+#' @references Danecek P, Auton A, Abecasis G et al. (2011)
+#' The variant call format and VCFtools.
+#' Bioinformatics, 27, 2156-2158.
+#' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
+#' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
+#' G3, 1, 171-182.
+#' @references Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
+#' Stacks: an analysis tool set for population genomics. 
+#' Molecular Ecology, 22, 3124-3140.
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 
 read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whitelist, blacklist, filename) {

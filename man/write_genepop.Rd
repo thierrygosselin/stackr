@@ -36,4 +36,20 @@ This function can first filter the haplotypes file
 with a whitelist of loci
 and a blacklist of individuals (optional).
 }
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}
+\references{
+Rousset F (2008) genepop’007: a complete re-implementation
+of the genepop software for Windows and Linux.
+Molecular Ecology Resources, 8, 103-106.
+
+Catchen JM, Amores A, Hohenlohe PA et al. (2011)
+Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences.
+G3, 1, 171-182.
+
+Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013)
+Stacks: an analysis tool set for population genomics.
+Molecular Ecology, 22, 3124-3140.
+}
 

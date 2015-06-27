@@ -2,7 +2,7 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE_1", "ALLELE_2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX"))
 
 
-
+#' @name write_genepop
 #' @title Use the batch_x.haplotypes.tsv file to write a genpop file
 #' @description This function can first filter the haplotypes file 
 #' with a whitelist of loci
@@ -28,6 +28,18 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @import dplyr
 #' @import tidyr
 #' @importFrom stringr str_pad
+#' @references Rousset F (2008) genepop’007: a complete re-implementation
+#' of the genepop software for Windows and Linux.
+#' Molecular Ecology Resources, 8, 103-106.
+#' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
+#' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
+#' G3, 1, 171-182.
+#' @references Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
+#' Stacks: an analysis tool set for population genomics. 
+#' Molecular Ecology, 22, 3124-3140.
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
+
+
 
 write_genepop <- function(haplotypes.file, 
                           whitelist.loci = NULL, 

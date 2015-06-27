@@ -12,5 +12,14 @@ with assignment_genodive function.}
 }
 \description{
 GGPLOT2 Cleveland dot plot figure of assignment results.
+The figure will need some work in Adobe Illustrator or similar sofware.
+}
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}
+\references{
+Meirmans PG, Van Tienderen PH (2004) genotype and genodive:
+two programs for the analysis of genetic diversity of asexual organisms.
+Molecular Ecology Notes, 4, 792-794.
 }
 

@@ -5,7 +5,8 @@
 \title{Assignment plot of genotype likelihood.}
 \usage{
 figure_assignment_plot(data, l.skip, sites.levels, pop.labels, pop.levels,
-  pop.id.start, pop.id.end, number.individuals, number.pop, POPA, POPB)
+  pop.id.start, pop.id.end, number.individuals, number.pop, POPA, POPB, dlr,
+  x.dlr, y.dlr, fst, x.fst, y.fst, filename, plot.width, plot.height, plot.dpi)
 }
 \arguments{
 \item{data}{The assignment results from GENODIVE, home likelihood or likelihood ratio.}
@@ -32,8 +33,45 @@ in the name of your individual sample.}
 \item{POPA}{First population to compare.}
 
 \item{POPB}{Second population to compare (with A).}
+
+\item{dlr}{(optional) Character string with Dlr value.}
+
+\item{x.dlr}{(optional) Position to the x-axis of the Dlr value.}
+
+\item{y.dlr}{(optional) Position to the y-axis of the Dlr value.}
+
+\item{fst}{(optional) Character string with Fst value.}
+
+\item{x.fst}{(optional) Position to the x-axis of the Fst value.}
+
+\item{y.fst}{(optional) Position to the y-axis of the Fst value.}
+
+\item{filename}{(optional) Name of the figure written
+in the working directory.}
+
+\item{plot.width}{(optional) Width in cm of the figure.}
+
+\item{plot.height}{(optional) height in cm of the figure.}
+
+\item{plot.dpi}{(optional) Number of dpi for the figure (e.g 600).}
+}
+\value{
+A list with the assignment table and the assignment plot.
 }
 \description{
-under construction
+Create a figure similar to Paetkau's et al. (2004) Fig 6.
+}
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}
+\references{
+Paetkau D, Slade R, Burden M, Estoup A (2004)
+Genetic assignment methods for the direct, real-time estimation of migration
+rate: a simulation-based exploration of accuracy and power.
+Molecular Ecology, 13, 55-65.
+
+Meirmans PG, Van Tienderen PH (2004) genotype and genodive:
+two programs for the analysis of genetic diversity of asexual organisms.
+Molecular Ecology Notes, 4, 792-794.
 }
 

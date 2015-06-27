@@ -31,4 +31,20 @@ or an object in the global environment.}
 \description{
 Import a VCF file created by STACKS and mofify to a tidy format.
 }
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}
+\references{
+Danecek P, Auton A, Abecasis G et al. (2011)
+The variant call format and VCFtools.
+Bioinformatics, 27, 2156-2158.
+
+Catchen JM, Amores A, Hohenlohe PA et al. (2011)
+Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences.
+G3, 1, 171-182.
+
+Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013)
+Stacks: an analysis tool set for population genomics.
+Molecular Ecology, 22, 3124-3140.
+}
 

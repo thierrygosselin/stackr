@@ -28,11 +28,15 @@
 #' in the name of your individual sample.
 #' @param number.individuals The number of individuals analysed.
 #' @param number.pop The number of populations analysed.
+#' @references Meirmans PG, Van Tienderen PH (2004) genotype and genodive: 
+#' two programs for the analysis of genetic diversity of asexual organisms. 
+#' Molecular Ecology Notes, 4, 792-794.
 #' @import dplyr
 #' @import readr
 #' @importFrom stringr str_sub
 #' @export 
 #' @rdname assignment_genodive
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 assignment_genodive <- function(assignment.lmax, assignment.lhome, 
                                 lmax.migrant.skip, 
@@ -191,8 +195,13 @@ assignment_genodive <- function(assignment.lmax, assignment.lhome,
 
 #' @title Cleveland dot plot figure of assignement results.
 #' @description GGPLOT2 Cleveland dot plot figure of assignment results.
+#' The figure will need some work in Adobe Illustrator or similar sofware.
 #' @param assignment.summary The assignment summary file created 
 #' with assignment_genodive function.
+#' @references Meirmans PG, Van Tienderen PH (2004) genotype and genodive: 
+#' two programs for the analysis of genetic diversity of asexual organisms. 
+#' Molecular Ecology Notes, 4, 792-794.
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 #' @export 
 #' @rdname figure_assignment
 
@@ -209,21 +218,23 @@ figure_assignment <- function(assignment.summary) {
   ggplot(assignment.summary, aes(x = Inferred, y = Current, size = (POUR*100)))+
     #    geom_jitter(shape = 21, alpha = 0.5, aes(fill = STATUS), position = position_jitter(width = 0.05))+
     geom_point(shape = 21, alpha = 0.5, aes(fill = STATUS))+
-    geom_text(aes(y = as.numeric(Current)-sqrt(POUR)/3, label = IND), vjust = 0.9, colour = "grey60", size = 4)+ # with 3 colors
+    geom_text(aes(y = as.numeric(Current)-sqrt(POUR)/3, label = IND), vjust = 0.9, colour = "grey60", size = 3)+ # with 3 colors
     geom_text(aes(y = as.numeric(Current), label = DISCRIMINATE), vjust = 0.5, colour = "black", size = 4, face = "bold")+
     scale_fill_manual(name = "Assignment", values = c("darkgreen", "blue", "darkred"))+ # with 3 categories
     #  scale_fill_manual(name = "Assignment", values = c("darkgreen", "blue"))+ # with 2 categories
-    scale_size_area(guide = FALSE, max_size = 20)+
+    scale_size_area(guide = FALSE, max_size = 15)+
     labs(x = "Inferred population")+
     labs(y = "Current population")+
     theme_bw()+
-    theme(panel.grid.major.x = element_blank(), 
-          panel.grid.minor.x = element_blank(), 
-          panel.grid.major.y = element_line(colour = "grey60", linetype = "dashed"), 
-          axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"), 
-          axis.text.x = element_text(size = 12, family = "Helvetica", face = "bold"), 
-          axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"), 
-          axis.text.y = element_text(size = 12, family = "Helvetica", face = "bold"))+
+    theme(
+      legend.position = "bottom",      
+      panel.grid.major.x = element_blank(), 
+      panel.grid.minor.x = element_blank(), 
+      panel.grid.major.y = element_line(colour = "grey60", linetype = "dashed"), 
+      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = element_text(size = 10, family = "Helvetica", face = "bold"))+
     facet_wrap(~ STATISTICS, scales = "free_x")
 } 
 
@@ -235,6 +246,10 @@ figure_assignment <- function(assignment.summary) {
 #' @param assignment.summary The assignment summary file created 
 #' with assignment_genodive function.
 #' @param pop.levels An optional character string with your populations ordered.
+#' @references Meirmans PG, Van Tienderen PH (2004) genotype and genodive: 
+#' two programs for the analysis of genetic diversity of asexual organisms. 
+#' Molecular Ecology Notes, 4, 792-794.
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 #' @export 
 #' @rdname figure_assignment_stacked_bar
 
@@ -279,8 +294,10 @@ figure_assignment_stacked_bar <- function(assignment.summary, pop.levels) {
     )
 } # Figure function: assignment stacked bar function
 
+
+
 #' @title Assignment plot of genotype likelihood.
-#' @description under construction
+#' @description Create a figure similar to Paetkau's et al. (2004) Fig 6.
 #' @param data The assignment results from GENODIVE, home likelihood or likelihood ratio.
 #' @param l.skip The number of lines to skip before the individuals info.
 #' @param sites.levels An optional character string with your sites names in 
@@ -295,21 +312,46 @@ figure_assignment_stacked_bar <- function(assignment.summary, pop.levels) {
 #' @param number.pop The number of populations analysed.
 #' @param POPA First population to compare.
 #' @param POPB Second population to compare (with A).
+#' @param dlr (optional) Character string with Dlr value.
+#' @param x.dlr (optional) Position to the x-axis of the Dlr value.
+#' @param y.dlr (optional) Position to the y-axis of the Dlr value.
+#' @param fst (optional) Character string with Fst value.
+#' @param x.fst (optional) Position to the x-axis of the Fst value.
+#' @param y.fst (optional) Position to the y-axis of the Fst value.
+#' @param filename (optional) Name of the figure written
+#' in the working directory. 
+#' @param plot.width (optional) Width in cm of the figure.
+#' @param plot.height (optional) height in cm of the figure.
+#' @param plot.dpi (optional) Number of dpi for the figure (e.g 600).
+#' @return A list with the assignment table and the assignment plot.
 #' @import dplyr
 #' @import readr
 #' @importFrom stringr str_sub
 #' @export 
 #' @rdname figure_assignment_plot
+#' @references Paetkau D, Slade R, Burden M, Estoup A (2004)
+#' Genetic assignment methods for the direct, real-time estimation of migration
+#' rate: a simulation-based exploration of accuracy and power.
+#' Molecular Ecology, 13, 55-65.
+#' @references Meirmans PG, Van Tienderen PH (2004) genotype and genodive: 
+#' two programs for the analysis of genetic diversity of asexual organisms. 
+#' Molecular Ecology Notes, 4, 792-794.
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 figure_assignment_plot <- function(data, 
-                                l.skip, 
-                                sites.levels,
-                                pop.labels,
-                                pop.levels,
-                                pop.id.start, 
-                                pop.id.end, 
-                                number.individuals, 
-                                number.pop, POPA, POPB) {
+                                   l.skip, 
+                                   sites.levels,
+                                   pop.labels,
+                                   pop.levels,
+                                   pop.id.start, 
+                                   pop.id.end, 
+                                   number.individuals, 
+                                   number.pop,
+                                   POPA, POPB,
+                                   dlr, x.dlr, y.dlr,
+                                   fst, x.fst, y.fst,
+                                   filename,
+                                   plot.width, plot.height, plot.dpi) {
   
   Individuals <- NULL
   Current <- NULL
@@ -317,9 +359,10 @@ figure_assignment_plot <- function(data,
   Lik_max <- NULL
   Lik_home <- NULL
   Lik_ratio <- NULL
+  Populations <- NULL
   
   # create a new vector to assign the class of the column during the import
-  col.types <- stri_join("ccciii", stri_dup("i", times = number.pop), sep = "") # ccciii are default, integer are added based on the number of populations
+  col.types <- stri_join("cccddd", stri_dup("d", times = number.pop), sep = "") # ccciii are default, integer are added based on the number of populations
   
   assignment <- read_delim(
     data,
@@ -331,35 +374,69 @@ figure_assignment_plot <- function(data,
     progress = interactive(),
     col_types = col.types) %>%
     mutate(
-      Current = str_sub(Current, pop.id.start, pop.id.end),
-      Inferred = str_sub(Inferred, pop.id.start, pop.id.end),
-      Current = factor(stri_replace_all_fixed(Current, sites.levels, pop.labels, vectorize_all = F), levels = pop.levels, ordered =T),
-      Inferred = factor(stri_replace_all_fixed(Inferred, sites.levels, pop.labels, vectorize_all = F), levels = pop.levels, ordered =T)
+      Populations = str_sub(Individuals, pop.id.start, pop.id.end),
+      Populations = factor(stri_replace_all_fixed(Populations, sites.levels, pop.labels, vectorize_all = F), levels = pop.levels, ordered =T)
     ) %>%
-    select(Individuals, Current, Lik_home) %>%
-    filter(Current == POPA | Current == POPB) %>%
-    droplevels(Current)
+    filter_(interp(~ Populations == as.name(POPA) | Populations == as.name(POPB)))
   
-  x.value <- assignment$Lik_home[Current == POPA]
-  y.value <- assignment$Lik_home[Current == POPB]
-  x_title <- c("Log genotype likelihood population ", POPA)
-  y_title <- c("Log genotype likelihood population ", POPB)
+  x_title <- stri_join("Log (genotype likelihood) population: ", POPA, sep = "") 
+  y_title <- stri_join("Log (genotype likelihood) population: ", POPB, sep = "") 
   
-  assignment.plot  <- ggplot(assignment, aes(x = Lik_home[Current == POPA], y = Lik_home[Current == POPB])) + 
-    geom_point(aes(colour = Current),na.rm = T, alpha = 0.5) + 
-    labs(x = x_title) + labs(y = y_title) +
+  assignment.plot  <- ggplot(assignment, aes_string(x = POPA, y = POPB)) + 
+    geom_point(aes(fill = Populations, shape = Populations), na.rm = T, alpha = 0.8, size = 4) +
+    geom_abline(slope = 1) +
+    #   scale_x_continuous(name = x_title, limits = c(-2700, -2000))+
+    #   scale_y_continuous(name = y_title, limits = c(-2700, -2000))+
+    scale_shape_manual(values = c(21, 24))+
+    scale_fill_manual(values=c("black", NA))+
+    labs(x = x_title)+
+    labs(y = y_title)+
     theme(
+      #     legend.position = "none",
       axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
       axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
       legend.title = element_text(size = 10, family = "Helvetica", face = "bold"), 
       legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
-      strip.text.y = element_text(angle = 0, size = 10, family = "Helvetica", face = "bold"), 
-      strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
-    ) 
+      strip.text.y = element_text(angle = 0, size = 10, family = "Helvetica", face = "bold")
+    )
+  
+  if (missing(dlr)) {
+    assignment.plot <- assignment.plot
+  } else {
+    assignment.plot <- assignment.plot + annotate("text", x = x.dlr, y = y.dlr,
+                                                  label = dlr, colour = "black")
+  }
+  
+  if (missing(fst)) {
+    assignment.plot <- assignment.plot
+  } else {
+    assignment.plot <- assignment.plot + annotate("text", x = x.fst, y = y.fst,
+                                                  label = fst, colour = "black")
+  }
+  
+  
+  if (missing(filename)) {
+    saving <- "Saving was not selected..."
+  } else {
+    saving <- paste("Saving the figure was selected, the filename:",
+                    filename, sep = " ")    
+    
+    ggsave(filename, width = plot.width, height = plot.height,
+           dpi = plot.dpi, units = "cm", useDingbats = F)
+  }
+  
   res <- list()
   res$assignment <- assignment
   res$assignment.plot <- assignment.plot
-  return (res)
-}
 
+invisible(cat(sprintf(
+  "%s\n
+Working directory:
+%s",
+  saving, getwd()
+)))
+
+return (res)
+
+}
 

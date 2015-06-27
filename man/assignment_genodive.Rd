@@ -56,4 +56,12 @@ Import assignment results from GENODIVE.
 Current version needs results from both statistics, the home likelihood
 and likelihood ratio.
 }
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}
+\references{
+Meirmans PG, Van Tienderen PH (2004) genotype and genodive:
+two programs for the analysis of genetic diversity of asexual organisms.
+Molecular Ecology Notes, 4, 792-794.
+}
 
