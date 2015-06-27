@@ -11,8 +11,7 @@ Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: stackr is a set of tools to look at your GBS/RAD data created by STACKS software. 
 Depends: 
   R (>= 3.0.1),
-Imports: dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval
-Suggests: ape, shiny, parallel, boot, pegas, adegenet, hierfstat, plyr,
-    testthat
+Imports: dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval, strataG, adegenet
+Suggests: ape, shiny, parallel, boot, pegas, hierfstat, plyr, testthat
 License: GPL (>=2)
 LazyLoad: yes
