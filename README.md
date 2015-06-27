@@ -26,10 +26,11 @@ This is the development page of the **stackr** package for the R software.
 
 
 ## Installation
-You can try out the dev version of *stackr*. You will need the package *devtools*.
+You can try out the dev version of *stackr*. You will need the package *devtools* and the dev version of *readr*
 
 ```r
 install.packages("devtools")
+install_github("hadley/readr")
 install_github("thierrygosselin/stackr")
 library("stackr")
 ```
