@@ -205,7 +205,7 @@ assignment_genodive <- function(assignment.lmax, assignment.lhome,
 #' @export 
 #' @rdname figure_assignment
 
-figure_assignment <- function(assignment.summary) {
+plot_assignment <- function(assignment.summary) {
   
   Individuals <- NULL
   Current <- NULL
@@ -251,10 +251,10 @@ figure_assignment <- function(assignment.summary) {
 #' Molecular Ecology Notes, 4, 792-794.
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 #' @export 
-#' @rdname figure_assignment_stacked_bar
+#' @rdname plot_assignment_stacked_bar
 
 
-figure_assignment_stacked_bar <- function(assignment.summary, pop.levels) {
+plot_assignment_stacked_bar <- function(assignment.summary, pop.levels) {
   
   Current <- NULL
   Inferred <- NULL
@@ -328,7 +328,7 @@ figure_assignment_stacked_bar <- function(assignment.summary, pop.levels) {
 #' @import readr
 #' @importFrom stringr str_sub
 #' @export 
-#' @rdname figure_assignment_plot
+#' @rdname plot_assignment_dlr
 #' @references Paetkau D, Slade R, Burden M, Estoup A (2004)
 #' Genetic assignment methods for the direct, real-time estimation of migration
 #' rate: a simulation-based exploration of accuracy and power.
@@ -338,7 +338,7 @@ figure_assignment_stacked_bar <- function(assignment.summary, pop.levels) {
 #' Molecular Ecology Notes, 4, 792-794.
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-figure_assignment_plot <- function(data, 
+plot_assignment_dlr <- function(data, 
                                    l.skip, 
                                    sites.levels,
                                    pop.labels,

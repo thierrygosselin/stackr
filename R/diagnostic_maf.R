@@ -10,7 +10,7 @@
 #' @import dplyr
 #' @import readr
 #' @details Highly recommended to look at the distribution of MAF
-#' \link{figure_density_distribution_maf}.
+#' \link{plot_density_distribution_maf}.
 #' @seealso \link{filter_maf}
 
 

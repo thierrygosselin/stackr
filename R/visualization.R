@@ -8,12 +8,12 @@
 #' e.g. aes(y = ..scaled.., color = COVERAGE_GROUP).
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
 #' @export
-#' @rdname figure_density_distribution_coverage
+#' @rdname plot_density_distribution_coverage
 #' @import ggplot2
 #' @import dplyr
 #' @import readr
 
-figure_density_distribution_coverage <- function(data, aes.colour, adjust.bin) {
+plot_density_distribution_coverage <- function(data, aes.colour, adjust.bin) {
   
   VALUE <- NULL
 
@@ -41,9 +41,9 @@ figure_density_distribution_coverage <- function(data, aes.colour, adjust.bin) {
 #' Use the coverage summary file created with coverage_summary function.
 #' @param data Coverage summary file.
 #' @export
-#' @rdname figure_box_plot_coverage
+#' @rdname plot_boxplot_coverage
 
-figure_box_plot_coverage <- function(data) {
+plot_boxplot_coverage <- function(data) {
   
   POP_ID <- NULL
   VALUE <- NULL
@@ -95,14 +95,14 @@ figure_box_plot_coverage <- function(data) {
 #' Ideally the lower left pannel of the 4-plot should be empty. If it is, this
 #' shows that setting the threshold of the genotype likelihood filter
 #' to the mean or close to it take care of the allelic coverage imbalance.
-#' #' e.g. fig <- figure_coverage_imbalance_diagnostic(
+#' #' e.g. fig <- plot_coverage_imbalance_diagnostic(
 #' tidy.vcf.file, pop.levels, read.depth.threshold, aes.colour, adjust.bin)
 #' Use ( fig + facet_grid(GROUP_GL ~ GROUP_COVERAGE)).
 #' @export
-#' @rdname figure_coverage_imbalance_diagnostic
+#' @rdname plot_coverage_imbalance_diagnostic
 
 
-figure_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read.depth.threshold, aes.colour, adjust.bin) {
+plot_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read.depth.threshold, aes.colour, adjust.bin) {
   
   INDIVIDUALS <- NULL
   POP_ID <- NULL
@@ -169,10 +169,10 @@ figure_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read
 #' e.g. aes(y = ..scaled.., color = GENOTYPE_LIKELIHOOD_GROUP).
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
 #' @export
-#' @rdname figure_density_distribution_genotype_likelihood
+#' @rdname plot_density_distribution_genotype_likelihood
 #' @seealso \link{summary_genotype_likelihood}
 
-figure_density_distribution_genotype_likelihood <- function(data, aes.colour, 
+plot_density_distribution_genotype_likelihood <- function(data, aes.colour, 
                                                             adjust.bin) {
   
   VALUE <- NULL
@@ -204,9 +204,9 @@ figure_density_distribution_genotype_likelihood <- function(data, aes.colour,
 #' with genotype_likelihood_summary function.
 #' @param data genotype likelihood summary file.
 #' @export
-#' @rdname figure_box_plot_genotype_likelihood
+#' @rdname plot_boxplot_genotype_likelihood
 
-figure_box_plot_genotype_likelihood <- function(data) {
+plot_boxplot_genotype_likelihood <- function(data) {
   
   POP_ID <- NULL
   VALUE <- NULL
@@ -242,9 +242,9 @@ figure_box_plot_genotype_likelihood <- function(data) {
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
 #' @param x.title Title of the x-axis.
 #' @export
-#' @rdname figure_density_distribution_maf
+#' @rdname plot_density_distribution_maf
 
-figure_density_distribution_maf <- function(data, maf.group, aes.colour, adjust.bin, x.title) {
+plot_density_distribution_maf <- function(data, maf.group, aes.colour, adjust.bin, x.title) {
   
   if (is.vector(data) == "TRUE") {
     data <- read_tsv(data, col_names = T)
@@ -287,9 +287,9 @@ figure_density_distribution_maf <- function(data, maf.group, aes.colour, adjust.
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
 #' @param x.title Title of the x-axis.
 #' @export
-#' @rdname figure_density_distribution_het
+#' @rdname plot_density_distribution_het
 
-figure_density_distribution_het <- function(data, pop.levels, het.group, aes.colour, adjust.bin, x.title){
+plot_density_distribution_het <- function(data, pop.levels, het.group, aes.colour, adjust.bin, x.title){
   
   POP_ID <- NULL
   HET_O <- NULL
@@ -350,9 +350,9 @@ figure_density_distribution_het <- function(data, pop.levels, het.group, aes.col
 #' @param before.filter.data Data set before filter.
 #' @param after.filter.data Data set after filter.
 #' @export
-#' @rdname figure_snp_number_loci
+#' @rdname plot_snp_number_loci
 
-figure_snp_number_loci <- function(before.filter.data, after.filter.data) {
+plot_snp_number_loci <- function(before.filter.data, after.filter.data) {
   
   GROUP <- NULL
   SNP_N <- NULL
@@ -407,11 +407,11 @@ figure_snp_number_loci <- function(before.filter.data, after.filter.data) {
 #' @param aes.colour GGPLOT2 aesthetic.
 #' @param y.title Title of the Y-axis.
 #' @export
-#' @rdname figure_nucleotide_number_position
+#' @rdname plot_snp_position_read
 
 
 
-figure_nucleotide_number_position <- function(data, aes.colour, y.title) {
+plot_snp_position_read <- function(data, aes.colour, y.title) {
   
   COL <- NULL
   
@@ -444,9 +444,9 @@ figure_nucleotide_number_position <- function(data, aes.colour, y.title) {
 #' @param x.title Title of the x-axis.
 #' @param y.title Title of the y-axis.
 #' @export
-#' @rdname figure_distribution_diversity
+#' @rdname plot_distribution_diversity
 
-figure_distribution_diversity <- function(data, aes.x, aes.colour, x.title, y.title) {
+plot_distribution_diversity <- function(data, aes.x, aes.colour, x.title, y.title) {
   
   hapstats.summary <- NULL
 
@@ -481,8 +481,8 @@ figure_distribution_diversity <- function(data, aes.x, aes.colour, x.title, y.ti
 #' e.g. aes.x.y = aes(x = factor(POP_ID), y = GENE_DIVERSITY, na.rm = T). 
 #' @param y.title Title of the y-axis.
 #' @export
-#' @rdname figure_box_plot_diversity
-figure_box_plot_diversity <- function(data, aes.x.y, y.title) {
+#' @rdname plot_boxplot_diversity
+plot_boxplot_diversity <- function(data, aes.x.y, y.title) {
   ggplot(data, aes.x.y)+
     geom_violin(trim = F)+
     geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+

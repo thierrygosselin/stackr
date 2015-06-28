@@ -26,6 +26,6 @@ Observed heterozygosity filter from a sumstats prepared file
 or a tidy VCF file.
 }
 \seealso{
-\link{figure_density_distribution_het}
+\link{plot_density_distribution_het}
 }
 

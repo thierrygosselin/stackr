@@ -2,7 +2,7 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE_1", "ALLELE_2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX"))
 
 
-#' @name write_genepop
+#' @name haplo2genepop
 #' @title Use the batch_x.haplotypes.tsv file to write a genpop file
 #' @description This function can first filter the haplotypes file 
 #' with a whitelist of loci
@@ -23,7 +23,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
 #' @export
-#' @rdname write_genepop
+#' @rdname haplo2genepop
 #' @import reshape2
 #' @import dplyr
 #' @import tidyr
@@ -41,7 +41,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 
 
 
-write_genepop <- function(haplotypes.file, 
+haplo2genepop <- function(haplotypes.file, 
                           whitelist.loci = NULL, 
                           blacklist.id = NULL, 
                           genepop.filename, genepop.header, 

@@ -14,7 +14,7 @@
 #' @import stringi
 #' @import dplyr
 #' @import readr
-#' @seealso \link{figure_density_distribution_het}
+#' @seealso \link{plot_density_distribution_het}
 
 
 filter_het <- function(data, het.threshold, het.diff.threshold, pop.threshold, percent, filename) {
