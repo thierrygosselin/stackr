@@ -17,11 +17,12 @@ This is the development page of the **stackr** package for the R software.
 
 * Documentation and vignette.
 * Tutorial of workflow.
-* Linkage map tools
+* Use Shiny and ggvis when subplots or facet available.
+* Linkage map tools.
 * CRAN.
 * Interaction with STACKS database (Web-interface).
 * Reference genome tools.
-* Integration with other pipeline: AftrRAD, pyRAD, dDocent.
+* Maybe try some integration with other GBS approaches: AftrRAD, pyRAD, dDocent.
 * Got ideas ?
 
 
