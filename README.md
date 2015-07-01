@@ -20,7 +20,7 @@ This is the development page of the **stackr** package for the R software.
 * Use Shiny and ggvis when subplots or facet available.
 * Linkage map tools.
 * CRAN.
-* Interaction with STACKS database (Web-interface).
+* Interaction with [STACKS] (http://creskolab.uoregon.edu/stacks/) database (Web-interface).
 * Reference genome tools.
 * Maybe try some integration with other GBS approaches: AftrRAD, pyRAD, dDocent.
 * Got ideas ?
@@ -36,9 +36,10 @@ install_github("thierrygosselin/stackr")
 library("stackr")
 ```
 
-To convert STACKS haplotypes file to strataG *gtypes* object you will need to install this package:
+To convert [STACKS] (http://creskolab.uoregon.edu/stacks/) haplotypes file to strataG *gtypes* object you will need to install this package:
 ```r
 install_github("EricArcher/strataG.devel/strataG.devel")
 library("strataG.devel")
 ```
-
+## GBS workflow
+The *stackr* package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. image: ![](/Users/thierry/Dropbox/stackr/GBS_workflow.pdf)
