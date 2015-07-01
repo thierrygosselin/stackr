@@ -35,3 +35,10 @@ install_github("hadley/readr")
 install_github("thierrygosselin/stackr")
 library("stackr")
 ```
+
+To convert STACKS haplotypes file to strataG *gtypes* object you will need to install this package:
+```r
+install_github("EricArcher/strataG.devel/strataG.devel")
+library("strataG.devel")
+```
+
