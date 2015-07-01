@@ -42,4 +42,4 @@ install_github("EricArcher/strataG.devel/strataG.devel")
 library("strataG.devel")
 ```
 ## GBS workflow
-The *stackr* package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. ![](GBS_workflow.png)
+The *stackr* package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. ![](GBS_workflow.pdf)
