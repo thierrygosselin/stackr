@@ -31,15 +31,17 @@ You can try out the dev version of *stackr*. You will need the package *devtools
 
 ```r
 install.packages("devtools")
+library(devtools)
 install_github("hadley/readr")
+library(readr)
 install_github("thierrygosselin/stackr")
-library("stackr")
+library(stackr)
 ```
 
 To convert [STACKS] (http://creskolab.uoregon.edu/stacks/) haplotypes file to strataG *gtypes* object you will need to install this package:
 ```r
 install_github("EricArcher/strataG.devel/strataG.devel")
-library("strataG.devel")
+library(strataG.devel)
 ```
 ## GBS workflow
-The *stackr* package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. ![](GBS_workflow.png)
+The *stackr* package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. ![](tutorials/GBS_workflow.png)
