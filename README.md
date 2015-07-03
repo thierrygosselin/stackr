@@ -2,6 +2,9 @@
 
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr)
 
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19264.svg)](http://dx.doi.org/10.5281/zenodo.19264)
+
+
 The goal of **stackr** is to make GBS/RAD data produced by [STACKS] (http://creskolab.uoregon.edu/stacks/) easy to analyse in R.
 
 This is the development page of the **stackr** package for the R software.
