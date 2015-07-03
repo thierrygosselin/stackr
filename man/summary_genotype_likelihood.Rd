@@ -22,7 +22,8 @@ is written to the working directory.
 }
 \description{
 This function create 2 tables summary of the important
-genotype likelihood statistics from the tidy vcf created with read_stacks_vcf.
+genotype likelihood statistics from the tidy vcf created
+with \link{read_stacks_vcf}.
 }
 \details{
 The table contains summary statistics: mean, median, min, max and

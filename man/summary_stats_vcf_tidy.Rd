@@ -7,7 +7,7 @@
 summary_stats_vcf_tidy(data, filename)
 }
 \arguments{
-\item{data}{The tidy VCF file created with read_stacks_vcf.}
+\item{data}{The tidy VCF file created with \link{read_stacks_vcf}.}
 
 \item{filename}{(optional) Name of the file written to the working directory.}
 }

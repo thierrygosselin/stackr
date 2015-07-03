@@ -7,11 +7,11 @@
 blacklist_loci(before.filter.data, after.filter.data, filename, col.header)
 }
 \arguments{
-\item{before.filter.data}{The data frame before the filter. Object
-or file (using ".tsv") of class sumstats.}
+\item{before.filter.data}{A tidy vcf or sumstats prep file (using ".tsv")
+or object in your Environment. Before the filter you want to test.}
 
-\item{after.filter.data}{The data frame after the filter. Object
-or file (using ".tsv") of class sumstats.}
+\item{after.filter.data}{A tidy vcf or sumstats prep file (using ".tsv")
+or object in your Environment, after the filter you want to test.}
 
 \item{filename}{The name of the file written in the directory.}
 
@@ -20,5 +20,8 @@ or file (using ".tsv") of class sumstats.}
 \description{
 This function creates a blacklist of loci, used after applying a filter
 to keep track of the loci removed by a filter.
+}
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
 

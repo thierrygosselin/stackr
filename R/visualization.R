@@ -235,16 +235,23 @@ plot_boxplot_genotype_likelihood <- function(data) {
 #' @title Figure density distribution of minor allele frequency (MAF) 
 #' summary statistics.
 #' @description Create density distribution of MAF summary statistics.
-#' @param data sumstats or tidy vcf files.
+#' @param data sumstats or tidy vcf summarised files.
 #' @param maf.group The GGPLOT2 aes (e.g. aes(x = FREQ_ALT, na.rm = F)).
 #' @param aes.colour GGPLOT2 aesthetics colour, 
-#' e.g. aes(y = ..scaled.., color = GROUP).
+#' e.g. aes(y = ..scaled.., color = POP_ID) or aes(y = ..count.., color = POP_ID)
 #' @param adjust.bin Adjust GGPLOT2 bin size (0 to 1).
-#' @param x.title Title of the x-axis.
+#' @param x.title Title of the x-axis. e.g. "MAF distribution"
 #' @export
 #' @rdname plot_density_distribution_maf
+#' @details turn off the legend using \code{fig + theme(legend.position = "none")} or
+#' zoom in a section with 'fig + coord_cartesian(xlim = c(0, 0.1), ylim = c(0, 1))'.
+#' Save the figure with : \code{ggsave("figure name.pdf", width = 40, height = 20, dpi = 600, units = "cm", useDingbats = F)}.
+#' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-plot_density_distribution_maf <- function(data, maf.group, aes.colour, adjust.bin, x.title) {
+plot_density_distribution_maf <- function(data, maf.group, aes.colour = aes(y = ..scaled.., color = POP_ID), adjust.bin = 1, x.title) {
+  
+  ..scaled.. <- NULL #get rid of R CMD check note
   
   if (is.vector(data) == "TRUE") {
     data <- read_tsv(data, col_names = T)

@@ -1,15 +1,15 @@
-# Write a adegenet genind object from STACKS haplotypes file
+# Write a strataG gtypes file from STACKS haplotypes file
 
 # to get rid of notes in build check
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE_1", "ALLELE_2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX", "other", "strata", "hierarchy"))
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE_1", "ALLELE_2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX", "contains", "other"))
 
 
-#' @name haplo2genind
-#' @title Convert between batch_x.haplotypes.tsv and \code{genind} objects
+#' @name haplo2gtypes
+#' @title Convert between batch_x.haplotypes.tsv and \code{gtypes} objects
 #' @description This function can first filter the haplotypes file 
 #' with a whitelist of loci
 #' and a blacklist of individuals (optional). Then it will convert the file
-#' to a adegenet \code{genind} object.
+#' to a strataG \code{gtypes} objects.
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
 #' @param whitelist.loci (optional) A whitelist of loci and 
 #' a column header 'LOCUS'.
@@ -17,43 +17,39 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @param blacklist.id (optional) A blacklist with individual ID and
 #' a column header 'INDIVIDUALS'. The blacklist is in the directory
 #'  (e.g. "blacklist.txt").
+#' @param filename The name of the file written to the directory (optional).
 #' @param pop.levels An optional character string with your populations ordered.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
-#' @param strata an optional data frame that defines population stratifications
-#'   for your samples. This is especially useful if you have a hierarchical or
-#'   factorial sampling design. See adegenet for details.
-#' @param hierarchy a hierarchical formula that explicitely defines hierarchical
-#'   levels in your strata. See adegenet for details.
-#' @return an object of the class \code{genind}.
+#' @param description a string naming or describing this dataset.
+#' @return a \code{gtypes} objects.
 #' @export
-#' @rdname haplo2genind
-# @importFrom adegenet df2genind
+#' @rdname haplo2gtypes
 #' @import reshape2
 #' @import dplyr
 #' @import tidyr
 #' @importFrom stringr str_pad
+# @importFrom strataG.devel df2gtypes
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
 #' G3, 1, 171-182.
 #' @references Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
 #' Stacks: an analysis tool set for population genomics. 
 #' Molecular Ecology, 22, 3124-3140.
-#' @references Jombart T (2008) adegenet: a R package for the multivariate
-#' analysis of genetic markers. Bioinformatics, 24, 1403-1405.
-#' @references Jombart T, Ahmed I (2011) adegenet 1.3-1: 
-#' new tools for the analysis of genome-wide SNP data. 
-#' Bioinformatics, 27, 3070-3071.
-#' @seealso adegenet is available on CRAN and https://github.com/thibautjombart/
+#' @seealso strataG is available on CRAN and https://github.com/EricArcher/
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-haplo2genind <- function(haplotypes.file, 
+haplo2gtypes <- function(haplotypes.file,
                          whitelist.loci = NULL, 
                          blacklist.id = NULL, 
-                         pop.levels, pop.id.start, pop.id.end,
-                         strata = NULL, hierarchy = NULL) {
+                         filename, 
+                         pop.levels,
+                         pop.id.start, 
+                         pop.id.end, 
+                         description) {
+  
   
   # Whitelist
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
@@ -121,6 +117,7 @@ haplo2genind <- function(haplotypes.file,
     data <- haplotype.whitelist.loci
     
   } else if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == FALSE) {
+   
     message("Combination 3: Using a blacklist of id, but No whitelist")
     
     # NO whitelist, JUST Blacklist of individual
@@ -148,7 +145,8 @@ haplo2genind <- function(haplotypes.file,
     loci <- unique(haplotype.whitelist.blacklist$Catalog.ID)
     data <- haplotype.whitelist.blacklist
   }
-    
+  
+  
   # Paralogs..
   message("Looking for paralogs...")
   
@@ -164,13 +162,13 @@ haplo2genind <- function(haplotypes.file,
   nparalogs <- stri_join("Found and removed", n_distinct(paralogs$Catalog.ID), "paralogs", sep = " ")
   message(nparalogs)
   
-  message("Haplotypes into conversion to adegenet genind factory ...")
+  message("Haplotypes into conversion to strataG gtypes factory ...")
   
-  # genind prep
-  # removes paralogs
-  # removes consensus loci
+  # Haplo prep
+  # Remove paralogs
+  # Remove consensus loci
   
-  genind.data <- data %>%
+  haplo.prep <- data %>%
     anti_join(paralogs, by = "Catalog.ID") %>%
     filter(HAPLOTYPES != "consensus") %>%    
     mutate(
@@ -198,20 +196,40 @@ haplo2genind <- function(haplotypes.file,
       NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
     ) %>%
     select(-Cnt) %>%
-    dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "NUCLEOTIDES") %>%
-    unite(GENOTYPE, ALLELE_1:ALLELE_2, sep = "/") %>%
-    dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>% 
+    dcast(INDIVIDUALS ~ Catalog.ID + ALLELE, value.var = "NUCLEOTIDES") %>%
     mutate(
       POP_ID = factor(substr(INDIVIDUALS, 
                              pop.id.start, pop.id.end),
                       levels = pop.levels, ordered = T)
-    )
+    ) %>%
+    select(INDIVIDUALS, POP_ID, contains("ALLELE"))  
   
-  ind <- genind.data$INDIVIDUALS
-  pop <- genind.data$POP_ID
-  genind.df <- genind.data %>%
-    select(-c(INDIVIDUALS, POP_ID))#   
-  res <- adegenet::df2genind(X = genind.df, sep = "/", ind.names = ind, pop = pop, ploidy = 2, strata = strata, hierarchy = hierarchy)
   
+  # Write file to directory (optional)
+  if (missing(filename) == "FALSE") {
+    message("Saving the file in your working directory...")
+    write_tsv(haplo.prep, filename, append = FALSE, col_names = TRUE)
+    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+  } else {
+    saving <- "Saving was not selected..."
+  }
+  
+  # convert to gtypes
+  res <- strataG.devel::df2gtypes(x = haplo.prep,
+                                  ploidy = 2,
+                                  id.col = "INDIVIDUALS",
+                                  strata.col = "POP_ID",
+                                  loc.col = 3, 
+                                  sequences = NULL,
+                                  description = description
+  )
+  
+# Message at the end
+  invisible(cat(sprintf(
+    "%s\n
+Working directory:
+%s",
+    saving, getwd()
+  )))
   return(res)
 }

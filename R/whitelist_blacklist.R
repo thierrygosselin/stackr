@@ -11,14 +11,16 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("LOCUS","POS", "CHROM"))
 #' @title Whitelist loci
 #' @description This function creates a whitelist of loci, used after applying a filter
 #' to keep track of the loci kept by a filter.
-#' @param data The data frame after the filter. Object
-#' or file (using ".tsv") of class sumstats. 
+#' @param data A tidy vcf or sumstats prep file (using ".tsv") or object in
+#' your Environment.
 #' @param filename The name of the file written in the directory.
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
 #' @rdname whitelist_loci
 #' @export
 #' @import dplyr
 #' @import readr
+#' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 whitelist_loci <- function(data, filename, col.header) {
   
@@ -50,14 +52,16 @@ filename, getwd()
 #' @title Whitelist loci and snp
 #' @description This function creates a whitelist of loci and snp,
 #' useful in the populations module of STACKS.
-#' @param data The data frame after the filter. Object
-#' or file (using ".tsv") of class sumstats. 
+#' @param data A tidy vcf or sumstats prep file (using ".tsv") or object in
+#' your Environment.
 #' @param filename The name of the file written in the directory.
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
 #' @rdname whitelist_loci_snp
 #' @export
 #' @import dplyr
 #' @import readr
+#' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 whitelist_loci_snp <- function(data, filename, col.header) {
   
@@ -93,13 +97,15 @@ filename, getwd()
 #' @title Whitelist loci for VCF tools
 #' @description This function creates a whitelist of loci for VCF tools.
 #' With 2 columns (CHROM and ID).
-#' @param data The data frame after the filter. Object
-#' or file (using ".tsv") of class sumstats. 
+#' @param data A tidy vcf or sumstats prep file (using ".tsv") or object in
+#' your Environment.
 #' @param filename The name of the file written in the directory.
 #' @rdname whitelist_loci_vcf
 #' @export
 #' @import dplyr
 #' @import readr
+#' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 whitelist_loci_vcf <- function(data, filename) {
   
@@ -134,16 +140,17 @@ filename, getwd()
 #' @title Blacklist loci
 #' @description This function creates a blacklist of loci, used after applying a filter
 #' to keep track of the loci removed by a filter.
-#' @param before.filter.data The data frame before the filter. Object
-#' or file (using ".tsv") of class sumstats. 
-#' @param after.filter.data The data frame after the filter. Object
-#' or file (using ".tsv") of class sumstats. 
+#' @param before.filter.data A tidy vcf or sumstats prep file (using ".tsv") 
+#' or object in your Environment. Before the filter you want to test.
+#' @param after.filter.data A tidy vcf or sumstats prep file (using ".tsv") 
+#' or object in your Environment, after the filter you want to test. 
 #' @param filename The name of the file written in the directory.
 #' @param col.header TRUE and the loci will have a column header 'LOCUS'.
 #' @rdname blacklist_loci
 #' @export
 #' @import dplyr
 #' @import readr
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 blacklist_loci <- function(before.filter.data, after.filter.data, filename, 
                            col.header) {

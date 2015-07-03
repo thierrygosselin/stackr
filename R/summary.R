@@ -1,6 +1,6 @@
 ## Summary and tables
 
-#' @title Haplotypes summary
+#' @title Haplotypes file summary
 #' @description STACKS batch_x.haplotypes.tsv file summary.
 #' Output summary table for populations with putative paralogs,
 #' consensus, monomorphic and polymorphic loci.
@@ -14,7 +14,7 @@
 #' consensus loci by populations and unique loci (use $ to access each 
 #' components).
 #' Write 3 files in the working directory:
-#' blacklist of unique putative paralogs and unique consensus loci.
+#' blacklist of unique putative paralogs and unique consensus loci 
 #' and a summary of the haplotypes file by population.
 #' @details haplo.summary <- haplotype.file.summary$summary
 #' paralogs.pop <- haplotype.file.summary$paralogs.pop
@@ -24,7 +24,7 @@
 #' @rdname summary_polymorphism_haplotypes
 #' @export 
 
-summary_polymorphism_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.levels) {
+summary_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.levels) {
   
   POP_ID <- NULL
   POLYMORPHISM <- NULL
@@ -273,7 +273,7 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 #' with STACKS GBS/RAD loci = read or de novo haplotypes, 
 #' is included and repeated over SNP.
 #' @param filename (optional) Name of the file written to the working directory.
-#' @param data The tidy VCF file created with read_stacks_vcf.
+#' @param data The tidy VCF file created with \link{read_stacks_vcf}.
 #' @rdname summary_stats_vcf_tidy
 #' @export
 
@@ -647,7 +647,8 @@ Written in the directory:
 
 #' @title Genotype likelihood summary
 #' @description This function create 2 tables summary of the important
-#' genotype likelihood statistics from the tidy vcf created with read_stacks_vcf.
+#' genotype likelihood statistics from the tidy vcf created
+#' with \link{read_stacks_vcf}.
 #' @param tidy.vcf.file The tidy VCF file created with read_stacks_vcf.
 #' @param pop.levels Character string defining your ordered populations.
 #' @param filename The name of the file written in the directory.

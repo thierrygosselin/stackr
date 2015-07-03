@@ -7,13 +7,19 @@
 whitelist_loci_vcf(data, filename)
 }
 \arguments{
-\item{data}{The data frame after the filter. Object
-or file (using ".tsv") of class sumstats.}
+\item{data}{A tidy vcf or sumstats prep file (using ".tsv") or object in
+your Environment.}
 
 \item{filename}{The name of the file written in the directory.}
 }
 \description{
 This function creates a whitelist of loci for VCF tools.
 With 2 columns (CHROM and ID).
+}
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}
+\seealso{
+\link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
 }
 

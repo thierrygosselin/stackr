@@ -44,4 +44,8 @@ install_github("EricArcher/strataG.devel/strataG.devel")
 library(strataG.devel)
 ```
 ## GBS workflow
-The *stackr* package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. ![](tutorials/GBS_workflow.png)
+The *stackr* package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](tutorials/GBS_workflow.png).
+
+Here is some of the functions found in *stackr* ![](tutorials/stackr_functions.png)
+An example of the workflow ![](tutorials/stackr_workflow.png)
+All-in-one filter ![](stackr_all-in-one_filters.png)
