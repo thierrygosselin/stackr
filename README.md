@@ -14,7 +14,7 @@ This is the development page of the **stackr** package for the R software.
 * Transform the VCF file, *batch_x.vcf*, into a tidy format to visualise and filter summary statistics within R.
 * Filters genetic markers based on: coverage (read depth, REF and ALT allele depth), genotype likelihood, the number of individuals, the number of populations, observed heterozygosity and inbreeding coefficient (Fis).
 * View distribution of summary statistics and create publication-ready figures
-* Convert data into genind object for easy integration with **adegenet**, **hierfstat** and **pegas**.
+* Convert data into /code{genind} and /code{gtypes} object for easy integration with **adegenet**, **strataG**, **hierfstat** and **pegas**.
 
 ## Roadmap of what's up next
 
