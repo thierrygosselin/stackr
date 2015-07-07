@@ -17,6 +17,22 @@
 #' @export
 #' @import dplyr
 #' @import readr
+#' @details Your individuals are identified in this form : 
+#' CHI-QUE-ADU-2014-020, (SPE-POP-MAT-YEA-ID). Then, \code{pop.id.start} = 5
+#' and \code{pop.id.end} = 7. With 5 populations: ALK, JAP, NOR, QUE, LAB, 
+#' the \code{pop.levels} option could look like this: 
+#' c("JAP", "ALK", "QUE", "LAB", "NOR"). Useful for hierarchical clustering.
+#' @examples
+#' \dontrun{
+#' vcf.tidy <- read_stacks_vcf(
+#' vcf.file = "batch_1.vcf", 
+#' pop.id.start = 5, 
+#' pop.id.end = 7, 
+#' pop.levels = c("JAP", "ALK", "QUE", "LAB", "NOR"), 
+#' whitelist = "whitelist.loci.txt", 
+#' blacklist = "blacklist.loci.paralogs.txt", 
+#' filename = "vcf.tidy.paralogs.tsv")
+#' }
 #' @references Danecek P, Auton A, Abecasis G et al. (2011)
 #' The variant call format and VCFtools.
 #' Bioinformatics, 27, 2156-2158.
@@ -50,12 +66,12 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
   ALLELE_DEPTH <- NULL
   GT <- NULL
   GL <- NULL
-  ALLELE_P <- NULL
-  ALLELE_Q <- NULL
+  #   ALLELE_P <- NULL
+  #   ALLELE_Q <- NULL
   ALLELE_REF_DEPTH <- NULL
   ALLELE_ALT_DEPTH <- NULL
   
-  
+  # Import/read VCF ------------------------------------------------------------- 
   message("Importing the VCF...")
   
   vcf <- read_delim(
@@ -66,9 +82,10 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
     select(-c(QUAL, FILTER, FORMAT)) %>%
     rename(LOCUS = ID, CHROM = `#CHROM`)
   
+  # Whitelist/Blacklist ---------------------------------------------------------- 
   if (missing(whitelist) == "TRUE") {
     vcf <- vcf
-    message("No whitelist to apply to the VCF...")
+    message("No whitelist to apply to the VCF")
     
   } else if (is.vector(whitelist) == "TRUE") {
     vcf <- read_tsv(whitelist, col_names = T) %>%
@@ -84,7 +101,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
   
   if (missing(blacklist) == "TRUE") {
     vcf <- vcf
-    message("No blacklist to apply to the VCF...")
+    message("No blacklist to apply to the VCF")
     
   } else if (is.vector(blacklist) == "TRUE") {
     message("Filtering the VCF with the blacklist from your directory")
@@ -103,9 +120,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
     
   }
   
-  
-  message("Tidying the VCF...")
-  
+  # Make VCF tidy-----------------------------------------------------------------
   vcf <- vcf %>%
     separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
     mutate(
@@ -117,57 +132,73 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
       REF_FREQ = as.numeric(REF_FREQ),
       ALT_FREQ = as.numeric(ALT_FREQ)
     )
+  # Gather individuals in 1 colummn --------------------------------------------
+  vcf <- gather(vcf, INDIVIDUALS, FORMAT, -c(CHROM:ALT_FREQ))
   
-  message("Gathering individuals in 1 column...")
+  message("Gathering individuals in 1 column")
+  
+  # Separate FORMAT and COVERAGE columns ---------------------------------------
+  message("Tidying the VCF...")
   
   vcf <- vcf %>%
-    gather(INDIVIDUALS, FORMAT, -c(CHROM:ALT_FREQ)) %>%
-    separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"), sep = ":",
-             extra = "error") %>%
-    mutate(
-      READ_DEPTH = as.numeric(READ_DEPTH),
-      READ_DEPTH = as.numeric(ifelse (READ_DEPTH == "0", "NA", READ_DEPTH))
-    ) %>%
-    separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"), sep = ",",
-             extra = "error") %>%
-    separate(GT, c("ALLELE_P", "ALLELE_Q"), sep = "/", extra = "error",
-             remove = F)
+    separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
+             sep = ":", extra = "error") %>%
+    #   separate(GT, c("ALLELE_P", "ALLELE_Q"), 
+    #            sep = "/", extra = "error", remove = F) %>%
+    separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
+             sep = ",", extra = "error")
   
+  # Work with Mutate on CHROM and GL -------------------------------------------
   message("Fixing columns...")
   
   vcf <- vcf %>%
     mutate(
-      CHROM = as.numeric(stri_replace_all_fixed(CHROM, "un", "1", 
-                                                vectorize_all=F)),
-      GL = as.numeric(stri_replace_all_fixed(GL, c(".,", ",."), "",
-                                             vectorize_all=F)),
-      ALLELE_P = ifelse (ALLELE_P == ".", "NA",
-                         ifelse(ALLELE_P == "0", REF, ALT)),
-      ALLELE_Q = ifelse (ALLELE_Q == ".", "NA",
-                         ifelse(ALLELE_Q == "0", REF, ALT)),
-      ALLELE_REF_DEPTH = as.numeric(ALLELE_REF_DEPTH),
-      ALLELE_ALT_DEPTH = as.numeric(ALLELE_ALT_DEPTH),
-      ALLELE_REF_DEPTH = as.numeric(ifelse (ALLELE_REF_DEPTH == "0", "NA", ALLELE_REF_DEPTH)),
-      ALLELE_ALT_DEPTH = as.numeric(ifelse (ALLELE_ALT_DEPTH == "0", "NA", ALLELE_ALT_DEPTH)),
-      ALLELE_COVERAGE_RATIO = as.numeric(ifelse(GT == "./." | GT == "0/0" | GT == "1/1", "NA",
-                                                ((ALLELE_ALT_DEPTH - ALLELE_REF_DEPTH)/(ALLELE_ALT_DEPTH + ALLELE_REF_DEPTH)))),
-      POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
-                      levels = pop.levels, ordered =T)
+      CHROM = suppressWarnings(as.numeric(stri_replace_all_fixed(CHROM, "un", "1", vectorize_all=F))),
+      GL = suppressWarnings(as.numeric(stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all=F)))
     ) %>%
-    arrange(LOCUS, POS, POP_ID, INDIVIDUALS)
+    # Work with Mutate on ALLELE_P and ALLELE_Q
+    # vcf <- vcf %>% 
+    #   mutate(
+    #     ALLELE_P = ifelse (ALLELE_P == ".", "NA",
+    #                        ifelse(ALLELE_P == "0", REF, ALT)),
+    #     ALLELE_Q = ifelse (ALLELE_Q == ".", "NA",
+    #                        ifelse(ALLELE_Q == "0", REF, ALT))
+    #   )
+    # Mutate read and alleles REF/ALT depth
+    mutate(READ_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all=F))),
+           ALLELE_REF_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(ALLELE_REF_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
+           ALLELE_ALT_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(ALLELE_ALT_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
+           # Mutate coverage ration for allelic imbalance
+           ALLELE_COVERAGE_RATIO = suppressWarnings(
+             as.numeric(ifelse(GT == "./." | GT == "0/0" | GT == "1/1", "NA",
+                               ((ALLELE_ALT_DEPTH - ALLELE_REF_DEPTH)/(ALLELE_ALT_DEPTH + ALLELE_REF_DEPTH)))))
+    )
+  # Populations levels ---------------------------------------------------------
+  message("Adding a population column ...")
   
-  vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "ALLELE_P", "ALLELE_Q", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")]
+  vcf <- mutate(
+    vcf, 
+    POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+                    levels = pop.levels, ordered =T)
+  ) %>%
+    arrange(LOCUS, POS, POP_ID, INDIVIDUALS)  
+  
+  # Reorder the columns --------------------------------------------------------
+  message("Reordering columns ...")
+  # vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "ALLELE_P", "ALLELE_Q", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")]
+  vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")]
   
   
+  # Save/Write the file to the working directory--------------------------------
   if (missing(filename) == "FALSE") {
-    message("Saving the file in your working directory...")
+    message("Saving the file in your working directory, may take some time...")
     write_tsv(vcf, filename, append = FALSE, col_names = TRUE)
     saving <- paste("Saving was selected, the filename:", filename, sep = " ")
   } else {
     saving <- "Saving was not selected..."
   }
   
-  
+  # Message at the end ---------------------------------------------------------- 
   invisible(cat(sprintf(
     "%s\n
 Working directory:

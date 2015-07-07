@@ -31,6 +31,25 @@ or an object in the global environment.}
 \description{
 Import a VCF file created by STACKS and mofify to a tidy format.
 }
+\details{
+Your individuals are identified in this form :
+CHI-QUE-ADU-2014-020, (SPE-POP-MAT-YEA-ID). Then, \code{pop.id.start} = 5
+and \code{pop.id.end} = 7. With 5 populations: ALK, JAP, NOR, QUE, LAB,
+the \code{pop.levels} option could look like this:
+c("JAP", "ALK", "QUE", "LAB", "NOR"). Useful for hierarchical clustering.
+}
+\examples{
+\dontrun{
+vcf.tidy <- read_stacks_vcf(
+vcf.file = "batch_1.vcf",
+pop.id.start = 5,
+pop.id.end = 7,
+pop.levels = c("JAP", "ALK", "QUE", "LAB", "NOR"),
+whitelist = "whitelist.loci.txt",
+blacklist = "blacklist.loci.paralogs.txt",
+filename = "vcf.tidy.paralogs.tsv")
+}
+}
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }

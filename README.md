@@ -14,7 +14,7 @@ This is the development page of the **stackr** package for the R software.
 * Transform the VCF file, *batch_x.vcf*, into a tidy format to visualise and filter summary statistics within R.
 * Filters genetic markers based on: coverage (read depth, REF and ALT allele depth), genotype likelihood, the number of individuals, the number of populations, observed heterozygosity and inbreeding coefficient (Fis).
 * View distribution of summary statistics and create publication-ready figures
-* Convert data into *genind* and *gtypes* object for easy integration with [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat) and [pegas] (https://github.com/emmanuelparadis/pegas).
+* Convert data into *genind* and *gtypes* object for easy integration with [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr).
 
 ## Roadmap of what's up next
 
@@ -47,8 +47,8 @@ install_github("EricArcher/strataG.devel/strataG.devel")
 library(strataG.devel)
 ```
 ## GBS workflow
-The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](tutorials/GBS_workflow.png)
+The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
 
-Here is some of the functions found in **stackr** ![](tutorials/stackr_functions.png)
-An example of the workflow ![](tutorials/stackr_workflow.png)
-All-in-one filter ![](tutorials/stackr_all-in-one_filters.png)
+Here is some of the functions found in **stackr** ![](vignettes/stackr_functions.png)
+An example of the workflow ![](vignettes/stackr_workflow.png)
+All-in-one filter ![](vignettes/stackr_all-in-one_filters.png)
