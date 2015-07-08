@@ -1,5 +1,7 @@
 #' @title Combination of all filters
-#' @description under construction...
+#' @description You need to get a number of markers rapidly, and you tested
+#' individually each filter before, you know what you're doing... this is the
+#' all-in-one solution filter.
 #' @param haplotypes Working on it.
 #' @param vcf Working on it.
 #' @param pop.id.start Working on it.
