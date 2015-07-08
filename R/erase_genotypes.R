@@ -238,12 +238,12 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
         READ_DEPTH = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", READ_DEPTH)
       )
     message("Step ALLELE REF and ALT...")
-
+    
     new.file <- new.file %>% 
-        mutate(
+      mutate(
         ALLELE_REF_DEPTH = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_REF_DEPTH),
         ALLELE_ALT_DEPTH = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_ALT_DEPTH)
-        )
+      )
     message("Step GL ...")
     
     new.file <- new.file %>% 
@@ -251,21 +251,28 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
         ALLELE_COVERAGE_RATIO = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_COVERAGE_RATIO),
         GL = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", GL)
       )
-       
-      message("Step converting to numeric columns...")
-
-      new.file <- new.file %>% 
-        mutate(
+    
+    message("Step converting to numeric columns...")
+    
+    new.file <- new.file %>% 
+      mutate(
+        READ_DEPTH = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", READ_DEPTH),
+        ALLELE_REF_DEPTH = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_REF_DEPTH),
+        ALLELE_ALT_DEPTH = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_ALT_DEPTH),
+        ALLELE_COVERAGE_RATIO = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_COVERAGE_RATIO),
+        GL = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", GL)
+      ) %>% 
+      mutate(
         READ_DEPTH = suppressWarnings(as.numeric(READ_DEPTH)),
         ALLELE_REF_DEPTH = suppressWarnings(as.numeric(ALLELE_REF_DEPTH)),
         ALLELE_ALT_DEPTH = suppressWarnings(as.numeric(ALLELE_ALT_DEPTH)),
         ALLELE_COVERAGE_RATIO = suppressWarnings(as.numeric(ALLELE_COVERAGE_RATIO)),
         GL = suppressWarnings(as.numeric(GL))
       )
-#       mutate(
-#         ALLELE_P = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_P),
-#         ALLELE_Q = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_Q)
-#         )
+    #       mutate(
+    #         ALLELE_P = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_P),
+    #         ALLELE_Q = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_Q)
+    #         )
   }
   
   
