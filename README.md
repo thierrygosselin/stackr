@@ -37,15 +37,12 @@ install.packages("devtools")
 library(devtools)
 install_github("hadley/readr")
 library(readr)
+install_github("EricArcher/strataG.devel/strataG.devel")
+library(strataG.devel)
 install_github("thierrygosselin/stackr")
 library(stackr)
 ```
 
-To convert [STACKS] (http://creskolab.uoregon.edu/stacks/) haplotypes file to strataG *gtypes* object you will need to install this package:
-```r
-install_github("EricArcher/strataG.devel/strataG.devel")
-library(strataG.devel)
-```
 ## GBS workflow
 The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
 
