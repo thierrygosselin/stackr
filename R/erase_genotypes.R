@@ -255,15 +255,22 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
       )
     
     message("Step converting to numeric columns...")
+    message("Step READ_DEPTH...")
+
+    new.file$READ_DEPTH <- suppressWarnings(as.numeric(new.file$READ_DEPTH))
     
-    new.file <- new.file %>% 
-      mutate(
-        READ_DEPTH = suppressWarnings(as.numeric(READ_DEPTH)),
-        ALLELE_REF_DEPTH = suppressWarnings(as.numeric(ALLELE_REF_DEPTH)),
-        ALLELE_ALT_DEPTH = suppressWarnings(as.numeric(ALLELE_ALT_DEPTH)),
-        ALLELE_COVERAGE_RATIO = suppressWarnings(as.numeric(ALLELE_COVERAGE_RATIO)),
-        GL = suppressWarnings(as.numeric(GL))
-      )
+    message("Step ALLELE_ALT_DEPTH")
+
+    new.file$ALLELE_ALT_DEPTH <- suppressWarnings(as.numeric(new.file$ALLELE_ALT_DEPTH))
+    
+    message("Step ALLELE_COVERAGE_RATIO")
+
+    new.file$ALLELE_COVERAGE_RATIO <- suppressWarnings(as.numeric(new.file$ALLELE_COVERAGE_RATIO))
+    
+    message("Step GL")
+
+    new.file$GL <- suppressWarnings(as.numeric(new.file$GL))
+ 
   }
   
   
