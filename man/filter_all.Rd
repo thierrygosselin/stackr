@@ -80,6 +80,8 @@ filter_all(haplotypes, vcf, pop.id.start, pop.id.end, pop.levels,
 \item{max.snp.number}{Working on it.}
 }
 \description{
-under construction...
+You need to get a number of markers rapidly, and you tested
+individually each filter before, you know what you're doing... this is the
+all-in-one solution filter.
 }
 
