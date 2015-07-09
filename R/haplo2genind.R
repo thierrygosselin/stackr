@@ -17,7 +17,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @param blacklist.id (optional) A blacklist with individual ID and
 #' a column header 'INDIVIDUALS'. The blacklist is in the directory
 #'  (e.g. "blacklist.txt").
-#' @param pop.levels An optional character string with your populations ordered.
+#' @param pop.levels (Optional) character string with your populations ordered.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
@@ -85,7 +85,7 @@ haplo2genind <- function(haplotypes.file,
   
   
   # Haplotype file
-  haplotype <- read_tsv(file = "batch_1.haplotypes.tsv", col_names = T) %>%
+  haplotype <- read_tsv(file = haplotypes.file, col_names = T) %>%
     rename(Catalog.ID = `Catalog ID`) %>%
     gather(INDIVIDUALS, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
     arrange(Catalog.ID)

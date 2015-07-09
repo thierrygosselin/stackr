@@ -18,7 +18,7 @@ The whitelist is in the directory (e.g. "whitelist.txt").}
 a column header 'INDIVIDUALS'. The blacklist is in the directory
  (e.g. "blacklist.txt").}
 
-\item{pop.levels}{An optional character string with your populations ordered.}
+\item{pop.levels}{(Optional) character string with your populations ordered.}
 
 \item{pop.id.start}{The start of your population id
 in the name of your individual sample.}

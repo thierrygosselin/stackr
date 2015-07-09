@@ -1,0 +1,11 @@
+citHeader("To cite stackr in publications use:")
+
+citEntry(
+entry="Manual",
+title = "stackr: GBS/RAD Data Exploration, Manipulation and Visualization using R",
+year = "2015",
+author = "Thierry Gosselin",
+url = "https://github.com/thierrygosselin/stackr",
+doi = "http://dx.doi.org/10.5281/zenodo.19647",
+textVersion = paste("Thierry Gosselin (2015). stackr: GBS/RAD Data Exploration, Manipulation and Visualization. R package version 0.1.1.. https://github.com/thierrygosselin/stackr. doi : 10.5281/zenodo.19647")
+)

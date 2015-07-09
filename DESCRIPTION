@@ -1,6 +1,6 @@
 Package: stackr
 Type: Package
-Title: GBS/RAD Data Exploration, Manipulation and Visualization
+Title: GBS/RAD Data Exploration, Manipulation and Visualization using R
 Version: 0.1.1
 Date: 2015-07-07
 Encoding: UTF-8
