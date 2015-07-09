@@ -22,6 +22,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
+#' 
+#' 
 #' @export
 #' @rdname haplo2genepop
 #' @import reshape2
