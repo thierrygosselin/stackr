@@ -132,13 +132,11 @@ haplo2genepop <- function(haplotypes.file,
     message("Combination 2: Using whitelist, but No blacklist")
     
     # just whitelist.loci, NO Blacklist of individual
-    haplotype.whitelist.loci <- haplotype %>%
-      semi_join(whitelist, by = "Catalog.ID") %>% # instead of right_join
-      #       might result in less loci then the whitelist, but this make sure
-      #   we don't end up with unwanted or un-caracterized locus, e.g. comparing
-      #   adults and juveniles samples... the whitelist is developed with the adults,
-      #   but the haplotype file comes from the juveniles... 
+    haplotype.whitelist.loci <- suppressWarnings(
+      haplotype %>%
+      semi_join(whitelist, by = "Catalog.ID") %>%
       arrange(Catalog.ID)
+    )
     
     # Creates a vector containing the loci name
     loci <- unique(haplotype.whitelist.loci$Catalog.ID)
@@ -148,10 +146,12 @@ haplo2genepop <- function(haplotypes.file,
     message("Combination 3: Using a blacklist of id, but No whitelist")
     
     # NO whitelist, JUST Blacklist of individual
-    haplotype.blacklist <- haplotype %>%
+    haplotype.blacklist <- suppressWarnings(
+      haplotype %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
+    )
     
     
     # Creates a vector containing the loci name
@@ -162,11 +162,13 @@ haplo2genepop <- function(haplotypes.file,
     message("Combination 4: Using a whitelist and blacklist")
     
     # whitelist.loci + Blacklist of individual
-    haplotype.whitelist.blacklist <- haplotype %>%
+    haplotype.whitelist.blacklist <- suppressWarnings(
+      haplotype %>%
       semi_join(whitelist, by = "Catalog.ID") %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
+    )
     
     # Creates a vector containing the loci name
     loci <- unique(haplotype.whitelist.blacklist$Catalog.ID)
@@ -354,7 +356,7 @@ haplo2genepop <- function(haplotypes.file,
   message("Saving the file in your working directory...")
   
   # No imputation ------------------------------------------------------------
-  if (is.null(imputation.rf) == FALSE) {
+  if (imputation.rf == FALSE) {
     
     newfile1 <- file(genepop.filename, "write")
     cat(genepop.header, "\n", file = newfile1, append = TRUE)
