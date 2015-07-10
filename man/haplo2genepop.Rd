@@ -5,7 +5,9 @@
 \title{Use the batch_x.haplotypes.tsv file to write a genpop file}
 \usage{
 haplo2genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
-  genepop.filename, genepop.header, pop.levels, pop.id.start, pop.id.end)
+  genepop.filename, genepop.header, pop.levels, pop.id.start, pop.id.end,
+  imputation.rf = FALSE, num.tree = 100, iteration.rf = 10,
+  split.number = 10, verbose = FALSE, parallel.core = 2)
 }
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -30,11 +32,37 @@ in the name of your individual sample.}
 
 \item{pop.id.end}{The end of your population id
 in the name of your individual sample.}
+
+\item{imputation.rf}{Logical. Should a map-independent imputation of markers
+using Random Forest be enabled. This will write to the directory 2 files,
+a non-imputed and an imputed genepop files.}
+
+\item{num.tree}{For map-independent imputation of markers
+using Random Forest. The number of trees to grow. Default is 100.}
+
+\item{iteration.rf}{Number of iterations of missing data algorithm.
+Default is 10.}
+
+\item{split.number}{Non-negative integer value used to specify
+random splitting. Default is 10.}
+
+\item{verbose}{Logical. Should trace output be enabled on each iteration?
+Default is FALSE.}
+
+\item{parallel.core}{(Optional) Number of core for OpenMP shared-memory parallel
+programming of Random Forest imputation. For more info on how to install the
+OpenMP version see \code{package?randomForestSRC}.
+If not selected \code{detectCores()-1} is used as default.}
 }
 \description{
 This function can first filter the haplotypes file
 with a whitelist of loci
 and a blacklist of individuals (optional).
+}
+\details{
+The imputation requires more time and can take up to an hour
+depending on the size of the dataset. A data set with 30% of missing data,
+5 000 haplotypes loci and 500 individuals will require 15-20 min.
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
@@ -51,5 +79,14 @@ G3, 1, 171-182.
 Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013)
 Stacks: an analysis tool set for population genomics.
 Molecular Ecology, 22, 3124-3140.
+
+Ishwaran H. and Kogalur U.B. (2015). Random Forests for Survival,
+ Regression and Classification (RF-SRC), R package version 1.6.1.
+
+Ishwaran H. and Kogalur U.B. (2007). Random survival forests
+for R. R News 7(2), 25-31.
+
+Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008).
+Random survival forests. Ann. Appl. Statist. 2(3), 841--860.
 }
 
