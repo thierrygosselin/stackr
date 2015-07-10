@@ -2,7 +2,7 @@
 % Please edit documentation in R/haplo2genepop.R
 \name{haplo2genepop}
 \alias{haplo2genepop}
-\title{Use the batch_x.haplotypes.tsv file to write a genpop file}
+\title{Use the batch_x.haplotypes.tsv file to write a genpop file.}
 \usage{
 haplo2genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
   genepop.filename, genepop.header, pop.levels, pop.id.start, pop.id.end,
@@ -56,12 +56,13 @@ If not selected \code{detectCores()-1} is used as default.}
 }
 \description{
 This function can first filter the haplotypes file
-with a whitelist of loci
-and a blacklist of individuals (optional).
+with a whitelist of loci and a blacklist of individuals.
+Map-independent imputation using Random Forest
+is also available as an option.
 }
 \details{
 The imputation requires more time and can take up to an hour
-depending on the size of the dataset. A data set with 30% of missing data,
+depending on the size of the dataset. A data set with 30\% of missing data,
 5 000 haplotypes loci and 500 individuals will require 15-20 min.
 }
 \author{

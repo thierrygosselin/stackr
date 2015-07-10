@@ -159,7 +159,7 @@ haplo2gtypes <- function(haplotypes.file,
     select(Catalog.ID) %>%
     distinct(Catalog.ID)
   
-  nparalogs <- stri_join("Found and removed", n_distinct(paralogs$Catalog.ID), "paralogs", sep = " ")
+  nparalogs <- stri_join("Found and/or removed", n_distinct(paralogs$Catalog.ID), "paralogs", sep = " ")
   message(nparalogs)
   
   message("Haplotypes into conversion to strataG gtypes factory ...")

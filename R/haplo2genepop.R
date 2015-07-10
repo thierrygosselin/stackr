@@ -3,10 +3,11 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 
 
 #' @name haplo2genepop
-#' @title Use the batch_x.haplotypes.tsv file to write a genpop file
+#' @title Use the batch_x.haplotypes.tsv file to write a genpop file.
 #' @description This function can first filter the haplotypes file 
-#' with a whitelist of loci
-#' and a blacklist of individuals (optional).
+#' with a whitelist of loci and a blacklist of individuals. 
+#' Map-independent imputation using Random Forest 
+#' is also available as an option.
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
 #' @param whitelist.loci (optional) A whitelist of loci and 
 #' a column header 'LOCUS'.
@@ -38,7 +39,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' OpenMP version see \code{package?randomForestSRC}.
 #' If not selected \code{detectCores()-1} is used as default.
 #' @details The imputation requires more time and can take up to an hour
-#' depending on the size of the dataset. A data set with 30% of missing data,
+#' depending on the size of the dataset. A data set with 30\% of missing data,
 #' 5 000 haplotypes loci and 500 individuals will require 15-20 min.
 #' @export
 #' @rdname haplo2genepop
@@ -195,7 +196,7 @@ haplo2genepop <- function(haplotypes.file,
     select(Catalog.ID) %>%
     distinct(Catalog.ID)
   
-  nparalogs <- stri_join("Found and removed", 
+  nparalogs <- stri_join("Found and/or removed", 
                          n_distinct(paralogs$Catalog.ID), "paralogs", sep = " ")
   message(nparalogs)
   
@@ -203,75 +204,82 @@ haplo2genepop <- function(haplotypes.file,
   
   message("Haplotypes into Genepop factory ...")
   
-  genepop.prep <- data %>%
-    anti_join(paralogs, by = "Catalog.ID") %>%
-    filter(HAPLOTYPES != "consensus") %>%    
-    mutate(
-      HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
-                                          vectorize_all=F)
-    ) %>%
-    separate(
-      col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
-      sep = "/", extra = "drop", remove = T
-    ) %>%
-    mutate(
-      ALLELE1 = stri_replace_all_fixed(ALLELE1, "NA", "0", vectorize_all=F),
-      ALLELE2 = stri_replace_na(ALLELE2, replacement = "no_allele"),
-      ALLELE2 = ifelse(ALLELE2 == "no_allele", ALLELE1, ALLELE2)
-    ) %>%
-    melt(id.vars = c("Catalog.ID","Cnt", "INDIVIDUALS"),
-         measure.vars = c("ALLELE1", "ALLELE2"), 
-         variable.name = "ALLELE", 
-         value.name = "NUCLEOTIDES"
-    ) %>%
-    group_by(Catalog.ID) %>%
-    mutate(
-      NUCLEOTIDES = factor(NUCLEOTIDES),
-      NUCLEOTIDES = as.numeric(NUCLEOTIDES),
-      NUCLEOTIDES = NUCLEOTIDES-1 # this removes 1 levels to enable missing values = 0
-    )
+  genepop.prep <- suppressWarnings(
+    data %>%
+      anti_join(paralogs, by = "Catalog.ID") %>%
+      filter(HAPLOTYPES != "consensus") %>%    
+      mutate(
+        HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
+                                            vectorize_all=F)
+      ) %>%
+      separate(
+        col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
+        sep = "/", extra = "drop", remove = T
+      ) %>%
+      mutate(
+        ALLELE1 = stri_replace_all_fixed(ALLELE1, "NA", "0", vectorize_all=F),
+        ALLELE2 = stri_replace_na(ALLELE2, replacement = "no_allele"),
+        ALLELE2 = ifelse(ALLELE2 == "no_allele", ALLELE1, ALLELE2)
+      ) %>%
+      melt(id.vars = c("Catalog.ID","Cnt", "INDIVIDUALS"),
+           measure.vars = c("ALLELE1", "ALLELE2"), 
+           variable.name = "ALLELE", 
+           value.name = "NUCLEOTIDES"
+      ) %>%
+      group_by(Catalog.ID) %>%
+      mutate(
+        NUCLEOTIDES = factor(NUCLEOTIDES),
+        NUCLEOTIDES = suppressWarnings(as.numeric(NUCLEOTIDES)),
+        NUCLEOTIDES = NUCLEOTIDES-1 # this removes 1 levels to enable missing values = 0
+      )
+  )
   
   # Imputation options ---------------------------------------------------------
-  if (is.null(imputation.rf) == FALSE) {
+  if (imputation.rf == FALSE) {
     
-    message("Map-independent imputation was not selected, creating a genepop 
-            file with missing data")
+    message("Map-independent imputation was not selected, creating a genepop file with missing data")
     
-    genepop <- genepop.prep %>% 
-      mutate(
-        NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
-      ) %>%
-      select(-Cnt) %>%
-      dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "NUCLEOTIDES") %>%
-      unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
-      dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>%
-      mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
+    genepop <- suppressWarnings(
+      genepop.prep %>% 
+        mutate(
+          NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
+        ) %>%
+        select(-Cnt) %>%
+        dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "NUCLEOTIDES") %>%
+        unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
+        dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>%
+        mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
+    )
     
   } else {
     
     message("Map-independent imputation using Random Forest was selected")
     
-    genepop <- genepop.prep %>% 
-      mutate(
-        NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
-      ) %>%
-      select(-Cnt) %>%
-      dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "NUCLEOTIDES") %>%
-      unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
-      dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>%
-      mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
+    genepop <- suppressWarnings(
+      genepop.prep %>% 
+        mutate(
+          NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
+        ) %>%
+        select(-Cnt) %>%
+        dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "NUCLEOTIDES") %>%
+        unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
+        dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>%
+        mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
+    )
     
-    imp <- genepop.prep %>% 
-      mutate(
-        NUCLEOTIDES = stri_replace_all_fixed(NUCLEOTIDES, "0", "NA", 
-                                             vectorize_all=F),
-        POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
-                        levels = pop.levels, ordered = T)
-      ) %>%
-      arrange(Catalog.ID) %>% 
-      group_by(Catalog.ID) %>%
-      select(-Cnt) %>%
-      dcast(INDIVIDUALS+POP_ID ~ Catalog.ID + ALLELE, value.var = "NUCLEOTIDES")
+    imp <- suppressWarnings(
+      genepop.prep %>% 
+        mutate(
+          NUCLEOTIDES = stri_replace_all_fixed(NUCLEOTIDES, "0", "NA", 
+                                               vectorize_all=F),
+          POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
+                          levels = pop.levels, ordered = T)
+        ) %>%
+        arrange(Catalog.ID) %>% 
+        group_by(Catalog.ID) %>%
+        select(-Cnt) %>%
+        dcast(INDIVIDUALS+POP_ID ~ Catalog.ID + ALLELE, value.var = "NUCLEOTIDES")
+    )
     
     # Transformed columns into factor excluding the "NA" -----------------------
     imp <- colwise(factor, exclude = "NA")(imp)
@@ -309,7 +317,7 @@ haplo2genepop <- function(haplotypes.file,
     }
     genepop.imp <- as.data.frame(bind_rows(imputed.dataset))
     
-    genepop.imp <- supressWarnings(
+    genepop.imp <- suppressWarnings(
       genepop.imp %>%
         select(-POP_ID) %>% 
         gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS)) %>%
