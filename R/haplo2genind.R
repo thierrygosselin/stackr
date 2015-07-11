@@ -311,7 +311,7 @@ haplo2genind <- function(haplotypes.file,
     df.split.pop <- split(x = imp, f = imp$POP_ID) # slip data frame by population
     pop.list <- names(df.split.pop) # list the pop
     imputed.dataset <-list() # create empty list 
-    genepop.imp <- list() # create empty list 
+    genind.imp <- list() # create empty list 
     for (i in pop.list) {
       # group <- paste(i)
       sep.pop <- df.split.pop[[i]]
