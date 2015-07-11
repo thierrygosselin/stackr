@@ -5,9 +5,10 @@
 \title{Use the batch_x.haplotypes.tsv file to write a genpop file.}
 \usage{
 haplo2genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
-  genepop.filename, genepop.header, pop.levels, pop.id.start, pop.id.end,
-  imputation.rf = FALSE, num.tree = 100, iteration.rf = 10,
-  split.number = 10, verbose = FALSE, parallel.core = 2)
+  genepop.filename = "genepop.gen", genepop.header = "my first genepop",
+  pop.levels, pop.id.start, pop.id.end, imputation.rf = FALSE,
+  num.tree = 100, iteration.rf = 10, split.number = 10, verbose = FALSE,
+  parallel.core = 2)
 }
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -20,10 +21,11 @@ The whitelist is in the directory (e.g. "whitelist.txt").}
 a column header 'INDIVIDUALS'. The blacklist is in the directory
  (e.g. "blacklist.txt").}
 
-\item{genepop.filename}{The name of the file written to the directory.}
+\item{genepop.filename}{The name of the file written to the directory.
+Use the extension ".gen" at the end. Default \code{genepop.gen}.}
 
-\item{genepop.header}{The first line of the Genepop file
-(ex: genepop of 10 pop of Acipenser fulvescens filtered MAF 0.05).}
+\item{genepop.header}{The first line of the Genepop file.
+Default \code{my firt genepop}.}
 
 \item{pop.levels}{An optional character string with your populations ordered.}
 

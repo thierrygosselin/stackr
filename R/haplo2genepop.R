@@ -1,6 +1,5 @@
 # Write a genepop file from STACKS haplotype file
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE1", "ALLELE2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX"))
-
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE1", "ALLELE2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX", "colwise", "detectCores", "mc.cores"))
 
 #' @name haplo2genepop
 #' @title Use the batch_x.haplotypes.tsv file to write a genpop file.
@@ -16,8 +15,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' a column header 'INDIVIDUALS'. The blacklist is in the directory
 #'  (e.g. "blacklist.txt").
 #' @param genepop.filename The name of the file written to the directory.
-#' @param genepop.header The first line of the Genepop file 
-#' (ex: genepop of 10 pop of Acipenser fulvescens filtered MAF 0.05).
+#' Use the extension ".gen" at the end. Default \code{genepop.gen}.
+#' @param genepop.header The first line of the Genepop file.
+#' Default \code{my firt genepop}.
 #' @param pop.levels An optional character string with your populations ordered.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
@@ -65,11 +65,11 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 
-
 haplo2genepop <- function(haplotypes.file, 
                           whitelist.loci = NULL, 
                           blacklist.id = NULL, 
-                          genepop.filename, genepop.header, 
+                          genepop.filename = "genepop.gen",
+                          genepop.header = "my first genepop", 
                           pop.levels, pop.id.start, pop.id.end,
                           imputation.rf = FALSE, 
                           num.tree = 100,
@@ -134,8 +134,8 @@ haplo2genepop <- function(haplotypes.file,
     # just whitelist.loci, NO Blacklist of individual
     haplotype.whitelist.loci <- suppressWarnings(
       haplotype %>%
-      semi_join(whitelist, by = "Catalog.ID") %>%
-      arrange(Catalog.ID)
+        semi_join(whitelist, by = "Catalog.ID") %>%
+        arrange(Catalog.ID)
     )
     
     # Creates a vector containing the loci name
@@ -148,9 +148,9 @@ haplo2genepop <- function(haplotypes.file,
     # NO whitelist, JUST Blacklist of individual
     haplotype.blacklist <- suppressWarnings(
       haplotype %>%
-      mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
-      anti_join(blacklist.id, by = "INDIVIDUALS") %>%
-      arrange(Catalog.ID)
+        mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
+        anti_join(blacklist.id, by = "INDIVIDUALS") %>%
+        arrange(Catalog.ID)
     )
     
     
@@ -164,17 +164,17 @@ haplo2genepop <- function(haplotypes.file,
     # whitelist.loci + Blacklist of individual
     haplotype.whitelist.blacklist <- suppressWarnings(
       haplotype %>%
-      semi_join(whitelist, by = "Catalog.ID") %>%
-      mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
-      anti_join(blacklist.id, by = "INDIVIDUALS") %>%
-      arrange(Catalog.ID)
+        semi_join(whitelist, by = "Catalog.ID") %>%
+        mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
+        anti_join(blacklist.id, by = "INDIVIDUALS") %>%
+        arrange(Catalog.ID)
     )
     
     # Creates a vector containing the loci name
     loci <- unique(haplotype.whitelist.blacklist$Catalog.ID)
     data <- haplotype.whitelist.blacklist
   }
-  # genepop factory...
+  # genepop factory-------------------------------------------------------------
   # Work on the haplotype file to create a genepop dataframe
   # 1. Starts with a filtered batch_1.haplotypes.tsv stacks file
   # 2. Replace the missing '-' for 'NA'
@@ -230,45 +230,82 @@ haplo2genepop <- function(haplotypes.file,
       ) %>%
       group_by(Catalog.ID) %>%
       mutate(
-        NUCLEOTIDES = factor(NUCLEOTIDES),
-        NUCLEOTIDES = suppressWarnings(as.numeric(NUCLEOTIDES)),
+        NUCLEOTIDES = as.numeric(factor(NUCLEOTIDES)),
         NUCLEOTIDES = NUCLEOTIDES-1 # this removes 1 levels to enable missing values = 0
       )
   )
+  # No imputation --------------------------------------------------------------
   
-  # Imputation options ---------------------------------------------------------
-  if (imputation.rf == FALSE) {
-    
-    message("Map-independent imputation was not selected, creating a genepop file with missing data")
-    
-    genepop <- suppressWarnings(
-      genepop.prep %>% 
-        mutate(
-          NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
-        ) %>%
-        select(-Cnt) %>%
-        dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "NUCLEOTIDES") %>%
-        unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
-        dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>%
-        mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
-    )
-    
+  
+  # Further work on the data, pad the genotypes for 3 digits output
+  genepop <- suppressWarnings(
+    genepop.prep %>%
+      group_by(Catalog.ID) %>% 
+      select(-Cnt) %>%
+      mutate(
+        NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
+      ) %>%
+      dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "NUCLEOTIDES") %>%
+      unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
+      dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>%
+      mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
+  )
+  
+  # Create a vector with the population ordered by levels
+  if (missing(pop.levels) == "TRUE") {
+    pop <- substr(genepop$INDIVIDUALS, pop.id.start, pop.id.end)
   } else {
-    
-    message("Map-independent imputation using Random Forest was selected")
-    
-    genepop <- suppressWarnings(
-      genepop.prep %>% 
-        mutate(
-          NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
-        ) %>%
-        select(-Cnt) %>%
-        dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "NUCLEOTIDES") %>%
-        unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
-        dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>%
-        mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
+    pop <- factor(substr(genepop$INDIVIDUALS, 
+                         pop.id.start, pop.id.end),
+                  levels = pop.levels, ordered = T)
+  }
+  
+  # split genepop by populations
+  genepop.split <- split(genepop, pop)
+  
+  # Write the file in genepop format
+  message("Output...No imputation")
+  
+  # genepop filename
+  if (missing(genepop.filename) == "TRUE"){
+    genepop.filename <- "genepop.gen"
+  } else {
+    genepop.filename <- genepop.filename
+  }
+  
+  # genepop header
+  if (missing(genepop.header) == "TRUE"){
+    genepop.header <- "my first genepop"
+  } else {
+    genepop.header <- genepop.header
+  }
+  
+  file.no.imputation <- file(genepop.filename, "write")
+  cat(genepop.header, "\n", file = file.no.imputation, append = TRUE)
+  cat(loci, sep = "\n", file = file.no.imputation, append = TRUE)
+  
+  for (i in 1:length(genepop.split)) {
+    cat("pop\n", file = file.no.imputation, append = TRUE)
+    write.table(
+      genepop.split[[i]],
+      file = file.no.imputation, 
+      append = TRUE, 
+      col.names = FALSE,
+      row.names = FALSE, 
+      sep = " ", 
+      quote = FALSE
     )
+  }
+  close(file.no.imputation)
+  invisible(cat(sprintf("Genepop (no imputation) file name:\n%s\n\nWritten in the directory:\n%s", 
+                        genepop.filename, getwd())))
+  
+  # Imputation: Genepop with imputed data using Random Forest ------------------
+  
+  if (imputation.rf == "TRUE") {
+    message("Imputation was selected\nCalculating map-independent imputation using Random Forest")
     
+    # A different format is required for the imputation 
     imp <- suppressWarnings(
       genepop.prep %>% 
         mutate(
@@ -283,10 +320,12 @@ haplo2genepop <- function(haplotypes.file,
         dcast(INDIVIDUALS+POP_ID ~ Catalog.ID + ALLELE, value.var = "NUCLEOTIDES")
     )
     
-    # Transformed columns into factor excluding the "NA" -----------------------
-    imp <- colwise(factor, exclude = "NA")(imp)
+    # Transformed columns into factor excluding the "NA"
+    imp <- suppressWarnings(
+      plyr::colwise(factor, exclude = "NA")(imp)
+    )
     
-    # Parallel computations option----------------------------------------------
+    # Parallel computations options
     if (missing(parallel.core) == "TRUE"){
       # Automatically select all the core -1 
       options(rf.cores=detectCores()-1, mc.cores=detectCores()-1)
@@ -294,7 +333,7 @@ haplo2genepop <- function(haplotypes.file,
       options(rf.cores = parallel.core, mc.cores = mc.cores)
     }
     
-    # Imputation using Random Forest with the package randomForestSRC ----------
+    # Imputation using Random Forest with the package randomForestSRC
     
     impute_markers_rf <- function(x){
       randomForestSRC::impute.rfsrc(data = x, 
@@ -305,25 +344,30 @@ haplo2genepop <- function(haplotypes.file,
                                     do.trace = verbose)
     }
     
-    df.split.pop <- split(x = imp, f = imp$POP_ID)
-    pop <- names(df.split.pop)
-    imputed.dataset <-list()
-    genepop.imp <- list()
-    for (i in pop) {
+    df.split.pop <- split(x = imp, f = imp$POP_ID) # slip data frame by population
+    pop.list <- names(df.split.pop) # list the pop
+    imputed.dataset <-list() # create empty list 
+    genepop.imp <- list() # create empty list 
+    for (i in pop.list) {
       # group <- paste(i)
       sep.pop <- df.split.pop[[i]]
       imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
-      # message
+      # message of progress for imputation by population
       pop.imputed <- paste("Completed imputation for pop ", i, sep = "")
       message(pop.imputed)
     }
     genepop.imp <- as.data.frame(bind_rows(imputed.dataset))
+    
+    # transform the imputed dataset into genepop format
+    
+    message("Imputed data into genepop factory...")
     
     genepop.imp <- suppressWarnings(
       genepop.imp %>%
         select(-POP_ID) %>% 
         gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS)) %>%
         separate(Catalog.ID, c("Catalog.ID", "ALLELE"), sep = "_", extra = "error") %>%
+        mutate(Catalog.ID = as.integer(Catalog.ID)) %>% 
         arrange(Catalog.ID) %>% 
         mutate(
           NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
@@ -333,40 +377,56 @@ haplo2genepop <- function(haplotypes.file,
         dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>%
         mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
     )    
-  }
-  # Create a vector with the population ordered by levels--------------------
-  if (missing(pop.levels) == "TRUE") {
-    pop <- substr(genepop$INDIVIDUALS, pop.id.start, pop.id.end)
-  } else {
-    pop <- factor(substr(genepop$INDIVIDUALS, 
-                         pop.id.start, pop.id.end),
-                  levels = pop.levels, ordered = T)
     
-  }
-  
-  # split genepop by populations --------------------------------------------
-  if (is.null(imputation.rf) == FALSE) {
-    genepop.split <- split(genepop, pop)
-  } else {
-    genepop.split <- split(genepop, pop)
+    # Create a vector with the population ordered by levels
+    if (missing(pop.levels) == "TRUE") {
+      pop <- substr(genepop.imp$INDIVIDUALS, pop.id.start, pop.id.end)
+    } else {
+      pop <- factor(substr(genepop.imp$INDIVIDUALS, 
+                           pop.id.start, pop.id.end),
+                    levels = pop.levels, ordered = T)
+      
+    }
+    
+    # split genepop by populations
     genepop.imp.split <- split(genepop.imp, pop)
-  }
-  
-  # Write the file in genepop format ----------------------------------------
-  message("Saving the file in your working directory...")
-  
-  # No imputation ------------------------------------------------------------
-  if (imputation.rf == FALSE) {
     
-    newfile1 <- file(genepop.filename, "write")
-    cat(genepop.header, "\n", file = newfile1, append = TRUE)
-    cat(loci, sep = "\n", file = newfile1, append = TRUE)
     
-    for (i in 1:length(genepop.split)) {
-      cat("pop\n", file = newfile1, append = TRUE)
+    # Write the file in genepop format 
+    message("Output of imputed data...")
+    
+    
+    # genepop filename
+    if (missing(genepop.filename) == "TRUE"){
+      genepop.filename <- "genepop.gen"
+    } else {
+      genepop.filename <- genepop.filename
+    }
+    # Add "_imputed" to the filenam
+    genepop.filename.imp <- stri_replace_all_fixed(genepop.filename,
+                                                   pattern = ".gen",
+                                                   replacement = "_imputed.gen")
+    
+    
+    # genepop header default
+    if (missing(genepop.header) == "TRUE"){
+      genepop.header <- "my first genepop"
+      genepop.header <- stri_join(genepop.header, "with imputation", sep = " ")
+    } else {
+      genepop.header <- genepop.header
+      genepop.header <- stri_join(genepop.header, "with imputation", sep = " ")
+    }
+    
+    
+    file.imputation <- file(genepop.filename.imp, "write")
+    cat(genepop.header, "\n", file = file.imputation, append = TRUE)
+    cat(loci, sep = "\n", file = file.imputation, append = TRUE)
+    
+    for (i in 1:length(genepop.imp.split)) {
+      cat("pop\n", file = file.imputation, append = TRUE)
       write.table(
-        genepop.split[[i]],
-        file = newfile1, 
+        genepop.imp.split[[i]],
+        file = file.imputation, 
         append = TRUE, 
         col.names = FALSE,
         row.names = FALSE, 
@@ -374,51 +434,8 @@ haplo2genepop <- function(haplotypes.file,
         quote = FALSE
       )
     }
-    close(newfile1)
-    invisible(cat(sprintf("Genepop file name:\n%s\n\nWritten in the directory:\n%s", 
-                          genepop.filename, getwd())))
-  } else {
-    # with Imputation -------------------------------------------------------
-    # First the file without Imputation -------------------------------------------------------
-    newfile2 <- file(genepop.filename, "write")
-    cat(genepop.header, "\n", file = newfile2, append = TRUE)
-    cat(loci, sep = "\n", file = newfile2, append = TRUE)
+    close(file.imputation)
     
-    for (i in 1:length(genepop.split)) {
-      cat("pop\n", file = newfile2, append = TRUE)
-      write.table(
-        genepop.split[[i]],
-        file = newfile2, 
-        append = TRUE, 
-        col.names = FALSE,
-        row.names = FALSE, 
-        sep = " ", 
-        quote = FALSE
-      )
-    }
-    close(newfile2)
-    
-    # Second the file with Imputation -------------------------------------------------------
-    genepop.filename.imp <- stri_join(genepop.filename, "imputed", sep = "_")
-    newfile.imp <- file(genepop.filename.imp, "write")
-    cat(genepop.header, "\n", file = newfile.imp, append = TRUE)
-    cat(loci, sep = "\n", file = newfile.imp, append = TRUE)
-    
-    for (i in 1:length(genepop.split)) {
-      cat("pop\n", file = newfile.imp, append = TRUE)
-      write.table(
-        genepop.split[[i]],
-        file = newfile.imp, 
-        append = TRUE, 
-        col.names = FALSE,
-        row.names = FALSE, 
-        sep = " ", 
-        quote = FALSE
-      )
-    }
-    close(newfile.imp)
-    
-    invisible(cat(sprintf("2 Genepop files:\n%s\n%s\n\nWritten in the directory:\n%s", 
-                          genepop.filename, genepop.filename.imp, getwd())))
+    invisible(cat(sprintf("Genepop (with imputation using random forest) file name:\n%s\n\nWritten in the directory:\n%s", genepop.filename.imp, getwd())))
   }
 }
