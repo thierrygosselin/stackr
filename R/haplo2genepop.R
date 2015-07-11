@@ -33,7 +33,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @param split.number Non-negative integer value used to specify 
 #' random splitting. Default is 10.
 #' @param verbose Logical. Should trace output be enabled on each iteration?
-#' Default is FALSE.
+#' Default is \code{FALSE}.
 #' @param parallel.core (Optional) Number of core for OpenMP shared-memory parallel
 #' programming of Random Forest imputation. For more info on how to install the
 #' OpenMP version see \code{package?randomForestSRC}.

@@ -2,10 +2,13 @@
 % Please edit documentation in R/haplo2genind.R
 \name{haplo2genind}
 \alias{haplo2genind}
-\title{Convert between batch_x.haplotypes.tsv and \code{genind} objects}
+\title{Convert between batch_x.haplotypes.tsv and
+\code{\link[adegenet]{genind}} object}
 \usage{
 haplo2genind(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
-  pop.levels, pop.id.start, pop.id.end, strata = NULL, hierarchy = NULL)
+  pop.levels, pop.id.start, pop.id.end, strata = NULL, hierarchy = NULL,
+  imputation.rf = FALSE, num.tree = 100, iteration.rf = 10,
+  split.number = 10, verbose = FALSE, parallel.core = 2)
 }
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -18,7 +21,7 @@ The whitelist is in the directory (e.g. "whitelist.txt").}
 a column header 'INDIVIDUALS'. The blacklist is in the directory
  (e.g. "blacklist.txt").}
 
-\item{pop.levels}{(Optional) character string with your populations ordered.}
+\item{pop.levels}{(optional) A character string with your populations ordered.}
 
 \item{pop.id.start}{The start of your population id
 in the name of your individual sample.}
@@ -26,21 +29,49 @@ in the name of your individual sample.}
 \item{pop.id.end}{The end of your population id
 in the name of your individual sample.}
 
-\item{strata}{an optional data frame that defines population stratifications
+\item{strata}{(optional) A data frame that defines population stratifications
 for your samples. This is especially useful if you have a hierarchical or
-factorial sampling design. See adegenet for details.}
+factorial sampling design. See \code{\link[adegenet]{genind}} for details.}
 
-\item{hierarchy}{a hierarchical formula that explicitely defines hierarchical
-levels in your strata. See adegenet for details.}
+\item{hierarchy}{(optional) A formula that explicitely defines hierarchical levels
+in your strata. See \code{\link[adegenet]{genind}} for details.}
+
+\item{imputation.rf}{Logical. Should a map-independent imputation of markers
+using Random Forest be enabled. This will write to the directory 2 files,
+a non-imputed and an imputed genepop files.}
+
+\item{num.tree}{The number of trees to grow. Default is 100.}
+
+\item{iteration.rf}{Number of iterations of missing data algorithm.
+Default is 10.}
+
+\item{split.number}{Non-negative integer value used to specify
+random splitting. Default is 10.}
+
+\item{verbose}{Logical. Should trace output be enabled on each iteration?
+Default is \code{FALSE}.}
+
+\item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
+programming of Random Forest imputation. For more info on how to install the
+OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
+If not selected \code{detectCores()-1} is used as default.}
 }
 \value{
-an object of the class \code{genind}.
+When no imputation is selected an object of the
+class \code{\link[adegenet]{genind}} is returned.
+When imputation is selected a list with 2 objects is returned
+and accessed with \code{$genind.no.imputation} or \code{$genind.imputed}
 }
 \description{
 This function can first filter the haplotypes file
 with a whitelist of loci
 and a blacklist of individuals (optional). Then it will convert the file
-to a adegenet \code{genind} object.
+to a \code{\link[adegenet]{genind}} object.
+}
+\details{
+The imputation requires more time and can take up to an hour
+depending on the size of the dataset. A data set with 30\% of missing data,
+5 000 haplotypes loci and 500 individuals will require 15-20 min.
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
@@ -60,8 +91,18 @@ analysis of genetic markers. Bioinformatics, 24, 1403-1405.
 Jombart T, Ahmed I (2011) adegenet 1.3-1:
 new tools for the analysis of genome-wide SNP data.
 Bioinformatics, 27, 3070-3071.
+
+Ishwaran H. and Kogalur U.B. (2015). Random Forests for Survival,
+ Regression and Classification (RF-SRC), R package version 1.6.1.
+
+Ishwaran H. and Kogalur U.B. (2007). Random survival forests
+for R. R News 7(2), 25-31.
+
+Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008).
+Random survival forests. Ann. Appl. Statist. 2(3), 841--860.
 }
 \seealso{
-adegenet is available on CRAN and https://github.com/thibautjombart/
+\code{adegenet} is available on CRAN \url{http://cran.r-project.org/web/packages/adegenet/} and github \url{https://github.com/thibautjombart/}
+\code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/} and github \url{https://github.com/ehrlinger/randomForestSRC}
 }
 

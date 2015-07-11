@@ -49,7 +49,7 @@ Default is 10.}
 random splitting. Default is 10.}
 
 \item{verbose}{Logical. Should trace output be enabled on each iteration?
-Default is FALSE.}
+Default is \code{FALSE}.}
 
 \item{parallel.core}{(Optional) Number of core for OpenMP shared-memory parallel
 programming of Random Forest imputation. For more info on how to install the
