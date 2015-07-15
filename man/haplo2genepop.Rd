@@ -7,8 +7,8 @@
 haplo2genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
   genepop.filename = "genepop.gen", genepop.header = "my first genepop",
   pop.levels, pop.id.start, pop.id.end, imputation.rf = FALSE,
-  num.tree = 100, iteration.rf = 10, split.number = 10, verbose = FALSE,
-  parallel.core = 2)
+  imputation.group = "populations", num.tree = 100, iteration.rf = 10,
+  split.number = 100, verbose = FALSE, parallel.core = 2)
 }
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -39,6 +39,9 @@ in the name of your individual sample.}
 using Random Forest be enabled. This will write to the directory 2 files,
 a non-imputed and an imputed genepop files.}
 
+\item{imputation.group}{Should the imputations be computed globally or by populations.
+\code{Default = "populations"}.}
+
 \item{num.tree}{For map-independent imputation of markers
 using Random Forest. The number of trees to grow. Default is 100.}
 
@@ -46,7 +49,7 @@ using Random Forest. The number of trees to grow. Default is 100.}
 Default is 10.}
 
 \item{split.number}{Non-negative integer value used to specify
-random splitting. Default is 10.}
+random splitting. Default is 100.}
 
 \item{verbose}{Logical. Should trace output be enabled on each iteration?
 Default is \code{FALSE}.}

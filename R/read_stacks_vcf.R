@@ -88,13 +88,16 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
     message("No whitelist to apply to the VCF")
     
   } else if (is.vector(whitelist) == "TRUE") {
-    vcf <- read_tsv(whitelist, col_names = T) %>%
-      left_join(vcf, by = "LOCUS")
+    vcf <- vcf %>% 
+      semi_join(
+        read_tsv(whitelist, col_names = T),
+        by = "LOCUS"
+        )
     message("Filtering the VCF with the whitelist from your directory")
     
   } else {
-    vcf <- whitelist %>%
-      left_join(vcf, by = "LOCUS")
+    vcf <- vcf %>%
+      semi_join(whitelist, by = "LOCUS")
     message("Filtering the VCF with the whitelist from your global environment")
     
   }

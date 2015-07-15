@@ -26,12 +26,14 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @param imputation.rf Logical. Should a map-independent imputation of markers 
 #' using Random Forest be enabled. This will write to the directory 2 files, 
 #' a non-imputed and an imputed genepop files.
+#' @param imputation.group Should the imputations be computed globally or by populations. 
+#' \code{Default = "populations"}.
 #' @param num.tree For map-independent imputation of markers 
 #' using Random Forest. The number of trees to grow. Default is 100.
 #' @param iteration.rf Number of iterations of missing data algorithm.
 #' Default is 10.
 #' @param split.number Non-negative integer value used to specify 
-#' random splitting. Default is 10.
+#' random splitting. Default is 100.
 #' @param verbose Logical. Should trace output be enabled on each iteration?
 #' Default is \code{FALSE}.
 #' @param parallel.core (Optional) Number of core for OpenMP shared-memory parallel
@@ -71,10 +73,11 @@ haplo2genepop <- function(haplotypes.file,
                           genepop.filename = "genepop.gen",
                           genepop.header = "my first genepop", 
                           pop.levels, pop.id.start, pop.id.end,
-                          imputation.rf = FALSE, 
+                          imputation.rf = FALSE,
+                          imputation.group = "populations",
                           num.tree = 100,
                           iteration.rf = 10,
-                          split.number = 10,
+                          split.number = 100,
                           verbose = FALSE,
                           parallel.core = 2) {
   
@@ -114,11 +117,10 @@ haplo2genepop <- function(haplotypes.file,
     arrange(Catalog.ID)
   
   
-  # message of combination of arguments chosen ---------------------------------
   
   if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
     
-    message("Combination 1: No whitelist and No blacklist")
+    # Combination 1: No whitelist and No blacklist------------------------------
     
     # No filter
     haplotype.no.filter <- haplotype    
@@ -129,7 +131,7 @@ haplo2genepop <- function(haplotypes.file,
     
   } else if (is.null(whitelist.loci) == FALSE & is.null(blacklist.id) == TRUE) {
     
-    message("Combination 2: Using whitelist, but No blacklist")
+    # Combination 2: Using whitelist, but No blacklist -------------------------
     
     # just whitelist.loci, NO Blacklist of individual
     haplotype.whitelist.loci <- suppressWarnings(
@@ -143,7 +145,8 @@ haplo2genepop <- function(haplotypes.file,
     data <- haplotype.whitelist.loci
     
   } else if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == FALSE) {
-    message("Combination 3: Using a blacklist of id, but No whitelist")
+    
+    # Combination 3: Using a blacklist of id, but No whitelist -----------------
     
     # NO whitelist, JUST Blacklist of individual
     haplotype.blacklist <- suppressWarnings(
@@ -159,7 +162,7 @@ haplo2genepop <- function(haplotypes.file,
     data <- haplotype.blacklist
     
   } else {
-    message("Combination 4: Using a whitelist and blacklist")
+    # Combination 4: Using a whitelist and blacklist ---------------------------
     
     # whitelist.loci + Blacklist of individual
     haplotype.whitelist.blacklist <- suppressWarnings(

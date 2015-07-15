@@ -2,10 +2,13 @@
 % Please edit documentation in R/haplo2gtypes.R
 \name{haplo2gtypes}
 \alias{haplo2gtypes}
-\title{Convert between batch_x.haplotypes.tsv and \code{gtypes} objects}
+\title{Convert between batch_x.haplotypes.tsv and \code{strataG.dev} \code{gtypes} object}
 \usage{
 haplo2gtypes(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
-  filename, pop.levels, pop.id.start, pop.id.end, description)
+  filename, pop.levels, pop.id.start, pop.id.end, description,
+  imputation.rf = FALSE, imputation.group = "populations", num.tree = 100,
+  iteration.rf = 10, split.number = 100, verbose = FALSE,
+  parallel.core = 2)
 }
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -29,15 +32,51 @@ in the name of your individual sample.}
 in the name of your individual sample.}
 
 \item{description}{a string naming or describing this dataset.}
+
+\item{imputation.rf}{Logical. Should a map-independent imputation of markers
+using Random Forest be enabled. This will write to the directory 2 files,
+a non-imputed and an imputed genepop files.}
+
+\item{imputation.group}{\code{"global"} or \code{"populations"}.
+Should the imputations be computed globally or by populations.
+Default = \code{"populations"}.}
+
+\item{num.tree}{The number of trees to grow. Default is 100.}
+
+\item{iteration.rf}{Number of iterations of missing data algorithm.
+Default is 10.}
+
+\item{split.number}{Non-negative integer value used to specify
+random splitting. Default is 100.}
+
+\item{verbose}{Logical. Should trace output be enabled on each iteration?
+Default is \code{FALSE}.}
+
+\item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
+programming of Random Forest imputation. For more info on how to install the
+OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
+If not selected \code{detectCores()-1} is used as default.}
 }
 \value{
-a \code{gtypes} objects.
+When no imputation is selected an object of the
+class \code{\link[strataG.devel]{gtypes}} is returned.
+When imputation is selected a list with 2 objects is returned
+and accessed with \code{$gtypes.no.imputation} or \code{$gtypes.imputed}
 }
 \description{
 This function can first filter the haplotypes file
 with a whitelist of loci
 and a blacklist of individuals (optional). Then it will convert the file
-to a strataG \code{gtypes} objects.
+to a \code{strataG.dev} \code{gtypes} object.
+Map-independent imputation using Random Forest is also available
+as an option.
+}
+\details{
+The imputation requires more time to compute and can take several
+minutes and hours depending on the size of the dataset and polymorphism of
+the species used. e.g. with a low polymorphic taxa, and a data set
+containing 30\% missing data, 5 000 haplotypes loci and 500 individuals
+will require 15 min.
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
@@ -50,8 +89,18 @@ G3, 1, 171-182.
 Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013)
 Stacks: an analysis tool set for population genomics.
 Molecular Ecology, 22, 3124-3140.
+
+Ishwaran H. and Kogalur U.B. (2015). Random Forests for Survival,
+ Regression and Classification (RF-SRC), R package version 1.6.1.
+
+Ishwaran H. and Kogalur U.B. (2007). Random survival forests
+for R. R News 7(2), 25-31.
+
+Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008).
+Random survival forests. Ann. Appl. Statist. 2(3), 841--860.
 }
 \seealso{
-strataG is available on CRAN and https://github.com/EricArcher/
+\code{strataG.devel} is available on github \url{https://github.com/EricArcher/}
+\code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/} and github \url{https://github.com/ehrlinger/randomForestSRC}
 }
 

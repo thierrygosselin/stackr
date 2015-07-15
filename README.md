@@ -42,6 +42,16 @@ install_github("thierrygosselin/stackr")
 library(stackr)
 ```
 
+On Mac OSX to use OpenMP for the imputation you will need to update your computer compiler, it's easy following [this link](http://gbs-cloud-tutorial.readthedocs.org/en/latest/03_computer_setup.html#update-your-computer-s-compiler). And then using [TextWrangler](http://gbs-cloud-tutorial.readthedocs.org/en/latest/03_computer_setup.html#install-textwrangler) or the command line in the terminal
+create a file name \code{Makevars} inside a folder named \code{.R} inside your user directory \code{/Users/thierry/.R/Makevars}.
+
+Download the source file of [randomForestSRC](http://cran.r-project.org/src/contrib/randomForestSRC_1.6.1.tar.gz) and in the terminal:
+```r
+cd Downloads
+wget http://cran.r-project.org/src/contrib/randomForestSRC_1.6.1.tar.gz
+R CMD INSTALL randomForestSRC_1.6.1.tar.gz
+```
+
 ## GBS workflow
 The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
 

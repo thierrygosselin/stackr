@@ -2,13 +2,14 @@
 % Please edit documentation in R/haplo2genind.R
 \name{haplo2genind}
 \alias{haplo2genind}
-\title{Convert between batch_x.haplotypes.tsv and
+\title{Convert between batch_x.haplotypes.tsv and \code{adegenet}
 \code{\link[adegenet]{genind}} object}
 \usage{
 haplo2genind(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
   pop.levels, pop.id.start, pop.id.end, strata = NULL, hierarchy = NULL,
-  imputation.rf = FALSE, num.tree = 100, iteration.rf = 10,
-  split.number = 10, verbose = FALSE, parallel.core = 2)
+  imputation.rf = FALSE, imputation.group = "populations", num.tree = 100,
+  iteration.rf = 10, split.number = 100, verbose = FALSE,
+  parallel.core = 2)
 }
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -40,13 +41,16 @@ in your strata. See \code{\link[adegenet]{genind}} for details.}
 using Random Forest be enabled. This will write to the directory 2 files,
 a non-imputed and an imputed genepop files.}
 
+\item{imputation.group}{Should the imputations be computed globally or by populations.
+\code{Default = "populations"}.}
+
 \item{num.tree}{The number of trees to grow. Default is 100.}
 
 \item{iteration.rf}{Number of iterations of missing data algorithm.
 Default is 10.}
 
 \item{split.number}{Non-negative integer value used to specify
-random splitting. Default is 10.}
+random splitting. Default is 100.}
 
 \item{verbose}{Logical. Should trace output be enabled on each iteration?
 Default is \code{FALSE}.}
@@ -66,7 +70,9 @@ and accessed with \code{$genind.no.imputation} or \code{$genind.imputed}
 This function can first filter the haplotypes file
 with a whitelist of loci
 and a blacklist of individuals (optional). Then it will convert the file
-to a \code{\link[adegenet]{genind}} object.
+to a \code{adegenet} \code{\link[adegenet]{genind}} object.
+Map-independent imputation using Random Forest is also available
+as an option.
 }
 \details{
 The imputation requires more time and can take up to an hour
