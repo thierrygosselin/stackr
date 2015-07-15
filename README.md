@@ -56,7 +56,7 @@ make
 sudo make install
 ```
 
-You new to tell R which compilers to use. Use TextWrangler or follow the lines below:
+You need to tell R which compilers to use. Use TextWrangler or follow the lines below:
 ```r
 cd ~
 nano .R/Makevars
@@ -69,10 +69,10 @@ CXX=clang++
 PKG_CFLAGS=-g -O2
 PKG_CXXFLAGS=-g -O2 -stdlib=libc++
 ```
-Save and Exit with: crt-o, enterm crt-x
+Save and Exit with: crt-o, enter, crt-x
 
 
-Install all package using Rcpp and/or OpenMP preferably with the with the same compiler.
+Preferably, re-install all packages depending on OpenMP or Rcpp.
 
 ```r
 install.packages("Rcpp", type = "source")
