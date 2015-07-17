@@ -1,7 +1,7 @@
 # Write a strataG gtypes file from STACKS haplotypes file
 
 # to get rid of notes in build check
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE1", "ALLELE2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX", "contains", "other", ".", "ALLELE"))
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE1", "ALLELE2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX", "contains", "other", ".", "ALLELE", "GROUP"))
 
 
 #' @name haplo2gtypes
@@ -10,7 +10,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' with a whitelist of loci
 #' and a blacklist of individuals (optional). Then it will convert the file
 #' to a \code{strataG.dev} \code{gtypes} object.
-#' Map-independent imputation using Random Forest is also available
+#' Map-independent imputations using Random Forest is also available
 #' as an option.
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
 #' @param whitelist.loci (optional) A whitelist of loci and 
@@ -19,31 +19,32 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @param blacklist.id (optional) A blacklist with individual ID and
 #' a column header 'INDIVIDUALS'. The blacklist is in the directory
 #'  (e.g. "blacklist.txt").
-#' @param filename The name of the file written to the directory (optional).
 #' @param pop.levels An optional character string with your populations ordered.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
-#' @param description a string naming or describing this dataset.
-#' @param imputation.rf Logical. Should a map-independent imputation of markers 
-#' using Random Forest be enabled. This will write to the directory 2 files, 
-#' a non-imputed and an imputed genepop files.
-#' @param imputation.group \code{"global"} or \code{"populations"}.
-#' Should the imputations be computed globally or by populations. 
+#' @param description A string naming or describing this dataset.
+#' @param imputations Should a map-independent imputations of markers be
+#' computed. Available choices are: (1) \code{FALSE} for no imputation.
+#' (2) \code{"max"} to use the most frequent category for imputations.
+#'  (3) \code{"rf"} using Random Forest algorithm. Default = \code{FALSE}.
+#' @param imputations.group \code{"global"} or \code{"populations"}.
+#' Should the imputations be computed globally or by populations. If you choose
+#' global, turn the verbose to \code{TRUE}, to see progress.
 #' Default = \code{"populations"}.
-#' @param num.tree The number of trees to grow. Default is 100.
-#' @param iteration.rf Number of iterations of missing data algorithm.
-#' Default is 10.
+#' @param num.tree The number of trees to grow in Random Forest. Default is 100.
+#' @param iteration.rf The number of iterations of missing data algorithm 
+#' in Random Forest. Default is 10.
 #' @param split.number Non-negative integer value used to specify 
-#' random splitting. Default is 100.
-#' @param verbose Logical. Should trace output be enabled on each iteration?
-#' Default is \code{FALSE}.
+#' random splitting in Random Forest. Default is 100.
+#' @param verbose Logical. Should trace output be enabled on each iteration 
+#' in Random Forest ? Default is \code{FALSE}.
 #' @param parallel.core (optional) The number of core for OpenMP shared-memory parallel
-#' programming of Random Forest imputation. For more info on how to install the
+#' programming of Random Forest imputations. For more info on how to install the
 #' OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 #' If not selected \code{detectCores()-1} is used as default.
-#' @details The imputation requires more time to compute and can take several
+#' @details The imputations using Random Forest requires more time to compute and can take several
 #' minutes and hours depending on the size of the dataset and polymorphism of
 #' the species used. e.g. with a low polymorphic taxa, and a data set 
 #' containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
@@ -51,13 +52,14 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @return When no imputation is selected an object of the 
 #' class \code{\link[strataG.devel]{gtypes}} is returned.
 #' When imputation is selected a list with 2 objects is returned
-#' and accessed with \code{$gtypes.no.imputation} or \code{$gtypes.imputed}
+#' and accessed with \code{$gtypes.no.imputation} or \code{$gtypes.imputed}.
 #' @export
 #' @rdname haplo2gtypes
 #' @import reshape2
 #' @import dplyr
 #' @import tidyr
-#' @importFrom stringr str_pad
+#' @import stringi
+# @import randomForestSRC
 # @importFrom strataG.devel df2gtypes
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
@@ -78,13 +80,12 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 haplo2gtypes <- function(haplotypes.file,
                          whitelist.loci = NULL, 
                          blacklist.id = NULL, 
-                         filename, 
                          pop.levels,
                          pop.id.start, 
                          pop.id.end, 
                          description,
-                         imputation.rf = FALSE,
-                         imputation.group = "populations",
+                         imputations = FALSE,
+                         imputations.group = "populations",
                          num.tree = 100,
                          iteration.rf = 10,
                          split.number = 100,
@@ -92,12 +93,11 @@ haplo2gtypes <- function(haplotypes.file,
                          parallel.core = 2
 ) {
   
-  if (imputation.rf == "FALSE") {
+  if (imputations == "FALSE") {
     message("haplo2gtypes: without imputation...")
   } else {
-    message("haplo2gtypes: with imputation...")
+    message("haplo2gtypes: with imputations...")
   }
-  
   
   
   # Haplotype file--------------------------------------------------------------
@@ -106,8 +106,6 @@ haplo2gtypes <- function(haplotypes.file,
     rename(Catalog.ID = `Catalog ID`) %>%
     melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
   # gather(INDIVIDUALS, HAPLOTYPES, -Catalog.ID)
-  
-  
   # Whitelist-------------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
     message("Using the whitelist from the directory")
@@ -125,14 +123,14 @@ haplo2gtypes <- function(haplotypes.file,
   
   # Blacklist-------------------------------------------------------------------
   if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "TRUE") {
-    message("Using the blacklist of id from the directory")
+    message("Using the blacklisted id from the directory")
     blacklist.id <- read_tsv(blacklist.id, col_names = T)    
   } else if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "FALSE") {
-    message("Using blacklist of id from your global environment")
+    message("Using the blacklisted id from your global environment")
     blacklist.id <- blacklist.id
     
   } else {
-    message("No blacklist of id")
+    message("No individual blacklisted")
     blacklist.id <- NULL
   }
   
@@ -147,7 +145,7 @@ haplo2gtypes <- function(haplotypes.file,
     # Combination 2: Using whitelist, but No blacklist -------------------------
     
     # just whitelist.loci, NO Blacklist of individual
-    haplotype <- haplotype %>%
+    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
       semi_join(whitelist, by = "Catalog.ID") %>% 
       arrange(Catalog.ID)
     
@@ -156,7 +154,7 @@ haplo2gtypes <- function(haplotypes.file,
     # Combination 3: Using a blacklist of id, but No whitelist -----------------
     
     # NO whitelist, JUST Blacklist of individual
-    haplotype <- haplotype %>%
+    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
@@ -165,7 +163,7 @@ haplo2gtypes <- function(haplotypes.file,
     # Combination 4: Using a whitelist and blacklist---------------------------
     
     # whitelist.loci + Blacklist of individual
-    haplotype <- haplotype %>%
+    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
       semi_join(whitelist, by = "Catalog.ID") %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
@@ -199,7 +197,7 @@ haplo2gtypes <- function(haplotypes.file,
   # Remove paralogs
   # Remove consensus loci
   
-  haplo.prep <- suppressWarnings(
+  haplo.filtered <- suppressWarnings(
     haplotype %>%
       anti_join(paralogs, by = "Catalog.ID") %>%
       filter(HAPLOTYPES != "consensus") %>%    
@@ -211,6 +209,7 @@ haplo2gtypes <- function(haplotypes.file,
       ) %>%
       dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") #%>% 
   )
+  message("step 1/5: completed")
   
   # dump unused objects
   paralogs <- NULL
@@ -219,50 +218,54 @@ haplo2gtypes <- function(haplotypes.file,
   
   # No imputation --------------------------------------------------------------
   # Further work on the data
-  gtypes.prep <- suppressWarnings(
-    haplo.prep %>% 
+  haplo.prep <- suppressWarnings(
+    haplo.filtered %>% 
       # gather(Catalog.ID, HAPLOTYPES, -c(INDIVIDUALS, POP_ID)) %>% 
       melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
       separate(
         col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
         sep = "/", extra = "drop", remove = T
       ) %>%
-      mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>% 
-      melt(
-        id.vars = c("Catalog.ID", "INDIVIDUALS", "POP_ID"),
-        measure.vars = c("ALLELE1", "ALLELE2"), 
-        variable.name = "ALLELE", 
-        value.name = "NUCLEOTIDES"
-      ) %>% 
-      dcast(INDIVIDUALS + POP_ID + ALLELE ~ Catalog.ID, value.var = "NUCLEOTIDES"))
+      mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
+  )
   
-  gtypes.prep <- suppressWarnings(
-    gtypes.prep %>% 
+  message("step 2/5: completed")
+  
+  haplo.prep <- haplo.prep %>% 
+    melt(
+      id.vars = c("Catalog.ID", "INDIVIDUALS", "POP_ID"),
+      measure.vars = c("ALLELE1", "ALLELE2"), 
+      variable.name = "ALLELE", 
+      value.name = "NUCLEOTIDES"
+    ) %>% 
+    dcast(INDIVIDUALS + POP_ID + ALLELE ~ Catalog.ID, value.var = "NUCLEOTIDES")
+  
+  message("step 3/5: completed")
+  
+  haplo.prep <- suppressWarnings(
+    haplo.prep %>% 
       colwise(factor, exclude = "NA")(.)
   )
+  message("step 4/5: completed")
   
-  gtypes.prep <- suppressWarnings(
-    gtypes.prep %>%
-      mutate_each(funs(as.integer), -c(ALLELE, INDIVIDUALS, POP_ID)) %>%
-      melt(id.vars = c("INDIVIDUALS", "POP_ID", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
+  haplo.prep <- suppressWarnings(
+    haplo.prep %>%
+      mutate(GROUP = rep(1, times = nrow(.))) %>% 
+      group_by(GROUP) %>% 
+      mutate_each(funs(as.integer), -c(ALLELE, INDIVIDUALS, POP_ID, GROUP)) %>%
+      select(-GROUP) %>% 
+      melt(id.vars = c("INDIVIDUALS", "POP_ID", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>%
       mutate(HAPLOTYPES = as.character(HAPLOTYPES)) %>% 
       mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>% 
-      mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>% 
+      mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>%
+      group_by(Catalog.ID) %>% 
       dcast(INDIVIDUALS + POP_ID ~ Catalog.ID + ALLELE, value.var = "HAPLOTYPES")
   )
+  message("step 5/5: completed")
   
   # results no imputation--------------------------------------------------------------------
-  # Write file to directory (optional)
-  if (missing(filename) == "FALSE") {
-    message("Saving the file without imputation in your working directory...")
-    write_tsv(gtypes.prep, filename, append = FALSE, col_names = TRUE)
-    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
-  } else {
-    saving <- "Saving was not selected..."
-  }
-  
   # convert to gtypes
-  res <- strataG.devel::df2gtypes(x = gtypes.prep,
+  res <- strataG.devel::df2gtypes(x = haplo.prep,
                                   ploidy = 2,
                                   id.col = "INDIVIDUALS",
                                   strata.col = "POP_ID",
@@ -271,103 +274,148 @@ haplo2gtypes <- function(haplotypes.file,
                                   description = description
   )
   
+  if (imputations == "FALSE") {
+    message("A large 'gtypes' object (no imputation) was created in your Environment")
+  } else if (imputations == "max"){
+    message("Calculating map-independent imputations using the most frequent allele.")
+  } else {
+    message("Calculating map-independent imputations using random forest")
+  }
+  
   # dump unused objects
-  gtypes.prep <- NULL
+  haplo.prep <- NULL
   
-  # Imputation: gtypes with imputed data using Random Forest ------------------
-  
-  if (imputation.rf == "TRUE") {
-    message("Imputation was selected\nCalculating map-independent imputation using Random Forest")
+  # Imputations: gtypes with imputed haplotypes using Random Forest ------------------
+  if (imputations != "FALSE"){
     
-    # A different format is required for the imputation 
-    
-    # Transformed columns into factor excluding the "NA"
-    haplo.prep <- suppressWarnings(
-      plyr::colwise(factor, exclude = "NA")(haplo.prep)
-    )
-    
-    # Parallel computations options
-    if (missing(parallel.core) == "TRUE"){
-      # Automatically select all the core -1 
-      options(rf.cores=detectCores()-1, mc.cores=detectCores()-1)
-    } else {
-      options(rf.cores = parallel.core, mc.cores = mc.cores)
-    }
-    
-    # Imputation using Random Forest with the package randomForestSRC
-    
-    impute_markers_rf <- function(x){
-      randomForestSRC::impute.rfsrc(data = x, 
-                                    ntree = num.tree, 
-                                    nodesize = 1, 
-                                    nsplit = split.number, 
-                                    nimpute = iteration.rf, 
-                                    do.trace = verbose)
-    }
-    
-    # Imputation by populations (default) or globally -------------------------
-    
-    # default by pop
-    if (missing(imputation.group) == "TRUE" | imputation.group == "populations"){
-      message("Imputation computed by populations, take a break...")
-      
-      # By pop using dplyr
-      #     INDIVIDUALS <- imp.prep %>% select(INDIVIDUALS)
-      #     imp.test <- bind_cols(INDIVIDUALS,
-      #                           imp.prep %>%
-      #                             select(-INDIVIDUALS) %>% 
-      #                             group_by(POP_ID) %>% 
-      #                             colwise(factor, exclude = "NA")(.)%>% 
-      #                             do(impute_markers_rf(.))
-      #     )
-      
-      # By pop using for loop to imputed with message when completed
-      df.split.pop <- split(x = haplo.prep, f = haplo.prep$POP_ID) # slip data frame by population
-      pop.list <- names(df.split.pop) # list the pop
-      imputed.dataset <-list() # create empty list 
-      for (i in pop.list) {
-        sep.pop <- df.split.pop[[i]]
-        imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
-        # message of progress for imputation by population
-        pop.imputed <- paste("Completed imputation for pop ", i, sep = "")
-        message(pop.imputed)
-      }
-      haplo.imp <- as.data.frame(bind_rows(imputed.dataset))
-      
-      # dump unused objects
-      haplo.prep <- NULL
-      df.split.pop <- NULL
-      pop.list <- NULL
-      sep.pop <- NULL
-      imputed.dataset <- NULL
-      
-    } else if (imputation.group == "global"){
-      # Globally (not by pop_id)
-      message("Imputation computed globally, take a break...")
-      
-      INDIVIDUALS <- haplo.prep %>% select(INDIVIDUALS)
-      haplo.imp <- bind_cols(INDIVIDUALS,
-                             haplo.prep %>%
-                               select(-INDIVIDUALS) %>% 
-                               colwise(factor, exclude = "NA")(.)%>% 
-                               do(impute_markers_rf(.))
+    if (imputations == "rf") {
+      # A different format is required for the imputations 
+      # Transformed columns into factor excluding the "NA"
+      haplo.prep <- suppressWarnings(
+        plyr::colwise(factor, exclude = "NA")(haplo.filtered)
       )
-      # dump unused objects
-      haplo.prep <- NULL
+      
+      # Parallel computations options
+      if (missing(parallel.core) == "TRUE"){
+        # Automatically select all the core -1 
+        options(rf.cores=detectCores()-1, mc.cores=detectCores()-1)
+      } else {
+        options(rf.cores = parallel.core, mc.cores = mc.cores)
+      }
+      
+      # imputations using Random Forest with the package randomForestSRC
+      
+      impute_markers_rf <- function(x){
+        randomForestSRC::impute.rfsrc(data = x, 
+                                      ntree = num.tree, 
+                                      nodesize = 1, 
+                                      nsplit = split.number, 
+                                      nimpute = iteration.rf, 
+                                      do.trace = verbose)
+      }
+      
+      # imputations by populations (default) or globally -------------------------
+      
+      # default by pop
+      if (missing(imputations.group) == "TRUE" | imputations.group == "populations"){
+        message("Imputations computed by populations, take a break...")
+        
+        # By pop using dplyr
+        #     INDIVIDUALS <- imp.prep %>% select(INDIVIDUALS)
+        #     imp.test <- bind_cols(INDIVIDUALS,
+        #                           imp.prep %>%
+        #                             select(-INDIVIDUALS) %>% 
+        #                             group_by(POP_ID) %>% 
+        #                             colwise(factor, exclude = "NA")(.)%>% 
+        #                             do(impute_markers_rf(.))
+        #     )
+        
+        # By pop using for loop to imputed with message when completed
+        df.split.pop <- split(x = haplo.prep, f = haplo.prep$POP_ID) # slip data frame by population
+        pop.list <- names(df.split.pop) # list the pop
+        imputed.dataset <-list() # create empty list 
+        for (i in pop.list) {
+          sep.pop <- df.split.pop[[i]]
+          imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
+          # message of progress for imputations by population
+          pop.imputed <- paste("Completed imputations for pop ", i, sep = "")
+          message(pop.imputed)
+        }
+        haplo.imp <- as.data.frame(bind_rows(imputed.dataset))
+        
+        # dump unused objects
+        haplo.filtered <- NULL
+        haplo.prep <- NULL
+        df.split.pop <- NULL
+        pop.list <- NULL
+        sep.pop <- NULL
+        imputed.dataset <- NULL
+        
+      } else if (imputations.group == "global"){
+        # Globally (not by pop_id)
+        message("Imputations computed globally, take a break...")
+        
+#         INDIVIDUALS <- haplo.prep %>% select(INDIVIDUALS)
+#         haplo.prep <- suppressWarnings(
+#           haplo.prep %>%
+#             select(-INDIVIDUALS) %>% 
+#             colwise(factor, exclude = "NA")(.)%>% 
+#             do(impute_markers_rf(.))
+#         )
+#         
+#         haplo.imp <- bind_cols(INDIVIDUALS, haplo.prep)
+        
+        
+        haplo.imp <- impute_markers_rf(haplo.prep)
+
+        # dump unused objects
+        haplo.prep <- NULL
+      } 
+      
+    } else if (imputations == "max") {
+      
+      if (missing(imputations.group) == "TRUE" | imputations.group == "populations"){
+        message("Imputations computed by populations")
+        
+        haplo.imp <- haplo.prep %>%
+          melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
+          mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES=="NA"), NA)) %>%
+          group_by(Catalog.ID, POP_ID) %>% 
+          mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
+          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
+        
+        
+      } else if (imputations.group == "global"){
+        # Globally (not by pop_id)
+        message("Imputations computed globally")
+        
+        haplo.imp <- haplo.prep %>%
+          melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
+          mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES=="NA"), NA)) %>%
+          group_by(Catalog.ID) %>% 
+          mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
+          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
+        
+      }
     }
     
     # transform the imputed dataset into gtypes object ------------------------
-    message("Imputed data into gtypes factory...")
+    message("Imputed haplotypes into gtypes factory...")
+    
     haplo.imp <- suppressWarnings(
       haplo.imp %>% 
         # gather(Catalog.ID, HAPLOTYPES, -c(INDIVIDUALS, POP_ID)) %>% 
-        melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES")
-    ) %>% 
-      separate(
-        col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
-        sep = "/", extra = "drop", remove = T
-      ) %>% 
-      mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>% 
+        melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
+        separate(
+          col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
+          sep = "/", extra = "drop", remove = T
+        ) %>%
+        mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
+    )
+    
+    message("step 1/4: completed")
+    
+    haplo.imp <- haplo.imp %>% 
       melt(
         id.vars = c("Catalog.ID", "INDIVIDUALS", "POP_ID"),
         measure.vars = c("ALLELE1", "ALLELE2"), 
@@ -376,26 +424,36 @@ haplo2gtypes <- function(haplotypes.file,
       ) %>% 
       dcast(INDIVIDUALS + POP_ID + ALLELE ~ Catalog.ID, value.var = "NUCLEOTIDES")
     
+    message("step 2/4: completed")
+    
     haplo.imp <- suppressWarnings(
-      haplo.imp %>%
+      haplo.imp %>% 
         colwise(factor, exclude = "NA")(.)
     )
+    message("step 3/4: completed")
     
-    haplo.imp <- haplo.imp %>%
-      mutate_each(funs(as.integer), -c(ALLELE, INDIVIDUALS, POP_ID)) %>%
-      melt(id.vars = c("INDIVIDUALS", "POP_ID", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>%
-      mutate(HAPLOTYPES = as.character(HAPLOTYPES)) %>%
-      mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>%
-      mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>%
-      dcast(INDIVIDUALS + POP_ID ~ Catalog.ID + ALLELE, value.var = "HAPLOTYPES")
+    haplo.imp <- suppressWarnings(
+      haplo.imp %>%
+        mutate(GROUP = rep(1, times = nrow(.))) %>% 
+        group_by(GROUP) %>% 
+        mutate_each(funs(as.integer), -c(ALLELE, INDIVIDUALS, POP_ID, GROUP)) %>%
+        select(-GROUP) %>% 
+        melt(id.vars = c("INDIVIDUALS", "POP_ID", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>%
+        mutate(HAPLOTYPES = as.character(HAPLOTYPES)) %>% 
+        mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>% 
+        mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>%
+        group_by(Catalog.ID) %>% 
+        dcast(INDIVIDUALS + POP_ID ~ Catalog.ID + ALLELE, value.var = "HAPLOTYPES")
+    )
+    message("step 4/4: completed")
     
-    # results WITH imputation---------------------------------------------------
-    # 1) the gtypes without imputation is modified and put in a new list
+    # results WITH imputations ------------------------------------------------
+    # 1) the gtypes without imputations is modified and put in a new list
     no.imputation <- res
     res <- list()
     res$no.imputation <- no.imputation
     
-    # 2) the gtypes with imputation
+    # 2) the gtypes with imputations
     res$imputed <- strataG.devel::df2gtypes(x = haplo.imp,
                                             ploidy = 2,
                                             id.col = "INDIVIDUALS",
@@ -404,18 +462,8 @@ haplo2gtypes <- function(haplotypes.file,
                                             sequences = NULL,
                                             description = description
     )
-    
+    message("A large 'gtypes' object was created in your Environment (with and without imputations)")
   }
-  
   # outout results -------------------------------------------------------------
-  # Message at the end
-  invisible(cat(sprintf(
-    "%s\n
-Working directory:
-%s",
-    saving, getwd()
-  )))
-  message("A large 'gtypes' object was created in your Environment")
-  
   return(res)
 }

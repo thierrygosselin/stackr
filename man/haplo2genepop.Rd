@@ -6,8 +6,8 @@
 \usage{
 haplo2genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
   genepop.filename = "genepop.gen", genepop.header = "my first genepop",
-  pop.levels, pop.id.start, pop.id.end, imputation.rf = FALSE,
-  imputation.group = "populations", num.tree = 100, iteration.rf = 10,
+  pop.levels, pop.id.start, pop.id.end, imputations = FALSE,
+  imputations.group = "populations", num.tree = 100, iteration.rf = 10,
   split.number = 100, verbose = FALSE, parallel.core = 2)
 }
 \arguments{
@@ -35,29 +35,36 @@ in the name of your individual sample.}
 \item{pop.id.end}{The end of your population id
 in the name of your individual sample.}
 
-\item{imputation.rf}{Logical. Should a map-independent imputation of markers
-using Random Forest be enabled. This will write to the directory 2 files,
-a non-imputed and an imputed genepop files.}
+\item{imputations}{Should a map-independent imputations of markers be
+computed. Available choices are: (1) \code{FALSE} for no imputation.
+(2) \code{"max"} to use the most frequent category for imputations.
+ (3) \code{"rf"} using Random Forest algorithm. Default = \code{FALSE}.}
 
-\item{imputation.group}{Should the imputations be computed globally or by populations.
-\code{Default = "populations"}.}
+\item{imputations.group}{\code{"global"} or \code{"populations"}.
+Should the imputations be computed globally or by populations. If you choose
+global, turn the verbose to \code{TRUE}, to see progress.
+Default = \code{"populations"}.}
 
-\item{num.tree}{For map-independent imputation of markers
-using Random Forest. The number of trees to grow. Default is 100.}
+\item{num.tree}{The number of trees to grow in Random Forest. Default is 100.}
 
-\item{iteration.rf}{Number of iterations of missing data algorithm.
-Default is 10.}
+\item{iteration.rf}{The number of iterations of missing data algorithm
+in Random Forest. Default is 10.}
 
 \item{split.number}{Non-negative integer value used to specify
-random splitting. Default is 100.}
+random splitting in Random Forest. Default is 100.}
 
-\item{verbose}{Logical. Should trace output be enabled on each iteration?
-Default is \code{FALSE}.}
+\item{verbose}{Logical. Should trace output be enabled on each iteration
+in Random Forest ? Default is \code{FALSE}.}
 
-\item{parallel.core}{(Optional) Number of core for OpenMP shared-memory parallel
-programming of Random Forest imputation. For more info on how to install the
-OpenMP version see \code{package?randomForestSRC}.
+\item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
+programming of Random Forest imputations. For more info on how to install the
+OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 If not selected \code{detectCores()-1} is used as default.}
+}
+\value{
+When no imputation is selected a genepop file is saved to the
+working directory. When imputation is selected 2 genepop files are saved to
+the working directory.
 }
 \description{
 This function can first filter the haplotypes file
@@ -66,9 +73,11 @@ Map-independent imputation using Random Forest
 is also available as an option.
 }
 \details{
-The imputation requires more time and can take up to an hour
-depending on the size of the dataset. A data set with 30\% of missing data,
-5 000 haplotypes loci and 500 individuals will require 15-20 min.
+The imputations using Random Forest requires more time to compute and can take several
+minutes and hours depending on the size of the dataset and polymorphism of
+the species used. e.g. with a low polymorphic taxa, and a data set
+containing 30\% missing data, 5 000 haplotypes loci and 500 individuals
+will require 15 min.
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}

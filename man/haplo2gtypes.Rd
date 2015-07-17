@@ -5,10 +5,9 @@
 \title{Convert between batch_x.haplotypes.tsv and \code{strataG.dev} \code{gtypes} object}
 \usage{
 haplo2gtypes(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
-  filename, pop.levels, pop.id.start, pop.id.end, description,
-  imputation.rf = FALSE, imputation.group = "populations", num.tree = 100,
-  iteration.rf = 10, split.number = 100, verbose = FALSE,
-  parallel.core = 2)
+  pop.levels, pop.id.start, pop.id.end, description, imputations = FALSE,
+  imputations.group = "populations", num.tree = 100, iteration.rf = 10,
+  split.number = 100, verbose = FALSE, parallel.core = 2)
 }
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -21,8 +20,6 @@ The whitelist is in the directory (e.g. "whitelist.txt").}
 a column header 'INDIVIDUALS'. The blacklist is in the directory
  (e.g. "blacklist.txt").}
 
-\item{filename}{The name of the file written to the directory (optional).}
-
 \item{pop.levels}{An optional character string with your populations ordered.}
 
 \item{pop.id.start}{The start of your population id
@@ -31,29 +28,31 @@ in the name of your individual sample.}
 \item{pop.id.end}{The end of your population id
 in the name of your individual sample.}
 
-\item{description}{a string naming or describing this dataset.}
+\item{description}{A string naming or describing this dataset.}
 
-\item{imputation.rf}{Logical. Should a map-independent imputation of markers
-using Random Forest be enabled. This will write to the directory 2 files,
-a non-imputed and an imputed genepop files.}
+\item{imputations}{Should a map-independent imputations of markers be
+computed. Available choices are: (1) \code{FALSE} for no imputation.
+(2) \code{"max"} to use the most frequent category for imputations.
+ (3) \code{"rf"} using Random Forest algorithm. Default = \code{FALSE}.}
 
-\item{imputation.group}{\code{"global"} or \code{"populations"}.
-Should the imputations be computed globally or by populations.
+\item{imputations.group}{\code{"global"} or \code{"populations"}.
+Should the imputations be computed globally or by populations. If you choose
+global, turn the verbose to \code{TRUE}, to see progress.
 Default = \code{"populations"}.}
 
-\item{num.tree}{The number of trees to grow. Default is 100.}
+\item{num.tree}{The number of trees to grow in Random Forest. Default is 100.}
 
-\item{iteration.rf}{Number of iterations of missing data algorithm.
-Default is 10.}
+\item{iteration.rf}{The number of iterations of missing data algorithm
+in Random Forest. Default is 10.}
 
 \item{split.number}{Non-negative integer value used to specify
-random splitting. Default is 100.}
+random splitting in Random Forest. Default is 100.}
 
-\item{verbose}{Logical. Should trace output be enabled on each iteration?
-Default is \code{FALSE}.}
+\item{verbose}{Logical. Should trace output be enabled on each iteration
+in Random Forest ? Default is \code{FALSE}.}
 
 \item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
-programming of Random Forest imputation. For more info on how to install the
+programming of Random Forest imputations. For more info on how to install the
 OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 If not selected \code{detectCores()-1} is used as default.}
 }
@@ -61,18 +60,18 @@ If not selected \code{detectCores()-1} is used as default.}
 When no imputation is selected an object of the
 class \code{\link[strataG.devel]{gtypes}} is returned.
 When imputation is selected a list with 2 objects is returned
-and accessed with \code{$gtypes.no.imputation} or \code{$gtypes.imputed}
+and accessed with \code{$gtypes.no.imputation} or \code{$gtypes.imputed}.
 }
 \description{
 This function can first filter the haplotypes file
 with a whitelist of loci
 and a blacklist of individuals (optional). Then it will convert the file
 to a \code{strataG.dev} \code{gtypes} object.
-Map-independent imputation using Random Forest is also available
+Map-independent imputations using Random Forest is also available
 as an option.
 }
 \details{
-The imputation requires more time to compute and can take several
+The imputations using Random Forest requires more time to compute and can take several
 minutes and hours depending on the size of the dataset and polymorphism of
 the species used. e.g. with a low polymorphic taxa, and a data set
 containing 30\% missing data, 5 000 haplotypes loci and 500 individuals

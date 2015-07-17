@@ -1,7 +1,7 @@
 # Write a adegenet genind object from STACKS haplotypes file
 
 # to get rid of notes in build check
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE1", "ALLELE2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX", "other", "strata", "hierarchy"))
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE1", "ALLELE2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX", "other", "strata", "hierarchy", "GROUP"))
 
 
 #' @name haplo2genind
@@ -30,29 +30,34 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #'   factorial sampling design. See \code{\link[adegenet]{genind}} for details.
 #' @param hierarchy (optional) A formula that explicitely defines hierarchical levels 
 #' in your strata. See \code{\link[adegenet]{genind}} for details.
-#' @param imputation.rf Logical. Should a map-independent imputation of markers 
-#' using Random Forest be enabled. This will write to the directory 2 files, 
-#' a non-imputed and an imputed genepop files.
-#' @param imputation.group Should the imputations be computed globally or by populations. 
-#' \code{Default = "populations"}.
-#' @param num.tree The number of trees to grow. Default is 100.
-#' @param iteration.rf Number of iterations of missing data algorithm.
-#' Default is 10.
+#' @param imputations Should a map-independent imputations of markers be
+#' computed. Available choices are: (1) \code{FALSE} for no imputation.
+#' (2) \code{"max"} to use the most frequent category for imputations.
+#'  (3) \code{"rf"} using Random Forest algorithm. Default = \code{FALSE}.
+#' @param imputations.group \code{"global"} or \code{"populations"}.
+#' Should the imputations be computed globally or by populations. If you choose
+#' global, turn the verbose to \code{TRUE}, to see progress.
+#' Default = \code{"populations"}.
+#' @param num.tree The number of trees to grow in Random Forest. Default is 100.
+#' @param iteration.rf The number of iterations of missing data algorithm 
+#' in Random Forest. Default is 10.
 #' @param split.number Non-negative integer value used to specify 
-#' random splitting. Default is 100.
-#' @param verbose Logical. Should trace output be enabled on each iteration?
-#' Default is \code{FALSE}.
+#' random splitting in Random Forest. Default is 100.
+#' @param verbose Logical. Should trace output be enabled on each iteration 
+#' in Random Forest ? Default is \code{FALSE}.
 #' @param parallel.core (optional) The number of core for OpenMP shared-memory parallel
-#' programming of Random Forest imputation. For more info on how to install the
+#' programming of Random Forest imputations. For more info on how to install the
 #' OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 #' If not selected \code{detectCores()-1} is used as default.
-#' @details The imputation requires more time and can take up to an hour
-#' depending on the size of the dataset. A data set with 30\% of missing data,
-#' 5 000 haplotypes loci and 500 individuals will require 15-20 min.
+#' @details The imputations using Random Forest requires more time to compute and can take several
+#' minutes and hours depending on the size of the dataset and polymorphism of
+#' the species used. e.g. with a low polymorphic taxa, and a data set 
+#' containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
+#' will require 15 min.
 #' @return When no imputation is selected an object of the 
 #' class \code{\link[adegenet]{genind}} is returned.
 #' When imputation is selected a list with 2 objects is returned
-#' and accessed with \code{$genind.no.imputation} or \code{$genind.imputed}
+#' and accessed with \code{$genind.no.imputation} or \code{$genind.imputed}.
 #' @export
 #' @rdname haplo2genind
 # @importFrom adegenet df2genind
@@ -86,19 +91,29 @@ haplo2genind <- function(haplotypes.file,
                          blacklist.id = NULL, 
                          pop.levels, pop.id.start, pop.id.end,
                          strata = NULL, hierarchy = NULL,
-                         imputation.rf = FALSE,
-                         imputation.group = "populations",
+                         imputations = FALSE,
+                         imputations.group = "populations",
                          num.tree = 100,
                          iteration.rf = 10,
                          split.number = 100,
                          verbose = FALSE,
-                         parallel.core = 2) {
+                         parallel.core = 2
+) {
   
-  if (imputation.rf == "FALSE") {
+  if (imputations == "FALSE") {
     message("haplo2genind: without imputation...")
   } else {
-    message("haplo2genind: with imputation...")
+    message("haplo2genind: with imputations...")
   }
+  
+  
+  # Haplotype file--------------------------------------------------------------
+  haplotype <- read_tsv(file = "batch_1.haplotypes.tsv", col_names = T) %>%
+    select(-Cnt) %>% 
+    rename(Catalog.ID = `Catalog ID`) %>%
+    melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
+  # gather(INDIVIDUALS, HAPLOTYPES, -Catalog.ID)
+  
   
   # Whitelist-------------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
@@ -117,88 +132,61 @@ haplo2genind <- function(haplotypes.file,
   
   # Blacklist-------------------------------------------------------------------
   if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "TRUE") {
-    message("Using the blacklist of id from the directory")
+    message("Using the blacklisted id from the directory")
     blacklist.id <- read_tsv(blacklist.id, col_names = T)    
   } else if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "FALSE") {
-    message("Using blacklist of id from your global environment")
+    message("Using the blacklisted id from your global environment")
     blacklist.id <- blacklist.id
     
   } else {
-    message("No blacklist of id")
+    message("No individual blacklisted")
     blacklist.id <- NULL
   }
   
   
-  # Haplotype file--------------------------------------------------------------
-  haplotype <- read_tsv(file = haplotypes.file, col_names = T) %>%
-    rename(Catalog.ID = `Catalog ID`) %>%
-    gather(INDIVIDUALS, HAPLOTYPES, -c(Catalog.ID, Cnt)) %>%
-    arrange(Catalog.ID)
-  
-  
-  
   if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
     
-    # Combination 1: No whitelist and No blacklist----------------------------------
-    
-    # No filter
-    haplotype.no.filter <- haplotype    
-    
-    # Creates a vector containing the loci name
-    loci <- unique(haplotype.no.filter$Catalog.ID)
-    data <- haplotype.no.filter
+    # Combination 1: No whitelist and No blacklist -----------------------------
+    haplotype <- haplotype    
     
   } else if (is.null(whitelist.loci) == FALSE & is.null(blacklist.id) == TRUE) {
     
-    # Combination 2: Using whitelist, but No blacklist--------------------------
+    # Combination 2: Using whitelist, but No blacklist -------------------------
     
     # just whitelist.loci, NO Blacklist of individual
-    haplotype.whitelist.loci <- haplotype %>%
-      semi_join(whitelist, by = "Catalog.ID") %>% # instead of right_join
-      #       might result in less loci then the whitelist, but this make sure
-      #   we don't end up with unwanted or un-caracterized locus, e.g. comparing
-      #   adults and juveniles samples... the whitelist is developed with the adults,
-      #   but the haplotype file comes from the juveniles... 
+    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
+      semi_join(whitelist, by = "Catalog.ID") %>% 
       arrange(Catalog.ID)
-    
-    # Creates a vector containing the loci name
-    loci <- unique(haplotype.whitelist.loci$Catalog.ID)
-    data <- haplotype.whitelist.loci
     
   } else if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == FALSE) {
     
-    # Combination 3: Using a blacklist of id, but No whitelist------------------
+    # Combination 3: Using a blacklist of id, but No whitelist -----------------
     
     # NO whitelist, JUST Blacklist of individual
-    haplotype.blacklist <- haplotype %>%
+    haplotype <- haplotype %>% group_by(Catalog.ID) %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
-    
-    
-    # Creates a vector containing the loci name
-    loci <- unique(haplotype.blacklist$Catalog.ID)
-    data <- haplotype.blacklist
     
   } else {
     # Combination 4: Using a whitelist and blacklist---------------------------
     
     # whitelist.loci + Blacklist of individual
-    haplotype.whitelist.blacklist <- haplotype %>%
+    haplotype <- haplotype %>% group_by(Catalog.ID) %>%
       semi_join(whitelist, by = "Catalog.ID") %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
-    
-    # Creates a vector containing the loci name
-    loci <- unique(haplotype.whitelist.blacklist$Catalog.ID)
-    data <- haplotype.whitelist.blacklist
   }
+  
+  # dump unused object
+  whitelist <- NULL
+  blacklist.id <- NULL
   
   # Paralogs-------------------------------------------------------------------
   message("Looking for paralogs...")
   
-  paralogs <- data %>%
+  paralogs <- haplotype %>%
     mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/")) %>%
     group_by(Catalog.ID) %>%
     summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>%
@@ -211,160 +199,291 @@ haplo2genind <- function(haplotypes.file,
   message(nparalogs)
   
   # Conversion into genind -----------------------------------------------------
-  message("Haplotypes into genind factory for conversion...")
   
-  # genind prep
-  # removes paralogs
-  # removes consensus loci
+  message("Haplotypes into factory for conversion into genind ...")
   
-  genind.prep <- data %>%
-    anti_join(paralogs, by = "Catalog.ID") %>%
-    filter(HAPLOTYPES != "consensus") %>%    
-    mutate(
-      HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
-                                          vectorize_all=F)
-    ) %>%
-    separate(
-      col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
-      sep = "/", extra = "drop", remove = T
-    ) %>%
-    mutate(
-      ALLELE1 = stri_replace_all_fixed(ALLELE1, "NA", "0", vectorize_all=F),
-      ALLELE2 = stri_replace_na(ALLELE2, replacement = "no_allele"),
-      ALLELE2 = ifelse(ALLELE2 == "no_allele", ALLELE1, ALLELE2)
-    ) %>%
-    melt(id.vars = c("Catalog.ID","Cnt", "INDIVIDUALS"),
-         measure.vars = c("ALLELE1", "ALLELE2"), 
-         variable.name = "ALLELE", 
-         value.name = "NUCLEOTIDES"
-    ) %>%
-    group_by(Catalog.ID) %>%
-    mutate(
-      NUCLEOTIDES = as.numeric(factor(NUCLEOTIDES)),
-      NUCLEOTIDES = NUCLEOTIDES-1 # this removes 1 levels to enable missing values = 0
-    )
+  # Haplo prep
+  # Remove paralogs
+  # Remove consensus loci
+  
+  haplo.filtered <- suppressWarnings(
+    haplotype %>%
+      anti_join(paralogs, by = "Catalog.ID") %>%
+      filter(HAPLOTYPES != "consensus") %>%    
+      mutate(
+        HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
+                                            vectorize_all=F),
+        POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
+                        levels = pop.levels, ordered = T)
+      ) %>%
+      dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") #%>% 
+  )
+  message("step 1/5: completed")
+  
+  # dump unused objects
+  paralogs <- NULL
+  haplotype <- NULL
   
   
   # No imputation --------------------------------------------------------------
+  # Further work on the data
+  haplo.prep <- suppressWarnings(
+    haplo.filtered %>% 
+      # gather(Catalog.ID, HAPLOTYPES, -c(INDIVIDUALS, POP_ID)) %>% 
+      melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
+      separate(
+        col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
+        sep = "/", extra = "drop", remove = T
+      ) %>%
+      mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
+  )
   
-  # Further work on the data, pad the genotypes for 3 digits output
-  genind.data <- genind.prep %>% 
-    mutate(
-      NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")
-    ) %>%
-    select(-Cnt) %>%
-    dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "NUCLEOTIDES") %>%
-    unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
-    dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>% 
-    mutate(
-      POP_ID = factor(substr(INDIVIDUALS, 
-                             pop.id.start, pop.id.end),
-                      levels = pop.levels, ordered = T)
-    )
+  message("step 2/5: completed")
+  
+  haplo.prep <- haplo.prep %>% 
+    melt(
+      id.vars = c("Catalog.ID", "INDIVIDUALS", "POP_ID"),
+      measure.vars = c("ALLELE1", "ALLELE2"), 
+      variable.name = "ALLELE", 
+      value.name = "NUCLEOTIDES"
+    ) %>% 
+    dcast(INDIVIDUALS + POP_ID + ALLELE ~ Catalog.ID, value.var = "NUCLEOTIDES")
+  
+  message("step 3/5: completed")
+  
+  haplo.prep <- suppressWarnings(
+    haplo.prep %>% 
+      colwise(factor, exclude = "NA")(.)
+  )
+  message("step 4/5: completed")
+  
+  # This part is different than gtypes...
+  haplo.prep <- suppressWarnings(
+    haplo.prep %>%
+      mutate(GROUP = rep(1, times = nrow(.))) %>% 
+      group_by(GROUP) %>% 
+      mutate_each(funs(as.integer), -c(ALLELE, INDIVIDUALS, POP_ID, GROUP)) %>%
+      ungroup() %>% 
+      select(-GROUP) %>% 
+      melt(id.vars = c("INDIVIDUALS", "POP_ID", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>%
+      mutate(HAPLOTYPES = as.character(HAPLOTYPES)) %>% 
+      mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>% 
+      mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>% 
+      dcast(Catalog.ID + INDIVIDUALS + POP_ID ~ ALLELE, value.var = "HAPLOTYPES") %>%
+      unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
+      arrange(Catalog.ID) %>% 
+      dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") 
+  )
+  message("step 5/5: completed")
+  
   # results no imputation--------------------------------------------------------------------
+  # convert to genind
   
-  ind <- genind.data$INDIVIDUALS
-  pop <- genind.data$POP_ID
-  genind.df <- genind.data %>%
+  ind <- haplo.prep$INDIVIDUALS
+  pop <- haplo.prep$POP_ID
+  genind.df <- haplo.prep %>%
     select(-c(INDIVIDUALS, POP_ID))
+  
   res <- adegenet::df2genind(X = genind.df, sep = "/", ind.names = ind, pop = pop, ploidy = 2, strata = strata, hierarchy = hierarchy)
   
+  if (imputations == "FALSE") {
+    message("A large 'genind' object (no imputation) was created in your Environment")
+  } else if (imputations == "max"){
+    message("Calculating map-independent imputations using the most frequent allele.")
+  } else {
+    message("Calculating map-independent imputations using random forest")
+  }
   
-  # Imputation: genind with imputed data using Random Forest ------------------
+  # dump unused objects
+  haplo.prep <- NULL
   
-  if (imputation.rf == "TRUE") {
-    message("Imputation was selected\nCalculating map-independent imputation using Random Forest")
+  # Imputations: genind with imputed haplotypes using Random Forest ------------------
+  if (imputations != "FALSE"){
     
-    # A different format is required for the imputation 
-    imp <- suppressWarnings(
-      genind.prep %>% 
-        mutate(
-          NUCLEOTIDES = stri_replace_all_fixed(NUCLEOTIDES, "0", "NA", 
-                                               vectorize_all=F),
-          POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
-                          levels = pop.levels, ordered = T)
+    if (imputations == "rf") {
+      # A different format is required for the imputations 
+      # Transformed columns into factor excluding the "NA"
+      haplo.prep <- suppressWarnings(
+        plyr::colwise(factor, exclude = "NA")(haplo.filtered)
+      )
+      
+      # Parallel computations options
+      if (missing(parallel.core) == "TRUE"){
+        # Automatically select all the core -1 
+        options(rf.cores=detectCores()-1, mc.cores=detectCores()-1)
+      } else {
+        options(rf.cores = parallel.core, mc.cores = mc.cores)
+      }
+      
+      # imputations using Random Forest with the package randomForestSRC
+      
+      impute_markers_rf <- function(x){
+        randomForestSRC::impute.rfsrc(data = x, 
+                                      ntree = num.tree, 
+                                      nodesize = 1, 
+                                      nsplit = split.number, 
+                                      nimpute = iteration.rf, 
+                                      do.trace = verbose)
+      }
+      
+      # imputations by populations (default) or globally -------------------------
+      
+      # default by pop
+      if (missing(imputations.group) == "TRUE" | imputations.group == "populations"){
+        message("Imputations computed by populations, take a break...")
+        
+        # By pop using dplyr
+        #     INDIVIDUALS <- imp.prep %>% select(INDIVIDUALS)
+        #     imp.test <- bind_cols(INDIVIDUALS,
+        #                           imp.prep %>%
+        #                             select(-INDIVIDUALS) %>% 
+        #                             group_by(POP_ID) %>% 
+        #                             colwise(factor, exclude = "NA")(.)%>% 
+        #                             do(impute_markers_rf(.))
+        #     )
+        
+        # By pop using for loop to imputed with message when completed
+        df.split.pop <- split(x = haplo.prep, f = haplo.prep$POP_ID) # slip data frame by population
+        pop.list <- names(df.split.pop) # list the pop
+        imputed.dataset <-list() # create empty list 
+        for (i in pop.list) {
+          sep.pop <- df.split.pop[[i]]
+          imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
+          # message of progress for imputations by population
+          pop.imputed <- paste("Completed imputations for pop ", i, sep = "")
+          message(pop.imputed)
+        }
+        haplo.imp <- as.data.frame(bind_rows(imputed.dataset))
+        
+        # dump unused objects
+        haplo.filtered <- NULL
+        haplo.prep <- NULL
+        df.split.pop <- NULL
+        pop.list <- NULL
+        sep.pop <- NULL
+        imputed.dataset <- NULL
+        
+      } else if (imputations.group == "global"){
+        # Globally (not by pop_id)
+        message("Imputations computed globally, take a break...")
+        
+        #         INDIVIDUALS <- haplo.prep %>% select(INDIVIDUALS)
+        #         haplo.prep <- suppressWarnings(
+        #           haplo.prep %>%
+        #             select(-INDIVIDUALS) %>% 
+        #             colwise(factor, exclude = "NA")(.)%>% 
+        #             do(impute_markers_rf(.))
+        #         )
+        #         
+        #         haplo.imp <- bind_cols(INDIVIDUALS, haplo.prep)
+        
+        
+        haplo.imp <- impute_markers_rf(haplo.prep)
+        
+        # dump unused objects
+        haplo.prep <- NULL
+      } 
+      
+    } else if (imputations == "max") {
+      
+      if (missing(imputations.group) == "TRUE" | imputations.group == "populations"){
+        message("Imputations computed by populations")
+        
+        haplo.imp <- haplo.filtered %>%
+          melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
+          mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES=="NA"), NA)) %>%
+          group_by(Catalog.ID, POP_ID) %>% 
+          mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
+          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
+        
+        
+      } else if (imputations.group == "global"){
+        # Globally (not by pop_id)
+        message("Imputations computed globally")
+        
+        haplo.imp <- haplo.filtered %>%
+          melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
+          mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES=="NA"), NA)) %>%
+          group_by(Catalog.ID) %>% 
+          mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
+          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
+        
+      }
+    }
+    
+    # transform the imputed dataset into genind object ------------------------
+    message("Imputed haplotypes into factory for conversion into genind...")
+    
+    haplo.imp <- suppressWarnings(
+      haplo.imp %>% 
+        # gather(Catalog.ID, HAPLOTYPES, -c(INDIVIDUALS, POP_ID)) %>% 
+        melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
+        separate(
+          col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
+          sep = "/", extra = "drop", remove = T
         ) %>%
+        mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
+    )
+    
+    message("step 1/4: completed")
+    
+    haplo.imp <- haplo.imp %>% 
+      melt(
+        id.vars = c("Catalog.ID", "INDIVIDUALS", "POP_ID"),
+        measure.vars = c("ALLELE1", "ALLELE2"), 
+        variable.name = "ALLELE", 
+        value.name = "NUCLEOTIDES"
+      ) %>% 
+      dcast(INDIVIDUALS + POP_ID + ALLELE ~ Catalog.ID, value.var = "NUCLEOTIDES")
+    
+    message("step 2/4: completed")
+    
+    haplo.imp <- suppressWarnings(
+      haplo.imp %>% 
+        colwise(factor, exclude = "NA")(.)
+    )
+    message("step 3/4: completed")
+    # This part is different than gtypes...
+    haplo.imp <- suppressWarnings(
+      haplo.imp %>%
+        mutate(GROUP = rep(1, times = nrow(.))) %>% 
+        group_by(GROUP) %>% 
+        mutate_each(funs(as.integer), -c(ALLELE, INDIVIDUALS, POP_ID, GROUP)) %>%
+        ungroup() %>% 
+        select(-GROUP) %>% 
+        melt(id.vars = c("INDIVIDUALS", "POP_ID", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>%
+        mutate(HAPLOTYPES = as.character(HAPLOTYPES)) %>% 
+        mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>% 
+        mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>% 
+        dcast(Catalog.ID + INDIVIDUALS + POP_ID ~ ALLELE, value.var = "HAPLOTYPES") %>%
+        unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
         arrange(Catalog.ID) %>% 
-        group_by(Catalog.ID) %>%
-        select(-Cnt) %>%
-        dcast(INDIVIDUALS+POP_ID ~ Catalog.ID + ALLELE, value.var = "NUCLEOTIDES")
+        dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") 
     )
     
-    # Transformed columns into factor excluding the "NA"
-    imp <- suppressWarnings(
-      plyr::colwise(factor, exclude = "NA")(imp)
-    )
+    message("step 4/4: completed")
     
-    # Parallel computations options
-    if (missing(parallel.core) == "TRUE"){
-      # Automatically select all the core -1 
-      options(rf.cores=detectCores()-1, mc.cores=detectCores()-1)
-    } else {
-      options(rf.cores = parallel.core, mc.cores = mc.cores)
-    }
-    
-    # Imputation using Random Forest with the package randomForestSRC
-    
-    impute_markers_rf <- function(x){
-      randomForestSRC::impute.rfsrc(data = x, 
-                                    ntree = num.tree, 
-                                    nodesize = 1, 
-                                    nsplit = split.number, 
-                                    nimpute = iteration.rf, 
-                                    do.trace = verbose)
-    }
-    
-    df.split.pop <- split(x = imp, f = imp$POP_ID) # slip data frame by population
-    pop.list <- names(df.split.pop) # list the pop
-    imputed.dataset <-list() # create empty list 
-    genind.imp <- list() # create empty list 
-    for (i in pop.list) {
-      # group <- paste(i)
-      sep.pop <- df.split.pop[[i]]
-      imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
-      # message of progress for imputation by population
-      pop.imputed <- paste("Completed imputation for pop ", i, sep = "")
-      message(pop.imputed)
-    }
-    genind.imp <- as.data.frame(bind_rows(imputed.dataset))
-    
-    # transform the imputed dataset into genind object
-    
-    message("Imputed data into genind factory...")
-    
-    genind.imp <- suppressWarnings(
-      genind.imp %>%
-        gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID)) %>%
-        separate(Catalog.ID, c("Catalog.ID", "ALLELE"), sep = "_", extra = "error") %>%
-        mutate(Catalog.ID = as.integer(Catalog.ID)) %>% 
-        arrange(Catalog.ID) %>% 
-        mutate(NUCLEOTIDES = str_pad(NUCLEOTIDES, 3, side = "left", pad = "0")) %>%
-        dcast(Catalog.ID + INDIVIDUALS + POP_ID ~ ALLELE, value.var = "NUCLEOTIDES") %>%
-        unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
-        dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") %>%
-        mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T))
-    )
-    # results WITH imputation---------------------------------------------------
-    # 1) the genind without imputation is modified and put in a new list
-    genind.no.imputation <- res
+    # results WITH imputations ------------------------------------------------
+    # 1) the genind without imputations is modified and put in a new list
+    no.imputation <- res
     res <- list()
-    res$genind.no.imputation <- genind.no.imputation
+    res$no.imputation <- no.imputation
     
-    ind <- genind.imp$INDIVIDUALS
-    pop <- genind.imp$POP_ID
-    genind.df <- genind.imp %>%
+    # 2) the genind with imputations
+    ind <- haplo.imp$INDIVIDUALS
+    pop <- haplo.imp$POP_ID
+    genind.df <- haplo.imp %>%
       select(-c(INDIVIDUALS, POP_ID))
     
-    res$genind.imputed <- adegenet::df2genind(X = genind.df, sep = "/",
-                                              ind.names = ind,
-                                              pop = pop,
-                                              ploidy = 2,
-                                              strata = strata,
-                                              hierarchy = hierarchy
+    res$imputed <- adegenet::df2genind(X = genind.df, sep = "/",
+                                       ind.names = ind,
+                                       pop = pop,
+                                       ploidy = 2,
+                                       strata = strata,
+                                       hierarchy = hierarchy
     )
+    message("A large 'genind' object was created in your Environment (with and without imputations)")
   }
   # outout results -------------------------------------------------------------
-  message("A large genind object was created in your Environment")
   return(res)
 }
-
