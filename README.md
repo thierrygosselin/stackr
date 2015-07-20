@@ -19,8 +19,8 @@ This is the development page of the **stackr** package for the R software.
 
 * Documentation and vignette.
 * Tutorial of workflow.
+* More linkage map tools.
 * Use Shiny and ggvis when subplots or facet available.
-* Linkage map tools.
 * CRAN.
 * Interaction with [STACKS] (http://creskolab.uoregon.edu/stacks/) database (Web-interface).
 * Reference genome tools.
@@ -29,15 +29,27 @@ This is the development page of the **stackr** package for the R software.
 
 
 ## Installation
-You can try out the dev version of **stackr**. You will need the package *devtools* and the dev version of *readr*
+You can try out the dev version of **stackr**. Follow the 3 steps below.
 
+Step 1/3 You will need the package *devtools* and the dev version of *readr*
 ```r
 install.packages("devtools")
 library(devtools)
 install_github("hadley/readr")
 library(readr)
-install_github("EricArcher/strataG.devel/strataG.devel")
+```
+
+Step 2/3 You need to manually download, uncompress and install the devel versions of [swfscMisc] (https://github.com/EricArcher/swfscMisc/blob/master/swfscMisc_1.0.6.tar.gz?raw=true) and [StrataG] (https://github.com/EricArcher/strataG.devel/blob/master/strataG.devel_0.9.9.tar.gz?raw=true)
+
+```r
+install("~/Downloads/swfscMisc")
+library(swfscMisc)
+install("~/Downloads/strataG.devel")
 library(strataG.devel)
+```
+
+Step 3/3 Install **stackr**:
+```r
 install_github("thierrygosselin/stackr")
 library(stackr)
 ```
