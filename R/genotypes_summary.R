@@ -5,7 +5,8 @@
 #' \code{batch_1.markers.tsv} files.
 #' @description Useful summary of \code{batch_x.genotypes.txt} and
 #'  \code{batch_1.markers.tsv} files produced by STACKS genotypes module use 
-#'  for linkage mapping.
+#'  for linkage mapping. Filter segregation distortion and output JoinMap and or
+#'  OneMap file.
 #' @param genotypes The \code{batch_x.genotypes.txt} created by STACKS genotypes
 #' module.
 #' @param markers The \code{batch_1.markers.tsv} created by STACKS genotypes
@@ -27,11 +28,19 @@
 #' GOF segregation distortion. Default = \code{FALSE}.
 #' @param ind.genotyped Number. Filter the number of individual
 #' progeny required to keep the marker.
-#' @param filename (optional) The name of the file written in the directory.
+#' @param joinmap (optional) Name of the JoinMap file to write 
+#' in the working directory. e.g. "joinmap.turtle.family3.loc".
+#' Default = \code{FALSE}.
+#' @param onemap (optional) Name of the OneMap file to write 
+#' in the working directory. e.g. "onemap.turtle.family3.txt".
+#' Default = \code{FALSE}.
+#' @param filename (optional) The name of the summary file written 
+#' in the directory.
 #' @return The function returns a list with the 
 #' genotypes summary \code{$geno.sum}, joinmap markers \code{$joinmap.sum} 
 #' and onemap markers \code{$onemap.sum} summary (use $ to access each 
-#' components).
+#' components). A JoinMap and/or OneMap file can also be exported to 
+#' the working direcvtory.
 #' @details SIGNIFICANCE results pvalue (goodness-of-fit pvalue): 
 #' <= 0.0001 = ****, <= 0.001 & > 0.0001 = ***, 
 #' <= 0.01 & > 0.001 = **, <= 0.05 & > 0.01 = *.
@@ -52,7 +61,7 @@
 #' Molecular Ecology, 22, 3124-3140.
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, filter.missing.band = TRUE, filter.mean.log.likelihood = FALSE, B = FALSE, filter.GOF = FALSE, filter.GOF.p.value = FALSE, ind.genotyped = 1, filename = FALSE){
+genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, filter.missing.band = TRUE, filter.mean.log.likelihood = FALSE, B = FALSE, filter.GOF = FALSE, filter.GOF.p.value = FALSE, ind.genotyped = 1, joinmap = FALSE, onemap = FALSE, filename = FALSE){
   
   
   GENOTYPES <- NULL
@@ -70,9 +79,12 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
   JOINMAP <- NULL
   TOTAL_GENOTYPES <- NULL
   
-  
+  message.genotypes <- paste("Importing ", genotypes, sep = "" )
+  message(message.genotypes)
   genotypes.file <- read_tsv(file = genotypes, col_names = c("SQL_ID", "BATCH_ID", "LOCUS", "INDIVIDUALS", "GENOTYPES"), col_types = "iiiic", skip =1, progress = interactive())
   
+  message.markers <- paste("Importing ", markers, sep = "" )
+  message(message.markers)
   markers.file <- read_tsv(file = markers, col_names = c("SQL_ID", "BATCH_ID", "LOCUS", "TYPE", "TOTAL_GENOTYPES", "MAX", "GENOTYPE_FREQS", "SEGREGATION_DISTORTION", "MEAN_LOG_LIKELIHOOD", "GENOTYPE_MAP", "UNCORRECTED_MARKER"), skip =1, progress = interactive())
   
   geno.sum<- genotypes.file %>%
@@ -294,15 +306,58 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
     tally() %>%
     rename(MARKER_NUMBER = n)
   
-  # Figures --------------------------------------------------------------------
-  
+  # joinmap output--------------------------------------------------------------
+  if (joinmap != FALSE) {
+    message("JoinMap output was selected ...")
+    joinmap.data <- genotypes.file %>%
+      select(LOCUS, INDIVIDUALS, GENOTYPES) %>%
+      inner_join(
+        geno.sum %>%
+          select(LOCUS, JOINMAP)
+        , by="LOCUS") %>%
+      mutate(
+        GENOTYPES = ifelse(JOINMAP == "efxeg", (stri_replace_all_fixed(GENOTYPES, c("aa", "ab", "ac", "bc"), c("ee", "ef", "eg", "fg"), vectorize_all=F)), GENOTYPES),
+        GENOTYPES = ifelse(JOINMAP == "hkxhk", (stri_replace_all_fixed(GENOTYPES, c("aa", "ab", "bb"), c("hh", "hk", "kk"), vectorize_all=F)), GENOTYPES),
+        GENOTYPES = ifelse(JOINMAP == "lmxll", (stri_replace_all_fixed(GENOTYPES, c("aa", "ab"), c("ll", "lm"), vectorize_all=F)), GENOTYPES),
+        GENOTYPES = ifelse(JOINMAP == "nnxnp", (stri_replace_all_fixed(GENOTYPES, c("aa", "ab"), c("nn", "np"), vectorize_all=F)), GENOTYPES),
+        JOINMAP = stri_replace_all_fixed(JOINMAP, c("efxeg", "hkxhk", "lmxll", "nnxnp"), c("<efxeg>", "<hkxhk>", "<lmxll>", "<nnxnp>"), vectorize_all=F)
+      ) %>%
+      dcast(LOCUS+JOINMAP~INDIVIDUALS, value.var="GENOTYPES")
+    
+    progeny.names <- genotypes.file %>% 
+      select(INDIVIDUALS) %>% 
+      distinct(INDIVIDUALS) %>% 
+      arrange(INDIVIDUALS)
+    
+    locus.number <- paste("nloc = ", nrow(geno.sum), sep = "")
+    ind.number <- paste("nind = ", nrow(progeny.names), sep = "")
+    
+    # Now write the output 
+    joinmap.file <- file(joinmap, "write")
+    cat(paste("name = fill this", "popt = fill this with cross type", locus.number , ind.number, sep = "\n"), sep = "\n", file = joinmap.file, append = TRUE)
+    
+    write.table(joinmap.data, file = joinmap.file, append = TRUE, col.names = FALSE,
+                row.names = FALSE, sep = "\t", quote = FALSE)
+    
+    suppressWarnings(
+      write.table(progeny.names, file = joinmap.file, append = TRUE, col.names = "individual names:",
+                  row.names = FALSE, sep = "\t", quote = FALSE)
+    )
+    
+    close(joinmap.file)
+    message.joinmap1 <- paste("JoinMap filename saved to your working directory: ", joinmap, sep = "")
+    message.joinmap2 <- paste("Working directory: ", getwd(), sep = "")
+    
+    message(message.joinmap1)
+    message(message.joinmap2)
+  }
   
   # Save/Write the file to the working directory--------------------------------
   if (filename == FALSE) {
     saving <- "Saving was not selected..."
   } else {
     write_tsv(geno.sum, filename, append = FALSE, col_names = TRUE)
-    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+    saving <- paste("Saving was selected for the genotypes summary, the filename:", filename, sep = " ")
   }
   
   res <- list()
@@ -313,8 +368,7 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
   # Message at the end ---------------------------------------------------------- 
   invisible(cat(sprintf(
     "\n%s\n
-Working directory:
-%s",
+Working directory: %s",
     saving, getwd()
   )))
   return(res) 

@@ -8,7 +8,7 @@
 genotypes_summary(genotypes, markers, filter.monomorphic = TRUE,
   filter.missing.band = TRUE, filter.mean.log.likelihood = FALSE,
   B = FALSE, filter.GOF = FALSE, filter.GOF.p.value = FALSE,
-  ind.genotyped = 1, filename = FALSE)
+  ind.genotyped = 1, joinmap = FALSE, onemap = FALSE, filename = FALSE)
 }
 \arguments{
 \item{genotypes}{The \code{batch_x.genotypes.txt} created by STACKS genotypes
@@ -41,18 +41,29 @@ GOF segregation distortion. Default = \code{FALSE}.}
 \item{ind.genotyped}{Number. Filter the number of individual
 progeny required to keep the marker.}
 
-\item{filename}{(optional) The name of the file written in the directory.}
+\item{joinmap}{(optional) Name of the JoinMap file to write
+in the working directory. e.g. "joinmap.turtle.family3.loc".
+Default = \code{FALSE}.}
+
+\item{onemap}{(optional) Name of the OneMap file to write
+in the working directory. e.g. "onemap.turtle.family3.txt".
+Default = \code{FALSE}.}
+
+\item{filename}{(optional) The name of the summary file written
+in the directory.}
 }
 \value{
 The function returns a list with the
 genotypes summary \code{$geno.sum}, joinmap markers \code{$joinmap.sum}
 and onemap markers \code{$onemap.sum} summary (use $ to access each
-components).
+components). A JoinMap and/or OneMap file can also be exported to
+the working direcvtory.
 }
 \description{
 Useful summary of \code{batch_x.genotypes.txt} and
  \code{batch_1.markers.tsv} files produced by STACKS genotypes module use
- for linkage mapping.
+ for linkage mapping. Filter segregation distortion and output JoinMap and or
+ OneMap file.
 }
 \details{
 SIGNIFICANCE results pvalue (goodness-of-fit pvalue):
