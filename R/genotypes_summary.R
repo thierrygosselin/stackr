@@ -78,6 +78,9 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
   ONEMAP <- NULL
   JOINMAP <- NULL
   TOTAL_GENOTYPES <- NULL
+  MARKERS <- NULL
+  `1` <- NULL
+  
   
   message.genotypes <- paste("Importing ", genotypes, sep = "" )
   message(message.genotypes)
@@ -271,6 +274,8 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
     geno.sum <- geno.sum
     
   } else {
+    message("Segregation distortion: filtering goodness-of-fit")
+    
     geno.sum <- geno.sum %>% 
       filter(GOF < filter.GOF)
   }
@@ -280,11 +285,13 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
     geno.sum <- geno.sum
     
   } else {
+    message("Segregation distortion: filtering goodness-of-fit p-value")
     geno.sum <- geno.sum %>% 
       filter(GOF_PVALUE < filter.GOF.p.value)
   }
   
   # Filter number of individuals genotyped
+  message("Filterin number of individuals genotyped")
   if(missing (ind.genotyped) == TRUE){
     geno.sum <- geno.sum %>% 
       filter(TOTAL_GENOTYPES > 1)
@@ -322,7 +329,7 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
         GENOTYPES = ifelse(JOINMAP == "nnxnp", (stri_replace_all_fixed(GENOTYPES, c("aa", "ab"), c("nn", "np"), vectorize_all=F)), GENOTYPES),
         JOINMAP = stri_replace_all_fixed(JOINMAP, c("efxeg", "hkxhk", "lmxll", "nnxnp"), c("<efxeg>", "<hkxhk>", "<lmxll>", "<nnxnp>"), vectorize_all=F)
       ) %>%
-      dcast(LOCUS+JOINMAP~INDIVIDUALS, value.var="GENOTYPES")
+      dcast(LOCUS + JOINMAP ~ INDIVIDUALS, value.var="GENOTYPES")
     
     progeny.names <- genotypes.file %>% 
       select(INDIVIDUALS) %>% 
@@ -350,6 +357,59 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
     
     message(message.joinmap1)
     message(message.joinmap2)
+  }
+  
+  # onemap output--------------------------------------------------------------
+  if (onemap != FALSE) {
+    message("OneMap output was selected ...")
+    onemap.data <- genotypes.file %>%
+      select(LOCUS, INDIVIDUALS, GENOTYPES) %>%
+      inner_join(
+        geno.sum %>%
+          select(LOCUS, ONEMAP)
+        , by="LOCUS") %>%
+      mutate(
+        GENOTYPES = ifelse(ONEMAP == "A.2" & GENOTYPES == "aa", "a", 
+                           ifelse(ONEMAP == "A.2" & GENOTYPES == "ac", "a",
+                                  ifelse(ONEMAP == "A.2" & GENOTYPES == "bc", "ab",
+                                         ifelse(ONEMAP == "B3.7" & GENOTYPES == "aa", "a",
+                                                ifelse(ONEMAP == "B3.7" & GENOTYPES == "ab", "-",
+                                                       ifelse(ONEMAP == "B3.7" & GENOTYPES == "bb", "ab",
+                                                              ifelse(ONEMAP == "D1.10" & GENOTYPES == "aa", "a",
+                                                                     ifelse(GENOTYPES == "--", "-", GENOTYPES)
+                                                              )
+                                                       )
+                                                )
+                                         )
+                                  )
+                           )
+        )
+      ) %>%
+      mutate(
+        ONEMAP = ifelse(ONEMAP == "A.2", "D1.10", "D1.10")
+      ) %>% 
+      dcast(LOCUS + ONEMAP ~ INDIVIDUALS, value.var = "GENOTYPES") %>% 
+      mutate(LOCUS = paste("*", LOCUS, sep="")) %>%
+      unite(MARKERS, LOCUS, ONEMAP, sep=" ", remove = T) %>% 
+      mutate(MARKERS = paste(.[,1], .[,2], sep = "\t"))
+
+        progeny.names <- genotypes.file %>% 
+      select(INDIVIDUALS) %>% 
+      distinct(INDIVIDUALS) %>% 
+      arrange(INDIVIDUALS)
+  
+    
+    # Now write the output 
+    onemap.file <- file(onemap, "write")
+    cat(paste(nrow(progeny.names), nrow(geno.sum), sep="\t"), sep = "\n", file = onemap.file, append = TRUE)
+    write.table(onemap.data, file = onemap.file, append = TRUE, col.names = FALSE,
+                row.names = FALSE, sep = ",", quote = FALSE)
+    close(onemap.file)
+    message.onemap1 <- paste("OneMap filename saved to your working directory: ", onemap, sep = "")
+    message.onemap2 <- paste("Working directory: ", getwd(), sep = "")
+    
+    message(message.onemap1)
+    message(message.onemap2)
   }
   
   # Save/Write the file to the working directory--------------------------------
