@@ -74,8 +74,8 @@ This function can first filter the haplotypes file
 with a whitelist of loci
 and a blacklist of individuals (optional). Then it will convert the file
 to a \code{adegenet} \code{\link[adegenet]{genind}} object.
-Map-independent imputation using Random Forest is also available
-as an option.
+Map-independent imputation using Random Forest or the most frequent category
+is also available as an option.
 }
 \details{
 The imputations using Random Forest requires more time to compute and can take several

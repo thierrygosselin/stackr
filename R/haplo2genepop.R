@@ -5,7 +5,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @title Use the batch_x.haplotypes.tsv file to write a genpop file.
 #' @description This function can first filter the haplotypes file 
 #' with a whitelist of loci and a blacklist of individuals. 
-#' Map-independent imputation using Random Forest 
+#' Map-independent imputation using Random Forest or the most frequent category
 #' is also available as an option.
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
 #' @param whitelist.loci (optional) A whitelist of loci and 
@@ -309,24 +309,36 @@ haplo2genepop <- function(haplotypes.file,
   } else {
     genepop.header <- genepop.header
   }
+  #  The next few lines doesn't work with Windows... 
+  #   file.no.imputation <- file(genepop.filename, "write")
+  #   cat(genepop.header, "\n", file = file.no.imputation, append = TRUE)
+  #   cat(loci, sep = "\n", file = file.no.imputation, append = TRUE)
+  #   
+  #   for (i in 1:length(genepop.split)) {
+  #     cat("pop\n", file = file.no.imputation, append = TRUE)
+  #     write.table(
+  #       genepop.split[[i]],
+  #       file = file.no.imputation, 
+  #       append = TRUE, 
+  #       col.names = FALSE,
+  #       row.names = FALSE, 
+  #       sep = " ", 
+  #       quote = FALSE
+  #     )
+  #   }
+  #   close(file.no.imputation)
   
-  file.no.imputation <- file(genepop.filename, "write")
-  cat(genepop.header, "\n", file = file.no.imputation, append = TRUE)
-  cat(loci, sep = "\n", file = file.no.imputation, append = TRUE)
+  genepop.header <- as.data.frame(genepop.header)
+  write.table(genepop.header, file = genepop.filename, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  loci.table <- as.data.frame(loci)
+  write_delim(x = loci.table, path = genepop.filename, delim = "\n", append = TRUE, col_names = FALSE)
   
+  pop.sep <- "pop"
+  pop.sep <- as.data.frame(pop.sep)
   for (i in 1:length(genepop.split)) {
-    cat("pop\n", file = file.no.imputation, append = TRUE)
-    write.table(
-      genepop.split[[i]],
-      file = file.no.imputation, 
-      append = TRUE, 
-      col.names = FALSE,
-      row.names = FALSE, 
-      sep = " ", 
-      quote = FALSE
-    )
+    write_delim(x = pop.sep, path = genepop.filename, delim = "\n", append = TRUE, col_names = FALSE)
+    write_delim(x = genepop.split[[i]], path = genepop.filename, delim = " ", append = TRUE, col_names = FALSE)
   }
-  close(file.no.imputation)
   
   invisible(cat(sprintf("Genepop (no imputation) file name:\n%s\n\nWritten in the directory:\n%s", 
                         genepop.filename, getwd())))
@@ -546,24 +558,36 @@ haplo2genepop <- function(haplotypes.file,
       genepop.header <- stri_join(genepop.header, "with imputation", sep = " ")
     }
     
+    # Doesn't work with Windows...    
+    #     file.imputation <- file(genepop.filename.imp, "write")
+    #     cat(genepop.header, "\n", file = file.imputation, append = TRUE)
+    #     cat(loci, sep = "\n", file = file.imputation, append = TRUE)
+    #     
+    #     for (i in 1:length(genepop.imp.split)) {
+    #       cat("pop\n", file = file.imputation, append = TRUE)
+    #       write.table(
+    #         genepop.imp.split[[i]],
+    #         file = file.imputation, 
+    #         append = TRUE, 
+    #         col.names = FALSE,
+    #         row.names = FALSE, 
+    #         sep = " ", 
+    #         quote = FALSE
+    #       )
+    #     }
+    #     close(file.imputation)
     
-    file.imputation <- file(genepop.filename.imp, "write")
-    cat(genepop.header, "\n", file = file.imputation, append = TRUE)
-    cat(loci, sep = "\n", file = file.imputation, append = TRUE)
+    genepop.header <- as.data.frame(genepop.header)
+    write.table(genepop.header, file = genepop.filename.imp, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    loci.table <- as.data.frame(loci)
+    write_delim(x = loci.table, path = genepop.filename.imp, delim = "\n", append = TRUE, col_names = FALSE)
     
+    pop.sep <- "pop"
+    pop.sep <- as.data.frame(pop.sep)
     for (i in 1:length(genepop.imp.split)) {
-      cat("pop\n", file = file.imputation, append = TRUE)
-      write.table(
-        genepop.imp.split[[i]],
-        file = file.imputation, 
-        append = TRUE, 
-        col.names = FALSE,
-        row.names = FALSE, 
-        sep = " ", 
-        quote = FALSE
-      )
-    }
-    close(file.imputation)
+      write_delim(x = pop.sep, path = genepop.filename.imp, delim = "\n", append = TRUE, col_names = FALSE)
+      write_delim(x = genepop.imp.split[[i]], path = genepop.filename.imp, delim = " ", append = TRUE, col_names = FALSE)
+    }    
     
     invisible(cat(sprintf("Genepop (with imputation) file name:\n%s\n\nWritten in the directory:\n%s", genepop.filename.imp, getwd())))
   }

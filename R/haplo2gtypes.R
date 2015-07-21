@@ -10,8 +10,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' with a whitelist of loci
 #' and a blacklist of individuals (optional). Then it will convert the file
 #' to a \code{strataG.dev} \code{gtypes} object.
-#' Map-independent imputations using Random Forest is also available
-#' as an option.
+#' Map-independent imputation using Random Forest or the most frequent category
+#' is also available as an option.
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
 #' @param whitelist.loci (optional) A whitelist of loci and 
 #' a column header 'LOCUS'.

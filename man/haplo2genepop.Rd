@@ -69,7 +69,7 @@ the working directory.
 \description{
 This function can first filter the haplotypes file
 with a whitelist of loci and a blacklist of individuals.
-Map-independent imputation using Random Forest
+Map-independent imputation using Random Forest or the most frequent category
 is also available as an option.
 }
 \details{
