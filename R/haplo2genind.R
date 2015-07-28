@@ -108,7 +108,7 @@ haplo2genind <- function(haplotypes.file,
   
   
   # Haplotype file--------------------------------------------------------------
-  haplotype <- read_tsv(file = "batch_1.haplotypes.tsv", col_names = T) %>%
+  haplotype <- read_tsv(file = haplotypes.file, col_names = T) %>%
     select(-Cnt) %>% 
     rename(Catalog.ID = `Catalog ID`) %>%
     melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
