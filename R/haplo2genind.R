@@ -57,7 +57,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @return When no imputation is selected an object of the 
 #' class \code{\link[adegenet]{genind}} is returned.
 #' When imputation is selected a list with 2 objects is returned
-#' and accessed with \code{$genind.no.imputation} or \code{$genind.imputed}.
+#' and accessed with \code{$no.imputation} or \code{$imputed}.
 #' @export
 #' @rdname haplo2genind
 # @importFrom adegenet df2genind

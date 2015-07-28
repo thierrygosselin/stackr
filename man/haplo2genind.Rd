@@ -67,7 +67,7 @@ If not selected \code{detectCores()-1} is used as default.}
 When no imputation is selected an object of the
 class \code{\link[adegenet]{genind}} is returned.
 When imputation is selected a list with 2 objects is returned
-and accessed with \code{$genind.no.imputation} or \code{$genind.imputed}.
+and accessed with \code{$no.imputation} or \code{$imputed}.
 }
 \description{
 This function can first filter the haplotypes file

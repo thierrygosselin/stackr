@@ -2,11 +2,11 @@
 #' @title Import and prepare for analysis a batch_x.sumstats.tsv file produced by STACKS
 #' @description Import STACKS sumstats.tsv and add useful info (frequency of REF allele, Global MAF) for subsequent use. to a tidy format.
 #' @param sumstats The STACKS batch_x.susmtats.tsv file.
-#' @param skip.line The number of line without the header to start reading the data
+#' @param skip.line The number of line before reading the data (you need to count the header).
 #' @param pop.num The number of populations.
-#' @param pop.col.types Integer or Character used in STACKS populations module?
+#' @param pop.col.types (string) \code{"integer"} or \code{character} used in STACKS populations module?
 #' @param pop.integer.equi When Integer was used for your population id, give the character equivalence
-#' @param pop.levels A character string with your populations in order.
+#' @param pop.levels A character string with the hierarchy/order of your populations.
 #' @param filename The name of the file written in the directory.
 #' @export
 #' @rdname sumstats_prep
@@ -49,51 +49,59 @@ sumstats_prep <- function(sumstats, skip.line, pop.num, pop.col.types, pop.integ
   
   if(pop.col.types == "integer"){
     
-    sumstats.prep <- read_delim(sumstats,
-                                delim = "\t",
-                                na = "NA",
-                                skip = skip.line,
-                                progress = interactive(),
-                                col_names = c("BATCH","LOCUS","CHROM","POS","COL","POP_ID","ALLELE_P","ALLELE_Q","N","FREQ_ALLELE_P","HET_O","HOM_O","HET_E","HOM_E","PI","SMOOTHED_PI","SMOOTHED_PI_P_VALUE","FIS","SMOOTHED_FIS","SMOOTHED_FIS_P_VALUE","PRIVATE"),
-                                col_types = "iiciiiccddddddidddddi"
-    ) %>%
-      mutate(
-        FREQ_ALLELE_Q = 1 - FREQ_ALLELE_P,
-        POP_ID = stri_replace_all_fixed(POP_ID, seq(from = 1, to = pop.num, by = 1), pop.integer.equi, vectorize_all=F),
-        POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
-      )
+    sumstats.prep <- suppressWarnings(
+      read_delim(sumstats,
+                 delim = "\t",
+                 na = "NA",
+                 skip = skip.line,
+                 progress = interactive(),
+                 col_names = c("BATCH","LOCUS","CHROM","POS","COL","POP_ID","ALLELE_P","ALLELE_Q","N","FREQ_ALLELE_P","HET_O","HOM_O","HET_E","HOM_E","PI","SMOOTHED_PI","SMOOTHED_PI_P_VALUE","FIS","SMOOTHED_FIS","SMOOTHED_FIS_P_VALUE","PRIVATE"),
+                 col_types = "iiciiiccddddddidddddi"
+      ) %>%
+        mutate(
+          FREQ_ALLELE_Q = 1 - FREQ_ALLELE_P,
+          POP_ID = stri_replace_all_fixed(POP_ID, seq(from = 1, to = pop.num, by = 1), pop.integer.equi, vectorize_all=F),
+          POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
+        )
+    )
     
   } else if (pop.col.types == "character") {
     
-    sumstats.prep <- read_delim(sumstats,
-                                delim = "\t",
-                                na = "NA",
-                                skip = skip.line,
-                                progress = interactive(),
-                                col_names = c("BATCH","LOCUS","CHROM","POS","COL","POP_ID","ALLELE_P","ALLELE_Q","N","FREQ_ALLELE_P","HET_O","HOM_O","HET_E","HOM_E","PI","SMOOTHED_PI","SMOOTHED_PI_P_VALUE","FIS","SMOOTHED_FIS","SMOOTHED_FIS_P_VALUE","PRIVATE"),
-                                col_types = "iiciicccddddddidddddi"
-    ) %>%
-      mutate(
-        FREQ_ALLELE_Q = 1 - FREQ_ALLELE_P,
-        POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
-      )
-    
+    sumstats.prep <- suppressWarnings(
+      read_delim(sumstats,
+                 delim = "\t",
+                 na = "NA",
+                 skip = skip.line,
+                 progress = interactive(),
+                 col_names = c("BATCH","LOCUS","CHROM","POS","COL","POP_ID","ALLELE_P","ALLELE_Q","N","FREQ_ALLELE_P","HET_O","HOM_O","HET_E","HOM_E","PI","SMOOTHED_PI","SMOOTHED_PI_P_VALUE","FIS","SMOOTHED_FIS","SMOOTHED_FIS_P_VALUE","PRIVATE"),
+                 col_types = "iiciicccddddddidddddi"
+      ) %>%
+        mutate(
+          FREQ_ALLELE_Q = 1 - FREQ_ALLELE_P,
+          POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
+        )
+    )
+    pop.integer.equi <- NULL
   } else {
     
     col.types = NULL
     
-    sumstats.prep <- read_delim(sumstats,
-                                delim = "\t",
-                                na = "NA",
-                                skip = skip.line,
-                                progress = interactive(),
-                                col_names = c("BATCH","LOCUS","CHROM","POS","COL","POP_ID","ALLELE_P","ALLELE_Q","N","FREQ_ALLELE_P","HET_O","HOM_O","HET_E","HOM_E","PI","SMOOTHED_PI","SMOOTHED_PI_P_VALUE","FIS","SMOOTHED_FIS","SMOOTHED_FIS_P_VALUE","PRIVATE")
-    ) %>%
-      mutate(
-        FREQ_ALLELE_Q = 1 - FREQ_ALLELE_P,
-        POP_ID = stri_replace_all_fixed(POP_ID, seq(from = 1, to = pop.num, by = 1), pop.integer.equi, vectorize_all=F),
-        POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
-      )
+    sumstats.prep <- suppressWarnings(
+      read_delim(sumstats,
+                 delim = "\t",
+                 na = "NA",
+                 skip = skip.line,
+                 progress = interactive(),
+                 col_names = c("BATCH","LOCUS","CHROM","POS","COL","POP_ID","ALLELE_P","ALLELE_Q","N","FREQ_ALLELE_P","HET_O","HOM_O","HET_E","HOM_E","PI","SMOOTHED_PI","SMOOTHED_PI_P_VALUE","FIS","SMOOTHED_FIS","SMOOTHED_FIS_P_VALUE","PRIVATE")
+      ) %>%
+        mutate(
+          FREQ_ALLELE_Q = 1 - FREQ_ALLELE_P,
+          POP_ID = stri_replace_all_fixed(POP_ID, seq(from = 1, to = pop.num, by = 1), pop.integer.equi, vectorize_all=F),
+          POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
+        )
+    )
+    pop.integer.equi <- NULL
+    
   }
   
   # Global MAF and duplicating columns
@@ -130,8 +138,7 @@ sumstats_prep <- function(sumstats, skip.line, pop.num, pop.col.types, pop.integ
               quote = F)
   
   invisible(cat(sprintf(
-    "This is the order of your sampling sites in stacks sumstats file:\n%s\n
-  This is the re-order (upstream -> downstream) of your sampling sites now in the stacks sumstats file:\n%s\n
+    "This is the re-order of your sampling sites now in the stacks sumstats file:\n%s\n
   Inspect Columns classes:
   The column LOCUS is of class %s, and should be integer
   The column POS is of class %s, and should be integer
@@ -149,7 +156,6 @@ sumstats_prep <- function(sumstats, skip.line, pop.num, pop.col.types, pop.integ
   %s
   Written in the directory:
   %s",
-    list(pop.integer.equi),
     list(levels(sumstats$POP_ID)),
     class(sumstats$LOCUS),
     class(sumstats$POS),

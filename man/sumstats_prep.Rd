@@ -10,15 +10,15 @@ sumstats_prep(sumstats, skip.line, pop.num, pop.col.types, pop.integer.equi,
 \arguments{
 \item{sumstats}{The STACKS batch_x.susmtats.tsv file.}
 
-\item{skip.line}{The number of line without the header to start reading the data}
+\item{skip.line}{The number of line before reading the data (you need to count the header).}
 
 \item{pop.num}{The number of populations.}
 
-\item{pop.col.types}{Integer or Character used in STACKS populations module?}
+\item{pop.col.types}{(string) \code{"integer"} or \code{character} used in STACKS populations module?}
 
 \item{pop.integer.equi}{When Integer was used for your population id, give the character equivalence}
 
-\item{pop.levels}{A character string with your populations in order.}
+\item{pop.levels}{A character string with the hierarchy/order of your populations.}
 
 \item{filename}{The name of the file written in the directory.}
 }

@@ -543,7 +543,7 @@ haplo2genepop <- function(haplotypes.file,
     } else {
       genepop.filename <- genepop.filename
     }
-    # Add "_imputed" to the filenam
+    # Add "_imputed" to the filename
     genepop.filename.imp <- stri_replace_all_fixed(genepop.filename,
                                                    pattern = ".gen",
                                                    replacement = "_imputed.gen")
