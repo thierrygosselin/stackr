@@ -106,6 +106,7 @@ haplo2gtypes <- function(haplotypes.file,
     rename(Catalog.ID = `Catalog ID`) %>%
     melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
   # gather(INDIVIDUALS, HAPLOTYPES, -Catalog.ID)
+
   # Whitelist-------------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
     message("Using the whitelist from the directory")

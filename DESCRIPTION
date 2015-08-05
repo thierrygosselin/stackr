@@ -6,12 +6,13 @@ Date: 2015-07-16
 Encoding: UTF-8
 Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
+  person("Anne-Laure", "Ferchaud", role = "ctb"),
   person("Laura", "Benestan", role = "ctb"))
 Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: Set of tools to look at GBS/RAD data created by STACKS software. 
 Depends: 
   R (>= 3.0.1),
-Imports: dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval, adegenet, strataG.devel, randomForestSRC
+Imports: dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval, adegenet, strataG.devel, randomForestSRC, stringdist
 Suggests: parallel, boot, pegas, hierfstat, plyr,
     knitr, rmarkdown
 License: GPL (>=2)

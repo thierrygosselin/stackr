@@ -48,10 +48,11 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' 0 (Pairwise-Likelihood Score), 1 (Full Likelihood),
 #' 2 (combined Pairwise-Likelihood Score and Full Likelihood).
 #' Default = \code{1}.
-#' @param marker.type Marker type.
-#' Default = \code{0} for codominant, see Colony manual.
 #' @param allelic.dropout Locus allelic dropout rate. Default = \code{0} See Colony manual.
 #' @param error.rate Locus error rate. Default = \code{0.02}, see COLONY manual.
+#' @param print.all.colony.opt (logical) Should all COLONY options be printed in the file.
+#' This require manual curation, for the file to work directly with COLONY. 
+#' Default = \code{FALSE}.
 #' @param imputations Should a map-independent imputations of markers be
 #' computed. Available choices are: (1) \code{FALSE} for no imputation.
 #' (2) \code{"max"} to use the most frequent category for imputations.
@@ -130,9 +131,9 @@ haplo2colony <- function(haplotypes.file,
                          clone = 0,
                          run.length =2,
                          analysis = 1,
-                         marker.type = 0,
                          allelic.dropout = 0,
                          error.rate = 0.02,
+                         print.all.colony.opt = FALSE,
                          imputations = FALSE,
                          imputations.group = "populations",
                          num.tree = 100,
@@ -154,8 +155,21 @@ haplo2colony <- function(haplotypes.file,
   haplotype <- read_tsv(file = haplotypes.file, col_names = T) %>%
     select(-Cnt) %>% 
     rename(Catalog.ID = `Catalog ID`) %>%
-    melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
+    melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES") %>% 
+    mutate(POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end))
+  
   # gather(INDIVIDUALS, HAPLOTYPES, -Catalog.ID)
+  
+  # Pop select -----------------------------------------------------------------
+  if(pop.select == "all" | missing(pop.select) == TRUE){
+    haplotype <- haplotype
+  } else {
+    target.pop <- pop.select
+    haplotype <- suppressWarnings(
+      haplotype %>% 
+        filter(POP_ID %in% target.pop)
+    )
+  }
   
   
   # Whitelist-------------------------------------------------------------------
@@ -257,18 +271,19 @@ haplo2colony <- function(haplotypes.file,
         filter(HAPLOTYPES != "consensus") %>%    
         mutate(
           HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
-                                              vectorize_all=F),
-          POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end)
+                                              vectorize_all=F)
         )%>%
         dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") #%>% 
     )
   } else{
     sampling.markers.message <- paste("Randomly subsampling ", sample.markers, " markers...")
     message(sampling.markers.message)
+    
     haplo.filtered <- suppressWarnings(
       haplotype %>%
         anti_join(paralogs, by = "Catalog.ID") %>%
-        filter(HAPLOTYPES != "consensus") %>% 
+        filter(HAPLOTYPES != "consensus") %>%
+        select(-POP_ID) %>% 
         dcast(Catalog.ID ~ INDIVIDUALS, value.var = "HAPLOTYPES") %>% 
         # group_by(Catalog.ID) %>% 
         do(sample_n(., sample.markers)) %>% 
@@ -357,7 +372,7 @@ haplo2colony <- function(haplotypes.file,
     )    
     message("step 4/5: completed")
     
-  } else if (missing(allele.freq) != TRUE| allele.freq != FALSE){
+  } else if (missing(allele.freq) != TRUE & allele.freq != FALSE){
     
     allele.per.locus <- haplo.prep %>% 
       filter(POP_ID %in% allele.freq) %>%
@@ -390,7 +405,7 @@ haplo2colony <- function(haplotypes.file,
     message("step 4/5: completed")
   }
   
-
+  
   haplo.prep <- suppressWarnings(
     haplo.prep %>%
       mutate(GROUP = rep(1, times = nrow(.))) %>% 
@@ -418,19 +433,7 @@ haplo2colony <- function(haplotypes.file,
   
   message("step 5/5: completed")
   
-  if(pop.select == "all" | missing(pop.select) == TRUE){
-    res <- haplo.prep %>% 
-      select(-POP_ID)
-  } else {
-    target.pop <- pop.select
-    res <- suppressWarnings(
-      haplo.prep %>% 
-        # filter_(interp(~ POP_ID %in% as.name(pop.select))) %>%
-        filter(POP_ID %in% target.pop) %>%
-        select(-POP_ID)
-    )
-  }
-  
+  res <- haplo.prep %>% select(-POP_ID)
   
   # results no imputation-------------------------------------------------------
   # convert to colony
@@ -440,7 +443,12 @@ haplo2colony <- function(haplotypes.file,
   write.table(x = dataset.opt, file = filename, sep = " ", append = FALSE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
   # Line 2 = Output filename
-  out.name.opt <- paste("`", filename, "`", "                         ! Output file name", sep = "") 
+  # out.name.opt <- paste("`", filename, "`", "                         ! Output file name", sep = "")
+  colony.output.filename <- stri_replace_all_fixed(filename,
+                                                   pattern = ".dat",
+                                                   replacement = "")
+  
+  out.name.opt <- paste(colony.output.filename, "                         ! Output file name", sep = "") 
   out.name.opt <- as.data.frame(out.name.opt)
   write.table(x = out.name.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
@@ -513,26 +521,15 @@ haplo2colony <- function(haplotypes.file,
   }
   
   # Line 15 and more = Numbers of alleles per locus (Integer, optional). Required when the Population allele frequency indicator is set to 1
-  if (missing(allele.freq) | allele.freq == FALSE){
-    num.allele.opt <- "! Number of alleles per locus"
-    num.allele.opt <- as.data.frame(num.allele.opt)
-    write.table(x = num.allele.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-  } else{
+  if (allele.freq != FALSE){
     write_delim(x = allele.per.locus, path = filename, delim = " ", append = TRUE, col_names = FALSE)
   }
   
   # Alleles and their frequencies per locus (Integer, Real, optional)
   
-  if (missing(allele.freq) | allele.freq == FALSE){
-    allele.freq.opt <- "! Alleles and their frequencies per locus"
-    allele.freq.opt <- as.data.frame(allele.freq.opt)
-    write.table(x = allele.freq.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-  } else{
+  if (allele.freq != FALSE){
     write_delim(x = frequency.markers, path = filename, delim = " ", append = TRUE, col_names = FALSE)
   }
-  
-  # insert a space
-  # cat("", sep = "\n", fill = TRUE, file = filename, append = TRUE)
   
   # Number of runs
   num.run.opt <- "\n1                                    ! Number of runs"
@@ -570,17 +567,13 @@ haplo2colony <- function(haplotypes.file,
   precision.opt <- as.data.frame(precision.opt)
   write.table(x = precision.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
-  
-  # insert a space
-  # cat("", sep = "\n", fill = TRUE, file = filename, append = TRUE)
-  
   # Marker IDs/Names
   # snp.id <- seq(from = 1, to = marker.number, by = 1)
   markers.name.opt <- c(markers.name, "        ! Marker IDs")
   write.table(x = t(as.data.frame(markers.name.opt)), file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
   # Marker types 
-  marker.type.opt <- c(rep(marker.type, marker.number),"         ! Marker types, 0/1=Codominant/Dominant") # marker.type (codominant/dominant)
+  marker.type.opt <- c(rep(0, marker.number),"         ! Marker types, 0/1=Codominant/Dominant") # marker.type (codominant/dominant)
   write.table(x = t(as.data.frame(marker.type.opt)), file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
   # Allelic dropout rates
@@ -597,9 +590,8 @@ haplo2colony <- function(haplotypes.file,
   
   message("Including genotypes of individuals in COLONY format")
   
-  
   # Probabilities that the father and mother of an offspring are included in the candidate males and females. The two numbers must be provided even if there are no candidate males or/and females.
-  prob.opt <- "\n\n0.5  0.5                             ! Prob. of dad/mum included in the candidates"
+  prob.opt <- "\n\n0  0                                 ! Prob. of dad/mum included in the candidates"
   prob.opt <- as.data.frame(prob.opt)
   write.table(x = prob.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
@@ -610,9 +602,19 @@ haplo2colony <- function(haplotypes.file,
   
   # Candidate male IDs/names and genotypes
   # cat(male.genotype, sep = "\n", file = colony.filename, append = TRUE)
+  if (print.all.colony.opt != FALSE){
+    candidate.male.id.geno.opt <- "!Candidate male ID and genotypes"
+    candidate.male.id.geno.opt <- as.data.frame(candidate.male.id.geno.opt)
+    write.table(x = candidate.male.id.geno.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
   
   # Candidate female IDs/names and genotypes 
   # cat(female.genotype, sep = "\n", file = colony.filename, append = TRUE)
+  if (print.all.colony.opt != FALSE){
+    candidate.female.id.geno.opt <- "!Candidate female ID and genotypes"
+    candidate.female.id.geno.opt <- as.data.frame(candidate.female.id.geno.opt)
+    write.table(x = candidate.female.id.geno.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
   
   # Number of offspring with known paternity
   known.paternity.opt <- "0                                    ! Number of offspring with known father"
@@ -620,9 +622,11 @@ haplo2colony <- function(haplotypes.file,
   write.table(x = known.paternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
   # Known offspring-father dyad
-  known.father.dyad.opt <- "! Offspring ID and known father ID (Known offspring-father dyad)"
-  known.father.dyad.opt <- as.data.frame(known.father.dyad.opt)
-  write.table(x = known.father.dyad.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  if (print.all.colony.opt != FALSE){
+    known.father.dyad.opt <- "! Offspring ID and known father ID (Known offspring-father dyad)"
+    known.father.dyad.opt <- as.data.frame(known.father.dyad.opt)
+    write.table(x = known.father.dyad.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
   
   # Number of offspring with known maternity
   known.maternity.opt <- "0                                    ! Number of offspring with known mother"
@@ -630,9 +634,11 @@ haplo2colony <- function(haplotypes.file,
   write.table(x = known.maternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
   # Known offspring-mother dyad
-  known.mother.dyad.opt <- "! Offspring ID and known mother ID (Known offspring-mother dyad)"
-  known.mother.dyad.opt <- as.data.frame(known.mother.dyad.opt)
-  write.table(x = known.mother.dyad.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  if (print.all.colony.opt != FALSE){
+    known.mother.dyad.opt <- "! Offspring ID and known mother ID (Known offspring-mother dyad)"
+    known.mother.dyad.opt <- as.data.frame(known.mother.dyad.opt)
+    write.table(x = known.mother.dyad.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
   
   # Number of known paternal sibships (Integer)
   known.paternal.sibships.opt <- "0                                    ! Number of known paternal sibships"
@@ -641,9 +647,11 @@ haplo2colony <- function(haplotypes.file,
   
   
   # Paternal sibship size and members (Integer, String, optional).
-  known.paternal.sibships.size.opt <- "! Paternal sibship size and members"
-  known.paternal.sibships.size.opt <- as.data.frame(known.paternal.sibships.size.opt)
-  write.table(x = known.paternal.sibships.size.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  if (print.all.colony.opt != FALSE){
+    known.paternal.sibships.size.opt <- "! Paternal sibship size and members"
+    known.paternal.sibships.size.opt <- as.data.frame(known.paternal.sibships.size.opt)
+    write.table(x = known.paternal.sibships.size.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
   
   # Number of known maternal sibships (Integer)
   known.maternal.sibships.opt <- "0                                    ! Number of known maternal sibships"
@@ -652,9 +660,11 @@ haplo2colony <- function(haplotypes.file,
   
   
   # Maternal sibship size and members (Integer, String, optional).
-  known.maternal.sibships.size.opt <- "! Maternal sibship size and members"
-  known.maternal.sibships.size.opt <- as.data.frame(known.maternal.sibships.size.opt)
-  write.table(x = known.maternal.sibships.size.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  if (print.all.colony.opt != FALSE){
+    known.maternal.sibships.size.opt <- "! Maternal sibship size and members"
+    known.maternal.sibships.size.opt <- as.data.frame(known.maternal.sibships.size.opt)
+    write.table(x = known.maternal.sibships.size.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
   
   # Number of offspring with known excluded paternity (Integer). 
   offspring.known.excl.paternity.opt <- "0                                    ! Number of offspring with known excluded fathers"
@@ -663,10 +673,11 @@ haplo2colony <- function(haplotypes.file,
   
   
   # Excluded paternity 
-  excl.paternity.opt <- "! Offspring ID, number of excluded fathers, and excluded father IDs"
-  excl.paternity.opt <- as.data.frame(excl.paternity.opt)
-  write.table(x = excl.paternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-  
+  if (print.all.colony.opt != FALSE){
+    excl.paternity.opt <- "! Offspring ID, number of excluded fathers, and excluded father IDs"
+    excl.paternity.opt <- as.data.frame(excl.paternity.opt)
+    write.table(x = excl.paternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
   
   # Number of offspring with known excluded maternity (Integer). 
   offspring.known.excl.maternity.opt <- "0                                    ! Number of offspring with known excluded mothers"
@@ -674,10 +685,12 @@ haplo2colony <- function(haplotypes.file,
   write.table(x = offspring.known.excl.maternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
   
-  # Excluded maternity 
-  excl.maternity.opt <- "! Offspring ID, number of excluded mothers, and excluded father IDs"
-  excl.maternity.opt <- as.data.frame(excl.maternity.opt)
-  write.table(x = excl.maternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  # Excluded maternity
+  if (print.all.colony.opt != FALSE){
+    excl.maternity.opt <- "! Offspring ID, number of excluded mothers, and excluded father IDs"
+    excl.maternity.opt <- as.data.frame(excl.maternity.opt)
+    write.table(x = excl.maternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
   
   # Number of offspring with known excluded paternal sibships
   offspring.known.excl.paternal.sibships.opt <- "0                                    ! Number of offspring with known excluded paternal sibships"
@@ -685,9 +698,11 @@ haplo2colony <- function(haplotypes.file,
   write.table(x = offspring.known.excl.paternal.sibships.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
   # Excluded paternal siblings
-  excluded.paternal.siblings.opt <- "! Excluded paternal siblings"
-  excluded.paternal.siblings.opt <- as.data.frame(excluded.paternal.siblings.opt)
-  write.table(x = excluded.paternal.siblings.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  if (print.all.colony.opt != FALSE){
+    excluded.paternal.siblings.opt <- "! Excluded paternal siblings"
+    excluded.paternal.siblings.opt <- as.data.frame(excluded.paternal.siblings.opt)
+    write.table(x = excluded.paternal.siblings.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
   
   # Number of offspring with known excluded maternal sibships
   offspring.known.excl.maternal.sibships.opt <- "0                                    ! Number of offspring with known excluded maternal sibships"
@@ -695,10 +710,11 @@ haplo2colony <- function(haplotypes.file,
   write.table(x = offspring.known.excl.maternal.sibships.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   
   # Excluded maternal siblings
-  excluded.maternal.siblings.opt <- "! Excluded maternal siblings"
-  excluded.maternal.siblings.opt <- as.data.frame(excluded.maternal.siblings.opt)
-  write.table(x = excluded.maternal.siblings.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-  
+  if (print.all.colony.opt != FALSE){
+    excluded.maternal.siblings.opt <- "! Excluded maternal siblings"
+    excluded.maternal.siblings.opt <- as.data.frame(excluded.maternal.siblings.opt)
+    write.table(x = excluded.maternal.siblings.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
   message.write.colony <- paste("A COLONY input file project was created and saved in your working directory", filename, sep = " : ")
   
   if (imputations == "FALSE") {
@@ -897,7 +913,7 @@ haplo2colony <- function(haplotypes.file,
       )    
       message("step 3/4: completed")
       
-    } else if (missing(allele.freq) != TRUE| allele.freq != FALSE){
+    } else if (missing(allele.freq) != TRUE & allele.freq != FALSE){
       
       allele.per.locus <- haplo.imp %>% 
         filter(POP_ID %in% allele.freq) %>%
@@ -958,30 +974,26 @@ haplo2colony <- function(haplotypes.file,
     message("step 4/4: completed")
     
     # results WITH imputations ------------------------------------------------
-    if(pop.select == "all" | missing(pop.select) == TRUE){
-      res <- haplo.imp %>% 
-        select(-POP_ID)
-    } else {
-      target.pop <- pop.select
-      res <- suppressWarnings(
-        haplo.imp %>% 
-          filter(POP_ID %in% target.pop) %>%
-          select(-POP_ID)
-      )
-    }
+    res <- haplo.imp %>% select(-POP_ID)
+    
     # convert to colony
     # Add "_imputed" to the filename
     filename <- stri_replace_all_fixed(filename,
-                                                   pattern = ".dat",
-                                                   replacement = "_imputed.dat")
-
+                                       pattern = ".dat",
+                                       replacement = "_imputed.dat")
+    
     # Line 1 = Dataset name
     dataset.opt <- "`My first COLONY run`                ! Dataset name"
     dataset.opt <- as.data.frame(dataset.opt)
     write.table(x = dataset.opt, file = filename, sep = " ", append = FALSE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
     # Line 2 = Output filename
-    out.name.opt <- paste("`", filename, "`", "                         ! Output file name", sep = "") 
+    colony.output.filename <- stri_replace_all_fixed(filename,
+                                                     pattern = ".dat",
+                                                     replacement = "")
+    
+    out.name.opt <- paste(colony.output.filename, "                         ! Output file name", sep = "")
+    
     out.name.opt <- as.data.frame(out.name.opt)
     write.table(x = out.name.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
@@ -1054,26 +1066,14 @@ haplo2colony <- function(haplotypes.file,
     }
     
     # Line 15 and more = Numbers of alleles per locus (Integer, optional). Required when the Population allele frequency indicator is set to 1
-    if (missing(allele.freq) | allele.freq == FALSE){
-      num.allele.opt <- "! Number of alleles per locus"
-      num.allele.opt <- as.data.frame(num.allele.opt)
-      write.table(x = num.allele.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-    } else{
+    if (allele.freq != FALSE){
       write_delim(x = allele.per.locus, path = filename, delim = " ", append = TRUE, col_names = FALSE)
     }
     
-    # Alleles and their frequencies per locus (Integer, Real, optional)
-    
-    if (missing(allele.freq) | allele.freq == FALSE){
-      allele.freq.opt <- "! Alleles and their frequencies per locus"
-      allele.freq.opt <- as.data.frame(allele.freq.opt)
-      write.table(x = allele.freq.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-    } else{
+    # Alleles and their frequencies per locus (Integer, Real, optional)    
+    if (allele.freq != FALSE){
       write_delim(x = frequency.markers, path = filename, delim = " ", append = TRUE, col_names = FALSE)
     }
-    
-    # insert a space
-    # cat("", sep = "\n", fill = TRUE, file = filename, append = TRUE)
     
     # Number of runs
     num.run.opt <- "\n1                                    ! Number of runs"
@@ -1121,7 +1121,7 @@ haplo2colony <- function(haplotypes.file,
     write.table(x = t(as.data.frame(markers.name.opt)), file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
     # Marker types 
-    marker.type.opt <- c(rep(marker.type, marker.number),"         ! Marker types, 0/1=Codominant/Dominant") # marker.type (codominant/dominant)
+    marker.type.opt <- c(rep(0, marker.number),"         ! Marker types, 0/1=Codominant/Dominant") # marker.type (codominant/dominant)
     write.table(x = t(as.data.frame(marker.type.opt)), file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
     # Allelic dropout rates
@@ -1140,7 +1140,7 @@ haplo2colony <- function(haplotypes.file,
     
     
     # Probabilities that the father and mother of an offspring are included in the candidate males and females. The two numbers must be provided even if there are no candidate males or/and females.
-    prob.opt <- "\n\n0.5  0.5                             ! Prob. of dad/mum included in the candidates"
+    prob.opt <- "\n\n0  0                                 ! Prob. of dad/mum included in the candidates"
     prob.opt <- as.data.frame(prob.opt)
     write.table(x = prob.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
@@ -1149,11 +1149,21 @@ haplo2colony <- function(haplotypes.file,
     candidate.opt <- as.data.frame(candidate.opt)
     write.table(x = candidate.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
-    # Candidate male IDs/names and genotypes
-    # cat(male.genotype, sep = "\n", file = colony.filename, append = TRUE)
-    
-    # Candidate female IDs/names and genotypes 
-    # cat(female.genotype, sep = "\n", file = colony.filename, append = TRUE)
+  # Candidate male IDs/names and genotypes
+  # cat(male.genotype, sep = "\n", file = colony.filename, append = TRUE)
+  if (print.all.colony.opt != FALSE){
+    candidate.male.id.geno.opt <- "!Candidate male ID and genotypes"
+    candidate.male.id.geno.opt <- as.data.frame(candidate.male.id.geno.opt)
+    write.table(x = candidate.male.id.geno.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
+  
+  # Candidate female IDs/names and genotypes 
+  # cat(female.genotype, sep = "\n", file = colony.filename, append = TRUE)
+  if (print.all.colony.opt != FALSE){
+    candidate.female.id.geno.opt <- "!Candidate female ID and genotypes"
+    candidate.female.id.geno.opt <- as.data.frame(candidate.female.id.geno.opt)
+    write.table(x = candidate.female.id.geno.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
     
     # Number of offspring with known paternity
     known.paternity.opt <- "0                                    ! Number of offspring with known father"
@@ -1161,9 +1171,11 @@ haplo2colony <- function(haplotypes.file,
     write.table(x = known.paternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
     # Known offspring-father dyad
-    known.father.dyad.opt <- "! Offspring ID and known father ID (Known offspring-father dyad)"
-    known.father.dyad.opt <- as.data.frame(known.father.dyad.opt)
-    write.table(x = known.father.dyad.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    if (print.all.colony.opt != FALSE){
+      known.father.dyad.opt <- "! Offspring ID and known father ID (Known offspring-father dyad)"
+      known.father.dyad.opt <- as.data.frame(known.father.dyad.opt)
+      write.table(x = known.father.dyad.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }
     
     # Number of offspring with known maternity
     known.maternity.opt <- "0                                    ! Number of offspring with known mother"
@@ -1171,9 +1183,11 @@ haplo2colony <- function(haplotypes.file,
     write.table(x = known.maternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
     # Known offspring-mother dyad
-    known.mother.dyad.opt <- "! Offspring ID and known mother ID (Known offspring-mother dyad)"
-    known.mother.dyad.opt <- as.data.frame(known.mother.dyad.opt)
-    write.table(x = known.mother.dyad.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    if (print.all.colony.opt != FALSE){
+      known.mother.dyad.opt <- "! Offspring ID and known mother ID (Known offspring-mother dyad)"
+      known.mother.dyad.opt <- as.data.frame(known.mother.dyad.opt)
+      write.table(x = known.mother.dyad.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }
     
     # Number of known paternal sibships (Integer)
     known.paternal.sibships.opt <- "0                                    ! Number of known paternal sibships"
@@ -1182,9 +1196,11 @@ haplo2colony <- function(haplotypes.file,
     
     
     # Paternal sibship size and members (Integer, String, optional).
-    known.paternal.sibships.size.opt <- "! Paternal sibship size and members"
-    known.paternal.sibships.size.opt <- as.data.frame(known.paternal.sibships.size.opt)
-    write.table(x = known.paternal.sibships.size.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    if (print.all.colony.opt != FALSE){
+      known.paternal.sibships.size.opt <- "! Paternal sibship size and members"
+      known.paternal.sibships.size.opt <- as.data.frame(known.paternal.sibships.size.opt)
+      write.table(x = known.paternal.sibships.size.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }
     
     # Number of known maternal sibships (Integer)
     known.maternal.sibships.opt <- "0                                    ! Number of known maternal sibships"
@@ -1193,9 +1209,11 @@ haplo2colony <- function(haplotypes.file,
     
     
     # Maternal sibship size and members (Integer, String, optional).
-    known.maternal.sibships.size.opt <- "! Maternal sibship size and members"
-    known.maternal.sibships.size.opt <- as.data.frame(known.maternal.sibships.size.opt)
-    write.table(x = known.maternal.sibships.size.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    if (print.all.colony.opt != FALSE){
+      known.maternal.sibships.size.opt <- "! Maternal sibship size and members"
+      known.maternal.sibships.size.opt <- as.data.frame(known.maternal.sibships.size.opt)
+      write.table(x = known.maternal.sibships.size.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }
     
     # Number of offspring with known excluded paternity (Integer). 
     offspring.known.excl.paternity.opt <- "0                                    ! Number of offspring with known excluded fathers"
@@ -1204,9 +1222,11 @@ haplo2colony <- function(haplotypes.file,
     
     
     # Excluded paternity 
-    excl.paternity.opt <- "! Offspring ID, number of excluded fathers, and excluded father IDs"
-    excl.paternity.opt <- as.data.frame(excl.paternity.opt)
-    write.table(x = excl.paternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    if (print.all.colony.opt != FALSE){
+      excl.paternity.opt <- "! Offspring ID, number of excluded fathers, and excluded father IDs"
+      excl.paternity.opt <- as.data.frame(excl.paternity.opt)
+      write.table(x = excl.paternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }
     
     
     # Number of offspring with known excluded maternity (Integer). 
@@ -1216,9 +1236,11 @@ haplo2colony <- function(haplotypes.file,
     
     
     # Excluded maternity 
-    excl.maternity.opt <- "! Offspring ID, number of excluded mothers, and excluded father IDs"
-    excl.maternity.opt <- as.data.frame(excl.maternity.opt)
-    write.table(x = excl.maternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    if (print.all.colony.opt != FALSE){
+      excl.maternity.opt <- "! Offspring ID, number of excluded mothers, and excluded father IDs"
+      excl.maternity.opt <- as.data.frame(excl.maternity.opt)
+      write.table(x = excl.maternity.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }
     
     # Number of offspring with known excluded paternal sibships
     offspring.known.excl.paternal.sibships.opt <- "0                                    ! Number of offspring with known excluded paternal sibships"
@@ -1226,9 +1248,11 @@ haplo2colony <- function(haplotypes.file,
     write.table(x = offspring.known.excl.paternal.sibships.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
     # Excluded paternal siblings
-    excluded.paternal.siblings.opt <- "! Excluded paternal siblings"
-    excluded.paternal.siblings.opt <- as.data.frame(excluded.paternal.siblings.opt)
-    write.table(x = excluded.paternal.siblings.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    if (print.all.colony.opt != FALSE){
+      excluded.paternal.siblings.opt <- "! Excluded paternal siblings"
+      excluded.paternal.siblings.opt <- as.data.frame(excluded.paternal.siblings.opt)
+      write.table(x = excluded.paternal.siblings.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }
     
     # Number of offspring with known excluded maternal sibships
     offspring.known.excl.maternal.sibships.opt <- "0                                    ! Number of offspring with known excluded maternal sibships"
@@ -1236,10 +1260,11 @@ haplo2colony <- function(haplotypes.file,
     write.table(x = offspring.known.excl.maternal.sibships.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
     # Excluded maternal siblings
-    excluded.maternal.siblings.opt <- "! Excluded maternal siblings"
-    excluded.maternal.siblings.opt <- as.data.frame(excluded.maternal.siblings.opt)
-    write.table(x = excluded.maternal.siblings.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-    
+    if (print.all.colony.opt != FALSE){
+      excluded.maternal.siblings.opt <- "! Excluded maternal siblings"
+      excluded.maternal.siblings.opt <- as.data.frame(excluded.maternal.siblings.opt)
+      write.table(x = excluded.maternal.siblings.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }   
     message.write.colony <- paste("A COLONY input file project was created and saved in your working directory", filename, sep = " : ")
   }
 }

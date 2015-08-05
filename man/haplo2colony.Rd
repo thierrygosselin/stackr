@@ -9,7 +9,7 @@ haplo2colony(haplotypes.file, blacklist.id = NULL, whitelist.loci = NULL,
   sample.markers = "all", pop.id.start, pop.id.end, pop.select = "all",
   allele.freq = FALSE, inbreeding = 0, mating.sys.males = 0,
   mating.sys.females = 0, clone = 0, run.length = 2, analysis = 1,
-  marker.type = 0, allelic.dropout = 0, error.rate = 0.02,
+  allelic.dropout = 0, error.rate = 0.02, print.all.colony.opt = FALSE,
   imputations = FALSE, imputations.group = "populations", num.tree = 100,
   iteration.rf = 10, split.number = 100, verbose = FALSE,
   parallel.core = 2, filename = "colony")
@@ -65,12 +65,13 @@ or \code{allele.freq = "overall"}.}
 2 (combined Pairwise-Likelihood Score and Full Likelihood).
 Default = \code{1}.}
 
-\item{marker.type}{Marker type.
-Default = \code{0} for codominant, see Colony manual.}
-
 \item{allelic.dropout}{Locus allelic dropout rate. Default = \code{0} See Colony manual.}
 
 \item{error.rate}{Locus error rate. Default = \code{0.02}, see COLONY manual.}
+
+\item{print.all.colony.opt}{(logical) Should all COLONY options be printed in the file.
+This require manual curation, for the file to work directly with COLONY.
+Default = \code{FALSE}.}
 
 \item{imputations}{Should a map-independent imputations of markers be
 computed. Available choices are: (1) \code{FALSE} for no imputation.

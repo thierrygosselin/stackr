@@ -1,15 +1,32 @@
 ## Summary and tables
 
-#' @title Haplotypes file summary
+#' @title Haplotypes file summary v2
 #' @description STACKS batch_x.haplotypes.tsv file summary.
 #' Output summary table for populations with putative paralogs,
-#' consensus, monomorphic and polymorphic loci.
+#' consensus, monomorphic and polymorphic loci. 
+#' The haplotypes statistics for the observed and expected homozygosity and
+#' heterozygosity. Wright’s inbreeding coefficient (Fis), and a proxy measure of 
+#' the realized proportion of the genome that is identical by descent (IBDG),
+#' the FH measure based on the excess in the observed number of homozygous
+#' genotypes within an individual relative to the mean number of homozygous 
+#' genotypes expected under random mating 
+#' (Keller et al., 2011; Kardos et al., 2015). 
+#' The nucleotide diversity (Pi) is also given. Pi measured here consider the 
+#' consensus loci in the catalog (no variation between population sequences).
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
+#' @param whitelist.loci (optional) A whitelist of loci and 
+#' a column header 'LOCUS'.
+#' The whitelist is in the directory (e.g. "whitelist.txt").
+#' @param blacklist.id (optional) A blacklist with individual ID and
+#' a column header 'INDIVIDUALS'. The blacklist is in the directory
+#'  (e.g. "blacklist.txt").
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
 #' @param pop.levels An optional character string with your populations ordered.
+#' @param read.length The length in nucleotide of your reads (e.g. 80 or 100).
+#' @import stringdist
 #' @return The function returns a list with the summary, the paralogs and
 #' consensus loci by populations and unique loci (use $ to access each 
 #' components).
@@ -17,14 +34,38 @@
 #' blacklist of unique putative paralogs and unique consensus loci 
 #' and a summary of the haplotypes file by population.
 #' @details haplo.summary <- haplotype.file.summary$summary
+#'
 #' paralogs.pop <- haplotype.file.summary$paralogs.pop
+#' 
 #' paralogs.loci <- haplotype.file.summary$paralogs.loci
+#' 
 #' consensus.pop <- haplotype.file.summary$consensus.pop
+#' 
 #' consensus.loci <- haplotype.file.summary$consensus.loci
-#' @rdname summary_polymorphism_haplotypes
+#' @rdname summary_haplotypes_v2
 #' @export 
+#' @references Keller MC, Visscher PM, Goddard ME (2011)
+#' Quantification of inbreeding due to distant ancestors and its detection
+#'  using dense single nucleotide polymorphism data. Genetics, 189, 237–249.
+#' @references Kardos M, Luikart G, Allendorf FW (2015)
+#' Measuring individual inbreeding in the age of genomics: marker-based
+#' measures are better than pedigrees. Heredity, 115, 63–72.
+#' @references Nei M, Li WH (1979)
+#' Mathematical model for studying genetic variation in terms of 
+#' restriction endonucleases. 
+#' Proceedings of the National Academy of Sciences of 
+#' the United States of America, 76, 5269–5273.
+#' #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com} and 
+#' Anne-Laure Ferchaud \email{annelaureferchaud@@gmail.com}
 
-summary_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.levels) {
+
+summary_haplotypes <- function(haplotypes.file, 
+                               whitelist.loci = NULL, 
+                               blacklist.id = NULL, 
+                               pop.id.start, 
+                               pop.id.end, 
+                               pop.levels, 
+                               read.length) {
   
   POP_ID <- NULL
   POLYMORPHISM <- NULL
@@ -39,22 +80,103 @@ summary_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.le
   POLYMORPHIC <- NULL
   TOTAL <- NULL
   ALLELES_COUNT_MAX <- NULL
-  
+  IND_LEVEL_POLYMORPHISM <- NULL
+  N_GENOT <- NULL
+  ALLELE_GROUP <- NULL
+  ALLELES <- NULL
+  N2 <- NULL
+  FREQ <- NULL
+  FREQ2 <- NULL
+  HOM_O <- NULL
+  HOM_E <- NULL
+  HET_O <- NULL
+  HET_E <- NULL
+  FH <- NULL
+  ALT <- NULL
+  REF <- NULL
+  DIV <- NULL
+  NO_DIV <- NULL
+  PI <- NULL
   
   # Import haplotype file
-  batch_1.haplotypes <- read_tsv(haplotypes.file, col_names = T) %>%
+  haplotype <- read_tsv(haplotypes.file, col_names = T) %>%
     rename(LOCUS =`Catalog ID`) %>%
-    gather(SAMPLES, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
+    gather(INDIVIDUALS, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
     mutate(
-      POP_ID = str_sub(SAMPLES, pop.id.start, pop.id.end),
+      POP_ID = str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
       POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
     )
   
+  # Whitelist-------------------------------------------------------------------
+  if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
+    message("Whitelist of loci: from the directory")
+    whitelist <- read_tsv(whitelist.loci, col_names = T) %>%
+      rename(Catalog.ID = LOCUS)
+  } else if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "FALSE") {
+    message("Whitelist of loci: from your global environment")
+    whitelist <- whitelist.loci %>%
+      rename(Catalog.ID = LOCUS)
+  } else {
+    message("Whitelist of loci: no")
+    whitelist <- NULL
+  }
   
-  # Locus with > 2 alleles by pop
+  # Blacklist-------------------------------------------------------------------
+  if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "TRUE") {
+    message("Blacklisted id: file from the directory")
+    blacklist.id <- read_tsv(blacklist.id, col_names = T)    
+  } else if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "FALSE") {
+    message("Blacklisted id: object from your global environment")
+    blacklist.id <- blacklist.id
+    
+  } else {
+    message("Blacklisted id: no")
+    blacklist.id <- NULL
+  }
+  
+  if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
+    
+    # Combination 1: No whitelist and No blacklist -----------------------------
+    haplotype <- haplotype    
+    
+  } else if (is.null(whitelist.loci) == FALSE & is.null(blacklist.id) == TRUE) {
+    
+    # Combination 2: Using whitelist, but No blacklist -------------------------
+    
+    # just whitelist.loci, NO Blacklist of individual
+    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
+      semi_join(whitelist, by = "Catalog.ID") %>% 
+      arrange(Catalog.ID)
+    
+  } else if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == FALSE) {
+    
+    # Combination 3: Using a blacklist of id, but No whitelist -----------------
+    
+    # NO whitelist, JUST Blacklist of individual
+    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
+      mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
+      anti_join(blacklist.id, by = "INDIVIDUALS") %>%
+      arrange(Catalog.ID)
+    
+  } else {
+    # Combination 4: Using a whitelist and blacklist---------------------------
+    
+    # whitelist.loci + Blacklist of individual
+    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
+      semi_join(whitelist, by = "Catalog.ID") %>%
+      mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
+      anti_join(blacklist.id, by = "INDIVIDUALS") %>%
+      arrange(Catalog.ID)
+  }
+  
+  # dump unused object
+  whitelist <- NULL
+  blacklist.id <- NULL
+  
+  # Locus with > 2 alleles by pop ----------------------------------------------
   # Create a blacklist of catalog loci with paralogs
-  
-  paralogs.pop <- batch_1.haplotypes %>%
+  message("Looking for paralogs...")
+  paralogs.pop <- haplotype %>%
     mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/")) %>%
     group_by(LOCUS, POP_ID) %>%
     summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>%
@@ -75,9 +197,14 @@ summary_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.le
               sep = "\t", row.names = F, col.names = T, quote = F)
   
   paralogs.pop
+  # Haplo filtered paralogs
+  haplo.filtered.paralogs <- haplotype %>%
+    filter(!LOCUS %in% blacklist.loci.paralogs$LOCUS)
+ 
+  # Locus with concensus alleles-----------------------------------------------
+  message("Looking for consensus...")
   
-  # Locus with concensus alleles
-  consensus.pop <- batch_1.haplotypes %>%
+  consensus.pop <- haplotype %>%
     mutate(CONSENSUS = stri_count_fixed(HAPLOTYPES, "consensus")) %>%
     group_by(LOCUS, POP_ID) %>%
     summarise(CONSENSUS_MAX = max(CONSENSUS)) %>%
@@ -85,8 +212,6 @@ summary_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.le
     mutate(CONSENSUS = rep("consensus", times = n())) %>%
     select(LOCUS, POP_ID, CONSENSUS)
   
-  
-  # Number of loci in the catalog with consensus alleles
   
   blacklist.loci.consensus <- consensus.pop %>%
     group_by(LOCUS) %>%
@@ -99,67 +224,236 @@ summary_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.le
               sep = "\t", row.names = F, col.names = T, quote = F)
   
   consensus.pop  
+  # Haplo filtered for consensus 
+  haplo.filtered.consensus <- haplotype %>%
+    filter(!LOCUS %in% consensus.pop$LOCUS)
+
+  # Haplo filtered for consensus and paralogs
+  haplo.filtered.consensus.paralogs <- haplotype %>%
+    filter(!LOCUS %in% consensus.pop$LOCUS)%>%
+    filter(!LOCUS %in% blacklist.loci.paralogs$LOCUS)
+ 
   
-  # Summary dataframe
-  summary.pop <- batch_1.haplotypes %>%
-    filter(subset =! LOCUS %in% consensus.pop$LOCUS) %>%
+  # Summary dataframe by individual---------------------------------------------
+  message("Genome-Wide Identity-By-Descent calculations (FH)...")
+  
+   
+  summary.ind <- haplo.filtered.consensus.paralogs %>%
     mutate(
-      ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/")
+      ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/"),
+      IND_LEVEL_POLYMORPHISM = ifelse(HAPLOTYPES == "-", "missing",
+                                      ifelse(ALLELES_COUNT == 0 & HAPLOTYPES != "-", "mono", "poly"))
     ) %>%
-    arrange(LOCUS) %>%
-    group_by(POP_ID, LOCUS) %>%
+    group_by(INDIVIDUALS) %>%
     summarise(
-      ALLELES_COUNT_SUM = sum(ALLELES_COUNT)
-    ) %>%
+      MONOMORPHIC = length(IND_LEVEL_POLYMORPHISM[IND_LEVEL_POLYMORPHISM == "mono"]),
+      POLYMORPHIC = length(IND_LEVEL_POLYMORPHISM[IND_LEVEL_POLYMORPHISM == "poly"]),
+      MISSING = length(IND_LEVEL_POLYMORPHISM[IND_LEVEL_POLYMORPHISM == "missing"]),
+      N_GENOT = MONOMORPHIC + POLYMORPHIC,
+      HOM_O = MONOMORPHIC/N_GENOT,
+      HET_O = POLYMORPHIC/N_GENOT
+    ) %>% 
     mutate(
-      POP_LEVEL_POLYMORPHISM = ifelse(ALLELES_COUNT_SUM == 0, "mono", "poly")
+      POP_ID = str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+      POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
+    ) %>% 
+    arrange(POP_ID, INDIVIDUALS)
+  
+  freq.pop <- haplo.filtered.consensus.paralogs %>% 
+    filter(HAPLOTYPES != "-") %>% 
+    group_by(LOCUS, POP_ID) %>%
+    mutate(N = length(INDIVIDUALS)) %>% 
+    group_by(LOCUS, POP_ID, HAPLOTYPES) %>%
+    mutate(
+      ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/"),
+      POP_LEVEL_POLYMORPHISM = ifelse(ALLELES_COUNT == 0, "mono", "poly")
+    ) %>% 
+    separate(
+      col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
+      sep = "/", extra = "drop", remove = F
     ) %>%
+    mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>% 
+    gather(ALLELE_GROUP, ALLELES, -c(LOCUS, Cnt, INDIVIDUALS, POP_ID, HAPLOTYPES, N, ALLELES_COUNT, POP_LEVEL_POLYMORPHISM )) %>%
+    mutate(N2 = N * 2) %>% 
+    group_by(LOCUS, POP_ID, ALLELES) %>% 
     summarise(
-      MONOMORPHIC = length(POP_LEVEL_POLYMORPHISM[POP_LEVEL_POLYMORPHISM == "mono"]),
-      POLYMORPHIC = length(POP_LEVEL_POLYMORPHISM[POP_LEVEL_POLYMORPHISM == "poly"])
-    ) %>%
-    full_join(
-      consensus.pop %>%
-        group_by(POP_ID) %>%
-        summarise(CONSENSUS = n_distinct(LOCUS)),
-      by = "POP_ID"
-    ) %>%
+      n = length(ALLELES),
+      N = mean(N2),
+      FREQ = n/N,
+      FREQ2 = FREQ * FREQ
+    ) %>% 
     group_by(POP_ID) %>%
+    summarise(HOM_E = sum(FREQ2)/n_distinct(LOCUS))
+  
+  # IBDg with FH ---------------------------------------------------------------
+  
+  fhi <- summary.ind %>% 
+    full_join(freq.pop, by = "POP_ID") %>% 
     mutate(
-      TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS
-    ) %>%
-    full_join(
-      paralogs.pop %>%
-        group_by(POP_ID) %>%
-        summarise(PARALOGS = n_distinct(LOCUS)),
-      by = "POP_ID"
-    ) %>%
-    mutate(
-      MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
-      POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
-      PARALOG_PROP = round(PARALOGS/TOTAL, 4)
+      FH = ((HOM_O - HOM_E)/(N_GENOT - HOM_E))
     )
   
-  total <- batch_1.haplotypes %>%
-    filter(subset =! LOCUS %in% consensus.pop$LOCUS) %>%
-    filter(HAPLOTYPES != "-") %>%
-    select(-Cnt, -SAMPLES, -POP_ID) %>%
-    group_by(LOCUS, HAPLOTYPES) %>%
-    distinct(HAPLOTYPES) %>%
-    mutate(
-      ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/")
+  fh.pop <- fhi %>% 
+    group_by(POP_ID) %>% 
+    summarise(
+      HOM_O = round(mean(HOM_O), 6),
+      HOM_E = round(mean(HOM_E), 6),
+      HET_O = round(mean(1-HOM_O), 6),
+      HET_E = round(mean(1-HOM_E), 6),
+      FIS = ifelse(HET_O == 0, 0, round (((HET_E - HET_O) / HET_E), 6)),
+      FH = mean(FH)
+    )
+  
+  fh.tot <- fhi %>% 
+    summarise(
+      HOM_O = round(mean(HOM_O), 6),
+      HOM_E = round(mean(HOM_E), 6),
+      HET_O = round(mean(1-HOM_O), 6),
+      HET_E = round(mean(1-HOM_E), 6),
+      FIS = ifelse(HET_O == 0, 0, round (((HET_E - HET_O) / HET_E), 6)),
+      FH = mean(FH)
+    )
+  
+  fh.tot <- data_frame(POP_ID="OVERALL") %>%
+    bind_cols(fh.tot)
+  fh.res <- bind_rows(fh.pop, fh.tot) %>% select(-POP_ID)
+  
+  fhi <- NULL
+  freq.pop <- NULL
+  summary.ind <- NULL
+  fh.tot <- NULL
+  fh.pop <- NULL
+  
+  
+   # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
+  message("Nucleotide diversity (Pi) calculations, take a break...")
+  pi.data <- haplo.filtered.paralogs %>%
+    select(-Cnt) %>% 
+    filter(HAPLOTYPES != "-") %>% 
+    group_by(LOCUS, POP_ID, HAPLOTYPES) %>%
+    separate(
+      col = HAPLOTYPES, into = c("REF", "ALT"), 
+      sep = "/", extra = "drop", remove = T
     ) %>%
-    arrange(LOCUS) %>%
+    mutate(ALT = ifelse(is.na(ALT), REF, ALT)) %>%
+    gather(ALLELE_GROUP, ALLELES, -c(LOCUS, INDIVIDUALS, POP_ID))
+  
+  # Pi: by pop------------------------------------------------------------------
+  df.split.pop <- split(x = pi.data, f = pi.data$POP_ID) # slip data frame by population
+  pop.list <- names(df.split.pop) # list the pop
+  pi.res <-list() # create empty list
+  
+  for (i in pop.list) {
+    pi <- function(y, read.length) {
+      
+      if(length(unique(y)) <= 1){
+        PI <- 0
+        PI <- data.frame(PI)
+      } else{
+        
+        #1 Get all pairwise comparison
+        allele_pairwise <- combn(unique(y), 2)
+        # allele_pairwise
+        
+        #2 Calculate pairwise nucleotide mismatches
+        pairwise_mismatches <- apply(allele_pairwise, 2, function(z) {
+          stringdist::stringdist(a = z[1], b = z[2], method = "hamming")
+        })
+        # pairwise_mismatches
+        
+        #3 Calculate allele frequency
+        allele_freq <- table(y)/length(y)
+        # allele_freq
+        
+        #4 Calculate nucleotide diversity from pairwise mismatches and allele frequency
+        pi.prep <- apply(allele_pairwise, 2, function(y) allele_freq[y[1]] * allele_freq[y[2]])
+        # pi.prep
+        # read.length <- 80
+        PI <- sum(pi.prep*pairwise_mismatches)/read.length
+        PI <- data.frame(PI)
+      }
+      return(PI)
+    }
+    
+    pop.data <- df.split.pop[[i]]
+    pi.pop.data <- pop.data %>% 
+      group_by(LOCUS, POP_ID) %>% 
+      do(., pi(y = .$ALLELES, read.length = read.length))
+    pi.res[[i]] <- pi.pop.data
+    # message of progress for pi calculation by population
+    pop.finished <- paste("Completed calculations for pop ", i, sep = "")
+    message(pop.finished)
+  }
+  pi.res <- as.data.frame(bind_rows(pi.res))
+  pi.res <- pi.res %>% group_by(POP_ID) %>% summarise(PI_NEI = mean(PI))
+  
+  df.split.pop <- NULL
+  pop.list <- NULL
+
+
+  # Pi: overall  ---------------------------------------------------------------
+  message("Calculating Pi overall")
+  pi.overall <- pi.data %>% 
+    group_by(LOCUS) %>% 
+    do(., pi(y = .$ALLELES, read.length = read.length)) %>% 
+    ungroup() %>%
+    summarise(PI_NEI = mean(PI))
+  
+  pi.tot <- data_frame(POP_ID="OVERALL") %>% bind_cols(pi.overall)
+  
+  # Combine the pop and overall data
+  pi.res <- bind_rows(pi.res, pi.tot) %>% select(-POP_ID)
+
+  # Summary dataframe by pop ---------------------------------------------------
+  message("Working on the summary table")
+  
+  summary.prep <- haplo.filtered.consensus %>% 
+  filter(HAPLOTYPES != "-") %>%
+  select(-Cnt, -INDIVIDUALS) %>%
+  separate(
+    col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
+    sep = "/", extra = "drop", remove = T
+  ) %>%
+  mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
+  gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
+
+summary.pop <- summary.prep %>%
+  group_by(LOCUS, POP_ID) %>%
+  distinct(ALLELES) %>% 
+  summarise(ALLELES_COUNT = length(ALLELES)) %>%
+  group_by(POP_ID) %>% 
+  summarise(
+    MONOMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT == 1]),
+    POLYMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT >= 2])
+  ) %>%
+  full_join(
+    consensus.pop %>%
+      group_by(POP_ID) %>%
+      summarise(CONSENSUS = n_distinct(LOCUS)),
+    by = "POP_ID"
+  ) %>%
+  group_by(POP_ID) %>%
+  mutate(TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS) %>%
+  full_join(
+    paralogs.pop %>%
+      group_by(POP_ID) %>%
+      summarise(PARALOGS = n_distinct(LOCUS)),
+    by = "POP_ID"
+  ) %>%
+  mutate(
+    MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
+    POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
+    PARALOG_PROP = round(PARALOGS/TOTAL, 4)
+  )
+
+
+total <- summary.prep %>%
     group_by(LOCUS) %>%
+    distinct(ALLELES) %>% 
+    summarise(ALLELES_COUNT = length(ALLELES)) %>%
     summarise(
-      ALLELES_COUNT_MAX = max(ALLELES_COUNT)
-    ) %>%
-    mutate(
-      POLYMORPHISM = ifelse(ALLELES_COUNT_MAX == 0, "mono", "poly")
-    ) %>%
-    summarise(
-      MONOMORPHIC = length(POLYMORPHISM[POLYMORPHISM == "mono"]),
-      POLYMORPHIC = length(POLYMORPHISM[POLYMORPHISM == "poly"])
+      MONOMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT == 1]),
+      POLYMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT >= 2])
     ) %>%
     bind_cols(
       blacklist.loci.consensus %>%
@@ -167,9 +461,7 @@ summary_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.le
         summarise(CONSENSUS = n()) %>% 
         select(CONSENSUS)
     ) %>%
-    mutate(
-      TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS
-    ) %>%
+    mutate(TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS) %>%
     bind_cols(
       blacklist.loci.paralogs %>%
         ungroup %>%
@@ -181,10 +473,12 @@ summary_haplotypes <- function(haplotypes.file, pop.id.start, pop.id.end, pop.le
       POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
       PARALOG_PROP = round(PARALOGS/TOTAL, 4)
     )
+  
   total.res <- data_frame(POP_ID="OVERALL") %>%
     bind_cols(total)
   
   summary <- bind_rows(summary.pop, total.res)
+  summary <- bind_cols(summary, fh.res, pi.res)
   
   write.table(summary, "haplotype.catalog.loci.summary.pop.tsv", 
               sep = "\t", row.names = F, col.names = T, quote = F)
@@ -197,7 +491,7 @@ The number of loci in the catalog with consensus alleles = %s LOCI
 1. blacklist.loci.paralogs.txt
 2. blacklist.loci.consensus.txt
 3. haplotype.catalog.loci.summary.pop.txt", 
-    n_distinct(batch_1.haplotypes$LOCUS),
+    n_distinct(haplotype$LOCUS),
     n_distinct(paralogs.pop$LOCUS),
     n_distinct(consensus.pop$LOCUS),
     getwd()
@@ -221,12 +515,13 @@ The number of loci in the catalog with consensus alleles = %s LOCI
 
 
 
+
 #' @title Import and summarise the batch_x.hapstats.tsv file
 #' @description Import and summarise the batch_x.hapstats.tsv file.
 #' Necessary preparation for density distribution and box plot figures.
 #' @param data The 'batch_x.hapstats.tsv' created by STACKS.
 #' @param pop.num The number of populations analysed.
-#' @param pop.col.types Integer or Character used in STACKS populations module?
+#' @param pop.col.types \code{"integer"} or \code{"character"} used in STACKS populations module?
 #' @param pop.integer.equi When Integer was used for your population id,
 #' give the character equivalence
 #' @param pop.levels A character string with your populations in order.

@@ -11,7 +11,7 @@ summary_hapstats(data, pop.num, pop.col.types, pop.integer.equi, pop.levels)
 
 \item{pop.num}{The number of populations analysed.}
 
-\item{pop.col.types}{Integer or Character used in STACKS populations module?}
+\item{pop.col.types}{\code{"integer"} or \code{"character"} used in STACKS populations module?}
 
 \item{pop.integer.equi}{When Integer was used for your population id,
 give the character equivalence}
