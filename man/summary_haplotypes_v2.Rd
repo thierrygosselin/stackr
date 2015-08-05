@@ -30,7 +30,7 @@ in the name of your individual sample.}
 }
 \value{
 The function returns a list with the summary, the paralogs and
-consensus loci by populations and unique loci (use $ to access each
+consensus loci by populations and unique loci and 3 plots (use $ to access each
 components).
 Write 3 files in the working directory:
 blacklist of unique putative paralogs and unique consensus loci
@@ -51,6 +51,8 @@ The nucleotide diversity (Pi) is also given. Pi measured here consider the
 consensus loci in the catalog (no variation between population sequences).
 }
 \details{
+If the object for the function is 'haplotype.file.summary' then:
+
 haplo.summary <- haplotype.file.summary$summary
 
 paralogs.pop <- haplotype.file.summary$paralogs.pop
@@ -60,6 +62,12 @@ paralogs.loci <- haplotype.file.summary$paralogs.loci
 consensus.pop <- haplotype.file.summary$consensus.pop
 
 consensus.loci <- haplotype.file.summary$consensus.loci
+
+scatter.plot <- haplotype.file.summary$scatter.plot
+
+boxplot.pi <- haplotype.file.summary$boxplot.pi
+
+boxplot.fh <- haplotype.file.summary$boxplot.fh
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com} and
@@ -79,6 +87,5 @@ Mathematical model for studying genetic variation in terms of
 restriction endonucleases.
 Proceedings of the National Academy of Sciences of
 the United States of America, 76, 5269–5273.
-#'
 }
 

@@ -28,12 +28,14 @@
 #' @param read.length The length in nucleotide of your reads (e.g. 80 or 100).
 #' @import stringdist
 #' @return The function returns a list with the summary, the paralogs and
-#' consensus loci by populations and unique loci (use $ to access each 
-#' components).
+#' consensus loci by populations and unique loci and 3 plots (use $ to access each 
+#' components). 
 #' Write 3 files in the working directory:
 #' blacklist of unique putative paralogs and unique consensus loci 
 #' and a summary of the haplotypes file by population.
-#' @details haplo.summary <- haplotype.file.summary$summary
+#' @details If the object for the function is 'haplotype.file.summary' then:
+#' 
+#' haplo.summary <- haplotype.file.summary$summary
 #'
 #' paralogs.pop <- haplotype.file.summary$paralogs.pop
 #' 
@@ -42,6 +44,12 @@
 #' consensus.pop <- haplotype.file.summary$consensus.pop
 #' 
 #' consensus.loci <- haplotype.file.summary$consensus.loci
+#' 
+#' scatter.plot <- haplotype.file.summary$scatter.plot
+#' 
+#' boxplot.pi <- haplotype.file.summary$boxplot.pi
+#' 
+#' boxplot.fh <- haplotype.file.summary$boxplot.fh
 #' @rdname summary_haplotypes_v2
 #' @export 
 #' @references Keller MC, Visscher PM, Goddard ME (2011)
@@ -55,7 +63,7 @@
 #' restriction endonucleases. 
 #' Proceedings of the National Academy of Sciences of 
 #' the United States of America, 76, 5269–5273.
-#' #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com} and 
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com} and 
 #' Anne-Laure Ferchaud \email{annelaureferchaud@@gmail.com}
 
 
@@ -79,26 +87,22 @@ summary_haplotypes <- function(haplotypes.file,
   MONOMORPHIC <- NULL
   POLYMORPHIC <- NULL
   TOTAL <- NULL
-  ALLELES_COUNT_MAX <- NULL
   IND_LEVEL_POLYMORPHISM <- NULL
   N_GENOT <- NULL
   ALLELE_GROUP <- NULL
   ALLELES <- NULL
-  N2 <- NULL
-  FREQ <- NULL
-  FREQ2 <- NULL
   HOM_O <- NULL
   HOM_E <- NULL
   HET_O <- NULL
   HET_E <- NULL
   FH <- NULL
-  ALT <- NULL
-  REF <- NULL
-  DIV <- NULL
-  NO_DIV <- NULL
   PI <- NULL
+  HOM <- NULL
+  HET <- NULL
+  DIPLO <- NULL
+  FREQ_ALLELES <- NULL
   
-  # Import haplotype file
+  # Import haplotype file ------------------------------------------------------
   haplotype <- read_tsv(haplotypes.file, col_names = T) %>%
     rename(LOCUS =`Catalog ID`) %>%
     gather(INDIVIDUALS, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
@@ -107,7 +111,7 @@ summary_haplotypes <- function(haplotypes.file,
       POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
     )
   
-  # Whitelist-------------------------------------------------------------------
+  # Whitelist loci -------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
     message("Whitelist of loci: from the directory")
     whitelist <- read_tsv(whitelist.loci, col_names = T) %>%
@@ -121,7 +125,7 @@ summary_haplotypes <- function(haplotypes.file,
     whitelist <- NULL
   }
   
-  # Blacklist-------------------------------------------------------------------
+  # Blacklisted individuals ----------------------------------------------------
   if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "TRUE") {
     message("Blacklisted id: file from the directory")
     blacklist.id <- read_tsv(blacklist.id, col_names = T)    
@@ -142,8 +146,6 @@ summary_haplotypes <- function(haplotypes.file,
   } else if (is.null(whitelist.loci) == FALSE & is.null(blacklist.id) == TRUE) {
     
     # Combination 2: Using whitelist, but No blacklist -------------------------
-    
-    # just whitelist.loci, NO Blacklist of individual
     haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
       semi_join(whitelist, by = "Catalog.ID") %>% 
       arrange(Catalog.ID)
@@ -151,8 +153,6 @@ summary_haplotypes <- function(haplotypes.file,
   } else if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == FALSE) {
     
     # Combination 3: Using a blacklist of id, but No whitelist -----------------
-    
-    # NO whitelist, JUST Blacklist of individual
     haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
@@ -160,8 +160,6 @@ summary_haplotypes <- function(haplotypes.file,
     
   } else {
     # Combination 4: Using a whitelist and blacklist---------------------------
-    
-    # whitelist.loci + Blacklist of individual
     haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
       semi_join(whitelist, by = "Catalog.ID") %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
@@ -173,7 +171,7 @@ summary_haplotypes <- function(haplotypes.file,
   whitelist <- NULL
   blacklist.id <- NULL
   
-  # Locus with > 2 alleles by pop ----------------------------------------------
+  # Paralogs... Locus with > 2 alleles by individuals --------------------------
   # Create a blacklist of catalog loci with paralogs
   message("Looking for paralogs...")
   paralogs.pop <- haplotype %>%
@@ -183,8 +181,6 @@ summary_haplotypes <- function(haplotypes.file,
     filter(POLYMORPHISM_MAX > 1) %>%
     mutate(PARALOGS = rep("paralogs", times = n())) %>%
     select(LOCUS, POP_ID, PARALOGS)
-  
-  
   
   blacklist.loci.paralogs <- paralogs.pop %>%
     group_by(LOCUS) %>%
@@ -197,10 +193,11 @@ summary_haplotypes <- function(haplotypes.file,
               sep = "\t", row.names = F, col.names = T, quote = F)
   
   paralogs.pop
+  
   # Haplo filtered paralogs
   haplo.filtered.paralogs <- haplotype %>%
     filter(!LOCUS %in% blacklist.loci.paralogs$LOCUS)
- 
+  
   # Locus with concensus alleles-----------------------------------------------
   message("Looking for consensus...")
   
@@ -211,7 +208,6 @@ summary_haplotypes <- function(haplotypes.file,
     filter(CONSENSUS_MAX > 0) %>%
     mutate(CONSENSUS = rep("consensus", times = n())) %>%
     select(LOCUS, POP_ID, CONSENSUS)
-  
   
   blacklist.loci.consensus <- consensus.pop %>%
     group_by(LOCUS) %>%
@@ -224,76 +220,73 @@ summary_haplotypes <- function(haplotypes.file,
               sep = "\t", row.names = F, col.names = T, quote = F)
   
   consensus.pop  
+  
   # Haplo filtered for consensus 
   haplo.filtered.consensus <- haplotype %>%
     filter(!LOCUS %in% consensus.pop$LOCUS)
-
+  
   # Haplo filtered for consensus and paralogs
   haplo.filtered.consensus.paralogs <- haplotype %>%
     filter(!LOCUS %in% consensus.pop$LOCUS)%>%
     filter(!LOCUS %in% blacklist.loci.paralogs$LOCUS)
- 
   
   # Summary dataframe by individual---------------------------------------------
   message("Genome-Wide Identity-By-Descent calculations (FH)...")
   
-   
+  
   summary.ind <- haplo.filtered.consensus.paralogs %>%
     mutate(
       ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/"),
       IND_LEVEL_POLYMORPHISM = ifelse(HAPLOTYPES == "-", "missing",
-                                      ifelse(ALLELES_COUNT == 0 & HAPLOTYPES != "-", "mono", "poly"))
+                                      ifelse(ALLELES_COUNT == 0 & HAPLOTYPES != "-", "hom", "het"))
     ) %>%
     group_by(INDIVIDUALS) %>%
     summarise(
-      MONOMORPHIC = length(IND_LEVEL_POLYMORPHISM[IND_LEVEL_POLYMORPHISM == "mono"]),
-      POLYMORPHIC = length(IND_LEVEL_POLYMORPHISM[IND_LEVEL_POLYMORPHISM == "poly"]),
+      HOM = length(IND_LEVEL_POLYMORPHISM[IND_LEVEL_POLYMORPHISM == "hom"]),
+      HET = length(IND_LEVEL_POLYMORPHISM[IND_LEVEL_POLYMORPHISM == "het"]),
       MISSING = length(IND_LEVEL_POLYMORPHISM[IND_LEVEL_POLYMORPHISM == "missing"]),
-      N_GENOT = MONOMORPHIC + POLYMORPHIC,
-      HOM_O = MONOMORPHIC/N_GENOT,
-      HET_O = POLYMORPHIC/N_GENOT
+      N_GENOT = HOM + HET,
+      HOM_O = HOM/N_GENOT,
+      HET_O = HET/N_GENOT
     ) %>% 
-    mutate(
-      POP_ID = str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
-      POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
-    ) %>% 
+    mutate(POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end), 
+                           levels = pop.levels, ordered = T)) %>% 
     arrange(POP_ID, INDIVIDUALS)
   
-  freq.pop <- haplo.filtered.consensus.paralogs %>% 
+  freq.alleles.loci.pop <- haplo.filtered.consensus.paralogs %>% 
     filter(HAPLOTYPES != "-") %>% 
     group_by(LOCUS, POP_ID) %>%
-    mutate(N = length(INDIVIDUALS)) %>% 
-    group_by(LOCUS, POP_ID, HAPLOTYPES) %>%
-    mutate(
-      ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/"),
-      POP_LEVEL_POLYMORPHISM = ifelse(ALLELES_COUNT == 0, "mono", "poly")
-    ) %>% 
+    mutate(DIPLO= length(INDIVIDUALS) *2) %>% 
     separate(
       col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
       sep = "/", extra = "drop", remove = F
     ) %>%
-    mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>% 
-    gather(ALLELE_GROUP, ALLELES, -c(LOCUS, Cnt, INDIVIDUALS, POP_ID, HAPLOTYPES, N, ALLELES_COUNT, POP_LEVEL_POLYMORPHISM )) %>%
-    mutate(N2 = N * 2) %>% 
+    mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
+    select(-Cnt, -HAPLOTYPES, -INDIVIDUALS) %>% 
+    gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID, DIPLO)) %>%
     group_by(LOCUS, POP_ID, ALLELES) %>% 
     summarise(
-      n = length(ALLELES),
-      N = mean(N2),
-      FREQ = n/N,
-      FREQ2 = FREQ * FREQ
+      FREQ_ALLELES = length(ALLELES)/mean(DIPLO),
+      HOM_E = FREQ_ALLELES * FREQ_ALLELES
     ) %>% 
+    select(-FREQ_ALLELES)
+  
+  freq.loci.pop<- freq.alleles.loci.pop %>% 
+    group_by(LOCUS, POP_ID) %>%
+    summarise(HOM_E = sum(HOM_E)) 
+  
+  freq.pop <- freq.loci.pop %>% 
     group_by(POP_ID) %>%
-    summarise(HOM_E = sum(FREQ2)/n_distinct(LOCUS))
+    summarise(HOM_E = mean(HOM_E))
+  
   
   # IBDg with FH ---------------------------------------------------------------
   
-  fhi <- summary.ind %>% 
+  fh.i <- summary.ind %>% 
     full_join(freq.pop, by = "POP_ID") %>% 
-    mutate(
-      FH = ((HOM_O - HOM_E)/(N_GENOT - HOM_E))
-    )
+    mutate(FH = ((HOM_O - HOM_E)/(N_GENOT - HOM_E)))
   
-  fh.pop <- fhi %>% 
+  fh.pop <- fh.i %>% 
     group_by(POP_ID) %>% 
     summarise(
       HOM_O = round(mean(HOM_O), 6),
@@ -304,7 +297,7 @@ summary_haplotypes <- function(haplotypes.file,
       FH = mean(FH)
     )
   
-  fh.tot <- fhi %>% 
+  fh.tot <- fh.i %>% 
     summarise(
       HOM_O = round(mean(HOM_O), 6),
       HOM_E = round(mean(HOM_E), 6),
@@ -318,32 +311,51 @@ summary_haplotypes <- function(haplotypes.file,
     bind_cols(fh.tot)
   fh.res <- bind_rows(fh.pop, fh.tot) %>% select(-POP_ID)
   
-  fhi <- NULL
+  # fh.i <- NULL
   freq.pop <- NULL
   summary.ind <- NULL
   fh.tot <- NULL
   fh.pop <- NULL
   
   
-   # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
-  message("Nucleotide diversity (Pi) calculations, take a break...")
+  # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
+  message("Nucleotide diversity (Pi) calculations")
+  
   pi.data <- haplo.filtered.paralogs %>%
     select(-Cnt) %>% 
     filter(HAPLOTYPES != "-") %>% 
-    group_by(LOCUS, POP_ID, HAPLOTYPES) %>%
     separate(
-      col = HAPLOTYPES, into = c("REF", "ALT"), 
+      col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
       sep = "/", extra = "drop", remove = T
     ) %>%
-    mutate(ALT = ifelse(is.na(ALT), REF, ALT)) %>%
-    gather(ALLELE_GROUP, ALLELES, -c(LOCUS, INDIVIDUALS, POP_ID))
+    mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
+  
+  # Pi: by individuals----------------------------------------------------------
+  message("Pi calculations by individuals...")
+  
+  pi.data.i <- pi.data %>%
+    mutate(
+      PI = (stringdist::stringdist(a = ALLELE1, b = ALLELE2, method = "hamming"))/read.length
+    ) %>% 
+    group_by(INDIVIDUALS) %>% 
+    summarise(PI = mean(PI))
+  
   
   # Pi: by pop------------------------------------------------------------------
-  df.split.pop <- split(x = pi.data, f = pi.data$POP_ID) # slip data frame by population
+  message("Pi calculations by populations, take a break...")
+  
+  pi.data.pop <- pi.data %>% 
+    gather(ALLELE_GROUP, ALLELES, -c(LOCUS, INDIVIDUALS, POP_ID))
+  
+  df.split.pop <- split(x = pi.data.pop, f = pi.data.pop$POP_ID) # slip data frame by population
   pop.list <- names(df.split.pop) # list the pop
   pi.res <-list() # create empty list
   
   for (i in pop.list) {
+    # message of progress for pi calculation by population
+    pop.pi.calculations <- paste("Pi calculations for pop ", i, sep = "")
+    message(pop.pi.calculations)
+    
     pi <- function(y, read.length) {
       
       if(length(unique(y)) <= 1){
@@ -374,26 +386,22 @@ summary_haplotypes <- function(haplotypes.file,
       }
       return(PI)
     }
-    
     pop.data <- df.split.pop[[i]]
     pi.pop.data <- pop.data %>% 
       group_by(LOCUS, POP_ID) %>% 
       do(., pi(y = .$ALLELES, read.length = read.length))
     pi.res[[i]] <- pi.pop.data
-    # message of progress for pi calculation by population
-    pop.finished <- paste("Completed calculations for pop ", i, sep = "")
-    message(pop.finished)
   }
   pi.res <- as.data.frame(bind_rows(pi.res))
   pi.res <- pi.res %>% group_by(POP_ID) %>% summarise(PI_NEI = mean(PI))
   
   df.split.pop <- NULL
   pop.list <- NULL
-
-
+  
+  
   # Pi: overall  ---------------------------------------------------------------
   message("Calculating Pi overall")
-  pi.overall <- pi.data %>% 
+  pi.overall <- pi.data.pop %>% 
     group_by(LOCUS) %>% 
     do(., pi(y = .$ALLELES, read.length = read.length)) %>% 
     ungroup() %>%
@@ -403,51 +411,51 @@ summary_haplotypes <- function(haplotypes.file,
   
   # Combine the pop and overall data
   pi.res <- bind_rows(pi.res, pi.tot) %>% select(-POP_ID)
-
+  
   # Summary dataframe by pop ---------------------------------------------------
   message("Working on the summary table")
   
   summary.prep <- haplo.filtered.consensus %>% 
-  filter(HAPLOTYPES != "-") %>%
-  select(-Cnt, -INDIVIDUALS) %>%
-  separate(
-    col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
-    sep = "/", extra = "drop", remove = T
-  ) %>%
-  mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
-  gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
-
-summary.pop <- summary.prep %>%
-  group_by(LOCUS, POP_ID) %>%
-  distinct(ALLELES) %>% 
-  summarise(ALLELES_COUNT = length(ALLELES)) %>%
-  group_by(POP_ID) %>% 
-  summarise(
-    MONOMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT == 1]),
-    POLYMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT >= 2])
-  ) %>%
-  full_join(
-    consensus.pop %>%
-      group_by(POP_ID) %>%
-      summarise(CONSENSUS = n_distinct(LOCUS)),
-    by = "POP_ID"
-  ) %>%
-  group_by(POP_ID) %>%
-  mutate(TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS) %>%
-  full_join(
-    paralogs.pop %>%
-      group_by(POP_ID) %>%
-      summarise(PARALOGS = n_distinct(LOCUS)),
-    by = "POP_ID"
-  ) %>%
-  mutate(
-    MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
-    POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
-    PARALOG_PROP = round(PARALOGS/TOTAL, 4)
-  )
-
-
-total <- summary.prep %>%
+    filter(HAPLOTYPES != "-") %>%
+    select(-Cnt, -INDIVIDUALS) %>%
+    separate(
+      col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
+      sep = "/", extra = "drop", remove = T
+    ) %>%
+    mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
+    gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
+  
+  summary.pop <- summary.prep %>%
+    group_by(LOCUS, POP_ID) %>%
+    distinct(ALLELES) %>% 
+    summarise(ALLELES_COUNT = length(ALLELES)) %>%
+    group_by(POP_ID) %>% 
+    summarise(
+      MONOMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT == 1]),
+      POLYMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT >= 2])
+    ) %>%
+    full_join(
+      consensus.pop %>%
+        group_by(POP_ID) %>%
+        summarise(CONSENSUS = n_distinct(LOCUS)),
+      by = "POP_ID"
+    ) %>%
+    group_by(POP_ID) %>%
+    mutate(TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS) %>%
+    full_join(
+      paralogs.pop %>%
+        group_by(POP_ID) %>%
+        summarise(PARALOGS = n_distinct(LOCUS)),
+      by = "POP_ID"
+    ) %>%
+    mutate(
+      MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
+      POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
+      PARALOG_PROP = round(PARALOGS/TOTAL, 4)
+    )
+  
+  
+  total <- summary.prep %>%
     group_by(LOCUS) %>%
     distinct(ALLELES) %>% 
     summarise(ALLELES_COUNT = length(ALLELES)) %>%
@@ -483,6 +491,60 @@ total <- summary.prep %>%
   write.table(summary, "haplotype.catalog.loci.summary.pop.tsv", 
               sep = "\t", row.names = F, col.names = T, quote = F)
   
+  
+  # Figures --------------------------------------------------------------------
+  fh.pi <- pi.data.i %>% 
+  full_join(
+    fh.i %>% select(INDIVIDUALS, POP_ID, FH)
+    , by = "INDIVIDUALS")
+  
+scatter.plot <- ggplot(fh.pi, aes(x = FH, y = PI)) + 
+  geom_point(aes(colour = POP_ID)) +
+  stat_smooth(method = lm, level = 0.95, fullrange = F, na.rm = T)+
+  labs(x = "Individual IBDg (FH)") + 
+  labs(y = "Individual nucleotide diversity (Pi)") +
+  theme(
+    axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
+    axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
+    legend.title = element_text(size = 10, family = "Helvetica", face = "bold"), 
+    legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
+    strip.text.y = element_text(angle = 0, size = 10, family = "Helvetica", face = "bold"), 
+    strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+  )
+
+
+boxplot.pi <-   ggplot(fh.pi, aes(x = factor(POP_ID), y = PI, na.rm = T))+
+    geom_violin(trim = F)+
+    geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
+    stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
+    labs(x = "Sampling sites")+
+    labs(y = "Individual nucleotide diversity (Pi)")+
+    theme(
+      legend.position = "none",
+      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
+      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
+      legend.title = element_text(size = 10, family = "Helvetica", face = "bold"),
+      legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
+      strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+    )
+    
+
+
+boxplot.fh <-   ggplot(fh.pi, aes(x = factor(POP_ID), y = FH, na.rm = T))+
+    geom_violin(trim = F)+
+    geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
+    stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
+    labs(x = "Sampling sites")+
+    labs(y = "Individual IBDg (FH)")+
+    theme(
+      legend.position = "none",
+      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
+      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
+      legend.title = element_text(size = 10, family = "Helvetica", face = "bold"),
+      legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
+      strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+    )
+  
   invisible(cat(sprintf(
     "The number of loci in the catalog = %s LOCI
 The number of putative paralogs loci in the catalog (> 2 alleles) = %s LOCI
@@ -504,7 +566,10 @@ The number of loci in the catalog with consensus alleles = %s LOCI
   results$paralogs.loci <- blacklist.loci.paralogs
   results$consensus.pop <- consensus.pop
   results$consensus.loci <- blacklist.loci.consensus
-  
+  results$scatter.plot <- scatter.plot
+  results$boxplot.pi <- boxplot.pi
+  results$boxplot.fh <- boxplot.fh
+    
   return(results)
   
 }
