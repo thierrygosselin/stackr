@@ -235,8 +235,8 @@ summary_haplotypes <- function(haplotypes.file,
   
   
   summary.ind <- haplo.filtered.consensus.paralogs %>%
+    mutate(ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/")) %>% 
     mutate(
-      ALLELES_COUNT = stri_count_fixed(HAPLOTYPES, "/"),
       IND_LEVEL_POLYMORPHISM = ifelse(HAPLOTYPES == "-", "missing",
                                       ifelse(ALLELES_COUNT == 0 & HAPLOTYPES != "-", "hom", "het"))
     ) %>%
