@@ -43,7 +43,7 @@ of restriction endonucleases. Proceedings of the National Academy of Sciences
 of the United States of America, 76, 5269–5273.
 
 **The *haplo2colony* function**
-* Converts the file to the required *COLONY* input file.
+* Converts the file to the required *COLONY* input file
 * Can filter the haplotypes file with a whitelist of loci 
 and a blacklist of individuals
 * Can impute the data with Random Forest or the most frequent category
