@@ -122,7 +122,7 @@ install.packages("randomForestSRC", type = "source")
 ```
 ## Example 
 
-** Using *haplo2genind* function to do a DAPC analysis of your data (5 steps)**
+**Using *haplo2genind* function to do a DAPC analysis of your data (5 steps).**
 
 Step 1. Load the necessary librairies, here is an example of how to do this:
 ```r
