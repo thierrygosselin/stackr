@@ -122,20 +122,20 @@ install.packages("randomForestSRC", type = "source")
 ```
 ## Example 
 
-** Using *haplo2genind* to do a DAPC analysis of your data.
+** Using *haplo2genind* function to do a DAPC analysis of your data (5 steps)**
 
-1. Load the necessary librairies, here is an example of how to do this:
+Step 1. Load the necessary librairies, here is an example of how to do this:
 ```r
 library(adegenet)
 library(stackr)
 ```
-2. Set your working directories (e.g. the path to your stacks output files and 
+Step 2. Set your working directories (e.g. the path to your stacks output files and 
 where you want the output to be saved)
 
 ```r
 setwd("/Users/thierry/Dropbox/brook_charr_pop/01_stacks_populations")
 ```
-3. Missing genotypes: Remove individuals with more that 30% of missing genotypes 
+Step 3. Missing genotypes: Remove individuals with more that 30% of missing genotypes 
 from *batch_1.haplotypes.tsv* file. Explore this parameter with different values. 
 I also feed the function a whitelist of loci that I want to keep (after filtering).
 We are interested in the the blacklisted id output ("blacklisted.id.30.txt"),
@@ -146,7 +146,7 @@ whitelist.loci = "new.whitelist.txt", pop.id.start = 5, pop.id.end = 7,
 missing.geno.threshold = 30)
 ```
 
-4. I use the *haplo2genind* function to convert the haplotype file created by 
+Step 4. I use the *haplo2genind* function to convert the haplotype file created by 
 **stacks** into a genind object ready to use in **adegenet**. 
 I use the whitelist of loci created after filtering the data and the blacklisted
 individuals with more than 30% missing genpotypes created above. I also ask for 
@@ -163,7 +163,7 @@ genind.sturgeon.noimputation <- genind.sturgeon$no.imputation
 genind.sturgeon.imputed <- genind.sturgeon$imputed
 ```
 
-5. These 2 genind objects can be use directly in **adegenet**:
+Step 5. These 2 genind objects can be use directly in **adegenet**:
 ```r
 dapc.optim.a.score <- optim.a.score(dapc(genind.sturgeon.imputed, n.da = 100, n.pca = 50))
 dapc.optim.a.score$best
