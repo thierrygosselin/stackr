@@ -56,7 +56,8 @@ This however requires manual curation of the file to work directly with COLONY.
 
 ## Roadmap of future developments:
 
-* Very soon: Joint Allele Frequency Spectrum from a *batch_x.sumstats.tsv* or a *batch_x.haplotypes.tsv* files
+* Very soon: Map-independent imputation of a VCF using Random Forest or the 
+most frequent category and Joint Allele Frequency Spectrum from a *batch_x.sumstats.tsv* or a *batch_x.haplotypes.tsv* files
 * Re-Integration with [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel)
 * Improved documentation and vignette
 * Workflow tutorial
