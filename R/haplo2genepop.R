@@ -209,14 +209,16 @@ haplo2genepop <- function(haplotypes.file,
                                             vectorize_all=F),
         POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
                         levels = pop.levels, ordered = T)
-      ) %>% 
-      arrange(Catalog.ID)
-  )
+      )
+    )
+
   # get the list of loci after filter  
   loci <- unique(haplo.filtered$Catalog.ID)
   
   haplo.filtered <- haplo.filtered %>%
-    dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
+    dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") %>% 
+    arrange(POP_ID, INDIVIDUALS)
+  
   
   message("step 1/5: completed")
   
@@ -264,16 +266,18 @@ haplo2genepop <- function(haplotypes.file,
       group_by(GROUP) %>% 
       mutate_each(funs(as.integer), -c(ALLELE, INDIVIDUALS, POP_ID, GROUP)) %>%
       ungroup() %>% 
-      select(-GROUP, -POP_ID) %>% 
-      melt(id.vars = c("INDIVIDUALS", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>%
+      select(-GROUP) %>% 
+      melt(id.vars = c("INDIVIDUALS", "POP_ID", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>%
       mutate(HAPLOTYPES = as.character(HAPLOTYPES)) %>% 
       mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>% 
       mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>% 
-      dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "HAPLOTYPES") %>%
-      unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
+      dcast(Catalog.ID + INDIVIDUALS + POP_ID ~ ALLELE, value.var = "HAPLOTYPES") %>%
+      unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
       arrange(Catalog.ID) %>% 
-      dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>%
-      mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
+      dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") %>% 
+      arrange(POP_ID, INDIVIDUALS) %>%
+      mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = "")) %>% 
+      select(-POP_ID)
   )
   
   message("step 5/5: completed")
@@ -449,7 +453,8 @@ haplo2genepop <- function(haplotypes.file,
           mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES=="NA"), NA)) %>%
           group_by(Catalog.ID, POP_ID) %>% 
           mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
-          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
+          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") %>% 
+          arrange(POP_ID, INDIVIDUALS)
         
         
       } else if (imputations.group == "global"){
@@ -461,7 +466,8 @@ haplo2genepop <- function(haplotypes.file,
           mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES=="NA"), NA)) %>%
           group_by(Catalog.ID) %>% 
           mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
-          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
+          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") %>% 
+          arrange(POP_ID, INDIVIDUALS)
         
       }
     }
@@ -505,16 +511,19 @@ haplo2genepop <- function(haplotypes.file,
         group_by(GROUP) %>% 
         mutate_each(funs(as.integer), -c(ALLELE, INDIVIDUALS, POP_ID, GROUP)) %>%
         ungroup() %>% 
-        select(-GROUP, -POP_ID) %>% 
-        melt(id.vars = c("INDIVIDUALS", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>%
+        select(-GROUP) %>% 
+        melt(id.vars = c("INDIVIDUALS", "POP_ID", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>%
         mutate(HAPLOTYPES = as.character(HAPLOTYPES)) %>% 
         mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>% 
         mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>% 
-        dcast(Catalog.ID + INDIVIDUALS ~ ALLELE, value.var = "HAPLOTYPES") %>%
+        dcast(Catalog.ID + INDIVIDUALS + POP_ID ~ ALLELE, value.var = "HAPLOTYPES") %>%
+        # unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
         unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
         arrange(Catalog.ID) %>% 
-        dcast(INDIVIDUALS ~ Catalog.ID, value.var = "GENOTYPE") %>% 
-        mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
+        dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") %>% 
+        arrange(POP_ID, INDIVIDUALS) %>% 
+        mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = "")) %>% 
+        select(-POP_ID)
     )
     
     message("step 4/4: completed")

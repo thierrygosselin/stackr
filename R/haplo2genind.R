@@ -216,8 +216,10 @@ haplo2genind <- function(haplotypes.file,
         POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
                         levels = pop.levels, ordered = T)
       ) %>%
-      dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") #%>% 
+      dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") %>%
+      arrange(POP_ID, INDIVIDUALS)
   )
+  
   message("step 1/5: completed")
   
   # dump unused objects
@@ -272,7 +274,8 @@ haplo2genind <- function(haplotypes.file,
       dcast(Catalog.ID + INDIVIDUALS + POP_ID ~ ALLELE, value.var = "HAPLOTYPES") %>%
       unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
       arrange(Catalog.ID) %>% 
-      dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") 
+      dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") %>% 
+      arrange(POP_ID, INDIVIDUALS)
   )
   message("step 5/5: completed")
   
@@ -394,7 +397,8 @@ haplo2genind <- function(haplotypes.file,
           mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES=="NA"), NA)) %>%
           group_by(Catalog.ID, POP_ID) %>% 
           mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
-          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
+          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") %>% 
+          arrange(POP_ID, INDIVIDUALS)
         
         
       } else if (imputations.group == "global"){
@@ -406,7 +410,8 @@ haplo2genind <- function(haplotypes.file,
           mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES=="NA"), NA)) %>%
           group_by(Catalog.ID) %>% 
           mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
-          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
+          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") %>% 
+          arrange(POP_ID, INDIVIDUALS)
         
       }
     }
@@ -456,9 +461,11 @@ haplo2genind <- function(haplotypes.file,
         mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>% 
         mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>% 
         dcast(Catalog.ID + INDIVIDUALS + POP_ID ~ ALLELE, value.var = "HAPLOTYPES") %>%
-        unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
+        # unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
+        unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
         arrange(Catalog.ID) %>% 
-        dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") 
+        dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") %>% 
+        arrange(POP_ID, INDIVIDUALS)
     )
     
     message("step 4/4: completed")
@@ -475,7 +482,8 @@ haplo2genind <- function(haplotypes.file,
     genind.df <- haplo.imp %>%
       select(-c(INDIVIDUALS, POP_ID))
     
-    res$imputed <- adegenet::df2genind(X = genind.df, sep = "/",
+    res$imputed <- adegenet::df2genind(X = genind.df, 
+                                       ncode = 3,
                                        ind.names = ind,
                                        pop = pop,
                                        ploidy = 2,

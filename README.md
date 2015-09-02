@@ -7,17 +7,28 @@ The goal of **stackr** is to make GBS/RAD data produced by [STACKS] (http://cres
 
 This is the development page of the **stackr** package for the R software.
 
-* Optimized for *de novo* and population genetics
+* Optimized for *de novo* and population genetics.
 * Read and modify *batch_x.sumstats.tsv* and *batch_x.haplotypes.tsv* files.
 * Transform the VCF file, *batch_x.vcf*, into a tidy format to visualise and filter summary statistics within R.
 * Filters genetic markers based on: coverage (read depth, REF and ALT allele depth), genotype likelihood, the number of individuals, the number of populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis).
-* View distribution of summary statistics and create publication-ready figures
+* View distribution of summary statistics and create publication-ready figures.
 * Convert data into *genepop*, *genind* and *gtypes* object for easy integration with [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr).
 * Map-independent imputation of GBS markers using Random Forest is now integrated within the *haplo2genepop*, *haplo2genind* and *haplo2gtypes* functions. 
+* \code{summary_haplotypes} function now output: putative paralogs,
+consensus, monomorphic and polymorphic loci; the haplotypes statistics for the
+observed and expected homozygosity and heterozygosity; Wright’s 
+inbreeding coefficient (Fis), and a new proxy measure of the realized 
+proportion of the genome that is identical by descent (IBDG), the FH measure is 
+based on the excess in the observed number of homozygous genotypes within an 
+individual relative to the mean number of homozygous genotypes expected under 
+random mating (for references see function documentation). The nucleotide 
+diversity (Pi) is also given. Pi measured here consider the consensus loci in 
+the catalog (the reads with no variation between population).
 
 ## Roadmap of what's up next
 
-* Integration with [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel).
+* Joint Allele Frequency Spectrum from a \code{batch_x.sumstats.tsv} or \code{batch_x.haplotypes.tsv} files.
+* Re-Integration with [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel).
 * Documentation and vignette.
 * Tutorial of workflow.
 * More linkage map tools.
