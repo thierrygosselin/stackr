@@ -16,7 +16,8 @@ This is the development page of the **stackr** package for the R software, optim
 * Impute GBS markers without a genetic map using Random Forest within the *haplo2genepop*, *haplo2genind*, *haplo2gtypes* and *haplo2colony* functions 
 
 ** Requirement:**
-Because Stacks is always under development (more than 100 versions so far!), 
+
+Because STACKS is always under development (more than 100 versions so far!), 
 **stackr** will work best with Stacks version >= 1.29.
 
 ## New
