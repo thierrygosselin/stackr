@@ -14,20 +14,39 @@ This is the development page of the **stackr** package for the R software.
 * View distribution of summary statistics and create publication-ready figures.
 * Convert data into *genepop*, *genind* and *gtypes* object for easy integration with [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr).
 * Map-independent imputation of GBS markers using Random Forest is now integrated within the *haplo2genepop*, *haplo2genind* and *haplo2gtypes* functions. 
-* \code{summary_haplotypes} function now output: putative paralogs,
-consensus, monomorphic and polymorphic loci; the haplotypes statistics for the
-observed and expected homozygosity and heterozygosity; Wright’s 
-inbreeding coefficient (Fis), and a new proxy measure of the realized 
-proportion of the genome that is identical by descent (IBDG), the FH measure is 
-based on the excess in the observed number of homozygous genotypes within an 
-individual relative to the mean number of homozygous genotypes expected under 
-random mating (for references see function documentation). The nucleotide 
-diversity (Pi) is also given. Pi measured here consider the consensus loci in 
-the catalog (the reads with no variation between population).
+
+## New
+The *summary_haplotypes* function now output: 
+* Putative paralogs, consensus, monomorphic and polymorphic loci.
+* The haplotypes statistics for the observed and expected homozygosity and 
+heterozygosity.
+* Wright’s inbreeding coefficient (Fis).
+* A new proxy measure of the realized proportion of the genome that is identical
+by descent (IBDG), the FH measure is based on the excess in the observed number
+of homozygous genotypes within an individual relative to the mean number of 
+homozygous genotypes expected under random mating (Keller et al., 2011; 
+Kardos et al., 2015).
+* The nucleotide diversity (Pi) is also given. 
+Pi measured in the package consider the consensus loci in the catalog 
+( = the reads with no variation between population). It's Nei & Li (1979) 
+function, adapted to the GBS reality.
+
+**references** 
+Keller MC, Visscher PM, Goddard ME. 2011. Quantification of inbreeding due to 
+distant ancestors and its detection using dense single nucleotide polymorphism
+data. Genetics, 189, 237–249.
+
+Kardos M, Luikart G, Allendorf FW. 2015. Measuring individual inbreeding in the 
+age of genomics: marker-based measures are better than pedigrees. 
+Heredity, 115, 63–72.
+
+Nei M, Li WH. 1979. Mathematical model for studying genetic variation in terms
+of restriction endonucleases. Proceedings of the National Academy of Sciences 
+of the United States of America, 76, 5269–5273.
 
 ## Roadmap of what's up next
 
-* Joint Allele Frequency Spectrum from a \code{batch_x.sumstats.tsv} or \code{batch_x.haplotypes.tsv} files.
+* Very soon: Joint Allele Frequency Spectrum from a *batch_x.sumstats.tsv* or a *batch_x.haplotypes.tsv* files.
 * Re-Integration with [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel).
 * Documentation and vignette.
 * Tutorial of workflow.
