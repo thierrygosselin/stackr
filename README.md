@@ -31,15 +31,12 @@ Pi measured in the package consider the consensus loci in the catalog
 ( = the reads with no variation between population). It's Nei & Li (1979) 
 function, adapted to the GBS reality.
 
-**references** 
 Keller MC, Visscher PM, Goddard ME. 2011. Quantification of inbreeding due to 
 distant ancestors and its detection using dense single nucleotide polymorphism
 data. Genetics, 189, 237–249.
-
 Kardos M, Luikart G, Allendorf FW. 2015. Measuring individual inbreeding in the 
 age of genomics: marker-based measures are better than pedigrees. 
 Heredity, 115, 63–72.
-
 Nei M, Li WH. 1979. Mathematical model for studying genetic variation in terms
 of restriction endonucleases. Proceedings of the National Academy of Sciences 
 of the United States of America, 76, 5269–5273.
