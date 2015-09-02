@@ -5,30 +5,29 @@
 
 The goal of **stackr** is to make GBS/RAD data produced by [STACKS] (http://creskolab.uoregon.edu/stacks/) easy to analyse in R.
 
-This is the development page of the **stackr** package for the R software.
+This is the development page of the **stackr** package for the R software, optimized for *de novo* and population genetics.
 
-* Optimized for *de novo* and population genetics.
-* Read and modify *batch_x.sumstats.tsv* and *batch_x.haplotypes.tsv* files.
-* Transform the VCF file, *batch_x.vcf*, into a tidy format to visualise and filter summary statistics within R.
-* Filters genetic markers based on: coverage (read depth, REF and ALT allele depth), genotype likelihood, the number of individuals, the number of populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis).
-* View distribution of summary statistics and create publication-ready figures.
-* Convert data into *genepop*, *genind* and *gtypes* object for easy integration with [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr).
-* Map-independent imputation of GBS markers using Random Forest is now integrated within the *haplo2genepop*, *haplo2genind*, *haplo2gtypes* and *haplo2colony* functions. 
+**Use stackr to:**
+* Read and modify *batch_x.sumstats.tsv* and *batch_x.haplotypes.tsv* files
+* Transform the VCF file, *batch_x.vcf*, into a tidy format to visualise and filter summary statistics within R
+* Filters genetic markers based on: coverage (read depth, REF and ALT allele depth), genotype likelihood, number of individuals, number of populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis)
+* View distributions of summary statistics and create publication-ready figures
+* Convert data into *genepop*, *genind* and *gtypes* object for easy integration with [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
+* Impute GBS markers without a genetic map using Random Forest within the *haplo2genepop*, *haplo2genind*, *haplo2gtypes* and *haplo2colony* functions 
 
 ## New
-**The *summary_haplotypes* function now output:**
-* Putative paralogs, consensus, monomorphic and polymorphic loci.
-* The haplotypes statistics for the observed and expected homozygosity and 
-heterozygosity.
-* Wright’s inbreeding coefficient (Fis).
-* A new proxy measure of the realized proportion of the genome that is identical
-by descent (IBDG), the FH measure is based on the excess in the observed number
+**The *summary_haplotypes* function now outputs:**
+* Putative paralogs, consensus, monomorphic and polymorphic loci
+* The haplotype statistics for the observed and expected homozygosity and 
+heterozygosity
+* Wright’s inbreeding coefficient (Fis)
+* Proxy measure of the realized proportion of the genome that is identical
+by descent (IBDG). The FH measure is based on the excess in the observed number
 of homozygous genotypes within an individual relative to the mean number of 
 homozygous genotypes expected under random mating (Keller et al., 2011; 
 Kardos et al., 2015).
-* The nucleotide diversity (Pi) is also given. 
-Pi measured in the package consider the consensus loci in the catalog 
-( = the reads with no variation between population). It's Nei & Li (1979) 
+* Nucleotide diversity (Pi), considering the consensus loci in the catalog 
+(i.e. reads with no variation between population). It's Nei & Li (1979) 
 function, adapted to the GBS reality.
 
 Keller MC, Visscher PM, Goddard ME. 2011. Quantification of inbreeding due to 
@@ -44,30 +43,30 @@ of restriction endonucleases. Proceedings of the National Academy of Sciences
 of the United States of America, 76, 5269–5273.
 
 **The *haplo2colony* function**
-* This function can first filter the haplotypes file with a whitelist of loci 
-and a blacklist of individuals.
 * Converts the file to the required *COLONY* input file.
-* Can imputed the data with Random Forest or the most frequent category.
-* Using the *print.all.colony.opt* will output all COLONY options to the file.
+* Can filter the haplotypes file with a whitelist of loci 
+and a blacklist of individuals
+* Can impute the data with Random Forest or the most frequent category
+* Use the *print.all.colony.opt* to output all COLONY options to the file.
 This however requires manual curation of the file to work directly with COLONY. 
 
-## Roadmap of what's up next
+## Roadmap of future developments:
 
-* Very soon: Joint Allele Frequency Spectrum from a *batch_x.sumstats.tsv* or a *batch_x.haplotypes.tsv* files.
-* Re-Integration with [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel).
-* Documentation and vignette.
-* Tutorial of workflow.
-* More linkage map tools.
-* Use Shiny and ggvis when subplots or facet available.
-* CRAN.
-* Interaction with [STACKS] (http://creskolab.uoregon.edu/stacks/) database (Web-interface).
-* Reference genome tools.
-* Maybe try some integration with other GBS approaches: AftrRAD, pyRAD, dDocent.
-* Got ideas ?
+* Very soon: Joint Allele Frequency Spectrum from a *batch_x.sumstats.tsv* or a *batch_x.haplotypes.tsv* files
+* Re-Integration with [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel)
+* Improved documentation and vignette
+* Workflow tutorial
+* More linkage map tools
+* Use Shiny and ggvis when subplots or facets are available
+* CRAN
+* Interaction with [STACKS] (http://creskolab.uoregon.edu/stacks/) database (Web-interface)
+* Reference genome tools
+* Maybe try some integration with other GBS approaches: AftrRAD, pyRAD, dDocent
+* ...suggestions ?
 
 
 ## Installation
-You can try out the dev version of **stackr**. Follow the 2 steps below.
+You can try out the dev version of **stackr**. Follow the 2 steps below:
 
 Step 1 You will need the package *devtools* and the dev version of *readr*
 ```r
@@ -113,7 +112,7 @@ PKG_CXXFLAGS=-g -O2 -stdlib=libc++
 Save and Exit with: crt-o, enter, crt-x
 
 
-Preferably, re-install all packages depending on OpenMP or Rcpp.
+Preferably, re-install all packages depending on OpenMP or Rcpp:
 
 ```r
 install.packages("Rcpp", type = "source")
@@ -129,7 +128,7 @@ Step 1. Load the necessary librairies, here is an example of how to do this:
 library(adegenet)
 library(stackr)
 ```
-Step 2. Set your working directory (e.g. the path to your stacks output files and 
+Step 2. Set your working directory (e.g. the path to your **stacks** output files and 
 where you want the output to be saved):
 
 ```r
@@ -138,20 +137,20 @@ setwd("/Users/thierry/Dropbox/brook_charr_pop/01_stacks_populations")
 Step 3. Missing genotypes: 
 
 
-First we will remove individuals with more that 30% of missing genotypes 
+First remove individuals with more than 30% missing genotypes 
 from the *batch_1.haplotypes.tsv* file. Explore this parameter with different values. 
 
 
-I also feed the function a whitelist of loci that I want to keep (after filtering).
+You can also provide the function with a whitelist of loci to keep (after filtering).
 We are interested in the the blacklisted id output ("blacklisted.id.30.txt"),
-but the function also output many things, see the function documentation.
+but the function also outputs many things, see the function documentation.
 ```r
 blacklisted.id <- missing_genotypes(haplotypes.file = "batch_1.haplotypes.tsv", 
 whitelist.loci = "new.whitelist.txt", pop.id.start = 5, pop.id.end = 7, 
 missing.geno.threshold = 30)
 ```
 
-Step 4. I use the *haplo2genind* function to convert the haplotype file created by 
+Step 4. Use the *haplo2genind* function to convert the haplotype file created by 
 **stacks** into a genind object ready to use in **adegenet**. 
 
 I use the whitelist of loci created after filtering the data and filter out the individuals with more than 30% of missing genotypes (with the blacklisted individuals, created above). 
@@ -181,4 +180,4 @@ The **stackr** package fits currently at the end of the GBS workflow. Below, a f
 Functions found in **stackr** ![](vignettes/stackr_functions.png)
 An example of the workflow ![](vignettes/stackr_workflow.png)
 All-in-one filter ![](vignettes/stackr_all-in-one_filters.png)
-Vignettes is a work in progress, check now and then for updates.
+Vignettes are in development, check periodically for updates.
