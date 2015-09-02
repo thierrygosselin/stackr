@@ -120,6 +120,54 @@ install.packages("Rcpp", type = "source")
 install.packages("dplyr", type = "source")
 install.packages("randomForestSRC", type = "source")
 ```
+## Example 
+
+** Using *haplo2genind* to do a DAPC analysis of your data.
+
+1. Load the necessary librairies, here is an example of how to do this:
+```r
+library(adegenet)
+library(stackr)
+```
+2. Set your working directories (e.g. the path to your stacks output files and 
+where you want the output to be saved)
+
+```r
+setwd("/Users/thierry/Dropbox/brook_charr_pop/01_stacks_populations")
+```
+3. Missing genotypes: Remove individuals with more that 30% of missing genotypes 
+from *batch_1.haplotypes.tsv* file. Explore this parameter with different values. 
+I also feed the function a whitelist of loci that I want to keep (after filtering).
+We are interested in the the blacklisted id output ("blacklisted.id.30.txt"),
+but the function output also many things, see the function documentation.
+```r
+blacklisted.id <- missing_genotypes(haplotypes.file = "batch_1.haplotypes.tsv", 
+whitelist.loci = "new.whitelist.txt", pop.id.start = 5, pop.id.end = 7, 
+missing.geno.threshold = 30)
+```
+
+4. I use the *haplo2genind* function to convert the haplotype file created by 
+**stacks** into a genind object ready to use in **adegenet**. 
+I use the whitelist of loci created after filtering the data and the blacklisted
+individuals with more than 30% missing genpotypes created above. I also ask for 
+imputation of the data using Random Forest.
+
+```r
+genind.sturgeon <- haplo2genind(haplotypes.file = "batch_1.haplotypes.tsv", whitelist.loci = "my.whitelist.txt", blacklist.id = "blacklisted.id.30.txt", pop.levels = c("LSL", "DRM", "JEN", "LAN", "GRA", "BUR", "GUL", "LLI", "ANG", "WEI", "FOX", "HAY", "GOD", "CHU"), pop.id.start = 5, pop.id.end = 7, imputations = "rf", imputations.group = "populations", num.tree = 100, split.number = 100, iteration.rf = 10, verbose = FALSE)
+```
+
+You can see that the object created is not yet a genind object because it contains 2 things: the imputed data and the data without imputation. To access both genind dataset:
+```r
+names(genind.sturgeon)
+genind.sturgeon.noimputation <- genind.sturgeon$no.imputation
+genind.sturgeon.imputed <- genind.sturgeon$imputed
+```
+
+5. These 2 genind objects can be use directly in **adegenet**:
+```r
+dapc.optim.a.score <- optim.a.score(dapc(genind.sturgeon.imputed, n.da = 100, n.pca = 50))
+dapc.optim.a.score$best
+```
 
 ## GBS workflow
 The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
