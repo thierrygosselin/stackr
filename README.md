@@ -13,10 +13,10 @@ This is the development page of the **stackr** package for the R software.
 * Filters genetic markers based on: coverage (read depth, REF and ALT allele depth), genotype likelihood, the number of individuals, the number of populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis).
 * View distribution of summary statistics and create publication-ready figures.
 * Convert data into *genepop*, *genind* and *gtypes* object for easy integration with [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr).
-* Map-independent imputation of GBS markers using Random Forest is now integrated within the *haplo2genepop*, *haplo2genind* and *haplo2gtypes* functions. 
+* Map-independent imputation of GBS markers using Random Forest is now integrated within the *haplo2genepop*, *haplo2genind*, *haplo2gtypes* and *haplo2colony* functions. 
 
 ## New
-The *summary_haplotypes* function now output: 
+**The *summary_haplotypes* function now output:**
 * Putative paralogs, consensus, monomorphic and polymorphic loci.
 * The haplotypes statistics for the observed and expected homozygosity and 
 heterozygosity.
@@ -42,6 +42,14 @@ Heredity, 115, 63–72.
 Nei M, Li WH. 1979. Mathematical model for studying genetic variation in terms
 of restriction endonucleases. Proceedings of the National Academy of Sciences 
 of the United States of America, 76, 5269–5273.
+
+**The *haplo2colony* function**
+* This function can first filter the haplotypes file with a whitelist of loci 
+and a blacklist of individuals.
+* Converts the file to the required *COLONY* input file.
+* Can imputed the data with Random Forest or the most frequent category.
+* Using the *print.all.colony.opt* will output all COLONY options to the file.
+This however requires manual curation of the file to work directly with COLONY. 
 
 ## Roadmap of what's up next
 
