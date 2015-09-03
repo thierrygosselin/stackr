@@ -19,6 +19,18 @@ Because STACKS is always under development (more than 100 versions so far!),
 **stackr** will work best with Stacks version >= 1.29.
 
 ## New
+
+**v.0.1.3**
+Map-independent imputations of a VCF file created by STACKS. 
+Two options are available for imputations: using Random Forest or the most frequent allele.
+
+Before imputations, the VCF file can be filtered with:
+
+* a whitelist of loci (to keep only specific loci...)
+* a blacklist of individuals (to remove individuals or entire populations...)
+* also, a list of genotypes with bad coverage and/or genotype likelihood can be supplied to erase the genotypes before imputations (for more details look at the function: blacklist_erase_genotype).
+
+**v.0.1.2**
 **The *summary_haplotypes* function now outputs:**
 * Putative paralogs, consensus, monomorphic and polymorphic loci
 * The haplotype statistics for the observed and expected homozygosity and 
@@ -55,8 +67,7 @@ This however requires manual curation of the file to work directly with COLONY.
 
 ## Roadmap of future developments:
 
-* Very soon: Map-independent imputation of a VCF using Random Forest or the 
-most frequent category and Joint Allele Frequency Spectrum from a *batch_x.sumstats.tsv* or a *batch_x.haplotypes.tsv* files
+* Very soon: Joint Allele Frequency Spectrum from a *batch_x.sumstats.tsv* or a *batch_x.haplotypes.tsv* files
 * Re-Integration with [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel)
 * Improved documentation and vignette
 * Workflow tutorial
