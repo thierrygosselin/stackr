@@ -315,7 +315,7 @@ haplo2genind <- function(haplotypes.file,
         # Automatically select all the core -1 
         options(rf.cores=detectCores()-1, mc.cores=detectCores()-1)
       } else {
-        options(rf.cores = parallel.core, mc.cores = mc.cores)
+        options(rf.cores = parallel.core, mc.cores = parallel.core)
       }
       
       # imputations using Random Forest with the package randomForestSRC
