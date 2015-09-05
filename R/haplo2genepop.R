@@ -145,7 +145,6 @@ haplo2genepop <- function(haplotypes.file,
     
     # just whitelist.loci, NO Blacklist of individual
     haplotype <- haplotype %>% 
-      group_by(Catalog.ID) %>% 
       semi_join(whitelist, by = "Catalog.ID") %>% 
       arrange(Catalog.ID)
     
@@ -155,7 +154,6 @@ haplo2genepop <- function(haplotypes.file,
     
     # NO whitelist, JUST Blacklist of individual
     haplotype <- haplotype %>%
-      group_by(Catalog.ID) %>% 
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
@@ -165,7 +163,6 @@ haplo2genepop <- function(haplotypes.file,
     
     # whitelist.loci + Blacklist of individual
     haplotype <- haplotype %>%
-      group_by(Catalog.ID) %>% 
       semi_join(whitelist, by = "Catalog.ID") %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
@@ -201,7 +198,6 @@ haplo2genepop <- function(haplotypes.file,
   
   haplo.filtered <- suppressWarnings(
     haplotype %>%
-      group_by(Catalog.ID) %>% 
       anti_join(paralogs, by = "Catalog.ID") %>%
       filter(HAPLOTYPES != "consensus") %>%    
       mutate(

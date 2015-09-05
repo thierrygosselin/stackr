@@ -211,7 +211,7 @@ haplo2colony <- function(haplotypes.file,
     # Combination 2: Using whitelist, but No blacklist -------------------------
     
     # just whitelist.loci, NO Blacklist of individual
-    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
+    haplotype <- haplotype %>% 
       semi_join(whitelist, by = "Catalog.ID") %>% 
       arrange(Catalog.ID)
     
@@ -220,7 +220,7 @@ haplo2colony <- function(haplotypes.file,
     # Combination 3: Using a blacklist of id, but No whitelist -----------------
     
     # NO whitelist, JUST Blacklist of individual
-    haplotype <- haplotype %>% group_by(Catalog.ID) %>%
+    haplotype <- haplotype %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(Catalog.ID)
@@ -229,7 +229,7 @@ haplo2colony <- function(haplotypes.file,
     # Combination 4: Using a whitelist and blacklist---------------------------
     
     # whitelist.loci + Blacklist of individual
-    haplotype <- haplotype %>% group_by(Catalog.ID) %>%
+    haplotype <- haplotype %>%
       semi_join(whitelist, by = "Catalog.ID") %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
