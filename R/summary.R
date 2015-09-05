@@ -114,12 +114,10 @@ summary_haplotypes <- function(haplotypes.file,
   # Whitelist loci -------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
     message("Whitelist of loci: from the directory")
-    whitelist <- read_tsv(whitelist.loci, col_names = T) %>%
-      rename(Catalog.ID = LOCUS)
+    whitelist <- read_tsv(whitelist.loci, col_names = T)
   } else if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "FALSE") {
     message("Whitelist of loci: from your global environment")
-    whitelist <- whitelist.loci %>%
-      rename(Catalog.ID = LOCUS)
+    whitelist <- whitelist.loci
   } else {
     message("Whitelist of loci: no")
     whitelist <- NULL
@@ -146,25 +144,25 @@ summary_haplotypes <- function(haplotypes.file,
   } else if (is.null(whitelist.loci) == FALSE & is.null(blacklist.id) == TRUE) {
     
     # Combination 2: Using whitelist, but No blacklist -------------------------
-    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
-      semi_join(whitelist, by = "Catalog.ID") %>% 
-      arrange(Catalog.ID)
+    haplotype <- haplotype %>%
+      semi_join(whitelist, by = "LOCUS") %>% 
+      arrange(LOCUS)
     
   } else if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == FALSE) {
     
     # Combination 3: Using a blacklist of id, but No whitelist -----------------
-    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
+    haplotype <- haplotype %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
-      arrange(Catalog.ID)
+      arrange(LOCUS)
     
   } else {
     # Combination 4: Using a whitelist and blacklist---------------------------
-    haplotype <- haplotype %>% group_by(Catalog.ID) %>% 
-      semi_join(whitelist, by = "Catalog.ID") %>%
+    haplotype <- haplotype %>%
+      semi_join(whitelist, by = "LOCUS") %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
-      arrange(Catalog.ID)
+      arrange(LOCUS)
   }
   
   # dump unused object
@@ -488,32 +486,39 @@ summary_haplotypes <- function(haplotypes.file,
   summary <- bind_rows(summary.pop, total.res)
   summary <- bind_cols(summary, fh.res, pi.res)
   
-  write.table(summary, "haplotype.catalog.loci.summary.pop.tsv", 
-              sep = "\t", row.names = F, col.names = T, quote = F)
+  if (missing(whitelist.loci) == "FALSE") {
+    write.table(summary, "haplotype.catalog.loci.whitelist.summary.pop.tsv", 
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    filename.sum <- "haplotype.catalog.loci.whitelist.summary.pop.tsv"
+  } else {
+    write.table(summary, "haplotype.catalog.loci.summary.pop.tsv", 
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    filename.sum <- "haplotype.catalog.loci.summary.pop.tsv"
+  }
   
   
   # Figures --------------------------------------------------------------------
   fh.pi <- pi.data.i %>% 
-  full_join(
-    fh.i %>% select(INDIVIDUALS, POP_ID, FH)
-    , by = "INDIVIDUALS")
+    full_join(
+      fh.i %>% select(INDIVIDUALS, POP_ID, FH)
+      , by = "INDIVIDUALS")
   
-scatter.plot <- ggplot(fh.pi, aes(x = FH, y = PI)) + 
-  geom_point(aes(colour = POP_ID)) +
-  stat_smooth(method = lm, level = 0.95, fullrange = F, na.rm = T)+
-  labs(x = "Individual IBDg (FH)") + 
-  labs(y = "Individual nucleotide diversity (Pi)") +
-  theme(
-    axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-    axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-    legend.title = element_text(size = 10, family = "Helvetica", face = "bold"), 
-    legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
-    strip.text.y = element_text(angle = 0, size = 10, family = "Helvetica", face = "bold"), 
-    strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
-  )
-
-
-boxplot.pi <-   ggplot(fh.pi, aes(x = factor(POP_ID), y = PI, na.rm = T))+
+  scatter.plot <- ggplot(fh.pi, aes(x = FH, y = PI)) + 
+    geom_point(aes(colour = POP_ID)) +
+    stat_smooth(method = lm, level = 0.95, fullrange = F, na.rm = T)+
+    labs(x = "Individual IBDg (FH)") + 
+    labs(y = "Individual nucleotide diversity (Pi)") +
+    theme(
+      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      legend.title = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
+      strip.text.y = element_text(angle = 0, size = 10, family = "Helvetica", face = "bold"), 
+      strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+    )
+  
+  
+  boxplot.pi <-   ggplot(fh.pi, aes(x = factor(POP_ID), y = PI, na.rm = T))+
     geom_violin(trim = F)+
     geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
     stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
@@ -527,10 +532,10 @@ boxplot.pi <-   ggplot(fh.pi, aes(x = factor(POP_ID), y = PI, na.rm = T))+
       legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
       strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
     )
-    
-
-
-boxplot.fh <-   ggplot(fh.pi, aes(x = factor(POP_ID), y = FH, na.rm = T))+
+  
+  
+  
+  boxplot.fh <-   ggplot(fh.pi, aes(x = factor(POP_ID), y = FH, na.rm = T))+
     geom_violin(trim = F)+
     geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
     stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
@@ -552,11 +557,12 @@ The number of loci in the catalog with consensus alleles = %s LOCI
 3 files were written in this directory: %s
 1. blacklist.loci.paralogs.txt
 2. blacklist.loci.consensus.txt
-3. haplotype.catalog.loci.summary.pop.txt", 
+3. %s", 
     n_distinct(haplotype$LOCUS),
     n_distinct(paralogs.pop$LOCUS),
     n_distinct(consensus.pop$LOCUS),
-    getwd()
+    getwd(),
+    filename.sum
   )))
   
   # Results
@@ -569,7 +575,7 @@ The number of loci in the catalog with consensus alleles = %s LOCI
   results$scatter.plot <- scatter.plot
   results$boxplot.pi <- boxplot.pi
   results$boxplot.fh <- boxplot.fh
-    
+  
   return(results)
   
 }

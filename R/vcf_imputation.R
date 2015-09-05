@@ -149,7 +149,7 @@ vcf_imputation <- function(vcf.file,
     # Combination 2: Using whitelist, but No blacklist -------------------------
     
     # just whitelist.loci, NO Blacklist of individual
-    vcf <- vcf %>% group_by(ID) %>% 
+    vcf <- vcf %>% 
       semi_join(whitelist, by = "ID") %>% 
       arrange(ID)
     
@@ -158,7 +158,7 @@ vcf_imputation <- function(vcf.file,
     # Combination 3: Using a blacklist of id, but No whitelist -----------------
     
     # NO whitelist, JUST Blacklist of individual
-    vcf <- vcf %>% group_by(ID) %>%
+    vcf <- vcf %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
       arrange(ID)
@@ -168,7 +168,6 @@ vcf_imputation <- function(vcf.file,
     
     # whitelist.loci + Blacklist of individual
     vcf <- vcf %>% 
-      group_by(ID) %>%
       semi_join(whitelist, by = "ID") %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
       anti_join(blacklist.id, by = "INDIVIDUALS") %>%
