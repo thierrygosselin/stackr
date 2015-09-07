@@ -106,10 +106,20 @@ vcf_imputation <- function(vcf.file,
   
   vcf <- read_delim(
     vcf.file, delim = "\t", 
-    skip = 9,#n_max = max.read.lines,
+    skip = 9,
     progress = interactive()
   ) %>%
     rename(CHROM = `#CHROM`)
+  
+  
+  # VCF prep
+  vcf <- vcf %>% 
+    select(-c(QUAL, FILTER, INFO, FORMAT)) %>% 
+    gather(INDIVIDUALS, FORMAT_ID, -c(CHROM, ID, POS, REF, ALT)) %>%
+    separate(FORMAT_ID, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
+             sep = ":", extra = "error") %>% 
+    select(-c(READ_DEPTH, ALLELE_DEPTH, GL))
+  
   
   # Whitelist-------------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
@@ -125,25 +135,21 @@ vcf_imputation <- function(vcf.file,
     whitelist <- NULL
   }
   
-  # Blacklist-------------------------------------------------------------------
+  # Blacklist id----------------------------------------------------------------
   if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "TRUE") {
     message("Using the blacklisted id from the directory")
     blacklist.id <- read_tsv(blacklist.id, col_names = T)    
   } else if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "FALSE") {
     message("Using the blacklisted id from your global environment")
     blacklist.id <- blacklist.id
-    
   } else {
     message("No individual blacklisted")
     blacklist.id <- NULL
   }
   
-  
   if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
-    
     # Combination 1: No whitelist and No blacklist -----------------------------
-    vcf <- vcf    
-    
+    vcf <- vcf
   } else if (is.null(whitelist.loci) == FALSE & is.null(blacklist.id) == TRUE) {
     
     # Combination 2: Using whitelist, but No blacklist -------------------------
@@ -156,7 +162,6 @@ vcf_imputation <- function(vcf.file,
   } else if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == FALSE) {
     
     # Combination 3: Using a blacklist of id, but No whitelist -----------------
-    
     # NO whitelist, JUST Blacklist of individual
     vcf <- vcf %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
@@ -178,18 +183,11 @@ vcf_imputation <- function(vcf.file,
   whitelist <- NULL
   blacklist.id <- NULL
   
-  
-  # VCF prep before imputation -------------------------------------------------
+  # create a keeper list of MARKER, CHROM, ID, POS, REF and ALT
   vcf.keeper <- vcf %>%
     select(CHROM, ID, POS, REF, ALT) %>% 
-    unite(MARKER, CHROM, ID, POS, sep = "_", remove = TRUE)
-  
-  vcf <- vcf %>% 
-    select(-c(REF, ALT, QUAL, FILTER, INFO, FORMAT)) %>% 
-    gather(INDIVIDUALS, FORMAT_ID, -c(CHROM, ID, POS)) %>%
-    separate(FORMAT_ID, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
-             sep = ":", extra = "error") %>% 
-    select(-c(READ_DEPTH, ALLELE_DEPTH, GL))
+    unite(MARKER, CHROM, ID, POS, sep = "_", remove = TRUE) %>% 
+    distinct(MARKER)
   
   
   # Erasing genotypes with poor coverage and/or genotype likelihood-------------
@@ -214,7 +212,7 @@ vcf_imputation <- function(vcf.file,
     # Get the number of imputed genotypes and percentage
     imputed.genotype.number <- length(vcf$GT[vcf$GT == "./."])
     imputed.genotype.percent <- paste(round((imputed.genotype.number/(imputed.genotype.number+total.genotype.number))*100, 4), "%", sep = " ")
-
+    
   } else {
     vcf <- vcf
     
@@ -232,6 +230,7 @@ vcf_imputation <- function(vcf.file,
   # last step before imputation ------------------------------------------------
   
   vcf <- vcf %>%
+    select(-REF, -ALT) %>% 
     unite(MARKER, CHROM, ID, POS, sep = "_", remove = TRUE) %>% 
     mutate(GT = stri_replace_all_fixed(GT, "./.", "NA", vectorize_all=F)) %>% 
     mutate(POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end)) %>%
@@ -401,5 +400,4 @@ Written in the directory:
 %s",
     total.genotype.number, erased.genotype.number, genotype.percent, imputed.genotype.number, imputed.genotype.percent, filename, getwd()
   )))
-  
 }

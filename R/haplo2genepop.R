@@ -91,9 +91,9 @@ haplo2genepop <- function(haplotypes.file,
   
   
   if (imputations == "FALSE") {
-    message("haplo2genind: without imputation...")
+    message("haplo2genepop: without imputation...")
   } else {
-    message("haplo2genind: with imputations...")
+    message("haplo2genepop: with imputations...")
   }
   
   
