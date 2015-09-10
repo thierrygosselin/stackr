@@ -1,9 +1,9 @@
 ## Summary and tables
 
-#' @title Haplotypes file summary v2
+#' @title Haplotypes file summary
 #' @description STACKS batch_x.haplotypes.tsv file summary.
-#' Output summary table for populations with putative paralogs,
-#' consensus, monomorphic and polymorphic loci. 
+#' The output of the function is a summary table for populations with putative
+#' paralogs, consensus, monomorphic and polymorphic loci. 
 #' The haplotypes statistics for the observed and expected homozygosity and
 #' heterozygosity. Wright’s inbreeding coefficient (Fis), and a proxy measure of 
 #' the realized proportion of the genome that is identical by descent (IBDG),
@@ -14,12 +14,13 @@
 #' The nucleotide diversity (Pi) is also given. Pi measured here consider the 
 #' consensus loci in the catalog (no variation between population sequences).
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
-#' @param whitelist.loci (optional) A whitelist of loci and 
-#' a column header 'LOCUS'.
-#' The whitelist is in the directory (e.g. "whitelist.txt").
+#' @param whitelist.loci (optional) A whitelist of loci with a column name
+#' 'LOCUS'. The whitelist is located in the global environment or in the directory (e.g. "whitelist.txt"). 
+#' If a whitelist is used, the files written to the directory will have 
+#' '.filtered' in the filename. 
 #' @param blacklist.id (optional) A blacklist with individual ID and
-#' a column header 'INDIVIDUALS'. The blacklist is in the directory
-#'  (e.g. "blacklist.txt").
+#' a column header 'INDIVIDUALS'. The blacklist is in the global environment 
+#' or in the directory (with "blacklist.txt").
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
@@ -29,7 +30,7 @@
 #' @import stringdist
 #' @return The function returns a list with the summary, the paralogs and
 #' consensus loci by populations and unique loci and 3 plots (use $ to access each 
-#' components). 
+#' objects). 
 #' Write 3 files in the working directory:
 #' blacklist of unique putative paralogs and unique consensus loci 
 #' and a summary of the haplotypes file by population.
@@ -123,18 +124,55 @@ summary_haplotypes <- function(haplotypes.file,
     whitelist <- NULL
   }
   
-  # Blacklisted individuals ----------------------------------------------------
+  # Blacklisted individuals and consensus loci ---------------------------------
   if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "TRUE") {
     message("Blacklisted id: file from the directory")
-    blacklist.id <- read_tsv(blacklist.id, col_names = T)    
+    blacklist.id <- read_tsv(blacklist.id, col_names = T)
   } else if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "FALSE") {
     message("Blacklisted id: object from your global environment")
     blacklist.id <- blacklist.id
-    
   } else {
     message("Blacklisted id: no")
     blacklist.id <- NULL
   }
+  
+  # Locus with concensus alleles -----------------------------------------------
+  message("Looking for consensus...")
+  
+  if (is.null(blacklist.id) == TRUE) {
+    # Without blacklisted individuals
+    consensus.pop <- haplotype %>%
+      mutate(CONSENSUS = stri_count_fixed(HAPLOTYPES, "consensus")) %>%
+      group_by(LOCUS, POP_ID) %>%
+      summarise(CONSENSUS_MAX = max(CONSENSUS)) %>%
+      filter(CONSENSUS_MAX > 0) %>%
+      mutate(CONSENSUS = rep("consensus", times = n())) %>%
+      select(LOCUS, POP_ID, CONSENSUS)
+    
+  } else {
+    # With a blacklist of individuals
+    consensus.pop <- haplotype %>%
+      mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
+      anti_join(blacklist.id, by = "INDIVIDUALS") %>%
+      mutate(CONSENSUS = stri_count_fixed(HAPLOTYPES, "consensus")) %>%
+      group_by(LOCUS, POP_ID) %>%
+      summarise(CONSENSUS_MAX = max(CONSENSUS)) %>%
+      filter(CONSENSUS_MAX > 0) %>%
+      mutate(CONSENSUS = rep("consensus", times = n())) %>%
+      select(LOCUS, POP_ID, CONSENSUS)
+  }  
+# Create a list of consensus loci
+  blacklist.loci.consensus <- consensus.pop %>%
+    group_by(LOCUS) %>%
+    select (LOCUS) %>%
+    distinct(LOCUS) %>%
+    arrange(LOCUS)
+  
+  write.table(blacklist.loci.consensus, 
+              "blacklist.loci.consensus.txt",
+              sep = "\t", row.names = F, col.names = T, quote = F)
+  
+  consensus.pop  
   
   if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
     
@@ -165,9 +203,22 @@ summary_haplotypes <- function(haplotypes.file,
       arrange(LOCUS)
   }
   
-  # dump unused object
-  whitelist <- NULL
-  blacklist.id <- NULL
+  # Individuals per pop
+  ind.pop <- haplotype %>%
+    distinct(INDIVIDUALS) %>% 
+    group_by(POP_ID) %>%
+    tally() %>% 
+    rename(NUM = n)
+   
+  ind.tot <-haplotype %>%
+    distinct(INDIVIDUALS) %>% 
+    tally() %>% 
+    rename(NUM = n)
+  
+  ind.tot <- data_frame(POP_ID="OVERALL") %>%
+    bind_cols(ind.tot)
+  
+  sample.number <- bind_rows(ind.pop, ind.tot)
   
   # Paralogs... Locus with > 2 alleles by individuals --------------------------
   # Create a blacklist of catalog loci with paralogs
@@ -186,44 +237,34 @@ summary_haplotypes <- function(haplotypes.file,
     distinct(LOCUS) %>%
     arrange(LOCUS)
   
-  write.table(blacklist.loci.paralogs,
-              "blacklist.loci.paralogs.txt",
-              sep = "\t", row.names = F, col.names = T, quote = F)
-  
+  # Write the paralogs blacklisted to a file
+   if (missing(whitelist.loci) == "FALSE") {
+    write.table(blacklist.loci.paralogs,
+                "blacklist.loci.paralogs.filtered.txt",
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    filename.paralogs <- "blacklist.loci.paralogs.filtered.txt"
+  } else {
+    write.table(blacklist.loci.paralogs,
+                "blacklist.loci.paralogs.txt",
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    filename.paralogs <- "blacklist.loci.paralogs.txt"
+  }
+
   paralogs.pop
+  
+  # dump unused object
+  whitelist <- NULL
+  blacklist.id <- NULL
   
   # Haplo filtered paralogs
   haplo.filtered.paralogs <- haplotype %>%
     filter(!LOCUS %in% blacklist.loci.paralogs$LOCUS)
   
-  # Locus with concensus alleles-----------------------------------------------
-  message("Looking for consensus...")
-  
-  consensus.pop <- haplotype %>%
-    mutate(CONSENSUS = stri_count_fixed(HAPLOTYPES, "consensus")) %>%
-    group_by(LOCUS, POP_ID) %>%
-    summarise(CONSENSUS_MAX = max(CONSENSUS)) %>%
-    filter(CONSENSUS_MAX > 0) %>%
-    mutate(CONSENSUS = rep("consensus", times = n())) %>%
-    select(LOCUS, POP_ID, CONSENSUS)
-  
-  blacklist.loci.consensus <- consensus.pop %>%
-    group_by(LOCUS) %>%
-    select (LOCUS) %>%
-    distinct(LOCUS) %>%
-    arrange(LOCUS)
-  
-  write.table(blacklist.loci.consensus, 
-              "blacklist.loci.consensus.txt",
-              sep = "\t", row.names = F, col.names = T, quote = F)
-  
-  consensus.pop  
-  
-  # Haplo filtered for consensus 
+  # Haplo filtered for consensus -----------------------------------------------
   haplo.filtered.consensus <- haplotype %>%
     filter(!LOCUS %in% consensus.pop$LOCUS)
   
-  # Haplo filtered for consensus and paralogs
+  # Haplo filtered for consensus and paralogs-----------------------------------
   haplo.filtered.consensus.paralogs <- haplotype %>%
     filter(!LOCUS %in% consensus.pop$LOCUS)%>%
     filter(!LOCUS %in% blacklist.loci.paralogs$LOCUS)
@@ -449,6 +490,7 @@ summary_haplotypes <- function(haplotypes.file,
     mutate(
       MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
       POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
+      CONSENSUS_PROP = round(CONSENSUS/TOTAL, 4),
       PARALOG_PROP = round(PARALOGS/TOTAL, 4)
     )
   
@@ -477,19 +519,20 @@ summary_haplotypes <- function(haplotypes.file,
     mutate(
       MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
       POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
+      CONSENSUS_PROP = round(CONSENSUS/TOTAL, 4),
       PARALOG_PROP = round(PARALOGS/TOTAL, 4)
     )
   
   total.res <- data_frame(POP_ID="OVERALL") %>%
     bind_cols(total)
   
-  summary <- bind_rows(summary.pop, total.res)
-  summary <- bind_cols(summary, fh.res, pi.res)
+  summary <- bind_rows(summary.pop, total.res) %>% select(-POP_ID)
+  summary <- bind_cols(sample.number, summary, fh.res, pi.res)
   
   if (missing(whitelist.loci) == "FALSE") {
-    write.table(summary, "haplotype.catalog.loci.whitelist.summary.pop.tsv", 
+    write.table(summary, "haplotype.catalog.loci.summary.pop.filtered.tsv", 
                 sep = "\t", row.names = F, col.names = T, quote = F)
-    filename.sum <- "haplotype.catalog.loci.whitelist.summary.pop.tsv"
+    filename.sum <- "haplotype.catalog.loci.summary.pop.filtered.tsv"
   } else {
     write.table(summary, "haplotype.catalog.loci.summary.pop.tsv", 
                 sep = "\t", row.names = F, col.names = T, quote = F)
@@ -555,13 +598,14 @@ summary_haplotypes <- function(haplotypes.file,
 The number of putative paralogs loci in the catalog (> 2 alleles) = %s LOCI
 The number of loci in the catalog with consensus alleles = %s LOCI
 3 files were written in this directory: %s
-1. blacklist.loci.paralogs.txt
+1. %s
 2. blacklist.loci.consensus.txt
 3. %s", 
     n_distinct(haplotype$LOCUS),
     n_distinct(paralogs.pop$LOCUS),
     n_distinct(consensus.pop$LOCUS),
     getwd(),
+    filename.paralogs,
     filename.sum
   )))
   

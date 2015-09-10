@@ -81,7 +81,7 @@ missing_genotypes <- function(haplotypes.file,
     # Combination 2: Using whitelist -------------------------------------------
     
     # just whitelist.loci
-    haplotype <- haplotype %>% group_by(LOCUS) %>% 
+    haplotype <- haplotype %>% 
       semi_join(whitelist, by = "LOCUS") %>% 
       arrange(LOCUS)
   }    

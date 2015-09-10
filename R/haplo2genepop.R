@@ -205,7 +205,8 @@ haplo2genepop <- function(haplotypes.file,
                                             vectorize_all=F),
         POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
                         levels = pop.levels, ordered = T)
-      )
+      ) %>% 
+      arrange(Catalog.ID)
     )
 
   # get the list of loci after filter  
@@ -268,7 +269,7 @@ haplo2genepop <- function(haplotypes.file,
       mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>% 
       mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>% 
       dcast(Catalog.ID + INDIVIDUALS + POP_ID ~ ALLELE, value.var = "HAPLOTYPES") %>%
-      unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
+      unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
       arrange(Catalog.ID) %>% 
       dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") %>% 
       arrange(POP_ID, INDIVIDUALS) %>%

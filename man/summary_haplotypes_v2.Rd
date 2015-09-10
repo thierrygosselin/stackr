@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.R
 \name{summary_haplotypes}
 \alias{summary_haplotypes}
-\title{Haplotypes file summary v2}
+\title{Haplotypes file summary}
 \usage{
 summary_haplotypes(haplotypes.file, whitelist.loci = NULL,
   blacklist.id = NULL, pop.id.start, pop.id.end, pop.levels, read.length)
@@ -10,13 +10,14 @@ summary_haplotypes(haplotypes.file, whitelist.loci = NULL,
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
 
-\item{whitelist.loci}{(optional) A whitelist of loci and
-a column header 'LOCUS'.
-The whitelist is in the directory (e.g. "whitelist.txt").}
+\item{whitelist.loci}{(optional) A whitelist of loci with a column name
+'LOCUS'. The whitelist is located in the global environment or in the directory (e.g. "whitelist.txt").
+If a whitelist is used, the files written to the directory will have
+'.filtered' in the filename.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the directory
- (e.g. "blacklist.txt").}
+a column header 'INDIVIDUALS'. The blacklist is in the global environment
+or in the directory (with "blacklist.txt").}
 
 \item{pop.id.start}{The start of your population id
 in the name of your individual sample.}
@@ -31,15 +32,15 @@ in the name of your individual sample.}
 \value{
 The function returns a list with the summary, the paralogs and
 consensus loci by populations and unique loci and 3 plots (use $ to access each
-components).
+objects).
 Write 3 files in the working directory:
 blacklist of unique putative paralogs and unique consensus loci
 and a summary of the haplotypes file by population.
 }
 \description{
 STACKS batch_x.haplotypes.tsv file summary.
-Output summary table for populations with putative paralogs,
-consensus, monomorphic and polymorphic loci.
+The output of the function is a summary table for populations with putative
+paralogs, consensus, monomorphic and polymorphic loci.
 The haplotypes statistics for the observed and expected homozygosity and
 heterozygosity. Wright’s inbreeding coefficient (Fis), and a proxy measure of
 the realized proportion of the genome that is identical by descent (IBDG),
