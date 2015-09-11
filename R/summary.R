@@ -106,7 +106,7 @@ summary_haplotypes <- function(haplotypes.file,
   # Import haplotype file ------------------------------------------------------
   haplotype <- read_tsv(haplotypes.file, col_names = T) %>%
     rename(LOCUS =`Catalog ID`) %>%
-    gather(INDIVIDUALS, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
+    tidyr::gather(INDIVIDUALS, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
     mutate(
       POP_ID = str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
       POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
@@ -296,13 +296,13 @@ summary_haplotypes <- function(haplotypes.file,
     filter(HAPLOTYPES != "-") %>% 
     group_by(LOCUS, POP_ID) %>%
     mutate(DIPLO= length(INDIVIDUALS) *2) %>% 
-    separate(
+    tidyr::separate(
       col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
       sep = "/", extra = "drop", remove = F
     ) %>%
     mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
     select(-Cnt, -HAPLOTYPES, -INDIVIDUALS) %>% 
-    gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID, DIPLO)) %>%
+    tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID, DIPLO)) %>%
     group_by(LOCUS, POP_ID, ALLELES) %>% 
     summarise(
       FREQ_ALLELES = length(ALLELES)/mean(DIPLO),
@@ -363,7 +363,7 @@ summary_haplotypes <- function(haplotypes.file,
   pi.data <- haplo.filtered.paralogs %>%
     select(-Cnt) %>% 
     filter(HAPLOTYPES != "-") %>% 
-    separate(
+    tidyr::separate(
       col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
       sep = "/", extra = "drop", remove = T
     ) %>%
@@ -384,7 +384,7 @@ summary_haplotypes <- function(haplotypes.file,
   message("Pi calculations by populations, take a break...")
   
   pi.data.pop <- pi.data %>% 
-    gather(ALLELE_GROUP, ALLELES, -c(LOCUS, INDIVIDUALS, POP_ID))
+    tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, INDIVIDUALS, POP_ID))
   
   df.split.pop <- split(x = pi.data.pop, f = pi.data.pop$POP_ID) # slip data frame by population
   pop.list <- names(df.split.pop) # list the pop
@@ -457,12 +457,12 @@ summary_haplotypes <- function(haplotypes.file,
   summary.prep <- haplo.filtered.consensus %>% 
     filter(HAPLOTYPES != "-") %>%
     select(-Cnt, -INDIVIDUALS) %>%
-    separate(
+    tidyr::separate(
       col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
       sep = "/", extra = "drop", remove = T
     ) %>%
     mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
-    gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
+    tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
   
   summary.pop <- summary.prep %>%
     group_by(LOCUS, POP_ID) %>%
@@ -668,7 +668,6 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
       POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
     ) %>%
     arrange(LOCUS, POP_ID)
-  #   separate(HAPLOTYPES, c("ALLELE_P", "ALLELE_Q"), sep = "/", extra = "error", remove = F) %>%
 }
 
 

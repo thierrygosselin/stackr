@@ -124,7 +124,7 @@ filter_all <- function (haplotypes, vcf,
   
   haplo <- read_tsv(haplotypes, col_names = T) %>%
     rename(LOCUS =`Catalog ID`) %>%
-    gather(SAMPLES, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
+    tidyr::gather(SAMPLES, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
     mutate(
       POP_ID = str_sub(SAMPLES, pop.id.start, pop.id.end),
       POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
@@ -167,18 +167,18 @@ filter_all <- function (haplotypes, vcf,
   message("Tidying the VCF...")
   
  vcf <- vcf.paralogs %>%
-    separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
+    tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
     mutate(
       N = as.numeric(stri_replace_all_fixed(N, "NS=", "", vectorize_all=F)),
       AF = stri_replace_all_fixed(AF, "AF=", "", vectorize_all=F)
     ) %>%
-    separate(AF, c("REF_FREQ", "ALT_FREQ"), sep = ",", extra = "error") %>%
+    tidyr::separate(AF, c("REF_FREQ", "ALT_FREQ"), sep = ",", extra = "error") %>%
     mutate(
       REF_FREQ = as.numeric(REF_FREQ),
       ALT_FREQ = as.numeric(ALT_FREQ)
     )
   # Gather individuals in 1 colummn --------------------------------------------
-  vcf <- gather(vcf, INDIVIDUALS, FORMAT, -c(CHROM:ALT_FREQ))
+  vcf <- tidyr::gather(vcf, INDIVIDUALS, FORMAT, -c(CHROM:ALT_FREQ))
   
   message("Gathering individuals in 1 column")
   
@@ -186,11 +186,9 @@ filter_all <- function (haplotypes, vcf,
   message("Tidying the VCF...")
   
   vcf <- vcf %>%
-    separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
+    tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
              sep = ":", extra = "error") %>%
-    #   separate(GT, c("ALLELE_P", "ALLELE_Q"), 
-    #            sep = "/", extra = "error", remove = F) %>%
-    separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
+    tidyr::separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
              sep = ",", extra = "error")
   
   # Work with Mutate on CHROM and GL -------------------------------------------

@@ -154,7 +154,7 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     # haplotypes file preparation
     haplo.prep <- data %>%
-      gather(INDIVIDUALS, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
+      tidyr::gather(INDIVIDUALS, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS))
     
     
@@ -195,7 +195,7 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     new.file <- bind_rows(erase, keep) %>%
       arrange(LOCUS, INDIVIDUALS) %>%
       rename(`Catalog ID` = LOCUS) %>%
-      spread(INDIVIDUALS, HAPLOTYPES)
+      tidyr::spread(INDIVIDUALS, HAPLOTYPES)
     
     
     

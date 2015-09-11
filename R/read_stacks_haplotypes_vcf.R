@@ -15,7 +15,6 @@
 #' @rdname read_stacks_haplotypes_vcf
 #' @export 
 #' @import dplyr
-#' @import tidyr
 #' @import stringi
 
 read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id.end, pop.levels, filter, filename) {
@@ -44,7 +43,7 @@ read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id
   )%>%
     select(-c(QUAL, FILTER, FORMAT)) %>%
     rename(LOCUS = ID, CHROM = `#CHROM`) %>%
-    separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
+    tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
     mutate(
       N = as.numeric(stri_replace_all_fixed(N, "NS=", "", vectorize_all=F)),
       AF = stri_replace_all_fixed(AF, "AF=", "", vectorize_all=F)
@@ -55,11 +54,11 @@ read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id
   message("Gathering individuals in 1 column...")
   
   vcf <- vcf %>%
-    gather(INDIVIDUALS, FORMAT, -c(CHROM:AF)) %>%
-    separate(FORMAT, c("GT", "READ_DEPTH"), sep = ":",
+    tidyr::gather(INDIVIDUALS, FORMAT, -c(CHROM:AF)) %>%
+    tidyr::separate(FORMAT, c("GT", "READ_DEPTH"), sep = ":",
              extra = "error") %>%
-    separate(AF, c("REF_FREQ", stri_join("ALT_FREQ", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_")), sep = ",", extra = "drop") %>%
-    separate(ALT, stri_join("ALT", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_"), extra = "drop")
+    tidyr::separate(AF, c("REF_FREQ", stri_join("ALT_FREQ", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_")), sep = ",", extra = "drop") %>%
+    tidyr::separate(ALT, stri_join("ALT", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_"), extra = "drop")
   
  
   message("Fixing columns...")

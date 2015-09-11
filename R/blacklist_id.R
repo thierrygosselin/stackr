@@ -31,7 +31,6 @@
 #' @rdname missing_genotypes
 #' @import reshape2
 #' @import dplyr
-#' @import tidyr
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 missing_genotypes <- function(haplotypes.file,
@@ -54,7 +53,7 @@ missing_genotypes <- function(haplotypes.file,
   haplotype <- read_tsv(file = haplotypes.file, col_names = T) %>%
     select(-Cnt) %>% 
     rename(LOCUS = `Catalog ID`) %>%
-    gather(INDIVIDUALS, HAPLOTYPES, -LOCUS)
+    tidyr::gather(INDIVIDUALS, HAPLOTYPES, -LOCUS)
   
   
   # Whitelist-------------------------------------------------------------------

@@ -125,18 +125,18 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
   
   # Make VCF tidy-----------------------------------------------------------------
   vcf <- vcf %>%
-    separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
+    tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
     mutate(
       N = as.numeric(stri_replace_all_fixed(N, "NS=", "", vectorize_all=F)),
       AF = stri_replace_all_fixed(AF, "AF=", "", vectorize_all=F)
     ) %>%
-    separate(AF, c("REF_FREQ", "ALT_FREQ"), sep = ",", extra = "error") %>%
+    tidyr::separate(AF, c("REF_FREQ", "ALT_FREQ"), sep = ",", extra = "error") %>%
     mutate(
       REF_FREQ = as.numeric(REF_FREQ),
       ALT_FREQ = as.numeric(ALT_FREQ)
     )
   # Gather individuals in 1 colummn --------------------------------------------
-  vcf <- gather(vcf, INDIVIDUALS, FORMAT, -c(CHROM:ALT_FREQ))
+  vcf <- tidyr::gather(vcf, INDIVIDUALS, FORMAT, -c(CHROM:ALT_FREQ))
   
   message("Gathering individuals in 1 column")
   
@@ -144,11 +144,9 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
   message("Tidying the VCF...")
   
   vcf <- vcf %>%
-    separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
+    tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
              sep = ":", extra = "error") %>%
-    #   separate(GT, c("ALLELE_P", "ALLELE_Q"), 
-    #            sep = "/", extra = "error", remove = F) %>%
-    separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
+    tidyr::separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
              sep = ",", extra = "error")
   
   # Work with Mutate on CHROM and GL -------------------------------------------

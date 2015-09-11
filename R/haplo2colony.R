@@ -91,7 +91,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @rdname haplo2colony
 #' @import reshape2
 #' @import dplyr
-#' @import tidyr
 #' @import lazyeval
 #' @importFrom stringr str_pad
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
@@ -317,7 +316,7 @@ haplo2colony <- function(haplotypes.file,
         variable.name = "Catalog.ID", 
         value.name = "HAPLOTYPES"
       ) %>% 
-      separate(
+      tidyr::separate(
         col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
         sep = "/", extra = "drop", remove = T
       ) %>%
@@ -350,7 +349,7 @@ haplo2colony <- function(haplotypes.file,
     
     frequency.markers <- suppressWarnings(
       haplo.prep %>%
-        gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID, ALLELE)) %>% 
+        tidyr::gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID, ALLELE)) %>% 
         select(-INDIVIDUALS, -ALLELE, -POP_ID) %>% 
         group_by(Catalog.ID) %>%
         filter(NUCLEOTIDES != "NA") %>% 
@@ -379,7 +378,7 @@ haplo2colony <- function(haplotypes.file,
     frequency.markers <- suppressWarnings(
       haplo.prep %>%
         filter(POP_ID %in% allele.freq) %>% 
-        gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID, ALLELE)) %>% 
+        tidyr::gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID, ALLELE)) %>% 
         select(-INDIVIDUALS, -ALLELE, -POP_ID) %>% 
         group_by(Catalog.ID) %>%
         filter(NUCLEOTIDES != "NA") %>% 
@@ -857,7 +856,7 @@ haplo2colony <- function(haplotypes.file,
           variable.name = "Catalog.ID", 
           value.name = "HAPLOTYPES"
         ) %>% 
-        separate(
+        tidyr::separate(
           col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
           sep = "/", extra = "drop", remove = T
         ) %>%
@@ -891,7 +890,7 @@ haplo2colony <- function(haplotypes.file,
       
       frequency.markers <- suppressWarnings(
         haplo.imp %>%
-          gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID, ALLELE)) %>% 
+          tidyr::gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID, ALLELE)) %>% 
           select(-INDIVIDUALS, -ALLELE, -POP_ID) %>% 
           group_by(Catalog.ID) %>%
           filter(NUCLEOTIDES != "NA") %>% 
@@ -920,7 +919,7 @@ haplo2colony <- function(haplotypes.file,
       frequency.markers <- suppressWarnings(
         haplo.imp %>%
           filter(POP_ID %in% allele.freq) %>% 
-          gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID, ALLELE)) %>% 
+          tidyr::gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID, ALLELE)) %>% 
           select(-INDIVIDUALS, -ALLELE, -POP_ID) %>% 
           group_by(Catalog.ID) %>%
           filter(NUCLEOTIDES != "NA") %>% 

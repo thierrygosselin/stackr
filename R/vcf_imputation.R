@@ -49,7 +49,6 @@
 #' @rdname vcf_imputation
 #' @import reshape2
 #' @import dplyr
-#' @import tidyr
 #' @import lazyeval
 #' @importFrom stringr str_pad
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
@@ -115,8 +114,8 @@ vcf_imputation <- function(vcf.file,
   # VCF prep
   vcf <- vcf %>% 
     select(-c(QUAL, FILTER, INFO, FORMAT)) %>% 
-    gather(INDIVIDUALS, FORMAT_ID, -c(CHROM, ID, POS, REF, ALT)) %>%
-    separate(FORMAT_ID, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
+    tidyr::gather(INDIVIDUALS, FORMAT_ID, -c(CHROM, ID, POS, REF, ALT)) %>%
+    tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
              sep = ":", extra = "error") %>% 
     select(-c(READ_DEPTH, ALLELE_DEPTH, GL))
   
@@ -186,7 +185,7 @@ vcf_imputation <- function(vcf.file,
   # create a keeper list of MARKER, CHROM, ID, POS, REF and ALT
   vcf.keeper <- vcf %>%
     select(CHROM, ID, POS, REF, ALT) %>% 
-    unite(MARKER, CHROM, ID, POS, sep = "_", remove = TRUE) %>% 
+    tidyr::unite(MARKER, CHROM, ID, POS, sep = "_", remove = TRUE) %>% 
     distinct(MARKER)
   
   
@@ -231,7 +230,7 @@ vcf_imputation <- function(vcf.file,
   
   vcf <- vcf %>%
     select(-REF, -ALT) %>% 
-    unite(MARKER, CHROM, ID, POS, sep = "_", remove = TRUE) %>% 
+    tidyr::unite(MARKER, CHROM, ID, POS, sep = "_", remove = TRUE) %>% 
     mutate(GT = stri_replace_all_fixed(GT, "./.", "NA", vectorize_all=F)) %>% 
     mutate(POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end)) %>%
     dcast(INDIVIDUALS + POP_ID ~ MARKER, value.var = "GT")
@@ -303,7 +302,7 @@ vcf_imputation <- function(vcf.file,
       message("Imputations computed by populations")
       
       vcf.imp <- vcf %>%
-        gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
+        tidyr::gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
         mutate(GT = replace(GT, which(GT=="NA"), NA)) %>%
         group_by(MARKER, POP_ID) %>% 
         mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)))
@@ -313,7 +312,7 @@ vcf_imputation <- function(vcf.file,
       message("Imputations computed globally")
       
       vcf.imp <- vcf %>%
-        gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
+        tidyr::gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
         mutate(GT = replace(GT, which(GT=="NA"), NA)) %>%
         group_by(MARKER) %>% 
         mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)))
@@ -324,7 +323,7 @@ vcf_imputation <- function(vcf.file,
   
   vcf.imp <- suppressWarnings(
     vcf.imp %>% 
-      gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
+      tidyr::gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
       arrange(POP_ID, INDIVIDUALS) %>% 
       group_by(MARKER) %>% 
       mutate(INFO = stri_paste("NS=", n(), sep = "")) %>% 
@@ -334,7 +333,7 @@ vcf_imputation <- function(vcf.file,
   
   vcf.imp <- suppressWarnings(
     full_join(vcf.keeper, vcf.imp, by = "MARKER") %>%
-      separate(MARKER, c("CHROM", "ID", "POS"), sep = "_", extra = "error") %>%
+      tidyr::separate(MARKER, c("CHROM", "ID", "POS"), sep = "_", extra = "error") %>%
       mutate(
         ID = as.numeric(ID),
         POS = as.numeric(POS),

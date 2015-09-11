@@ -390,7 +390,7 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
       ) %>% 
       dcast(LOCUS + ONEMAP ~ INDIVIDUALS, value.var = "GENOTYPES") %>% 
       mutate(LOCUS = paste("*", LOCUS, sep="")) %>%
-      unite(MARKERS, LOCUS, ONEMAP, sep=" ", remove = T) %>% 
+      tidyr::unite(MARKERS, LOCUS, ONEMAP, sep=" ", remove = T) %>% 
       mutate(MARKERS = paste(.[,1], .[,2], sep = "\t"))
 
         progeny.names <- genotypes.file %>% 

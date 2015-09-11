@@ -230,7 +230,7 @@ haplo2genind <- function(haplotypes.file,
   haplo.prep <- suppressWarnings(
     haplo.filtered %>% 
       melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
-      separate(
+      tidyr::separate(
         col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
         sep = "/", extra = "drop", remove = T
       ) %>%
@@ -269,7 +269,7 @@ haplo2genind <- function(haplotypes.file,
       mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>% 
       mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>% 
       dcast(Catalog.ID + INDIVIDUALS + POP_ID ~ ALLELE, value.var = "HAPLOTYPES") %>%
-      unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
+      tidyr::unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
       arrange(Catalog.ID) %>% 
       dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") %>% 
       arrange(POP_ID, INDIVIDUALS)
@@ -419,7 +419,7 @@ haplo2genind <- function(haplotypes.file,
     haplo.imp <- suppressWarnings(
       haplo.imp %>% 
         melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
-        separate(
+        tidyr::separate(
           col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
           sep = "/", extra = "drop", remove = T
         ) %>%
@@ -457,8 +457,7 @@ haplo2genind <- function(haplotypes.file,
         mutate(HAPLOTYPES = stri_pad_left(str = HAPLOTYPES, width = 3, pad = "0")) %>% 
         mutate(HAPLOTYPES = stri_replace_na(str = HAPLOTYPES, replacement = "000")) %>% 
         dcast(Catalog.ID + INDIVIDUALS + POP_ID ~ ALLELE, value.var = "HAPLOTYPES") %>%
-        # unite(GENOTYPE, ALLELE1:ALLELE2, sep = "/") %>%
-        unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
+        tidyr::unite(GENOTYPE, ALLELE1:ALLELE2, sep = "") %>%
         arrange(Catalog.ID) %>% 
         dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "GENOTYPE") %>% 
         arrange(POP_ID, INDIVIDUALS)
