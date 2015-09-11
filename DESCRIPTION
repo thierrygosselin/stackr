@@ -1,8 +1,8 @@
 Package: stackr
 Type: Package
 Title: GBS/RAD Data Exploration, Manipulation and Visualization using R
-Version: 0.1.3
-Date: 2015-09-03
+Version: 0.1.4
+Date: 2015-09-11
 Encoding: UTF-8
 Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
@@ -14,8 +14,7 @@ Description: Set of tools to look at GBS/RAD data created by STACKS software.
 Depends: 
   R (>= 3.0.1),
 Imports: dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval, adegenet, randomForestSRC, stringdist
-Suggests: parallel, boot, pegas, hierfstat, plyr,
-    knitr, rmarkdown
+Suggests: parallel, boot, pegas, plyr, hierfstat, knitr, rmarkdown
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr
