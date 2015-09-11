@@ -54,7 +54,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @rdname haplo2genepop
 #' @import reshape2
 #' @import dplyr
-#' @import tidyr
 #' @importFrom stringr str_pad
 #' @references Rousset F (2008) genepop’007: a complete re-implementation
 #' of the genepop software for Windows and Linux.
@@ -102,8 +101,7 @@ haplo2genepop <- function(haplotypes.file,
     select(-Cnt) %>% 
     rename(Catalog.ID = `Catalog ID`) %>%
     melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
-  # gather(INDIVIDUALS, HAPLOTYPES, -Catalog.ID)
-  
+
   
   # Whitelist-------------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
@@ -228,7 +226,6 @@ haplo2genepop <- function(haplotypes.file,
   # Further work on the data
   haplo.prep <- suppressWarnings(
     haplo.filtered %>% 
-      # gather(Catalog.ID, HAPLOTYPES, -c(INDIVIDUALS, POP_ID)) %>% 
       melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
       separate(
         col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
@@ -474,7 +471,6 @@ haplo2genepop <- function(haplotypes.file,
     
     haplo.imp <- suppressWarnings(
       haplo.imp %>% 
-        # gather(Catalog.ID, HAPLOTYPES, -c(INDIVIDUALS, POP_ID)) %>% 
         melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
         separate(
           col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 

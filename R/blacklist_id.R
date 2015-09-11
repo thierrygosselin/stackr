@@ -54,7 +54,6 @@ missing_genotypes <- function(haplotypes.file,
   haplotype <- read_tsv(file = haplotypes.file, col_names = T) %>%
     select(-Cnt) %>% 
     rename(LOCUS = `Catalog ID`) %>%
-    # melt(id.vars = "LOCUS", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
     gather(INDIVIDUALS, HAPLOTYPES, -LOCUS)
   
   

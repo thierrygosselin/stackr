@@ -63,7 +63,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 # @importFrom adegenet df2genind
 #' @import reshape2
 #' @import dplyr
-#' @import tidyr
 #' @importFrom stringr str_pad
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
@@ -112,8 +111,7 @@ haplo2genind <- function(haplotypes.file,
     select(-Cnt) %>% 
     rename(Catalog.ID = `Catalog ID`) %>%
     melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
-  # gather(INDIVIDUALS, HAPLOTYPES, -Catalog.ID)
-  
+
   
   # Whitelist-------------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
@@ -231,7 +229,6 @@ haplo2genind <- function(haplotypes.file,
   # Further work on the data
   haplo.prep <- suppressWarnings(
     haplo.filtered %>% 
-      # gather(Catalog.ID, HAPLOTYPES, -c(INDIVIDUALS, POP_ID)) %>% 
       melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
       separate(
         col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
@@ -421,7 +418,6 @@ haplo2genind <- function(haplotypes.file,
     
     haplo.imp <- suppressWarnings(
       haplo.imp %>% 
-        # gather(Catalog.ID, HAPLOTYPES, -c(INDIVIDUALS, POP_ID)) %>% 
         melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
         separate(
           col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 

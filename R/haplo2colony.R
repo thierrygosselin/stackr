@@ -158,8 +158,7 @@ haplo2colony <- function(haplotypes.file,
     melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES") %>% 
     mutate(POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end))
   
-  # gather(INDIVIDUALS, HAPLOTYPES, -Catalog.ID)
-  
+
   # Pop select -----------------------------------------------------------------
   if(pop.select == "all" | missing(pop.select) == TRUE){
     haplotype <- haplotype
@@ -313,7 +312,6 @@ haplo2colony <- function(haplotypes.file,
   # Further work on the data
   haplo.prep <- suppressWarnings(
     haplo.filtered %>% 
-      # gather(Catalog.ID, HAPLOTYPES, -c(INDIVIDUALS, POP_ID)) %>% 
       melt(
         id.vars = c("INDIVIDUALS", "POP_ID"), 
         variable.name = "Catalog.ID", 
@@ -353,7 +351,6 @@ haplo2colony <- function(haplotypes.file,
     frequency.markers <- suppressWarnings(
       haplo.prep %>%
         gather(Catalog.ID, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID, ALLELE)) %>% 
-        # gather(ALLELE, NUCLEOTIDES, -c(INDIVIDUALS, POP_ID, Catalog.ID)) %>%
         select(-INDIVIDUALS, -ALLELE, -POP_ID) %>% 
         group_by(Catalog.ID) %>%
         filter(NUCLEOTIDES != "NA") %>% 
