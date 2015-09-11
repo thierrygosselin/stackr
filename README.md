@@ -22,8 +22,8 @@ Because STACKS is always under development (more than 100 versions so far!),
 ## New
 **v.0.1.4**
 Introducing *haplo2fstat* function.
-Conversion of STACKS haplotypes file to an fstat file.
-Access all the functions in the R package [hierfstat] (https://github.com/jgx65/hierfstat)
+Conversion of STACKS haplotypes file into a fstat file.
+Access all the functions in the R package [hierfstat] (https://github.com/jgx65/hierfstat).
 
 **v.0.1.3**
 Map-independent imputations of a VCF file created by STACKS. 
