@@ -12,6 +12,9 @@
 #' @param blacklist (optional) Blacklist file with loci to filter out
 #' of the vcf, using a file in the working directory (e.g. "myfile.txt")
 #' or an object in the global environment.
+#' @param blacklist.id (optional) A blacklist with individual ID and
+#' a column header 'INDIVIDUALS'. The blacklist is in the directory
+#'  (e.g. "blacklist.txt").
 #' @param filename (optional) The name of the file written in the directory.
 #' @rdname read_stacks_vcf
 #' @export
@@ -45,7 +48,8 @@
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 
-read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whitelist, blacklist, filename) {
+read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whitelist, blacklist, blacklist.id,
+                            filename) {
   
   X1 <- NULL
   POP_ID <- NULL
@@ -76,7 +80,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
   
   vcf <- read_delim(
     vcf.file, delim = "\t", 
-    skip = 9,#n_max = max.read.lines,
+    skip = 9,
     progress = interactive()
   ) %>% 
     select(-c(QUAL, FILTER, FORMAT)) %>%
@@ -92,7 +96,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
       semi_join(
         read_tsv(whitelist, col_names = T),
         by = "LOCUS"
-        )
+      )
     message("Filtering the VCF with the whitelist from your directory")
     
   } else {
@@ -120,17 +124,16 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
     
     vcf <- vcf %>% 
       anti_join(blacklist, by = "LOCUS")
-    
   }
   
   # Make VCF tidy-----------------------------------------------------------------
   vcf <- vcf %>%
-    tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
+    tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "warn") %>%
     mutate(
       N = as.numeric(stri_replace_all_fixed(N, "NS=", "", vectorize_all=F)),
       AF = stri_replace_all_fixed(AF, "AF=", "", vectorize_all=F)
     ) %>%
-    tidyr::separate(AF, c("REF_FREQ", "ALT_FREQ"), sep = ",", extra = "error") %>%
+    tidyr::separate(AF, c("REF_FREQ", "ALT_FREQ"), sep = ",", extra = "warn") %>%
     mutate(
       REF_FREQ = as.numeric(REF_FREQ),
       ALT_FREQ = as.numeric(ALT_FREQ)
@@ -139,15 +142,36 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
   vcf <- tidyr::gather(vcf, INDIVIDUALS, FORMAT, -c(CHROM:ALT_FREQ))
   
   message("Gathering individuals in 1 column")
+  # Blacklist id----------------------------------------------------------------
+  
+  if (missing(blacklist.id) == "TRUE") {
+    message("No individual blacklisted")
+    blacklist.id <- NULL
+    vcf <- vcf
+  } else if (is.vector(blacklist.id) == "TRUE") {
+    message("Using the blacklisted id from the directory")
+    blacklist.id <- read_tsv(blacklist.id, col_names = T)
+    vcf <- suppressWarnings(
+      vcf %>% 
+      anti_join(blacklist.id, by = "INDIVIDUALS")
+    )
+  } else {
+    message("Using the blacklisted id from your global environment")
+    blacklist.id <- blacklist.id
+    vcf <- suppressWarnings(
+      vcf %>% 
+      anti_join(blacklist.id, by = "INDIVIDUALS")
+    )
+  }
   
   # Separate FORMAT and COVERAGE columns ---------------------------------------
   message("Tidying the VCF...")
   
   vcf <- vcf %>%
     tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
-             sep = ":", extra = "error") %>%
+                    sep = ":", extra = "warn") %>%
     tidyr::separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
-             sep = ",", extra = "error")
+                    sep = ",", extra = "warn")
   
   # Work with Mutate on CHROM and GL -------------------------------------------
   message("Fixing columns...")

@@ -5,7 +5,7 @@
 #' of class sumstats or tidy VCF.
 #' @param is.vcf Is the data a tidy vcf file ? TRUE or FALSE.
 #' @param population.map The population map or individuals listed in one column.
-#' No headers.
+#' No headers. Optional with VCF file, required with sumstats file.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
@@ -40,32 +40,30 @@ filter_individual <- function(data, is.vcf, population.map, pop.id.start, pop.id
   
   
   
-  
-  if (is.vector(population.map) == "TRUE") {
-    
-    message("Using the population map in your directory")
-    
-    population.map <- read_tsv(population.map, col_names = FALSE) %>%
-      select(INDIVIDUALS=X1) %>%
-      mutate(
-        INDIVIDUALS = as.character(INDIVIDUALS),
-        POP_ID = str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
-        POP_ID = factor(POP_ID, levels = pop.levels, ordered =T)
-      )
-    
-  } else {
-    
-    message("Using the population map from your global environment")
-    
-    population.map <- population.map %>%
-      mutate(
-        INDIVIDUALS = as.character(INDIVIDUALS),
-        POP_ID = str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
-        POP_ID = factor(POP_ID, levels = pop.levels, ordered =TRUE)
-      )
-  }
   if (stri_detect_fixed(is.vcf, "F")) {
-    
+    if (is.vector(population.map) == "TRUE") {
+      
+      message("Using the population map in your directory")
+      
+      population.map <- read_tsv(population.map, col_names = FALSE) %>%
+        select(INDIVIDUALS=X1) %>%
+        mutate(
+          INDIVIDUALS = as.character(INDIVIDUALS),
+          POP_ID = str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+          POP_ID = factor(POP_ID, levels = pop.levels, ordered =T)
+        )
+      
+    } else {
+      
+      message("Using the population map from your global environment")
+      
+      population.map <- population.map %>%
+        mutate(
+          INDIVIDUALS = as.character(INDIVIDUALS),
+          POP_ID = str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+          POP_ID = factor(POP_ID, levels = pop.levels, ordered =TRUE)
+        )
+    }
     if (is.vector(data) == "TRUE") {
       data <- read_tsv(data, col_names = TRUE)
       message("Using the sumstats file in your directory")

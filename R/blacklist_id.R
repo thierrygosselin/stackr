@@ -128,12 +128,17 @@ missing_genotypes <- function(haplotypes.file,
     mutate(POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end)) %>% 
     select(POP_ID, INDIVIDUALS, TOTAL, GENOTYPED, MISSING, PERC_MISSING)
   
-  write.table(missing.genotypes.ind, 
-              "missing.genotypes.ind.tsv", 
-              sep = "\t",
-              row.names = F,
-              col.names = T,
-              quote = F)
+  
+  if (missing(whitelist.loci) == "FALSE") {
+    write.table(missing.genotypes.ind, "missing.genotypes.ind.filtered.tsv", 
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    mis.geno.ind.filename <- "missing.genotypes.ind.filtered.tsv"
+  } else {
+    write.table(missing.genotypes.ind, "missing.genotypes.ind.tsv", 
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    mis.geno.ind.filename <- "missing.genotypes.ind.tsv"
+  }
+  
   
   # After applying threshold
   # missing.geno.threshold<-10
@@ -142,13 +147,17 @@ missing_genotypes <- function(haplotypes.file,
     select(INDIVIDUALS) %>% 
     distinct(INDIVIDUALS)
   
-  filename <- paste("blacklisted.id", missing.geno.threshold, "txt", sep = ".")
-  write.table(blacklisted.id, 
-              filename, 
-              sep = "\t",
-              row.names = F,
-              col.names = T,
-              quote = F)
+
+  if (missing(whitelist.loci) == "FALSE") {
+    blacklist.id.filename <- paste("blacklisted.id.filtered", missing.geno.threshold, "txt", sep = ".")
+    write.table(blacklisted.id, blacklist.id.filename, 
+                sep = "\t", row.names = F, col.names = T, quote = F)
+  } else {
+    blacklist.id.filename <- paste("blacklisted.id", missing.geno.threshold, "txt", sep = ".")
+    write.table(blacklisted.id, blacklist.id.filename, 
+                sep = "\t", row.names = F, col.names = T, quote = F)
+  }
+  
   
   # Figure : Density of missing genotype before and after threshold
   plot.missing <- ggplot(data = missing.genotypes.ind, aes(x = PERC_MISSING, na.rm = T))+
@@ -184,12 +193,15 @@ missing_genotypes <- function(haplotypes.file,
     ) %>% 
     dcast(POP_ID + N ~ MISSING_GROUP, value.var = "INDIVIDUALS")
   
-  write.table(missing.genotypes.pop, 
-              "missing.genotypes.pop.tsv", 
-              sep = "\t",
-              row.names = F,
-              col.names = T,
-              quote = F)
+  if (missing(whitelist.loci) == "FALSE") {
+    write.table(missing.genotypes.pop, "missing.genotypes.pop.filtered.tsv", 
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    mis.geno.pop.filename <- "missing.genotypes.pop.filtered.tsv"
+  } else {
+    write.table(missing.genotypes.pop, "missing.genotypes.pop.tsv", 
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    mis.geno.pop.filename <- "missing.genotypes.pop.tsv"
+  }
   
   
   res <- list()
@@ -200,18 +212,20 @@ missing_genotypes <- function(haplotypes.file,
   
   invisible(cat(sprintf(
     "
-Missing genotypes information per ind filename: missing.genotypes.ind.tsv
-Missing genotypes information per pop filename: missing.genotypes.pop.tsv
+Missing genotypes information per ind filename: %s
+Missing genotypes information per pop filename: %s
 The missing genotype percentage threshold: >= %s
 The number of individuals blacklisted = %s
 Blacklist individual filename:  %s
 A plot with missing genotypes information was created: $plot.missing
 
 Written in the directory:
-  %s", 
+  %s",
+    mis.geno.ind.filename,
+    mis.geno.pop.filename,
     missing.geno.threshold,
     n_distinct(blacklisted.id$INDIVIDUALS),
-    filename,
+    blacklist.id.filename,
     getwd()
   )))
   

@@ -116,7 +116,7 @@ vcf_imputation <- function(vcf.file,
     select(-c(QUAL, FILTER, INFO, FORMAT)) %>% 
     tidyr::gather(INDIVIDUALS, FORMAT_ID, -c(CHROM, ID, POS, REF, ALT)) %>%
     tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
-             sep = ":", extra = "error") %>% 
+             sep = ":", extra = "warn") %>% 
     select(-c(READ_DEPTH, ALLELE_DEPTH, GL))
   
   
@@ -333,7 +333,7 @@ vcf_imputation <- function(vcf.file,
   
   vcf.imp <- suppressWarnings(
     full_join(vcf.keeper, vcf.imp, by = "MARKER") %>%
-      tidyr::separate(MARKER, c("CHROM", "ID", "POS"), sep = "_", extra = "error") %>%
+      tidyr::separate(MARKER, c("CHROM", "ID", "POS"), sep = "_", extra = "warn") %>%
       mutate(
         ID = as.numeric(ID),
         POS = as.numeric(POS),

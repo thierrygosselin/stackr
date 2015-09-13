@@ -43,7 +43,7 @@ read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id
   )%>%
     select(-c(QUAL, FILTER, FORMAT)) %>%
     rename(LOCUS = ID, CHROM = `#CHROM`) %>%
-    tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
+    tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "warn") %>%
     mutate(
       N = as.numeric(stri_replace_all_fixed(N, "NS=", "", vectorize_all=F)),
       AF = stri_replace_all_fixed(AF, "AF=", "", vectorize_all=F)
@@ -56,7 +56,7 @@ read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id
   vcf <- vcf %>%
     tidyr::gather(INDIVIDUALS, FORMAT, -c(CHROM:AF)) %>%
     tidyr::separate(FORMAT, c("GT", "READ_DEPTH"), sep = ":",
-             extra = "error") %>%
+             extra = "warn") %>%
     tidyr::separate(AF, c("REF_FREQ", stri_join("ALT_FREQ", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_")), sep = ",", extra = "drop") %>%
     tidyr::separate(ALT, stri_join("ALT", seq(1, max(stri_count_fixed(.$ALT, pattern = ","))), sep = "_"), extra = "drop")
   

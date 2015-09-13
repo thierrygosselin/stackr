@@ -14,7 +14,7 @@ of class sumstats or tidy VCF.}
 \item{is.vcf}{Is the data a tidy vcf file ? TRUE or FALSE.}
 
 \item{population.map}{The population map or individuals listed in one column.
-No headers.}
+No headers. Optional with VCF file, required with sumstats file.}
 
 \item{pop.id.start}{The start of your population id
 in the name of your individual sample.}

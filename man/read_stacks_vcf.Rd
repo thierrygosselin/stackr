@@ -5,7 +5,7 @@
 \title{Read a VCF file produced by STACKS and transform in tidy format}
 \usage{
 read_stacks_vcf(vcf.file, pop.id.start, pop.id.end, pop.levels, whitelist,
-  blacklist, filename)
+  blacklist, blacklist.id, filename)
 }
 \arguments{
 \item{vcf.file}{The VCF file created by STACKS.}
@@ -25,6 +25,10 @@ in the global environment.}
 \item{blacklist}{(optional) Blacklist file with loci to filter out
 of the vcf, using a file in the working directory (e.g. "myfile.txt")
 or an object in the global environment.}
+
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the directory
+ (e.g. "blacklist.txt").}
 
 \item{filename}{(optional) The name of the file written in the directory.}
 }

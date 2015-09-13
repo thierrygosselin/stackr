@@ -167,12 +167,12 @@ filter_all <- function (haplotypes, vcf,
   message("Tidying the VCF...")
   
  vcf <- vcf.paralogs %>%
-    tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "error") %>%
+    tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "warn") %>%
     mutate(
       N = as.numeric(stri_replace_all_fixed(N, "NS=", "", vectorize_all=F)),
       AF = stri_replace_all_fixed(AF, "AF=", "", vectorize_all=F)
     ) %>%
-    tidyr::separate(AF, c("REF_FREQ", "ALT_FREQ"), sep = ",", extra = "error") %>%
+    tidyr::separate(AF, c("REF_FREQ", "ALT_FREQ"), sep = ",", extra = "warn") %>%
     mutate(
       REF_FREQ = as.numeric(REF_FREQ),
       ALT_FREQ = as.numeric(ALT_FREQ)
@@ -187,9 +187,9 @@ filter_all <- function (haplotypes, vcf,
   
   vcf <- vcf %>%
     tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
-             sep = ":", extra = "error") %>%
+             sep = ":", extra = "warn") %>%
     tidyr::separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
-             sep = ",", extra = "error")
+             sep = ",", extra = "warn")
   
   # Work with Mutate on CHROM and GL -------------------------------------------
   message("Fixing columns...")

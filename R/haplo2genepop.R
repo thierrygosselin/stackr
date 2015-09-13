@@ -282,10 +282,12 @@ haplo2genepop <- function(haplotypes.file,
   # Create a vector with the population ordered by levels
   if (missing(pop.levels) == "TRUE") {
     pop <- substr(haplo.prep$INDIVIDUALS, pop.id.start, pop.id.end)
+    pop <- droplevels(pop)
   } else {
     pop <- factor(substr(haplo.prep$INDIVIDUALS, 
                          pop.id.start, pop.id.end),
                   levels = pop.levels, ordered = T)
+    pop <- droplevels(pop)
   }
   
   # split genepop by populations
@@ -307,25 +309,7 @@ haplo2genepop <- function(haplotypes.file,
   } else {
     genepop.header <- genepop.header
   }
-  #  The next few lines doesn't work with Windows... 
-  #   file.no.imputation <- file(genepop.filename, "write")
-  #   cat(genepop.header, "\n", file = file.no.imputation, append = TRUE)
-  #   cat(loci, sep = "\n", file = file.no.imputation, append = TRUE)
-  #   
-  #   for (i in 1:length(genepop.split)) {
-  #     cat("pop\n", file = file.no.imputation, append = TRUE)
-  #     write.table(
-  #       genepop.split[[i]],
-  #       file = file.no.imputation, 
-  #       append = TRUE, 
-  #       col.names = FALSE,
-  #       row.names = FALSE, 
-  #       sep = " ", 
-  #       quote = FALSE
-  #     )
-  #   }
-  #   close(file.no.imputation)
-  
+
   genepop.header <- as.data.frame(genepop.header)
   write.table(genepop.header, file = genepop.filename, col.names = FALSE, row.names = FALSE, quote = FALSE)
   loci.table <- as.data.frame(loci)
@@ -523,10 +507,12 @@ haplo2genepop <- function(haplotypes.file,
     # Create a vector with the population ordered by levels
     if (missing(pop.levels) == "TRUE") {
       pop <- substr(haplo.imp$INDIVIDUALS, pop.id.start, pop.id.end)
+      pop <- droplevels(pop)
     } else {
       pop <- factor(substr(haplo.imp$INDIVIDUALS, 
                            pop.id.start, pop.id.end),
                     levels = pop.levels, ordered = T)
+      pop <- droplevels(pop)
       
     }
     
@@ -552,31 +538,11 @@ haplo2genepop <- function(haplotypes.file,
     
     # genepop header default
     if (missing(genepop.header) == "TRUE"){
-      genepop.header <- "my first genepop"
-      genepop.header <- stri_join(genepop.header, "with imputation", sep = " ")
+      genepop.header <- "genepop: imputation"
     } else {
-      genepop.header <- genepop.header
+      genepop.header <- genepop.header$genepop.header
       genepop.header <- stri_join(genepop.header, "with imputation", sep = " ")
     }
-    
-    # Doesn't work with Windows...    
-    #     file.imputation <- file(genepop.filename.imp, "write")
-    #     cat(genepop.header, "\n", file = file.imputation, append = TRUE)
-    #     cat(loci, sep = "\n", file = file.imputation, append = TRUE)
-    #     
-    #     for (i in 1:length(genepop.imp.split)) {
-    #       cat("pop\n", file = file.imputation, append = TRUE)
-    #       write.table(
-    #         genepop.imp.split[[i]],
-    #         file = file.imputation, 
-    #         append = TRUE, 
-    #         col.names = FALSE,
-    #         row.names = FALSE, 
-    #         sep = " ", 
-    #         quote = FALSE
-    #       )
-    #     }
-    #     close(file.imputation)
     
     genepop.header <- as.data.frame(genepop.header)
     write.table(genepop.header, file = genepop.filename.imp, col.names = FALSE, row.names = FALSE, quote = FALSE)
