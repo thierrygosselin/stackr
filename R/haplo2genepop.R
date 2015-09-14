@@ -1,5 +1,9 @@
 # Write a genepop file from STACKS haplotype file
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE", "ALLELE1", "ALLELE2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX", "colwise", "detectCores", "mc.cores", "."))
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID",
+"Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt",
+"HAPLOTYPES", "SAMPLES", "ALLELE", "ALLELE1", "ALLELE2", "GENOTYPE",
+"NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX",
+"colwise", "detectCores", "mc.cores", "."))
 
 #' @name haplo2genepop
 #' @title Use the batch_x.haplotypes.tsv file to write a genpop file.
@@ -19,6 +23,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @param genepop.header The first line of the Genepop file.
 #' Default \code{my firt genepop}.
 #' @param pop.levels An optional character string with your populations ordered.
+#' @param pop.labels An optional character string with new populations names.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
@@ -78,7 +83,7 @@ haplo2genepop <- function(haplotypes.file,
                           blacklist.id = NULL, 
                           genepop.filename = "genepop.gen",
                           genepop.header = "my first genepop", 
-                          pop.levels, pop.id.start, pop.id.end,
+                          pop.levels, pop.labels, pop.id.start, pop.id.end,
                           imputations = FALSE,
                           imputations.group = "populations",
                           num.tree = 100,
@@ -101,7 +106,7 @@ haplo2genepop <- function(haplotypes.file,
     select(-Cnt) %>% 
     rename(Catalog.ID = `Catalog ID`) %>%
     melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
-
+  
   
   # Whitelist-------------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
@@ -193,20 +198,38 @@ haplo2genepop <- function(haplotypes.file,
   # Haplo prep
   # Remove paralogs
   # Remove consensus loci
+  if(missing(pop.labels)){
+    pop.labels <- pop.levels
+    haplo.filtered <- suppressWarnings(
+      haplotype %>%
+        anti_join(paralogs, by = "Catalog.ID") %>%
+        filter(HAPLOTYPES != "consensus") %>%    
+        mutate(
+          HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
+                                              vectorize_all=F),
+          POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
+                          levels = pop.levels, labels = pop.labels, ordered = T),
+          POP_ID = droplevels(POP_ID)
+        ) %>% 
+        arrange(Catalog.ID)
+    )  
+    } else {
+      haplo.filtered <- suppressWarnings(
+        haplotype %>%
+          anti_join(paralogs, by = "Catalog.ID") %>%
+          filter(HAPLOTYPES != "consensus") %>%    
+          mutate(
+            HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
+                                                vectorize_all=F),
+            POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
+                            levels = pop.levels, labels = pop.labels, ordered = T),
+            POP_ID = droplevels(POP_ID)
+          ) %>% 
+          arrange(Catalog.ID)
+      )
+    }
   
-  haplo.filtered <- suppressWarnings(
-    haplotype %>%
-      anti_join(paralogs, by = "Catalog.ID") %>%
-      filter(HAPLOTYPES != "consensus") %>%    
-      mutate(
-        HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
-                                            vectorize_all=F),
-        POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
-                        levels = pop.levels, ordered = T)
-      ) %>% 
-      arrange(Catalog.ID)
-    )
-
+  
   # get the list of loci after filter  
   loci <- unique(haplo.filtered$Catalog.ID)
   
@@ -280,13 +303,13 @@ haplo2genepop <- function(haplotypes.file,
   # convert to genepop     
   
   # Create a vector with the population ordered by levels
-  if (missing(pop.levels) == "TRUE") {
+  if (missing(pop.levels) & missing(pop.labels)) {
     pop <- substr(haplo.prep$INDIVIDUALS, pop.id.start, pop.id.end)
     pop <- droplevels(pop)
   } else {
     pop <- factor(substr(haplo.prep$INDIVIDUALS, 
                          pop.id.start, pop.id.end),
-                  levels = pop.levels, ordered = T)
+                  levels = pop.levels, labels = pop.labels, ordered = T)
     pop <- droplevels(pop)
   }
   
@@ -309,7 +332,7 @@ haplo2genepop <- function(haplotypes.file,
   } else {
     genepop.header <- genepop.header
   }
-
+  
   genepop.header <- as.data.frame(genepop.header)
   write.table(genepop.header, file = genepop.filename, col.names = FALSE, row.names = FALSE, quote = FALSE)
   loci.table <- as.data.frame(loci)
@@ -505,13 +528,13 @@ haplo2genepop <- function(haplotypes.file,
     message("step 4/4: completed")
     
     # Create a vector with the population ordered by levels
-    if (missing(pop.levels) == "TRUE") {
+    if (missing(pop.levels) & missing(pop.labels)) {
       pop <- substr(haplo.imp$INDIVIDUALS, pop.id.start, pop.id.end)
       pop <- droplevels(pop)
     } else {
       pop <- factor(substr(haplo.imp$INDIVIDUALS, 
                            pop.id.start, pop.id.end),
-                    levels = pop.levels, ordered = T)
+                    levels = pop.levels, labels = pop.labels, ordered = T)
       pop <- droplevels(pop)
       
     }

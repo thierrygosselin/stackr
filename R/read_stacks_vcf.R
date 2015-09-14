@@ -14,7 +14,7 @@
 #' or an object in the global environment.
 #' @param blacklist.id (optional) A blacklist with individual ID and
 #' a column header 'INDIVIDUALS'. The blacklist is in the directory
-#'  (e.g. "blacklist.txt").
+#'  (e.g. "blacklist.id.30.txt").
 #' @param filename (optional) The name of the file written in the directory.
 #' @rdname read_stacks_vcf
 #' @export

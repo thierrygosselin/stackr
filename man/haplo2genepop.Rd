@@ -6,7 +6,7 @@
 \usage{
 haplo2genepop(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
   genepop.filename = "genepop.gen", genepop.header = "my first genepop",
-  pop.levels, pop.id.start, pop.id.end, imputations = FALSE,
+  pop.levels, pop.labels, pop.id.start, pop.id.end, imputations = FALSE,
   imputations.group = "populations", num.tree = 100, iteration.rf = 10,
   split.number = 100, verbose = FALSE, parallel.core = 2)
 }
@@ -28,6 +28,8 @@ Use the extension ".gen" at the end. Default \code{genepop.gen}.}
 Default \code{my firt genepop}.}
 
 \item{pop.levels}{An optional character string with your populations ordered.}
+
+\item{pop.labels}{An optional character string with new populations names.}
 
 \item{pop.id.start}{The start of your population id
 in the name of your individual sample.}
