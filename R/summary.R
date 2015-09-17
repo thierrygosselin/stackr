@@ -29,7 +29,7 @@
 #' @param read.length The length in nucleotide of your reads (e.g. 80 or 100).
 #' @import stringdist
 #' @return The function returns a list with the summary, the paralogs and
-#' consensus loci by populations and unique loci and 3 plots (use $ to access each 
+#' consensus loci by populations and unique loci, the individual's info for FH and Pi and 3 plots (use $ to access each 
 #' objects). 
 #' Write 3 files in the working directory:
 #' blacklist of unique putative paralogs and unique consensus loci 
@@ -45,6 +45,8 @@
 #' consensus.pop <- haplotype.file.summary$consensus.pop
 #' 
 #' consensus.loci <- haplotype.file.summary$consensus.loci
+#' 
+#' fh.pi.individuals <- haplotype.file.summary$fh.pi.individuals
 #' 
 #' scatter.plot <- haplotype.file.summary$scatter.plot
 #' 
@@ -325,6 +327,8 @@ summary_haplotypes <- function(haplotypes.file,
     full_join(freq.pop, by = "POP_ID") %>% 
     mutate(FH = ((HOM_O - HOM_E)/(N_GENOT - HOM_E)))
   
+  fh.i.out <- fh.i %>% select(INDIVIDUALS, POP_ID, FH)
+  
   fh.pop <- fh.i %>% 
     group_by(POP_ID) %>% 
     summarise(
@@ -355,7 +359,7 @@ summary_haplotypes <- function(haplotypes.file,
   summary.ind <- NULL
   fh.tot <- NULL
   fh.pop <- NULL
-  
+
   
   # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
   message("Nucleotide diversity (Pi) calculations")
@@ -379,6 +383,9 @@ summary_haplotypes <- function(haplotypes.file,
     group_by(INDIVIDUALS) %>% 
     summarise(PI = mean(PI))
   
+  pi.i.out <- pi.data.i %>% select(INDIVIDUALS, PI)
+  
+  fh.pi.individuals <- full_join(fh.i.out, pi.i.out, by = "INDIVIDUALS") 
   
   # Pi: by pop------------------------------------------------------------------
   message("Pi calculations by populations, take a break...")
@@ -616,6 +623,7 @@ The number of loci in the catalog with consensus alleles = %s LOCI
   results$paralogs.loci <- blacklist.loci.paralogs
   results$consensus.pop <- consensus.pop
   results$consensus.loci <- blacklist.loci.consensus
+  results$fh.pi.individuals <- fh.pi.individuals
   results$scatter.plot <- scatter.plot
   results$boxplot.pi <- boxplot.pi
   results$boxplot.fh <- boxplot.fh
