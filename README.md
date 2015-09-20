@@ -143,7 +143,9 @@ install.packages("randomForestSRC", type = "source")
 
 ## GBS workflow
 The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
-An example of the workflow ![](vignettes/stackr_workflow.png)
+## stackr workflow 
+Look at step 1 as a quality insurance step. We need to modify the data to play with it efficiently in R. To have reliable summary statistics, you first need good coverage of your alleles to call your genotypes, good genotype likelihood, enough individuals in each sampling sites and enough putative populations with your markers... Step 2 is where the actual work is done to remove artifactual and uninformative markers based on summary statistics of your markers.
+![](vignettes/stackr_workflow.png)
 
 ## Example 
 
