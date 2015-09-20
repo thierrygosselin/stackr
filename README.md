@@ -199,6 +199,7 @@ Step 5. These 2 genind objects can be use directly in **adegenet**:
 dapc.optim.a.score <- optim.a.score(dapc(genind.sturgeon.imputed, n.da = 100, n.pca = 50))
 dapc.optim.a.score$best
 ```
-All-in-one filter ![](vignettes/stackr_all-in-one_filters.png)
+## All-in-one filter ![](vignettes/stackr_all-in-one_filters.png)
+## Functions found in **stackr** ![](vignettes/stackr_functions.png)
+
 Vignettes are in development, check periodically for updates.
-Functions found in **stackr** ![](vignettes/stackr_functions.png)
