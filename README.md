@@ -139,6 +139,12 @@ install.packages("Rcpp", type = "source")
 install.packages("dplyr", type = "source")
 install.packages("randomForestSRC", type = "source")
 ```
+
+
+## GBS workflow
+The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
+An example of the workflow ![](vignettes/stackr_workflow.png)
+
 ## Example 
 
 **Using *haplo2genind* function to do a DAPC analysis of your data (5 steps).**
@@ -193,11 +199,6 @@ Step 5. These 2 genind objects can be use directly in **adegenet**:
 dapc.optim.a.score <- optim.a.score(dapc(genind.sturgeon.imputed, n.da = 100, n.pca = 50))
 dapc.optim.a.score$best
 ```
-
-## GBS workflow
-The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
-
-Functions found in **stackr** ![](vignettes/stackr_functions.png)
-An example of the workflow ![](vignettes/stackr_workflow.png)
 All-in-one filter ![](vignettes/stackr_all-in-one_filters.png)
 Vignettes are in development, check periodically for updates.
+Functions found in **stackr** ![](vignettes/stackr_functions.png)
