@@ -279,10 +279,11 @@ haplo2genind <- function(haplotypes.file,
   # results no imputation--------------------------------------------------------------------
   # convert to genind
   
-  ind <- haplo.prep$INDIVIDUALS
+  ind <- as.character(haplo.prep$INDIVIDUALS)
   pop <- haplo.prep$POP_ID
   genind.df <- haplo.prep %>%
     select(-c(INDIVIDUALS, POP_ID))
+  rownames(genind.df) <- ind
   
   res <- adegenet::df2genind(X = genind.df, sep = "/", ind.names = ind, pop = pop, ploidy = 2, strata = strata, hierarchy = hierarchy)
   
@@ -472,10 +473,11 @@ haplo2genind <- function(haplotypes.file,
     res$no.imputation <- no.imputation
     
     # 2) the genind with imputations
-    ind <- haplo.imp$INDIVIDUALS
+    ind <- as.character(haplo.imp$INDIVIDUALS)
     pop <- haplo.imp$POP_ID
     genind.df <- haplo.imp %>%
       select(-c(INDIVIDUALS, POP_ID))
+    rownames(genind.df) <- ind
     
     res$imputed <- adegenet::df2genind(X = genind.df, 
                                        ncode = 3,
