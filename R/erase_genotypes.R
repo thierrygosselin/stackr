@@ -1,36 +1,47 @@
-#' @title Blacklist erase genotypes
-#' @description This function creates a blacklist of loci and individual
-#' genotypes useful for the function erase_genotype.
-#' @param tidy.vcf.file A data frame object or file (using ".tsv")
-#' of class tidy VCF.
+#' @title Erase genotypes
+#' @description This function uses the information in the vcf tidy to make a 
+#' blacklist of individual genotypes to erase based on coverage and 
+#' genotype likelihood thresholds.
+#' @param tidy.vcf.file A data frame object or file (using ".tsv") of a tidy vcf.
+#' @param haplotype.file (optional) The 'batch_x.haplotypes.tsv'. If you want to
+#' erase the haplotype file genotypes.
 #' @param read.depth.threshold Threshold number.
 #' @param allele.depth.threshold Threhold number for the min depth 
 #' of REF or ALT alleles.
 #' @param allele.imbalance.threshold Working on it.
 #' @param filename Name of the file written to the working directory.
-#' @details 1. Keep the genotypes below the read depth and the 
-#' genotype likelihood threshold. 2. Keep the REF and ALT allele below the
-#' coverage threshold. 3. Create a blacklist of genotypes to erase.
-#' @return The function returns the individuals genotypes, by loci and 
-#' individuals, to erase.
-#' @rdname blacklist_erase_genotype.
+#' @details Genotypes below average quality i.e. below threshold for the
+#' coverage of REF and/or ALT allele and genotype likelihood
+#' are zeroed from the file. The function erase SNP in the VCF file and loci
+#' in the haplotypes file.
+#' Also creates a blacklist of genotypes erase based on the genotype 
+#' likelihood threshold, the REF and ALT allele coverage threshold.
+#' @return The function returns the blacklisted individuals genotypes, by loci and 
+#' individuals. Return the vcf.tidy or haplotype file with erased genotypes.
+#' @rdname erase_genotypes
 #' @export
 #' @import dplyr
 #' @import readr
 
-
-blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele.depth.threshold, allele.imbalance.threshold, filename) {
+erase_genotypes <- function(tidy.vcf.file, haplotype.file, read.depth.threshold, allele.depth.threshold, allele.imbalance.threshold, filename) {
   
-  GT <- NULL
   GL <- NULL
   INDIVIDUALS <- NULL
   POP_ID <- NULL
+  GROUP <- NULL
+  VALUE <- NULL
+  # ALLELE_P <- NULL
+  ALLELE_COVERAGE_RATIO <- NULL
+  READ_DEPTH <- NULL
   ALLELE_REF_DEPTH <- NULL
   ALLELE_ALT_DEPTH <- NULL
+  CONSENSUS <- NULL
+  CONSENSUS_MAX <- NULL
+  GT <- NULL
+  ALLELE_Q <- NULL
   MIN_REF <- NULL
   MIN_ALT <- NULL
-  READ_DEPTH <- NULL
-  ALLELE_COVERAGE_RATIO <- NULL
+  
   
   if (is.vector(tidy.vcf.file) == "TRUE") {
     tidy.vcf.file <- read_tsv(tidy.vcf.file, col_names = T)
@@ -48,11 +59,7 @@ blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele
     select(LOCUS, POS, POP_ID, INDIVIDUALS) %>%
     arrange(LOCUS, POS, POP_ID, INDIVIDUALS)
   
-  
-  
-  write.table(blacklist,
-              filename,
-              sep = "\t",
+  write.table(blacklist, "blacklist.genotypes.erased.txt", sep = "\t", 
               row.names = F,
               col.names = T,
               quote = F
@@ -63,70 +70,9 @@ blacklist_erase_genotype <- function(tidy.vcf.file, read.depth.threshold, allele
   total.genotype.number <- length(tidy.vcf.file$GT[tidy.vcf.file$GT != "./."])
   percent <- paste(round(((erased.genotype.number/total.genotype.number)*100), 2), "%", sep = " ")
   
-  
-  invisible(cat(sprintf(
-    "Blacklist erase genotypes:
-1. Read depth threshold: %s
-2. REF and ALT coverage threshold: %s
-3. Allele imbalance ratio threshold: %s
-4. %s of genotypes needs erasing with the function erase_genotypes\n
-Filename:
-%s
-Written in the directory:
-%s",
-    read.depth.threshold,
-    allele.depth.threshold,
-    allele.imbalance.threshold,
-    percent,
-    filename, getwd()
-  )))
-  
-  return(blacklist)
-}
-
-
-
-#' @title Erase genotypes
-#' @description This function erase the genotypes of individuals 
-#' based on coverage and genotype likelihood thresholds.
-#' @param data The 'batch_x.haplotypes.tsv' or a tidy vcf file.
-#' @param is.tidy.vcf Using a tidy VCF file: TRUE or FALSE.
-#' @param blacklist.genotypes A blacklist of loci and genotypes 
-#' containing at least 2 columns header 'LOCUS' and 'INDIVIDUALS'. The file is 
-#' in the global environment (myfile) or in the working directory ("myfile.tsv").
-#' @param filename The filename saved to the working directory.
-#' @details Genotypes below average quality i.e. below threshold for the
-#' coverage of REF and/or ALT allele and genotype likelihood
-#' are zeroed from the file. The function erase SNP in the VCF file and loci
-#' in the haplotypes file.
-#' @rdname erase_genotypes
-#' @export
-#' @import dplyr
-#' @import readr
-
-erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
-  
-  GL <- NULL
-  INDIVIDUALS <- NULL
-  POP_ID <- NULL
-  GROUP <- NULL
-  VALUE <- NULL
-  # ALLELE_P <- NULL
-  ALLELE_COVERAGE_RATIO <- NULL
-  READ_DEPTH <- NULL
-  ALLELE_REF_DEPTH <- NULL
-  ALLELE_ALT_DEPTH <- NULL
-  CONSENSUS <- NULL
-  CONSENSUS_MAX <- NULL
-  GT <- NULL
-  ALLELE_Q <- NULL
-  
-  
-  if (stri_detect_fixed(is.tidy.vcf, "F")) {
+  if (missing(haplotype.file) == FALSE) {
     file.type <- "haplotypes"
-    
-    
-    if (is.vector(data) == "TRUE") {
+    if (is.vector(haplotype.file) == "TRUE") {
       data <- read_tsv(data, col_names = T) %>%
         rename(LOCUS =`Catalog ID`)
       message("Using the haplotypes file in your directory")
@@ -256,21 +202,21 @@ erase_genotypes <- function(data, is.tidy.vcf, blacklist.genotypes, filename) {
     
     message("Step converting to numeric columns...")
     message("Step READ_DEPTH...")
-
+    
     new.file$READ_DEPTH <- suppressWarnings(as.numeric(new.file$READ_DEPTH))
     
     message("Step ALLELE_ALT_DEPTH")
-
+    
     new.file$ALLELE_ALT_DEPTH <- suppressWarnings(as.numeric(new.file$ALLELE_ALT_DEPTH))
     
     message("Step ALLELE_COVERAGE_RATIO")
-
+    
     new.file$ALLELE_COVERAGE_RATIO <- suppressWarnings(as.numeric(new.file$ALLELE_COVERAGE_RATIO))
     
     message("Step GL")
-
+    
     new.file$GL <- suppressWarnings(as.numeric(new.file$GL))
- 
+    
   }
   
   
@@ -295,3 +241,23 @@ Written in the directory:
 
 
 
+
+
+invisible(cat(sprintf(
+  "Blacklist erase genotypes:
+1. Read depth threshold: %s
+2. REF and ALT coverage threshold: %s
+3. Allele imbalance ratio threshold: %s
+4. %s of genotypes needs erasing with the function erase_genotypes\n
+Filename:
+%s
+Written in the directory:
+%s",
+  read.depth.threshold,
+  allele.depth.threshold,
+  allele.imbalance.threshold,
+  percent,
+  filename, getwd()
+)))
+
+return(blacklist)

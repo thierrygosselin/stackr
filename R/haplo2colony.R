@@ -295,18 +295,11 @@ haplo2colony <- function(haplotypes.file,
         dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
     )
     message("Haplotypes into factory for conversion into COLONY ...")
-    
   }
-  
-  
-  
   message("step 1/5: completed")
-  
   # dump unused objects
   paralogs <- NULL
   haplotype <- NULL
-  
-  
   # No imputation --------------------------------------------------------------
   # Further work on the data
   haplo.prep <- suppressWarnings(
@@ -322,9 +315,7 @@ haplo2colony <- function(haplotypes.file,
       ) %>%
       mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
   )
-  
   message("step 2/5: completed")
-  
   haplo.prep <- haplo.prep %>% 
     melt(
       id.vars = c("Catalog.ID", "INDIVIDUALS", "POP_ID"),
@@ -333,14 +324,11 @@ haplo2colony <- function(haplotypes.file,
       value.name = "NUCLEOTIDES"
     ) %>% 
     dcast(INDIVIDUALS + POP_ID + ALLELE ~ Catalog.ID, value.var = "NUCLEOTIDES")
-  
   message("step 3/5: completed")
-  
   haplo.prep <- suppressWarnings(
     haplo.prep %>% 
       colwise(factor, exclude = "NA")(.)
   )
-  
   # Allele frequency per locus
   if (allele.freq == "overall"){
     
@@ -400,8 +388,6 @@ haplo2colony <- function(haplotypes.file,
   } else {
     message("step 4/5: completed")
   }
-  
-  
   haplo.prep <- suppressWarnings(
     haplo.prep %>%
       mutate(GROUP = rep(1, times = nrow(.))) %>% 
@@ -430,7 +416,7 @@ haplo2colony <- function(haplotypes.file,
   message("step 5/5: completed")
   
   res <- haplo.prep %>% select(-POP_ID)
-  
+
   # results no imputation-------------------------------------------------------
   # convert to colony
   # Line 1 = Dataset name
