@@ -97,7 +97,8 @@ plot_boxplot_coverage <- function(data) {
 #' to the mean or close to it take care of the allelic coverage imbalance.
 #' #' e.g. fig <- plot_coverage_imbalance_diagnostic(
 #' tidy.vcf.file, pop.levels, read.depth.threshold, aes.colour, adjust.bin)
-#' Use ( fig + facet_grid(GROUP_GL ~ GROUP_COVERAGE)).
+#' Use ( fig + facet_grid(GROUP_GL ~ GROUP_COVERAGE)). The ratio is calculated : 
+#' (read depth ALT allele - read depth REF allele)/(read depth ALT allele + read depth REF allele).
 #' @export
 #' @rdname plot_coverage_imbalance_diagnostic
 

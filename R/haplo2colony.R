@@ -157,7 +157,7 @@ haplo2colony <- function(haplotypes.file,
     melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES") %>% 
     mutate(POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end))
   
-
+  
   # Pop select -----------------------------------------------------------------
   if(pop.select == "all" | missing(pop.select) == TRUE){
     haplotype <- haplotype
@@ -171,33 +171,32 @@ haplo2colony <- function(haplotypes.file,
   
   
   # Whitelist-------------------------------------------------------------------
-  if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
+  if (is.null(whitelist.loci) | missing(whitelist.loci)) {
+    message("No whitelist")
+    whitelist <- NULL
+  } else if (is.vector(whitelist.loci)) {
     message("Using the whitelist from the directory")
     whitelist <- read_tsv(whitelist.loci, col_names = T) %>%
       rename(Catalog.ID = LOCUS)
-  } else if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "FALSE") {
+  } else {
     message("Using whitelist from your global environment")
     whitelist <- whitelist.loci %>%
       rename(Catalog.ID = LOCUS)
-  } else {
-    message("No whitelist")
-    whitelist <- NULL
   }
+  
   
   
   # Blacklist-------------------------------------------------------------------
-  if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "TRUE") {
-    message("Using the blacklisted id from the directory")
-    blacklist.id <- read_tsv(blacklist.id, col_names = T)    
-  } else if (missing(blacklist.id) == "FALSE" & is.vector(blacklist.id) == "FALSE") {
-    message("Using the blacklisted id from your global environment")
-    blacklist.id <- blacklist.id
-    
-  } else {
+  if (is.null(blacklist.id) | missing(blacklist.id)) {
     message("No individual blacklisted")
     blacklist.id <- NULL
-  }
-  
+  } else if (is.vector(blacklist.id)) {
+    message("Using the blacklisted id from the directory")
+    blacklist.id <- read_tsv(blacklist.id, col_names = T)    
+  } else {
+    message("Using the blacklisted id from your global environment")
+    blacklist.id <- blacklist.id
+  }  
   
   if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
     
@@ -416,7 +415,7 @@ haplo2colony <- function(haplotypes.file,
   message("step 5/5: completed")
   
   res <- haplo.prep %>% select(-POP_ID)
-
+  
   # results no imputation-------------------------------------------------------
   # convert to colony
   # Line 1 = Dataset name
@@ -1131,21 +1130,21 @@ haplo2colony <- function(haplotypes.file,
     candidate.opt <- as.data.frame(candidate.opt)
     write.table(x = candidate.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
-  # Candidate male IDs/names and genotypes
-  # cat(male.genotype, sep = "\n", file = colony.filename, append = TRUE)
-  if (print.all.colony.opt != FALSE){
-    candidate.male.id.geno.opt <- "!Candidate male ID and genotypes"
-    candidate.male.id.geno.opt <- as.data.frame(candidate.male.id.geno.opt)
-    write.table(x = candidate.male.id.geno.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-  }
-  
-  # Candidate female IDs/names and genotypes 
-  # cat(female.genotype, sep = "\n", file = colony.filename, append = TRUE)
-  if (print.all.colony.opt != FALSE){
-    candidate.female.id.geno.opt <- "!Candidate female ID and genotypes"
-    candidate.female.id.geno.opt <- as.data.frame(candidate.female.id.geno.opt)
-    write.table(x = candidate.female.id.geno.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-  }
+    # Candidate male IDs/names and genotypes
+    # cat(male.genotype, sep = "\n", file = colony.filename, append = TRUE)
+    if (print.all.colony.opt != FALSE){
+      candidate.male.id.geno.opt <- "!Candidate male ID and genotypes"
+      candidate.male.id.geno.opt <- as.data.frame(candidate.male.id.geno.opt)
+      write.table(x = candidate.male.id.geno.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }
+    
+    # Candidate female IDs/names and genotypes 
+    # cat(female.genotype, sep = "\n", file = colony.filename, append = TRUE)
+    if (print.all.colony.opt != FALSE){
+      candidate.female.id.geno.opt <- "!Candidate female ID and genotypes"
+      candidate.female.id.geno.opt <- as.data.frame(candidate.female.id.geno.opt)
+      write.table(x = candidate.female.id.geno.opt, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    }
     
     # Number of offspring with known paternity
     known.paternity.opt <- "0                                    ! Number of offspring with known father"

@@ -193,7 +193,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
     mutate(READ_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all=F))),
            ALLELE_REF_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(ALLELE_REF_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
            ALLELE_ALT_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(ALLELE_ALT_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
-           # Mutate coverage ration for allelic imbalance
+           # Mutate coverage ratio for allelic imbalance
            ALLELE_COVERAGE_RATIO = suppressWarnings(
              as.numeric(ifelse(GT == "./." | GT == "0/0" | GT == "1/1", "NA",
                                ((ALLELE_ALT_DEPTH - ALLELE_REF_DEPTH)/(ALLELE_ALT_DEPTH + ALLELE_REF_DEPTH)))))
