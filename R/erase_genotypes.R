@@ -109,14 +109,14 @@ erase_genotypes <- function(tidy.vcf.file, haplotypes.file, read.depth.threshold
       )
   )
   if (missing(filename)) {
-    message("saving the tidy vcf not selected")
+    message("Saving the tidy vcf not selected")
   } else {
     message("Writing the file to your working directory, this may take some time...")
     write_tsv(x = tidy.vcf.file, path = filename, append = FALSE, col_names = TRUE)
   }
   
   # Haplotype file -------------------------------------------------------------
-  if (missing(haplotypes.file) == FALSE) {
+  if (missing(haplotypes.file)) {
     message("STACKS haplotypes file not provided")
   } else {
     message("Using the STACKS haplotypes file in your directory")
