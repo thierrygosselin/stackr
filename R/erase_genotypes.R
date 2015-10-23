@@ -108,7 +108,7 @@ erase_genotypes <- function(tidy.vcf.file, haplotypes.file, read.depth.threshold
         GL = as.numeric(GL)
       )
   )
-  if (missing(haplotypes.file) == FALSE) {
+  if (missing(filename)) {
     message("saving the tidy vcf not selected")
   } else {
     message("Writing the file to your working directory, this may take some time...")
