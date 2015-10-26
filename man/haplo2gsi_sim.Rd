@@ -4,7 +4,8 @@
 \alias{haplo2gsi_sim}
 \title{Use the batch_x.haplotypes.tsv file to write a gsi_sim input file.}
 \usage{
-haplo2gsi_sim(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
+haplo2gsi_sim(haplotypes.file, whitelist.loci = NULL,
+  sample.markers = "all", blacklist.id = NULL,
   gsi_sim.filename = "gsi_sim_data.txt", pop.levels, pop.labels, pop.id.start,
   pop.id.end, imputations = FALSE, imputations.group = "populations",
   num.tree = 100, iteration.rf = 10, split.number = 100,
@@ -16,6 +17,10 @@ haplo2gsi_sim(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
 \item{whitelist.loci}{(optional) A whitelist of loci and
 a column header 'LOCUS'.
 The whitelist is in the directory (e.g. "whitelist.txt").}
+
+\item{sample.markers}{(number) Should the output contain a random
+subsample of your markers. Default= \code{"all"}.
+e.g. \code{sample.markers = 500} to use only 500 randomly chosen markers.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
 a column header 'INDIVIDUALS'. The blacklist is in the directory

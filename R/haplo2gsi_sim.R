@@ -16,6 +16,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID",
 #' @param whitelist.loci (optional) A whitelist of loci and 
 #' a column header 'LOCUS'.
 #' The whitelist is in the directory (e.g. "whitelist.txt").
+#' @param sample.markers (number) Should the output contain a random 
+#' subsample of your markers. Default= \code{"all"}.
+#' e.g. \code{sample.markers = 500} to use only 500 randomly chosen markers.
 #' @param blacklist.id (optional) A blacklist with individual ID and
 #' a column header 'INDIVIDUALS'. The blacklist is in the directory
 #'  (e.g. "blacklist.txt").
@@ -81,7 +84,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID",
 
 
 haplo2gsi_sim <- function(haplotypes.file, 
-                          whitelist.loci = NULL, 
+                          whitelist.loci = NULL,
+                          sample.markers = "all",
                           blacklist.id = NULL, 
                           gsi_sim.filename = "gsi_sim_data.txt",
                           pop.levels, pop.labels, pop.id.start, pop.id.end,
@@ -184,8 +188,31 @@ haplo2gsi_sim <- function(haplotypes.file,
     select(Catalog.ID) %>%
     distinct(Catalog.ID)
   
-  nparalogs <- stri_join("Found and/or removed", n_distinct(paralogs$Catalog.ID), "paralogs", sep = " ")
-  message(nparalogs)
+  message(stri_join("Found and/or removed", n_distinct(paralogs$Catalog.ID), "paralogs", sep = " "))
+
+  # Subsampling markers --------------------------------------------------------
+  if(sample.markers == "all" | missing(sample.markers) == TRUE){
+
+    haplo.filtered <- suppressWarnings(
+      haplotype %>%
+        anti_join(paralogs, by = "Catalog.ID") %>%
+        filter(HAPLOTYPES != "consensus")
+    )
+    
+  } else{
+    message(paste("Randomly subsampling ", sample.markers, " markers..."))
+    
+    haplo.filtered <- suppressWarnings(
+      haplotype %>%
+        anti_join(paralogs, by = "Catalog.ID") %>%
+        filter(HAPLOTYPES != "consensus") %>%
+        dcast(Catalog.ID ~ INDIVIDUALS, value.var = "HAPLOTYPES") %>% 
+        do(sample_n(., sample.markers)) %>% 
+        arrange(Catalog.ID) %>%
+        melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
+    )
+  }
+  
   
   # Conversion into gsi_sim -----------------------------------------------------
   
@@ -198,9 +225,7 @@ haplo2gsi_sim <- function(haplotypes.file,
   if(missing(pop.labels)){
     pop.labels <- pop.levels
     haplo.filtered <- suppressWarnings(
-      haplotype %>%
-        anti_join(paralogs, by = "Catalog.ID") %>%
-        filter(HAPLOTYPES != "consensus") %>%    
+      haplo.filtered %>%
         mutate(
           HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
                                               vectorize_all=F),
@@ -212,9 +237,7 @@ haplo2gsi_sim <- function(haplotypes.file,
     )  
   } else {
     haplo.filtered <- suppressWarnings(
-      haplotype %>%
-        anti_join(paralogs, by = "Catalog.ID") %>%
-        filter(HAPLOTYPES != "consensus") %>%    
+      haplo.filtered %>%
         mutate(
           HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
                                               vectorize_all=F),
@@ -297,12 +320,12 @@ haplo2gsi_sim <- function(haplotypes.file,
   # Create a vector with the population ordered by levels
   if (missing(pop.levels) & missing(pop.labels)) {
     pop <- substr(haplo.prep$INDIVIDUALS, pop.id.start, pop.id.end)
-    pop <- droplevels(pop)
+    pop <- suppressWarnings(droplevels(pop))
   } else {
-    pop <- factor(substr(haplo.prep$INDIVIDUALS, 
+    pop <- suppressWarnings(factor(substr(haplo.prep$INDIVIDUALS, 
                          pop.id.start, pop.id.end),
-                  levels = pop.levels, labels = pop.labels, ordered = T)
-    pop <- droplevels(pop)
+                  levels = pop.levels, labels = pop.labels, ordered = T))
+    pop <- suppressWarnings(droplevels(pop))
   }
   
   # split gsi_sim by populations
@@ -511,12 +534,12 @@ haplo2gsi_sim <- function(haplotypes.file,
     # Create a vector with the population ordered by levels
     if (missing(pop.levels) & missing(pop.labels)) {
       pop <- substr(haplo.imp$INDIVIDUALS, pop.id.start, pop.id.end)
-      pop <- droplevels(pop)
+      pop <- suppressWarnings(droplevels(pop))
     } else {
-      pop <- factor(substr(haplo.imp$INDIVIDUALS, 
+      pop <- suppressWarnings(factor(substr(haplo.imp$INDIVIDUALS, 
                            pop.id.start, pop.id.end),
-                    levels = pop.levels, labels = pop.labels, ordered = T)
-      pop <- droplevels(pop)
+                    levels = pop.levels, labels = pop.labels, ordered = T))
+      pop <- suppressWarnings(droplevels(pop))
       
     }
     
