@@ -47,6 +47,6 @@ The ratio is calculated :
 (read depth ALT allele - read depth REF allele)/(read depth ALT allele + read
 depth REF allele).
 e.g. REF = 3 and ALT = 2 the ratio = -0.2. For the function to work properly,
-use positive values, the function will calculated +/- imbalance.
+use positive values, the function will calculate the +/- imbalance.
 }
 
