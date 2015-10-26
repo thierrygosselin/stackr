@@ -22,10 +22,10 @@ Because STACKS is always under development (more than 100 versions so far!),
 ## New
 **v.0.1.5**
 Introducing *haplo2gsi_sim* function.
-Conversion of STACKS haplotypes file into a gsi_sim data input file.
-Markers can be subsampled.
-Map-independent imputations using Random Forest or the most frequent allele are options also available for this function.
-[gsi_sim] (https://github.com/eriqande/gsi_sim) is a tool developed by Eric C. Anderson for doing and simulating genetic stock identification.
+* Conversion of STACKS haplotypes file into a gsi_sim data input file.
+* Markers can be subsampled.
+* Map-independent imputations using Random Forest or the most frequent allele are options also available for this function.
+* [gsi_sim] (https://github.com/eriqande/gsi_sim) is a tool developed by Eric C. Anderson for doing and simulating genetic stock identification.
 
 **v.0.1.4**
 Introducing *haplo2fstat* function.
