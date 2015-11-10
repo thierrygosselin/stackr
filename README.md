@@ -127,6 +127,14 @@ sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
 Changing **package_name** to the problematic package.
 Reinstall the package.
 
+**Dependencies**
+
+Here the list of packages that **stackr** is depending on:
+```r
+dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval, adegenet, randomForestSRC, stringdist, foreach, parallel, doParallel
+```
+If you don't have them, no worries, it's intalled automatically during **stackr** installation. If you have them, it's your job to update them, because i'm using the latest versions...
+
 **Parallel computing in R**
 
 On Mac OSX using a version of clang (the native compiler) with OpenMP greatly reduce the computation time for the imputation. There is a GCC version with OpenMP but it's highly unstable in R. To update your computer's compiler, follow the instruction below (inspired from [here](https://clang-omp.github.io)). In the terminal:
