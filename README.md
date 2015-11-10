@@ -137,6 +137,7 @@ dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval, adegenet, ra
 If you don't have them, no worries, it's intalled automatically during **stackr** installation. If you have them, it's your job to update them, because i'm using the latest versions...
 
 **Common use**
+
 When working in R I usually do this:
 ```r
 # Clean my desk
