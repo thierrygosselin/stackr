@@ -95,7 +95,7 @@ This however requires manual curation of the file to work directly with COLONY.
 ## Installation
 You can try out the dev version of **stackr**. Follow the 2 steps below:
 
-Step 1 You will need the package *devtools* and the dev version of *readr*
+Step 1 You will need the package *devtools*
 ```r
 install.packages("devtools") # to install
 library(devtools) # to load
@@ -113,9 +113,8 @@ Sometimes you'll get warnings while installing dependencies required for **stack
 Warning: cannot remove prior installation of package ‘stringi’
 ```
 
-To solve this problem, delete the package manually and reinstall. On MAC computers:
+To solve this problem, delete the package manually and reinstall. On MAC computers, in the **Finder**, use the shortcut **cmd+shift+g**, or in the menu bar : **GO -> Go to Folder**, copy/paste the text below:
 ```r
-#In the Finder use the shortcut **cmd+shift+g** or in the menu bar : GO -> Go to Folder, copy/paste the text below:
 /Library/Frameworks/R.framework/Resources/library
 ```
 Delete the problematic package.
