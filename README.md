@@ -117,7 +117,7 @@ To solve this problem, delete the package manually and reinstall. On MAC compute
 ```r
 /Library/Frameworks/R.framework/Resources/library
 ```
-Delete the problematic package.
+Delete the problematic packages.
 
 If you know your way around the terminal and understand the consequences of using **sudo rm -R** command, here something faster to remove problematic packages:
 ```r
@@ -127,7 +127,7 @@ sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
 Changing **package_name** to the problematic package.
 Reinstall the package.
 
-
+**Parallel computing in R**
 On Mac OSX using a version of clang (the native compiler) with OpenMP greatly reduce the computation time for the imputation. There is a GCC version with OpenMP but it's highly unstable in R. To update your computer's compiler, follow the instruction below (inspired from [here](https://clang-omp.github.io)). In the terminal:
 
 ```r
