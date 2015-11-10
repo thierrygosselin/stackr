@@ -13,8 +13,8 @@ Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: Set of tools to look at GBS/RAD data created by STACKS software. 
 Depends: 
   R (>= 3.0.1),
-Imports: dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval, adegenet, randomForestSRC, stringdist
-Suggests: parallel, boot, pegas, plyr, hierfstat, knitr, rmarkdown
+Imports: dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval, adegenet, randomForestSRC, stringdist, foreach, parallel, doParallel
+Suggests: boot, pegas, plyr, hierfstat, knitr, rmarkdown
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr

@@ -97,17 +97,37 @@ You can try out the dev version of **stackr**. Follow the 2 steps below:
 
 Step 1 You will need the package *devtools* and the dev version of *readr*
 ```r
-install.packages("devtools")
-library(devtools)
-install_github("hadley/readr")
-library(readr)
+install.packages("devtools") # to install
+library(devtools) # to load
 ```
 
 Step 2 Install **stackr**:
 ```r
-install_github("thierrygosselin/stackr")
-library(stackr)
+install_github("thierrygosselin/stackr") # to install
+library(stackr) # to load
 ```
+
+Note:
+Sometimes you'll get warnings while installing dependencies required for **stackr** or other R packages.
+```r
+Warning: cannot remove prior installation of package ‘stringi’
+```
+
+To solve this problem, delete the package manually and reinstall. On MAC computers:
+```r
+#In the Finder use the shortcut **cmd+shift+g** or in the menu bar : GO -> Go to Folder, copy/paste the text below:
+/Library/Frameworks/R.framework/Resources/library
+```
+Delete the problematic package.
+
+If you know your way around the terminal and understand the consequences of using **sudo rm -R** command, here something faster to remove problematic packages:
+```r
+sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
+```
+
+Changing **package_name** to the problematic package.
+Reinstall the package.
+
 
 On Mac OSX using a version of clang (the native compiler) with OpenMP greatly reduce the computation time for the imputation. There is a GCC version with OpenMP but it's highly unstable in R. To update your computer's compiler, follow the instruction below (inspired from [here](https://clang-omp.github.io)). In the terminal:
 
