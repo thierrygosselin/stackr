@@ -1,9 +1,9 @@
 # Write a genepop file from STACKS haplotype file
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID",
-"Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt",
-"HAPLOTYPES", "SAMPLES", "ALLELE", "ALLELE1", "ALLELE2", "GENOTYPE",
-"NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX",
-"colwise", "detectCores", "mc.cores", "."))
+                                                        "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt",
+                                                        "HAPLOTYPES", "SAMPLES", "ALLELE", "ALLELE1", "ALLELE2", "GENOTYPE",
+                                                        "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX",
+                                                        "colwise", "detectCores", "mc.cores", "."))
 
 #' @name haplo2genepop
 #' @title Use the batch_x.haplotypes.tsv file to write a genpop file.
@@ -102,10 +102,15 @@ haplo2genepop <- function(haplotypes.file,
   
   
   # Haplotype file--------------------------------------------------------------
-  haplotype <- read_tsv(file = haplotypes.file, col_names = T) %>%
+  haplotype <- read_tsv(file = haplotypes.file, col_types = cols(.default = col_character()), col_names = T, na = "-") %>% 
     select(-Cnt) %>% 
     rename(Catalog.ID = `Catalog ID`) %>%
-    melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES")
+    tidyr::gather(INDIVIDUALS, HAPLOTYPES, -Catalog.ID) %>% 
+    mutate(
+      HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = "-"),
+      Catalog.ID = as.integer(Catalog.ID)
+    )
+  
   
   
   # Whitelist-------------------------------------------------------------------
@@ -121,7 +126,7 @@ haplo2genepop <- function(haplotypes.file,
     whitelist <- whitelist.loci %>%
       rename(Catalog.ID = LOCUS)
   }
-
+  
   # Blacklist-------------------------------------------------------------------
   if (is.null(blacklist.id) | missing(blacklist.id)) {
     message("No individual blacklisted")
@@ -212,21 +217,21 @@ haplo2genepop <- function(haplotypes.file,
         ) %>% 
         arrange(Catalog.ID)
     )  
-    } else {
-      haplo.filtered <- suppressWarnings(
-        haplotype %>%
-          anti_join(paralogs, by = "Catalog.ID") %>%
-          filter(HAPLOTYPES != "consensus") %>%    
-          mutate(
-            HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
-                                                vectorize_all=F),
-            POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
-                            levels = pop.levels, labels = pop.labels, ordered = T),
-            POP_ID = droplevels(POP_ID)
-          ) %>% 
-          arrange(Catalog.ID)
-      )
-    }
+  } else {
+    haplo.filtered <- suppressWarnings(
+      haplotype %>%
+        anti_join(paralogs, by = "Catalog.ID") %>%
+        filter(HAPLOTYPES != "consensus") %>%    
+        mutate(
+          HAPLOTYPES = stri_replace_all_fixed(HAPLOTYPES, "-", "NA", 
+                                              vectorize_all=F),
+          POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
+                          levels = pop.levels, labels = pop.labels, ordered = T),
+          POP_ID = droplevels(POP_ID)
+        ) %>% 
+        arrange(Catalog.ID)
+    )
+  }
   
   
   # get the list of loci after filter  
@@ -450,8 +455,15 @@ haplo2genepop <- function(haplotypes.file,
         
         haplo.imp <- haplo.filtered %>%
           melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
-          mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES=="NA"), NA)) %>%
-          group_by(Catalog.ID, POP_ID) %>% 
+          mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES == "NA"), NA)) %>%
+          group_by(Catalog.ID, POP_ID) %>%
+          mutate(
+            HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE)),
+            HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES == "NA"), NA)
+          ) %>%
+          # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
+          # will take the global observed values by markers for those cases.
+          group_by(Catalog.ID) %>%
           mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
           dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") %>% 
           arrange(POP_ID, INDIVIDUALS)

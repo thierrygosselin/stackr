@@ -26,6 +26,7 @@
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
 #' @param pop.levels An optional character string with your populations ordered.
+#' @param pop.labels An optional character string with new populations names.
 #' @param read.length The length in nucleotide of your reads (e.g. 80 or 100).
 #' @import stringdist
 #' @return The function returns a list with the summary, the paralogs and
@@ -75,7 +76,8 @@ summary_haplotypes <- function(haplotypes.file,
                                blacklist.id = NULL, 
                                pop.id.start, 
                                pop.id.end, 
-                               pop.levels, 
+                               pop.levels,
+                               pop.labels,
                                read.length) {
   
   POP_ID <- NULL
@@ -106,13 +108,29 @@ summary_haplotypes <- function(haplotypes.file,
   FREQ_ALLELES <- NULL
   
   # Import haplotype file ------------------------------------------------------
-  haplotype <- read_tsv(haplotypes.file, col_names = T) %>%
-    rename(LOCUS =`Catalog ID`) %>%
-    tidyr::gather(INDIVIDUALS, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
+  
+  haplotype <- suppressWarnings(
+    read_tsv(haplotypes.file, col_names = T) %>%
+      rename(LOCUS =`Catalog ID`) %>%
+      select(-Cnt) %>% 
+      tidyr::gather(INDIVIDUALS, HAPLOTYPES, -LOCUS)
+  )
+  
+  
+  if(missing(pop.labels)){
+    pop.labels <- pop.levels
+  } else {
+    pop.labels <- pop.labels
+  }
+  
+  haplotype <- suppressWarnings(haplotype %>%
     mutate(
-      POP_ID = str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
-      POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
+      POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+                      levels = pop.levels, labels = pop.labels, ordered = T),
+      POP_ID = droplevels(POP_ID)
     )
+  )
+
   
   # Whitelist loci -------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
@@ -163,7 +181,7 @@ summary_haplotypes <- function(haplotypes.file,
       mutate(CONSENSUS = rep("consensus", times = n())) %>%
       select(LOCUS, POP_ID, CONSENSUS)
   }  
-# Create a list of consensus loci
+  # Create a list of consensus loci
   blacklist.loci.consensus <- consensus.pop %>%
     group_by(LOCUS) %>%
     select (LOCUS) %>%
@@ -174,7 +192,7 @@ summary_haplotypes <- function(haplotypes.file,
               "blacklist.loci.consensus.txt",
               sep = "\t", row.names = F, col.names = T, quote = F)
   
-  consensus.pop  
+  # consensus.pop  
   
   if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
     
@@ -211,7 +229,7 @@ summary_haplotypes <- function(haplotypes.file,
     group_by(POP_ID) %>%
     tally() %>% 
     rename(NUM = n)
-   
+  
   ind.tot <-haplotype %>%
     distinct(INDIVIDUALS) %>% 
     tally() %>% 
@@ -225,6 +243,26 @@ summary_haplotypes <- function(haplotypes.file,
   # Paralogs... Locus with > 2 alleles by individuals --------------------------
   # Create a blacklist of catalog loci with paralogs
   message("Looking for paralogs...")
+
+  paralogs.ind <- haplotype %>% 
+    mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/")) %>%
+    filter(POLYMORPHISM > 1) %>% 
+    arrange(LOCUS, POP_ID, INDIVIDUALS) %>% 
+    select(LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES)
+
+  # Write the list of locus, individuals with paralogs
+  if (missing(whitelist.loci)) {
+    write.table(paralogs.ind,
+                "blacklist.loci.paralogs.ind.txt",
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    filename.paralogs.ind <- "blacklist.loci.paralogs.ind.txt"
+  } else {
+    write.table(paralogs.ind,
+                "blacklist.loci.paralogs.ind.filtered.txt",
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    filename.paralogs.ind <- "blacklist.loci.paralogs.ind.filtered.txt"
+  }
+  
   paralogs.pop <- haplotype %>%
     mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/")) %>%
     group_by(LOCUS, POP_ID) %>%
@@ -239,20 +277,20 @@ summary_haplotypes <- function(haplotypes.file,
     distinct(LOCUS) %>%
     arrange(LOCUS)
   
-  # Write the paralogs blacklisted to a file
-   if (missing(whitelist.loci) == "FALSE") {
-    write.table(blacklist.loci.paralogs,
-                "blacklist.loci.paralogs.filtered.txt",
-                sep = "\t", row.names = F, col.names = T, quote = F)
-    filename.paralogs <- "blacklist.loci.paralogs.filtered.txt"
-  } else {
+  # Write the unique list of paralogs blacklisted to a file
+  if (missing(whitelist.loci)) {
     write.table(blacklist.loci.paralogs,
                 "blacklist.loci.paralogs.txt",
                 sep = "\t", row.names = F, col.names = T, quote = F)
     filename.paralogs <- "blacklist.loci.paralogs.txt"
+  } else {
+    write.table(blacklist.loci.paralogs,
+                "blacklist.loci.paralogs.filtered.txt",
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    filename.paralogs <- "blacklist.loci.paralogs.filtered.txt"
   }
-
-  paralogs.pop
+  
+  # paralogs.pop
   
   # dump unused object
   whitelist <- NULL
@@ -303,7 +341,7 @@ summary_haplotypes <- function(haplotypes.file,
       sep = "/", extra = "drop", remove = F
     ) %>%
     mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
-    select(-Cnt, -HAPLOTYPES, -INDIVIDUALS) %>% 
+    select(-HAPLOTYPES, -INDIVIDUALS) %>% 
     tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID, DIPLO)) %>%
     group_by(LOCUS, POP_ID, ALLELES) %>% 
     summarise(
@@ -359,7 +397,7 @@ summary_haplotypes <- function(haplotypes.file,
   summary.ind <- NULL
   fh.tot <- NULL
   fh.pop <- NULL
-
+  
   
   # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
   message("Nucleotide diversity (Pi) calculations")

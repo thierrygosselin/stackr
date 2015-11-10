@@ -5,7 +5,8 @@
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
-#' @param pop.levels An optional character string with your populations ordered.
+#' @param pop.levels An character string with your populations ordered.
+#' @param pop.labels An optional character string with new populations names.
 #' @param whitelist An optional filter of loci can be applied to the vcf, using
 #' a file in the working directory (e.g. "myfile.txt") or an object
 #' in the global environment.
@@ -25,6 +26,8 @@
 #' and \code{pop.id.end} = 7. With 5 populations: ALK, JAP, NOR, QUE, LAB, 
 #' the \code{pop.levels} option could look like this: 
 #' c("JAP", "ALK", "QUE", "LAB", "NOR"). Useful for hierarchical clustering.
+#' Allele depth was introduced in STACKS v.1.28, so this field won't 
+#' be available to prior version.
 #' @examples
 #' \dontrun{
 #' vcf.tidy <- read_stacks_vcf(
@@ -48,8 +51,19 @@
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 
-read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whitelist, blacklist, blacklist.id,
+read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.labels, whitelist, blacklist, blacklist.id,
                             filename) {
+#   setwd("/Users/thierry/Dropbox/partage_thierry_laura/gsi_sim")
+#   # setwd("/Users/thierry/Dropbox/esturgeon_dropbox/stacks_populations_2015/01_stacks_populations/populations_8pop")
+#   vcf.file <- "batch_1.vcf"
+#   pop.id.start <- 1
+#   pop.id.end <- 3
+#   pop.levels <- c("TRI", "BON", "ANT", "GAS", "CAR", "MAL", "EDN", "CAP", "BRA", "SID", "CAN", "LOB", "BRO", "OFF", "SEA", "BOO", "MAR", "BUZ", "RHO")
+#   pop.labels <- c("TRI", "BON", "ANT", "GAS", "CAR", "MAL", "MAG", "MAG", "BRA", "DIN", "CAN", "LOB", "BRO", "OFF", "SEA", "BOO", "MAR", "BUZ", "RHO")
+#   blacklist <- "blacklist.loci.paralogs.txt"
+#   blacklist.id <- "blacklist.id.lobster.tsv"
+#   filename <- "vcf.tidy.id.tsv"
+#   
   
   X1 <- NULL
   POP_ID <- NULL
@@ -79,18 +93,27 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
   message("Importing the VCF...")
   
   vcf <- read_delim(
-    vcf.file, delim = "\t", 
-    skip = 9,
+    vcf.file, 
+    delim = "\t", 
+    comment = "##",
     progress = interactive()
   ) %>% 
-    select(-c(QUAL, FILTER, FORMAT)) %>%
+    select(-c(QUAL, FILTER)) %>%
     rename(LOCUS = ID, CHROM = `#CHROM`)
   
-  # Whitelist/Blacklist ---------------------------------------------------------- 
+  # detect stacks version
+  if(stri_detect_fixed(vcf$FORMAT[1], "AD")) {
+    stacks.version <- "new"
+  } else{
+    stacks.version <- "old"
+  }
+  
+  vcf <- vcf %>% select(-FORMAT)
+  
+    # Whitelist/Blacklist ---------------------------------------------------------- 
   if (missing(whitelist) == "TRUE") {
     vcf <- vcf
     message("No whitelist to apply to the VCF")
-    
   } else if (is.vector(whitelist) == "TRUE") {
     vcf <- vcf %>% 
       semi_join(
@@ -98,36 +121,30 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
         by = "LOCUS"
       )
     message("Filtering the VCF with the whitelist from your directory")
-    
   } else {
     vcf <- vcf %>%
       semi_join(whitelist, by = "LOCUS")
     message("Filtering the VCF with the whitelist from your global environment")
-    
   }
   
   if (missing(blacklist) == "TRUE") {
     vcf <- vcf
     message("No blacklist to apply to the VCF")
-    
   } else if (is.vector(blacklist) == "TRUE") {
     message("Filtering the VCF with the blacklist from your directory")
-    
     vcf <- vcf  %>% 
       anti_join(
         read_tsv(blacklist, col_names = T),
         by = "LOCUS"
       )
-    
   } else {
     message("Filtering the VCF with the blacklist from your global environment")
-    
     vcf <- vcf %>% 
       anti_join(blacklist, by = "LOCUS")
   }
   
   # Make VCF tidy-----------------------------------------------------------------
-  vcf <- vcf %>%
+    vcf <- vcf %>%
     tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "warn") %>%
     mutate(
       N = as.numeric(stri_replace_all_fixed(N, "NS=", "", vectorize_all=F)),
@@ -140,8 +157,8 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
     )
   # Gather individuals in 1 colummn --------------------------------------------
   vcf <- tidyr::gather(vcf, INDIVIDUALS, FORMAT, -c(CHROM:ALT_FREQ))
-  
   message("Gathering individuals in 1 column")
+  
   # Blacklist id----------------------------------------------------------------
   
   if (missing(blacklist.id) == "TRUE") {
@@ -153,25 +170,35 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
     blacklist.id <- read_tsv(blacklist.id, col_names = T)
     vcf <- suppressWarnings(
       vcf %>% 
-      anti_join(blacklist.id, by = "INDIVIDUALS")
+        anti_join(blacklist.id, by = "INDIVIDUALS")
     )
   } else {
     message("Using the blacklisted id from your global environment")
     blacklist.id <- blacklist.id
     vcf <- suppressWarnings(
       vcf %>% 
-      anti_join(blacklist.id, by = "INDIVIDUALS")
+        anti_join(blacklist.id, by = "INDIVIDUALS")
     )
   }
   
   # Separate FORMAT and COVERAGE columns ---------------------------------------
   message("Tidying the VCF...")
-  
-  vcf <- vcf %>%
-    tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
-                    sep = ":", extra = "warn") %>%
-    tidyr::separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
-                    sep = ",", extra = "warn")
+
+  if(stacks.version == "new"){
+    vcf <- vcf %>%
+      tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
+                      sep = ":", extra = "warn")
+  } else {
+    # stacks version prior to v.1.29 had no Allele Depth field...
+    message("Hum....")
+    message("you are using an older version of STACKS...")
+    message("It's not too late to use the last STACKS version, see STACKS change log for problems associated with older vcf files, for more details see: http://catchenlab.life.illinois.edu/stacks/")
+    message("Continuing to work on tidying your VCF, for this time ;)")
+    
+    vcf <- vcf %>%
+      tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "GL"),
+                      sep = ":", extra = "warn")
+  }
   
   # Work with Mutate on CHROM and GL -------------------------------------------
   message("Fixing columns...")
@@ -181,37 +208,52 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, whit
       CHROM = suppressWarnings(as.numeric(stri_replace_all_fixed(CHROM, "un", "1", vectorize_all=F))),
       GL = suppressWarnings(as.numeric(stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all=F)))
     ) %>%
-    # Work with Mutate on ALLELE_P and ALLELE_Q
-    # vcf <- vcf %>% 
-    #   mutate(
-    #     ALLELE_P = ifelse (ALLELE_P == ".", "NA",
-    #                        ifelse(ALLELE_P == "0", REF, ALT)),
-    #     ALLELE_Q = ifelse (ALLELE_Q == ".", "NA",
-    #                        ifelse(ALLELE_Q == "0", REF, ALT))
-    #   )
-    # Mutate read and alleles REF/ALT depth
-    mutate(READ_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all=F))),
-           ALLELE_REF_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(ALLELE_REF_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
-           ALLELE_ALT_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(ALLELE_ALT_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
-           # Mutate coverage ratio for allelic imbalance
-           ALLELE_COVERAGE_RATIO = suppressWarnings(
-             as.numeric(ifelse(GT == "./." | GT == "0/0" | GT == "1/1", "NA",
-                               ((ALLELE_ALT_DEPTH - ALLELE_REF_DEPTH)/(ALLELE_ALT_DEPTH + ALLELE_REF_DEPTH)))))
-    )
-  # Populations levels ---------------------------------------------------------
-  message("Adding a population column ...")
+    # Mutate read depth
+    mutate(READ_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all=F))))
   
-  vcf <- mutate(
-    vcf, 
-    POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
-                    levels = pop.levels, ordered =T)
-  ) %>%
-    arrange(LOCUS, POS, POP_ID, INDIVIDUALS)  
+  # mutate the alleles REF/ALT depth
+  if(stacks.version == "new"){
+    vcf <- vcf %>%
+      mutate(
+        ALLELE_REF_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(ALLELE_REF_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
+        ALLELE_ALT_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(ALLELE_ALT_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
+        # Mutate coverage ratio for allelic imbalance
+        ALLELE_COVERAGE_RATIO = suppressWarnings(
+          as.numeric(ifelse(GT == "./." | GT == "0/0" | GT == "1/1", "NA",
+                            ((ALLELE_ALT_DEPTH - ALLELE_REF_DEPTH)/(ALLELE_ALT_DEPTH + ALLELE_REF_DEPTH)))))
+      )
+  } else {
+    # stacks version prior to v.1.29 had no Allele Depth field...
+    vcf <- vcf 
+  }  
+  
+  # Populations levels ---------------------------------------------------------
+  message("Adding a population column, so that your tidy VCF is population wise...")
+  
+  if(missing(pop.labels)){
+    pop.labels <- pop.levels
+  } else {
+    pop.labels <- pop.labels
+  }
+  
+  vcf <- suppressWarnings(
+    vcf %>% 
+      mutate(
+        POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end), 
+                        levels = pop.levels, labels = pop.labels, ordered = T)
+      ) %>%
+      arrange(LOCUS, POS, POP_ID, INDIVIDUALS)
+  )
   
   # Reorder the columns --------------------------------------------------------
   message("Reordering columns ...")
-  # vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "ALLELE_P", "ALLELE_Q", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")]
+  if(stacks.version == "new"){
+  # vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "ALLELE_P", "ALLELE_Q", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")] # testing
   vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")]
+  } else {
+    # stacks version prior to v.1.29 had no Allele Depth field...
+    vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "READ_DEPTH", "GL")]
+  }  
   
   
   # Save/Write the file to the working directory--------------------------------
@@ -232,5 +274,3 @@ Working directory:
   )))
   vcf
 }
-
-

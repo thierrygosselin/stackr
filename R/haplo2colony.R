@@ -151,12 +151,15 @@ haplo2colony <- function(haplotypes.file,
   
   
   # Haplotype file--------------------------------------------------------------
-  haplotype <- read_tsv(file = haplotypes.file, col_names = T) %>%
+  haplotype <- read_tsv(file = haplotypes.file, col_types = cols(.default = col_character()), col_names = T, na = "-") %>% 
     select(-Cnt) %>% 
     rename(Catalog.ID = `Catalog ID`) %>%
     melt(id.vars = "Catalog.ID", variable.name = "INDIVIDUALS", value.name = "HAPLOTYPES") %>% 
-    mutate(POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end))
-  
+    mutate(
+      HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = "-"),
+      Catalog.ID = as.integer(Catalog.ID),
+      POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end)
+      )
   
   # Pop select -----------------------------------------------------------------
   if(pop.select == "all" | missing(pop.select) == TRUE){
@@ -802,16 +805,19 @@ haplo2colony <- function(haplotypes.file,
         message("Imputations computed by populations")
         
         haplo.imp <- haplo.filtered %>%
-          melt(
-            id.vars = c("INDIVIDUALS", "POP_ID"),
-            variable.name = "Catalog.ID", 
-            value.name = "HAPLOTYPES"
-          ) %>% 
-          mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES=="NA"), NA)) %>%
-          group_by(Catalog.ID, POP_ID) %>% 
+          melt(id.vars = c("INDIVIDUALS", "POP_ID"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES") %>% 
+          mutate(HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES == "NA"), NA)) %>%
+          group_by(Catalog.ID, POP_ID) %>%
+          mutate(
+            HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE)),
+            HAPLOTYPES = replace(HAPLOTYPES, which(HAPLOTYPES == "NA"), NA)
+          ) %>%
+          # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
+          # will take the global observed values by markers for those cases.
+          group_by(Catalog.ID) %>%
           mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
-          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES")
-        
+          dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") %>% 
+          arrange(POP_ID, INDIVIDUALS)
         
       } else if (imputations.group == "global"){
         # Globally (not by pop_id)

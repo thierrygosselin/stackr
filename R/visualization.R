@@ -125,8 +125,10 @@ plot_coverage_imbalance_diagnostic <- function(tidy.vcf.file, pop.levels, read.d
   if (missing(pop.levels) == "TRUE") {
     data <- data
   } else {
-    data <- data %>%
+    data <- suppressWarnings(
+      data %>%
       mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T))
+    )
   }
   
   below.threshold <- stri_join("READ DEPTH <=", read.depth.threshold, sep = " ")
@@ -355,6 +357,7 @@ plot_density_distribution_het <- function(data, pop.levels, het.group, aes.colou
 
 
 #' @title Figure of the distribution of SNP per locus before and after filters
+#' @description Create density distribution of SNP per locus before and after filters.
 #' @param before.filter.data Data set before filter.
 #' @param after.filter.data Data set after filter.
 #' @export
@@ -411,6 +414,7 @@ plot_snp_number_loci <- function(before.filter.data, after.filter.data) {
 
 
 #' @title Figure of the distribution of SNP nucleotide position alond the read
+#' @description Distribution of SNP nucleotide position alond the read.
 #' @param data Data for the figure.
 #' @param aes.colour GGPLOT2 aesthetic.
 #' @param y.title Title of the Y-axis.

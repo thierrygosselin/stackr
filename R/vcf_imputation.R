@@ -104,79 +104,87 @@ vcf_imputation <- function(vcf.file,
   message("Importing the VCF...")
   
   vcf <- read_delim(
-    vcf.file, delim = "\t", 
-    skip = 9,
+    vcf.file, 
+    delim = "\t", 
+    comment = "##",
     progress = interactive()
   ) %>%
-    rename(CHROM = `#CHROM`)
+    select(-c(QUAL, FILTER, INFO)) %>%
+    rename(LOCUS = ID, CHROM = `#CHROM`)
   
+  # detect stacks version
+  if(stri_detect_fixed(vcf$FORMAT[1], "AD")) {
+    stacks.version <- "new"
+  } else{
+    stacks.version <- "old"
+  }
   
-  # VCF prep
-  vcf <- vcf %>% 
-    select(-c(QUAL, FILTER, INFO, FORMAT)) %>% 
-    tidyr::gather(INDIVIDUALS, FORMAT_ID, -c(CHROM, ID, POS, REF, ALT)) %>%
-    tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
-             sep = ":", extra = "warn") %>% 
-    select(-c(READ_DEPTH, ALLELE_DEPTH, GL))
-  
+  vcf <- vcf %>% select(-FORMAT)
   
   # Whitelist-------------------------------------------------------------------
-  if (is.null(whitelist.loci) | missing(whitelist.loci)) {
-    message("No whitelist")
-    whitelist <- NULL
-  } else if (is.vector(whitelist.loci)) {
-    message("Using the whitelist from the directory")
-    whitelist <- read_tsv(whitelist.loci, col_names = T) %>%
-      rename(ID = LOCUS)
+  if (missing(whitelist.loci) == "TRUE") {
+    vcf <- vcf
+    message("No whitelist to apply to the VCF")
+  } else if (is.vector(whitelist) == "TRUE") {
+    vcf <- vcf %>% 
+      semi_join(
+        read_tsv(whitelist, col_names = T),
+        by = "LOCUS"
+      )
+    message("Filtering the VCF with the whitelist from your directory")
   } else {
-    message("Using whitelist from your global environment")
-    whitelist <- whitelist.loci %>%
-      rename(ID = LOCUS)
-  }
+    vcf <- vcf %>%
+      semi_join(whitelist, by = "LOCUS")
+    message("Filtering the VCF with the whitelist from your global environment")
+  }  
+  
+  # Gather individuals in 1 colummn --------------------------------------------
+  vcf <- tidyr::gather(vcf, INDIVIDUALS, FORMAT, -c(CHROM, LOCUS, POS, REF, ALT))
+  message("Gathering individuals in 1 column")
   
   
   # Blacklist id----------------------------------------------------------------
-  if (is.null(blacklist.id) | missing(blacklist.id)) {
+  
+  if (missing(blacklist.id) == "TRUE") {
     message("No individual blacklisted")
     blacklist.id <- NULL
-  } else if (is.vector(blacklist.id)) {
+    vcf <- vcf
+  } else if (is.vector(blacklist.id) == "TRUE") {
     message("Using the blacklisted id from the directory")
-    blacklist.id <- read_tsv(blacklist.id, col_names = T)    
+    blacklist.id <- read_tsv(blacklist.id, col_names = T)
+    vcf <- suppressWarnings(
+      vcf %>% 
+        anti_join(blacklist.id, by = "INDIVIDUALS")
+    )
   } else {
     message("Using the blacklisted id from your global environment")
     blacklist.id <- blacklist.id
+    vcf <- suppressWarnings(
+      vcf %>% 
+        anti_join(blacklist.id, by = "INDIVIDUALS")
+    )
   }
   
-  if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == TRUE) {
-    # Combination 1: No whitelist and No blacklist -----------------------------
-    vcf <- vcf
-  } else if (is.null(whitelist.loci) == FALSE & is.null(blacklist.id) == TRUE) {
-    
-    # Combination 2: Using whitelist, but No blacklist -------------------------
-    
-    # just whitelist.loci, NO Blacklist of individual
-    vcf <- vcf %>% 
-      semi_join(whitelist, by = "ID") %>% 
-      arrange(ID)
-    
-  } else if (is.null(whitelist.loci) == TRUE & is.null(blacklist.id) == FALSE) {
-    
-    # Combination 3: Using a blacklist of id, but No whitelist -----------------
-    # NO whitelist, JUST Blacklist of individual
+  # Separate FORMAT and COVERAGE columns ---------------------------------------
+  message("Tidying the VCF...")
+  
+  if(stacks.version == "new"){
     vcf <- vcf %>%
-      mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
-      anti_join(blacklist.id, by = "INDIVIDUALS") %>%
-      arrange(ID)
+      tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
+                      sep = ":", extra = "warn") %>% 
+      select(-c(ALLELE_DEPTH, READ_DEPTH, GL))
     
   } else {
-    # Combination 4: Using a whitelist and blacklist---------------------------
+    # stacks version prior to v.1.29 had no Allele Depth field...
+    message("Hum....")
+    message("you are using an older version of STACKS...")
+    message("It's not too late to use the last STACKS version, see STACKS change log for problems associated with older vcf files, for more details see: http://catchenlab.life.illinois.edu/stacks/")
+    message("Continuing to work on tidying your VCF, for this time ;)")
     
-    # whitelist.loci + Blacklist of individual
-    vcf <- vcf %>% 
-      semi_join(whitelist, by = "ID") %>%
-      mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
-      anti_join(blacklist.id, by = "INDIVIDUALS") %>%
-      arrange(ID)
+    vcf <- vcf %>%
+      tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "GL"),
+                      sep = ":", extra = "warn") %>% 
+      select(-c(READ_DEPTH, GL))
   }
   
   # dump unused object
@@ -185,8 +193,8 @@ vcf_imputation <- function(vcf.file,
   
   # create a keeper list of MARKER, CHROM, ID, POS, REF and ALT
   vcf.keeper <- vcf %>%
-    select(CHROM, ID, POS, REF, ALT) %>% 
-    tidyr::unite(MARKER, CHROM, ID, POS, sep = "_", remove = TRUE) %>% 
+    select(CHROM, LOCUS, POS, REF, ALT) %>% 
+    tidyr::unite(MARKER, CHROM, LOCUS, POS, sep = "_", remove = TRUE) %>% 
     distinct(MARKER)
   
   
@@ -196,7 +204,6 @@ vcf_imputation <- function(vcf.file,
     
     bad.geno <- read_tsv(blacklist.genotypes, col_names = T) %>%
       mutate(INDIVIDUALS = as.character(INDIVIDUALS)) %>%
-      rename(ID = LOCUS) %>% 
       select(-POP_ID)
     
     # interesting stats.
@@ -206,7 +213,7 @@ vcf_imputation <- function(vcf.file,
     
     vcf <- vcf %>%
       mutate(
-        GT = ifelse(ID %in% bad.geno$ID & POS %in% bad.geno$POS & INDIVIDUALS %in% bad.geno$INDIVIDUALS, "./.", GT)
+        GT = ifelse(LOCUS %in% bad.geno$LOCUS & POS %in% bad.geno$POS & INDIVIDUALS %in% bad.geno$INDIVIDUALS, "./.", GT)
       )
     
     # Get the number of imputed genotypes and percentage
@@ -231,9 +238,12 @@ vcf_imputation <- function(vcf.file,
   
   vcf <- vcf %>%
     select(-REF, -ALT) %>% 
-    tidyr::unite(MARKER, CHROM, ID, POS, sep = "_", remove = TRUE) %>% 
-    mutate(GT = stri_replace_all_fixed(GT, "./.", "NA", vectorize_all=F)) %>% 
-    mutate(POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end)) %>%
+    tidyr::unite(MARKER, CHROM, LOCUS, POS, sep = "_", remove = TRUE) %>% 
+    mutate(
+      GT = stri_replace_all_fixed(GT, "./.", "NA", vectorize_all=F),
+      GT = replace(GT, which(GT == "NA"), NA),
+      POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end)
+      ) %>%
     dcast(INDIVIDUALS + POP_ID ~ MARKER, value.var = "GT")
   
   if (imputations == "max"){
@@ -275,7 +285,7 @@ vcf_imputation <- function(vcf.file,
       for (i in pop.list) {
         sep.pop <- df.split.pop[[i]]
         sep.pop <- suppressWarnings(
-          plyr::colwise(factor, exclude = "NA")(sep.pop)
+          plyr::colwise(factor, exclude = NA)(sep.pop)
         )
         imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
         # message of progress for imputations by population
@@ -283,6 +293,10 @@ vcf_imputation <- function(vcf.file,
         message(pop.imputed)
       }
       vcf.imp <- suppressWarnings(as.data.frame(bind_rows(imputed.dataset)))
+      
+      # Second round of imputations: remove introduced NA if some pop don't have the markers by using
+      # RF globally
+      vcf.imp <- impute_markers_rf(vcf.imp)
       
       # dump unused objects
       df.split.pop <- NULL
@@ -293,7 +307,7 @@ vcf_imputation <- function(vcf.file,
     } else if (imputations.group == "global"){
       # Globally (not by pop_id)
       message("Imputations computed globally, take a break...")
-      vcf <- plyr::colwise(factor, exclude = "NA")(vcf)
+      vcf <- plyr::colwise(factor, exclude = NA)(vcf)
       vcf.imp <- impute_markers_rf(vcf)
     } 
     
@@ -302,21 +316,30 @@ vcf_imputation <- function(vcf.file,
     if (missing(imputations.group) == "TRUE" | imputations.group == "populations"){
       message("Imputations computed by populations")
       
-      vcf.imp <- vcf %>%
-        tidyr::gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
-        mutate(GT = replace(GT, which(GT=="NA"), NA)) %>%
-        group_by(MARKER, POP_ID) %>% 
-        mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)))
+      vcf.imp <- suppressWarnings(
+        vcf %>%
+          tidyr::gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
+          group_by(MARKER, POP_ID) %>% 
+          mutate(
+            GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
+            GT = replace(GT, which(GT == "NA"), NA)
+          ) %>%
+          # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
+          # will take the global observed values by markers for those cases.
+          group_by(MARKER) %>%
+          mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)))
+      )
       
     } else if (imputations.group == "global"){
       # Globally (not by pop_id)
       message("Imputations computed globally")
       
-      vcf.imp <- vcf %>%
-        tidyr::gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
-        mutate(GT = replace(GT, which(GT=="NA"), NA)) %>%
-        group_by(MARKER) %>% 
-        mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)))
+      vcf.imp <- suppressWarnings(
+        vcf %>%
+          tidyr::gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
+          group_by(MARKER) %>% 
+          mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)))
+      )
     }
   }
   

@@ -1,21 +1,27 @@
 #' @name missing_genotypes
 #' @title Missing genotypes information and blacklist of individuals based 
 #' on a threshold of missing genotype.
-#' @description Missing genotypes information summary per individuals and 
-#' per population. Create a blacklist of individuals based 
-#' on a threshold of missing genotype. 
-#' This function accept a whitelist of loci to create a blacklist 
-#' of individuals before or after filtering of loci. 
-#' Paralogs are automatically removed from STACKS haplotype file.
+#' @description Use this function to have a summary of missing genotypes 
+#' per individuals and per population. Density distribution plot of misssing
+#' information is produced. This function also create a blacklist
+#' of individuals based on the desired threshold of missing genotype. 
+#' When a whitelist of loci is provided, \code{_filtered} will be appended 
+#' to the filename. Locus with more than 3 alleles (paralogs and/or sequencing errors) can be deleted or 
+#' genotypes with more than 3 alleles can be erased.
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
 #' @param whitelist.loci (optional) A whitelist of loci with a column header 
 #' 'LOCUS'. If the whitelist is written in the directory 
 #' \code{whitelist.loci = "whitelist.txt"}. If the whitelist is in 
 #' the global environment \code{whitelist.loci = whitelist.1000loci}
+#' @param erase.paralogs (logical) \code{FALSE} Loci with more than 2 alleles 
+#' (paralogs and/or sequencing errors) will be removed. \code{TRUE} genotypes 
+#' with more than 2 alleles (paralogs and/or sequencing errors) will be erased.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
+#' @param pop.levels A character string with your populations ordered.
+#' @param pop.labels An optional character string with new populations names.
 #' @param missing.geno.threshold (integer) Percentage of missing genotype 
 #' allowed per individuals. e.g. for a maximum of 30% of missing genotype 
 #' per individuals \code{missing.geno.threshold = 30}.
@@ -35,7 +41,8 @@
 
 missing_genotypes <- function(haplotypes.file,
                               whitelist.loci = NULL,
-                              pop.id.start, pop.id.end,
+                              erase.paralogs = NULL,
+                              pop.id.start, pop.id.end, pop.levels, pop.labels, 
                               missing.geno.threshold
 ) {
   
@@ -50,10 +57,13 @@ missing_genotypes <- function(haplotypes.file,
   N_IND <- NULL
   
   # Haplotype file--------------------------------------------------------------
-  haplotype <- read_tsv(file = haplotypes.file, col_names = T) %>%
-    select(-Cnt) %>% 
-    rename(LOCUS = `Catalog ID`) %>%
-    tidyr::gather(INDIVIDUALS, HAPLOTYPES, -LOCUS)
+  haplotype <- suppressWarnings(
+    read_tsv(file = haplotypes.file, col_names = T, na = "-") %>%
+      select(-Cnt) %>% 
+      rename(LOCUS = `Catalog ID`) %>%
+      tidyr::gather(INDIVIDUALS, HAPLOTYPES, -LOCUS) %>% 
+      mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = "-"))
+  )
   
   
   # Whitelist-------------------------------------------------------------------
@@ -87,46 +97,89 @@ missing_genotypes <- function(haplotypes.file,
   # dump unused object
   whitelist <- NULL
   
-  # Paralogs-------------------------------------------------------------------
-  blacklist.loci.paralogs <- haplotype %>%
-    mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/")) %>%
-    group_by(LOCUS) %>%
-    summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>%
-    filter(POLYMORPHISM_MAX > 1) %>%
-    group_by(LOCUS) %>%
-    select(LOCUS) %>%
-    distinct(LOCUS) %>% 
-    arrange(LOCUS)
-  
-  nparalogs <- stri_join("Found and/or removed", n_distinct(blacklist.loci.paralogs$LOCUS), "paralogs", sep = " ")
-  message(nparalogs)
-  
   # Consensus-------------------------------------------------------------------
   
   blacklist.loci.consensus <- haplotype %>%
-    mutate(CONSENSUS = stri_count_fixed(HAPLOTYPES, "consensus")) %>%
-    group_by(LOCUS) %>%
-    summarise(CONSENSUS_MAX = max(CONSENSUS)) %>%
-    filter(CONSENSUS_MAX > 0) %>%
-    group_by(LOCUS) %>%
+    filter(HAPLOTYPES == "consensus") %>% 
     select (LOCUS) %>%
     distinct(LOCUS) %>%
     arrange(LOCUS)
+
+  haplotype <- haplotype %>% 
+    filter(subset =! LOCUS %in% blacklist.loci.consensus$LOCUS)
+  
+  
+  # Paralogs-------------------------------------------------------------------
+  message("Looking for paralogs...")
+  
+  if(missing(erase.paralogs) | erase.paralogs == FALSE){
+    message("Loci with more than 2 alleles will be removed")
+    
+    paralogs <- haplotype %>%
+      mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/")) %>%
+      group_by(LOCUS) %>%
+      summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>%
+      filter(POLYMORPHISM_MAX > 1) %>%
+      group_by(LOCUS) %>%
+      select(LOCUS) %>%
+      distinct(LOCUS)
+    
+    haplotype <- suppressWarnings(
+      haplotype %>%
+        filter(subset =! LOCUS %in% paralogs$LOCUS)
+    )
+    message(stri_join("Found and/or removed", n_distinct(paralogs$LOCUS), "paralogs", sep = " "))
+    
+  } else {
+    message("Erasing genotypes with more than 2 alleles")
+    
+    # get the number of genotypes...
+    haplo.number <- haplotype %>%
+      filter(HAPLOTYPES != "-") %>%
+      select(HAPLOTYPES)
+    
+    haplotype <- haplotype %>% 
+      mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/"))
+    
+    erased.genotype.number <- length(haplotype$INDIVIDUALS[haplotype$POLYMORPHISM > 1])
+    total.genotype.number.haplo <- length(haplo.number$HAPLOTYPES)
+    percent.haplo <- paste(round(((erased.genotype.number/total.genotype.number.haplo)*100), 2), "%", sep = " ")
+    message(stri_paste("Out of a total of ", total.genotype.number.haplo, " genotypes, ", percent.haplo, " (", erased.genotype.number, ")"," will be erased"))
+    
+    message("Erasing... Erasing...")
+    
+    # Erasing genotype with the blacklist
+    
+    haplotype <- suppressWarnings(
+      haplotype %>%
+        mutate(HAPLOTYPES = ifelse(POLYMORPHISM > 1, "-", HAPLOTYPES))
+    )
+  }
+  
   
   # Missing -------------------------------------------------------------------
   
-  missing.genotypes.ind <- haplotype %>%
-    filter(subset =! LOCUS %in% blacklist.loci.consensus$LOCUS) %>%
-    filter(subset =! LOCUS %in% blacklist.loci.paralogs$LOCUS) %>%
-    group_by(INDIVIDUALS) %>%
-    summarise(
-      TOTAL = n(),
-      GENOTYPED = length(INDIVIDUALS[HAPLOTYPES != "-"]),
-      MISSING = length(INDIVIDUALS[HAPLOTYPES == "-"]),
-      PERC_MISSING = round((MISSING/TOTAL)*100, 2)
-    ) %>% 
-    mutate(POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end)) %>% 
-    select(POP_ID, INDIVIDUALS, TOTAL, GENOTYPED, MISSING, PERC_MISSING)
+  if(missing(pop.labels)){
+    pop.labels <- pop.levels
+  } else {
+    pop.labels <- pop.labels
+  }
+  
+  missing.genotypes.ind <- suppressWarnings(
+    haplotype %>%
+      group_by(INDIVIDUALS) %>%
+      summarise(
+        TOTAL = n(),
+        GENOTYPED = length(INDIVIDUALS[HAPLOTYPES != "-"]),
+        MISSING = length(INDIVIDUALS[HAPLOTYPES == "-"]),
+        PERC_MISSING = round((MISSING/TOTAL)*100, 2)
+      ) %>% 
+      mutate(POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
+                             levels = pop.levels, labels = pop.labels, ordered = T),
+             POP_ID = droplevels(POP_ID)
+      ) %>% 
+      select(POP_ID, INDIVIDUALS, TOTAL, GENOTYPED, MISSING, PERC_MISSING)
+  )
   
   
   if (missing(whitelist.loci) == "FALSE") {
@@ -147,7 +200,6 @@ missing_genotypes <- function(haplotypes.file,
     select(INDIVIDUALS) %>% 
     distinct(INDIVIDUALS)
   
-
   if (missing(whitelist.loci) == "FALSE") {
     blacklist.id.filename <- paste("blacklisted.id.filtered", missing.geno.threshold, "txt", sep = ".")
     write.table(blacklisted.id, blacklist.id.filename, 
@@ -191,7 +243,8 @@ missing_genotypes <- function(haplotypes.file,
       N = mean(N_IND),
       INDIVIDUALS = n()
     ) %>% 
-    dcast(POP_ID + N ~ MISSING_GROUP, value.var = "INDIVIDUALS")
+    dcast(POP_ID + N ~ MISSING_GROUP, value.var = "INDIVIDUALS") %>% 
+    arrange(POP_ID)
   
   if (missing(whitelist.loci) == "FALSE") {
     write.table(missing.genotypes.pop, "missing.genotypes.pop.filtered.tsv", 
