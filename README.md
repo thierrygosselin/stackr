@@ -107,7 +107,8 @@ install_github("thierrygosselin/stackr") # to install
 library(stackr) # to load
 ```
 
-Note:
+**Note:**
+
 Sometimes you'll get warnings while installing dependencies required for **stackr** or other R packages.
 ```r
 Warning: cannot remove prior installation of package ‘stringi’
@@ -134,6 +135,27 @@ Here the list of packages that **stackr** is depending on:
 dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval, adegenet, randomForestSRC, stringdist, foreach, parallel, doParallel
 ```
 If you don't have them, no worries, it's intalled automatically during **stackr** installation. If you have them, it's your job to update them, because i'm using the latest versions...
+
+**Common use**
+When working in R I usually do this:
+```r
+# Clean my desk
+rm(list=ls())
+
+# load the required libraries
+library(reshape2)
+library(ggplot2)
+library(stringr)
+library(stringi)
+library(plyr)
+library(dplyr) # load this package after plyr to work properly
+library(tidyr)
+library(readr)
+library(randomForestSRC)
+library(doParallel)
+library(stackr)
+library(purrr)
+```
 
 **Parallel computing in R**
 
