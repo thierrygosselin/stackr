@@ -70,7 +70,7 @@ plink_ibm <- function(vcf.file, whitelist = NULL, denovo, strata, strata.select)
     system(paste("vcftools --vcf ", plink.input.file, " --plink-tped", " --out plink.tfile.ibm"))
     
     # IBM analysis
-    system(paste("plink --tfile ", "plink.tfile.ibm", "--cluster-missing --mds-plot 4", "--out plink.ibm"))
+    system(paste("plink --tfile ", "plink.tfile.ibm", "--cluster missing --mds-plot 4", "--out plink.ibm"))
     
     ibm.data <- "plink.ibm.mds"
     
