@@ -8,6 +8,8 @@
 #' @param denovo (logical) Default \code{TRUE}. For de novo analysis the vcf file 
 #' created by stacks as a \code{un} in the \code{CHROM} column. We need to change that 
 #' internally for the function to work in VCFTools and PLINK.
+#' @param blacklist.id (optional) A blacklist with individual ID. NO 
+#' column header. The blacklist is in the directory (e.g. "blacklist.id.txt").
 #' @param strata (optional) File with column header 'INDIVIDUALS' and any other 
 #' columns containing e.g. population id, sequencer id, lanes, etc. 
 #' Any info that might impact missing data. 
@@ -43,17 +45,18 @@
 #' Molecular Ecology, 22, 3124-3140.
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-plink_ibm <- function(vcf.file, whitelist = NULL, denovo, strata, strata.select){
+plink_ibm <- function(vcf.file, whitelist = NULL, denovo, blacklist.id, strata, strata.select){
   
   IID <- NULL
   FID <- NULL
   C1 <- NULL
   C2 <- NULL
   
-
+  
   # empty list for results
   res <- list()
   
+  # de novo
   if(missing(denovo) | (denovo == TRUE)){
     # For de novo assembly, modify Stacks vcf file chrom column from "un" to "1"
     system(paste("perl -pe 's/^un/1/' ", vcf.file, " > ", "batch_1.modified.ibm.vcf", sep = ""))
@@ -62,31 +65,72 @@ plink_ibm <- function(vcf.file, whitelist = NULL, denovo, strata, strata.select)
     plink.input.file <- vcf.file
   }
   
+  # no whitelist
   if (is.null(whitelist) | missing(whitelist)) {
-    plink.input.file <- "batch_1.modified.ibm.vcf"
-    message("No whitelist to apply to the VCF")
+    message("No whitelist to filter the VCF")
     
-    # creates a PLINK tfile
-    system(paste("vcftools --vcf ", plink.input.file, " --plink-tped", " --out plink.tfile.ibm"))
+    # no blakclist id
+    if(is.null(blacklist.id) | missing(blacklist.id)){
+      message("No blacklisted id to apply to the VCF")
+      
+      # creates a PLINK tfile
+      system(paste("vcftools --vcf ", plink.input.file, " --plink-tped", " --out plink.tfile.ibm"))
+      
+      # IBM analysis
+      system(paste("plink --tfile ", "plink.tfile.ibm", "--cluster missing --mds-plot 4", "--out plink.ibm"))
+      
+      ibm.data <- "plink.ibm.mds"
+      
+    } else { # with blacklisted id
+      message("Blacklisted id used to filter the VCF")
+      
+      # remove individuals
+      system(paste("vcftools --vcf ", plink.input.file, " --remove ", blacklist.id, " --recode", " --out batch_1.modified.ibm.id.removed"))
+      plink.input.file <- "batch_1.modified.ibm.id.removed.recode.vcf"
+      
+      # creates a PLINK tfile
+      system(paste("vcftools --vcf ", plink.input.file, " --plink-tped", " --out plink.tfile.ibm.id.removed"))
+      
+      # IBM analysis
+      system(paste("plink --tfile ", "plink.tfile.ibm.id.removed", "--cluster missing --mds-plot 4", "--out plink.ibm.id.removed"))
+      
+      ibm.data <- "plink.ibm.id.removed.mds"
+    }
     
-    # IBM analysis
-    system(paste("plink --tfile ", "plink.tfile.ibm", "--cluster missing --mds-plot 4", "--out plink.ibm"))
-    
-    ibm.data <- "plink.ibm.mds"
-    
-  } else {
+  } else { #with whitelist
     message("Filtering the VCF with the whitelist from your directory")
-    system(paste("vcftools --vcf ", plink.input.file, " --positions ", whitelist, " --recode", "--out batch_1.modified.ibm.filtered"))
-    plink.input.file <- "batch_1.modified.ibm.filtered.recode.vcf"
-    
-    # creates a PLINK tfile
-    system(paste("vcftools --vcf ", plink.input.file, " --plink-tped", " --out plink.tfile.ibm.filtered"))
-    
-    # IBM analysis
-    system(paste("plink --tfile ", "plink.tfile.ibm.filtered", "--cluster-missing --mds-plot 4", "--out plink.ibm.filtered"))
-    ibm.data <- "plink.ibm.filtered.mds"
+    if(is.null(blacklist.id) | missing(blacklist.id)){ # no blacklist id
+      message("No blacklisted id to apply to the VCF")
+      
+      system(paste("vcftools --vcf ", plink.input.file, " --positions ", whitelist, " --recode", "--out batch_1.modified.ibm.filtered"))
+      plink.input.file <- "batch_1.modified.ibm.filtered.recode.vcf"
+      
+      # creates a PLINK tfile
+      system(paste("vcftools --vcf ", plink.input.file, " --plink-tped", " --out plink.tfile.ibm.filtered"))
+      
+      # IBM analysis
+      system(paste("plink --tfile ", "plink.tfile.ibm.filtered", "--cluster-missing --mds-plot 4", "--out plink.ibm.filtered"))
+      ibm.data <- "plink.ibm.filtered.mds"
+      
+    } else { # with blacklisted id
+      message("Blacklisted id used to filter the VCF")
+      
+      #whitelist
+      system(paste("vcftools --vcf ", plink.input.file, " --positions ", whitelist, " --recode", "--out batch_1.modified.ibm.filtered"))
+      plink.input.file <- "batch_1.modified.ibm.filtered.recode.vcf"
+      
+      # remove individuals
+      system(paste("vcftools --vcf ", plink.input.file, " --remove ", blacklist.id, " --recode", " --out batch_1.modified.ibm.filtered.recode.id.removed"))
+      plink.input.file <- "batch_1.modified.ibm.filtered.recode.id.removed.recode.vcf"
+      
+      # creates a PLINK tfile
+      system(paste("vcftools --vcf ", plink.input.file, " --plink-tped", " --out plink.tfile.ibm.filtered.id.removed"))
+      
+      # IBM analysis
+      system(paste("plink --tfile ", "plink.tfile.ibm.filtered.id.removed", "--cluster-missing --mds-plot 4", "--out plink.ibm.filtered.id.removed"))
+      ibm.data <- "plink.ibm.filtered.id.removed.mds"
+    }
   }
-  
   
   # strata
   ibm <- read_table(ibm.data, col_names = T, col_types = "ccidddd") %>%

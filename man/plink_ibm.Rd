@@ -4,7 +4,8 @@
 \alias{plink_ibm}
 \title{Identity-by-missingness (IBM) analysis.}
 \usage{
-plink_ibm(vcf.file, whitelist = NULL, denovo, strata, strata.select)
+plink_ibm(vcf.file, whitelist = NULL, denovo, blacklist.id, strata,
+  strata.select)
 }
 \arguments{
 \item{vcf.file}{The VCF file created by STACKS.}
@@ -15,6 +16,9 @@ for VCFTools 2 columns are required: 'CHROM' and 'POS'. Default = \code{NULL}.}
 \item{denovo}{(logical) Default \code{TRUE}. For de novo analysis the vcf file 
 created by stacks as a \code{un} in the \code{CHROM} column. We need to change that 
 internally for the function to work in VCFTools and PLINK.}
+
+\item{blacklist.id}{(optional) A blacklist with individual ID. NO 
+column header. The blacklist is in the directory (e.g. "blacklist.id.txt").}
 
 \item{strata}{(optional) File with column header 'INDIVIDUALS' and any other 
 columns containing e.g. population id, sequencer id, lanes, etc. 

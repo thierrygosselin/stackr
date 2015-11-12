@@ -19,79 +19,6 @@ This is the development page of the **stackr** package for the R software, optim
 Because STACKS is always under development (more than 100 versions so far!), 
 **stackr** will work best with Stacks version >= 1.29.
 
-## New
-**v.0.1.5**
-Introducing *haplo2gsi_sim* function.
-* Conversion of STACKS haplotypes file into a gsi_sim data input file.
-* Markers can be subsampled.
-* Map-independent imputations using Random Forest or the most frequent allele are options also available for this function.
-* [gsi_sim] (https://github.com/eriqande/gsi_sim) is a tool developed by Eric C. Anderson for doing and simulating genetic stock identification.
-
-**v.0.1.4**
-Introducing *haplo2fstat* function.
-Conversion of STACKS haplotypes file into a fstat file.
-Access all the functions in the R package [hierfstat] (https://github.com/jgx65/hierfstat).
-
-**v.0.1.3**
-Map-independent imputations of a VCF file created by STACKS. 
-Two options are available for imputations: using Random Forest or the most frequent allele.
-
-Before imputations, the VCF file can be filtered with:
-
-* a whitelist of loci (to keep only specific loci...)
-* a blacklist of individuals (to remove individuals or entire populations...)
-* also, a list of genotypes with bad coverage and/or genotype likelihood can be supplied to erase the genotypes before imputations (for more details look at the function: blacklist_erase_genotype).
-
-**v.0.1.2**
-**The *summary_haplotypes* function now outputs:**
-* Putative paralogs, consensus, monomorphic and polymorphic loci
-* The haplotype statistics for the observed and expected homozygosity and 
-heterozygosity
-* Wright’s inbreeding coefficient (Fis)
-* Proxy measure of the realized proportion of the genome that is identical
-by descent (IBDG). The FH measure is based on the excess in the observed number
-of homozygous genotypes within an individual relative to the mean number of 
-homozygous genotypes expected under random mating (Keller et al., 2011; 
-Kardos et al., 2015).
-* Nucleotide diversity (Pi), considering the consensus loci in the catalog 
-(i.e. reads with no variation between population). It's Nei & Li (1979) 
-function, adapted to the GBS reality.
-
-Keller MC, Visscher PM, Goddard ME. 2011. Quantification of inbreeding due to 
-distant ancestors and its detection using dense single nucleotide polymorphism
-data. Genetics, 189, 237–249.
-
-Kardos M, Luikart G, Allendorf FW. 2015. Measuring individual inbreeding in the 
-age of genomics: marker-based measures are better than pedigrees. 
-Heredity, 115, 63–72.
-
-Nei M, Li WH. 1979. Mathematical model for studying genetic variation in terms
-of restriction endonucleases. Proceedings of the National Academy of Sciences 
-of the United States of America, 76, 5269–5273.
-
-**The *haplo2colony* function**
-* Converts the file to the required *COLONY* input file
-* Can filter the haplotypes file with a whitelist of loci 
-and a blacklist of individuals
-* Can impute the data with Random Forest or the most frequent category
-* Use the *print.all.colony.opt* to output all COLONY options to the file.
-This however requires manual curation of the file to work directly with COLONY. 
-
-## Roadmap of future developments:
-
-* Very soon: Joint Allele Frequency Spectrum from a *batch_x.sumstats.tsv* or a *batch_x.haplotypes.tsv* files
-* Re-Integration with [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel)
-* Improved documentation and vignette
-* Workflow tutorial
-* More linkage map tools
-* Use Shiny and ggvis when subplots or facets are available
-* CRAN
-* Interaction with [STACKS] (http://creskolab.uoregon.edu/stacks/) database (Web-interface)
-* Reference genome tools
-* Maybe try some integration with other GBS approaches: AftrRAD, pyRAD, dDocent
-* ...suggestions ?
-
-
 ## Installation
 You can try out the dev version of **stackr**. Follow the 2 steps below:
 
@@ -198,6 +125,90 @@ install.packages("dplyr", type = "source")
 install.packages("randomForestSRC", type = "source")
 ```
 
+## New
+**v.0.1.5**
+Introducing *haplo2gsi_sim* function.
+* Conversion of STACKS haplotypes file into a gsi_sim data input file.
+* Markers can be subsampled.
+* Map-independent imputations using Random Forest or the most frequent allele are options also available for this function.
+* [gsi_sim] (https://github.com/eriqande/gsi_sim) is a tool developed by Eric C. Anderson for doing and simulating genetic stock identification.
+
+**v.0.1.4**
+Introducing *haplo2fstat* function.
+Conversion of STACKS haplotypes file into a fstat file.
+Access all the functions in the R package [hierfstat] (https://github.com/jgx65/hierfstat).
+
+**v.0.1.3**
+Map-independent imputations of a VCF file created by STACKS. 
+Two options are available for imputations: using Random Forest or the most frequent allele.
+
+Before imputations, the VCF file can be filtered with:
+
+* a whitelist of loci (to keep only specific loci...)
+* a blacklist of individuals (to remove individuals or entire populations...)
+* also, a list of genotypes with bad coverage and/or genotype likelihood can be supplied to erase the genotypes before imputations (for more details look at the function: blacklist_erase_genotype).
+
+**v.0.1.2**
+**The *summary_haplotypes* function now outputs:**
+* Putative paralogs, consensus, monomorphic and polymorphic loci
+* The haplotype statistics for the observed and expected homozygosity and 
+heterozygosity
+* Wright’s inbreeding coefficient (Fis)
+* Proxy measure of the realized proportion of the genome that is identical
+by descent (IBDG). The FH measure is based on the excess in the observed number
+of homozygous genotypes within an individual relative to the mean number of 
+homozygous genotypes expected under random mating (Keller et al., 2011; 
+Kardos et al., 2015).
+* Nucleotide diversity (Pi), considering the consensus loci in the catalog 
+(i.e. reads with no variation between population). It's Nei & Li (1979) 
+function, adapted to the GBS reality.
+
+Keller MC, Visscher PM, Goddard ME. 2011. Quantification of inbreeding due to 
+distant ancestors and its detection using dense single nucleotide polymorphism
+data. Genetics, 189, 237–249.
+
+Kardos M, Luikart G, Allendorf FW. 2015. Measuring individual inbreeding in the 
+age of genomics: marker-based measures are better than pedigrees. 
+Heredity, 115, 63–72.
+
+Nei M, Li WH. 1979. Mathematical model for studying genetic variation in terms
+of restriction endonucleases. Proceedings of the National Academy of Sciences 
+of the United States of America, 76, 5269–5273.
+
+**The *haplo2colony* function**
+* Converts the file to the required *COLONY* input file
+* Can filter the haplotypes file with a whitelist of loci 
+and a blacklist of individuals
+* Can impute the data with Random Forest or the most frequent category
+* Use the *print.all.colony.opt* to output all COLONY options to the file.
+This however requires manual curation of the file to work directly with COLONY. 
+
+## Roadmap of future developments:
+
+* Very soon: Joint Allele Frequency Spectrum from a *batch_x.sumstats.tsv* or a *batch_x.haplotypes.tsv* files
+* Re-Integration with [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel)
+* Improved documentation and vignette
+* Workflow tutorial
+* More linkage map tools
+* Use Shiny and ggvis when subplots or facets are available
+* CRAN
+* Interaction with [STACKS] (http://creskolab.uoregon.edu/stacks/) database (Web-interface)
+* Reference genome tools
+* Maybe try some integration with other GBS approaches: AftrRAD, pyRAD, dDocent
+* ...suggestions ?
+
+## Contribution:
+
+This package has been developed in the open, and it wouldn’t be nearly as good without your contributions. There are a number of ways you can help me make this package even better:  
+* If you don’t understand something, please let me know. 
+* Your feedback on what is confusing or hard to understand is valuable. 
+* If you spot a typo, feel free to edit the underlying page and send a pull request.
+
+New to pull request on github ? The process is very easy:  
+* Click the edit this page on the sidebar.
+* Make the changes using github’s in-page editor and save.
+* Submit a pull request and include a brief description of your changes. 
+* “Fixing typos” is perfectly adequate.
 
 ## GBS workflow
 The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
