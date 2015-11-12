@@ -197,7 +197,7 @@ This however requires manual curation of the file to work directly with COLONY.
 * Maybe try some integration with other GBS approaches: AftrRAD, pyRAD, dDocent
 * ...suggestions ?
 
-## Contribution:
+## Contributions:
 
 This package has been developed in the open, and it wouldn’t be nearly as good without your contributions. There are a number of ways you can help me make this package even better:  
 * If you don’t understand something, please let me know. 
