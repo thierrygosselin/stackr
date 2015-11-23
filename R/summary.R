@@ -124,13 +124,13 @@ summary_haplotypes <- function(haplotypes.file,
   }
   
   haplotype <- suppressWarnings(haplotype %>%
-    mutate(
-      POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
-                      levels = pop.levels, labels = pop.labels, ordered = T),
-      POP_ID = droplevels(POP_ID)
-    )
+                                  mutate(
+                                    POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+                                                    levels = pop.levels, labels = pop.labels, ordered = T),
+                                    POP_ID = droplevels(POP_ID)
+                                  )
   )
-
+  
   
   # Whitelist loci -------------------------------------------------------------
   if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
@@ -243,13 +243,13 @@ summary_haplotypes <- function(haplotypes.file,
   # Paralogs... Locus with > 2 alleles by individuals --------------------------
   # Create a blacklist of catalog loci with paralogs
   message("Looking for paralogs...")
-
+  
   paralogs.ind <- haplotype %>% 
     mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/")) %>%
     filter(POLYMORPHISM > 1) %>% 
     arrange(LOCUS, POP_ID, INDIVIDUALS) %>% 
     select(LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES)
-
+  
   # Write the list of locus, individuals with paralogs
   if (missing(whitelist.loci)) {
     write.table(paralogs.ind,
@@ -332,23 +332,24 @@ summary_haplotypes <- function(haplotypes.file,
                            levels = pop.levels, ordered = T)) %>% 
     arrange(POP_ID, INDIVIDUALS)
   
-  freq.alleles.loci.pop <- haplo.filtered.consensus.paralogs %>% 
-    filter(HAPLOTYPES != "-") %>% 
-    group_by(LOCUS, POP_ID) %>%
-    mutate(DIPLO= length(INDIVIDUALS) *2) %>% 
-    tidyr::separate(
-      col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
-      sep = "/", extra = "drop", remove = F
-    ) %>%
-    mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
-    select(-HAPLOTYPES, -INDIVIDUALS) %>% 
-    tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID, DIPLO)) %>%
-    group_by(LOCUS, POP_ID, ALLELES) %>% 
-    summarise(
-      FREQ_ALLELES = length(ALLELES)/mean(DIPLO),
-      HOM_E = FREQ_ALLELES * FREQ_ALLELES
-    ) %>% 
-    select(-FREQ_ALLELES)
+  freq.alleles.loci.pop <- suppressWarnings(haplo.filtered.consensus.paralogs %>% 
+                                              filter(HAPLOTYPES != "-") %>% 
+                                              group_by(LOCUS, POP_ID) %>%
+                                              mutate(DIPLO= length(INDIVIDUALS) *2) %>% 
+                                              tidyr::separate(
+                                                col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
+                                                sep = "/", extra = "drop", remove = F
+                                              ) %>%
+                                              mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
+                                              select(-HAPLOTYPES, -INDIVIDUALS) %>% 
+                                              tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID, DIPLO)) %>%
+                                              group_by(LOCUS, POP_ID, ALLELES) %>% 
+                                              summarise(
+                                                FREQ_ALLELES = length(ALLELES)/mean(DIPLO),
+                                                HOM_E = FREQ_ALLELES * FREQ_ALLELES
+                                              ) %>% 
+                                              select(-FREQ_ALLELES)
+  )
   
   freq.loci.pop<- freq.alleles.loci.pop %>% 
     group_by(LOCUS, POP_ID) %>%
@@ -402,14 +403,15 @@ summary_haplotypes <- function(haplotypes.file,
   # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
   message("Nucleotide diversity (Pi) calculations")
   
-  pi.data <- haplo.filtered.paralogs %>%
-    filter(HAPLOTYPES != "-") %>% 
-    tidyr::separate(
-      col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
-      sep = "/", extra = "drop", remove = T
-    ) %>%
-    mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
-  
+  pi.data <- suppressWarnings(
+    haplo.filtered.paralogs %>%
+      filter(HAPLOTYPES != "-") %>% 
+      tidyr::separate(
+        col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
+        sep = "/", extra = "drop", remove = T
+      ) %>%
+      mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
+  )
   # Pi: by individuals----------------------------------------------------------
   message("Pi calculations by individuals...")
   
@@ -498,7 +500,8 @@ summary_haplotypes <- function(haplotypes.file,
   # Summary dataframe by pop ---------------------------------------------------
   message("Working on the summary table")
   
-  summary.prep <- haplo.filtered.consensus %>% 
+  summary.prep <- suppressWarnings(
+    haplo.filtered.consensus %>% 
     filter(HAPLOTYPES != "-") %>%
     select(-INDIVIDUALS) %>%
     tidyr::separate(
@@ -507,6 +510,7 @@ summary_haplotypes <- function(haplotypes.file,
     ) %>%
     mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
     tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
+  )
   
   summary.pop <- summary.prep %>%
     group_by(LOCUS, POP_ID) %>%
