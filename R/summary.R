@@ -403,7 +403,6 @@ summary_haplotypes <- function(haplotypes.file,
   message("Nucleotide diversity (Pi) calculations")
   
   pi.data <- haplo.filtered.paralogs %>%
-    select(-Cnt) %>% 
     filter(HAPLOTYPES != "-") %>% 
     tidyr::separate(
       col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
@@ -501,7 +500,7 @@ summary_haplotypes <- function(haplotypes.file,
   
   summary.prep <- haplo.filtered.consensus %>% 
     filter(HAPLOTYPES != "-") %>%
-    select(-Cnt, -INDIVIDUALS) %>%
+    select(-INDIVIDUALS) %>%
     tidyr::separate(
       col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
       sep = "/", extra = "drop", remove = T
