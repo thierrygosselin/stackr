@@ -3,7 +3,7 @@
 #' in a sumstats prepared file or a tidy VCF file.
 #' @param data A data frame object or file (using ".tsv")
 #' of class sumstats or tidy VCF.
-#' @param population.map Optional with tidy VCF, required with prepared sumstats file.
+#' @param population.map With tidy VCF (optional). With sumstats (REQUIRED).
 #' The population map or individuals listed in one column.
 #' No headers.
 #' @param pop.id.start The start of your population id 
@@ -50,7 +50,7 @@ filter_individual <- function(data, population.map, pop.id.start, pop.id.end, po
   
   # tidy VCF 
   if (stri_detect_fixed(columns.names[1], "CHROM")) {
-    
+    population.map <- NULL
     if (stri_detect_fixed(threshold.fixed, "T")) {
       message("Using a fixed threshold..")
       threshold.id <- "individuals as a fixed"
@@ -138,8 +138,9 @@ filter_individual <- function(data, population.map, pop.id.start, pop.id.end, po
     }
     
   } else { # sumstats
-    
-    if (is.vector(population.map) == "TRUE") {
+    if (is.null(population.map) | missing(population.map)) {
+      stop("With sumstats file, you nee a population map")
+    }else if(is.vector(population.map) == "TRUE") {
       message("Using the population map in your directory")
       population.map <- read_tsv(population.map, col_names = FALSE) %>%
         select(INDIVIDUALS=X1)

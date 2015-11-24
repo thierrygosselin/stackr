@@ -11,7 +11,7 @@ filter_individual(data, population.map, pop.id.start, pop.id.end, pop.levels,
 \item{data}{A data frame object or file (using ".tsv")
 of class sumstats or tidy VCF.}
 
-\item{population.map}{Optional with tidy VCF, required with prepared sumstats file.
+\item{population.map}{With tidy VCF (optional). With sumstats (REQUIRED).
 The population map or individuals listed in one column.
 No headers.}
 
