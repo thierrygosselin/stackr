@@ -53,18 +53,7 @@
 
 read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.labels, whitelist, blacklist, blacklist.id,
                             filename) {
-#   setwd("/Users/thierry/Dropbox/partage_thierry_laura/gsi_sim")
-#   # setwd("/Users/thierry/Dropbox/esturgeon_dropbox/stacks_populations_2015/01_stacks_populations/populations_8pop")
-#   vcf.file <- "batch_1.vcf"
-#   pop.id.start <- 1
-#   pop.id.end <- 3
-#   pop.levels <- c("TRI", "BON", "ANT", "GAS", "CAR", "MAL", "EDN", "CAP", "BRA", "SID", "CAN", "LOB", "BRO", "OFF", "SEA", "BOO", "MAR", "BUZ", "RHO")
-#   pop.labels <- c("TRI", "BON", "ANT", "GAS", "CAR", "MAL", "MAG", "MAG", "BRA", "DIN", "CAN", "LOB", "BRO", "OFF", "SEA", "BOO", "MAR", "BUZ", "RHO")
-#   blacklist <- "blacklist.loci.paralogs.txt"
-#   blacklist.id <- "blacklist.id.lobster.tsv"
-#   filename <- "vcf.tidy.id.tsv"
-#   
-  
+
   X1 <- NULL
   POP_ID <- NULL
   QUAL <- NULL
@@ -110,7 +99,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
   
   vcf <- vcf %>% select(-FORMAT)
   
-    # Whitelist/Blacklist ---------------------------------------------------------- 
+  # Whitelist/Blacklist ---------------------------------------------------------- 
   if (missing(whitelist) == "TRUE") {
     vcf <- vcf
     message("No whitelist to apply to the VCF")
@@ -144,7 +133,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
   }
   
   # Make VCF tidy-----------------------------------------------------------------
-    vcf <- vcf %>%
+  vcf <- vcf %>%
     tidyr::separate(INFO, c("N", "AF"), sep = ";", extra = "warn") %>%
     mutate(
       N = as.numeric(stri_replace_all_fixed(N, "NS=", "", vectorize_all=F)),
@@ -183,11 +172,15 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
   
   # Separate FORMAT and COVERAGE columns ---------------------------------------
   message("Tidying the VCF...")
-
+  
   if(stacks.version == "new"){
-    vcf <- vcf %>%
+    vcf <- suppressWarnings(
+      vcf %>%
       tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
-                      sep = ":", extra = "warn")
+                      sep = ":", extra = "warn") %>% 
+      tidyr::separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
+                      sep = ",", extra = "warn")
+    )
   } else {
     # stacks version prior to v.1.29 had no Allele Depth field...
     message("Hum....")
@@ -248,8 +241,8 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
   # Reorder the columns --------------------------------------------------------
   message("Reordering columns ...")
   if(stacks.version == "new"){
-  # vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "ALLELE_P", "ALLELE_Q", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")] # testing
-  vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")]
+    # vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "ALLELE_P", "ALLELE_Q", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")] # testing
+    vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "READ_DEPTH", "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH", "ALLELE_COVERAGE_RATIO", "GL")]
   } else {
     # stacks version prior to v.1.29 had no Allele Depth field...
     vcf <- vcf[c("CHROM", "LOCUS", "POS", "N", "REF", "ALT", "REF_FREQ", "ALT_FREQ", "POP_ID", "INDIVIDUALS", "GT", "READ_DEPTH", "GL")]
