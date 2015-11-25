@@ -4,13 +4,12 @@
 \alias{filter_genotype_likelihood}
 \title{Genotype likelihood filter}
 \usage{
-filter_genotype_likelihood(tidy.vcf.file, allele.min.depth.threshold,
+filter_genotype_likelihood(tidy.vcf, allele.min.depth.threshold,
   read.depth.max.threshold, gl.mean.threshold, gl.min.threshold,
   gl.diff.threshold, pop.threshold, percent, filename)
 }
 \arguments{
-\item{tidy.vcf.file}{A data frame object or file (using ".tsv")
-of class tidy VCF.}
+\item{tidy.vcf}{A tidy vcf object or file (using ".tsv").}
 
 \item{allele.min.depth.threshold}{Threshold number
 of min depth of REF or ALT alleles.}
@@ -28,7 +27,9 @@ the difference between the max and min GL over a loci/read/haplotype.}
 \item{pop.threshold}{A threshold number: proportion, percentage
 or fixed number e.g. 0.70, 70 or 15.}
 
-\item{percent}{Is the threshold a percentage ? TRUE or FALSE.}
+\item{percent}{Is the threshold a percentage? TRUE or FALSE.
+This argument is necessary to distinguish percentage from integer population threshold.
+threshold (e.g. 5 percent or 5 populations).}
 
 \item{filename}{Name of the file written to the working directory.}
 }

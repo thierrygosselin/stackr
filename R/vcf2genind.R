@@ -19,7 +19,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @param blacklist.id (optional) A blacklist with individual ID and
 #' a column header 'INDIVIDUALS'. The blacklist is in the directory
 #'  (e.g. "blacklist.txt").
-#' @param pop.levels (optional) A character string with your populations ordered.
+#' @param pop.levels (required) A character string with your populations ordered.
 #' @param pop.labels (optional) A character string of your populations labels.
 #' If you need to rename sampling sites in \code{pop.levels} or combined sites/pop
 #' into a different names, here is the place.
@@ -162,6 +162,13 @@ vcf2genind <- function(vcf.file,
   
   # Make VCF tidy-----------------------------------------------------------------
   # Gather individuals in 1 colummn 
+  
+  if(missing(pop.labels)){
+    pop.labels <- pop.levels
+  } else {
+    pop.labels <- pop.labels
+  }
+  
   vcf <- suppressWarnings(
     vcf %>%
       tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_") %>%

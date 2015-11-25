@@ -27,7 +27,7 @@ in the name of your individual sample.}
 \item{pop.id.end}{The end of your population id 
 in the name of your individual sample.}
 
-\item{pop.levels}{(optional) A character string with your populations ordered.}
+\item{pop.levels}{(required) A character string with your populations ordered.}
 
 \item{pop.labels}{(optional) A character string of your populations labels.
 If you need to rename sampling sites in \code{pop.levels} or combined sites/pop

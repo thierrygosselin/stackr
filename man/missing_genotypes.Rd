@@ -5,9 +5,8 @@
 \title{Missing genotypes information and blacklist of individuals based 
 on a threshold of missing genotype.}
 \usage{
-missing_genotypes(haplotypes.file, whitelist.loci = NULL,
-  erase.paralogs = NULL, pop.id.start, pop.id.end, pop.levels, pop.labels,
-  missing.geno.threshold)
+missing_genotypes(haplotypes.file, whitelist.loci = NULL, erase, pop.id.start,
+  pop.id.end, pop.levels, pop.labels, missing.geno.threshold)
 }
 \arguments{
 \item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -17,9 +16,10 @@ missing_genotypes(haplotypes.file, whitelist.loci = NULL,
 \code{whitelist.loci = "whitelist.txt"}. If the whitelist is in 
 the global environment \code{whitelist.loci = whitelist.1000loci}}
 
-\item{erase.paralogs}{(logical) \code{FALSE} Loci with more than 2 alleles 
-(paralogs and/or sequencing errors) will be removed. \code{TRUE} genotypes 
-with more than 2 alleles (paralogs and/or sequencing errors) will be erased.}
+\item{erase}{(character) Default when missing argument = \code{"loci"}. Loci with more than 2 alleles 
+(paralogs and/or sequencing errors) will be removed. \code{"genotypes"}: genotypes 
+with more than 2 alleles (paralogs and/or sequencing errors) will be erased.
+Keeping the loci for other individuals.}
 
 \item{pop.id.start}{The start of your population id 
 in the name of your individual sample.}
@@ -29,7 +29,11 @@ in the name of your individual sample.}
 
 \item{pop.levels}{A character string with your populations ordered.}
 
-\item{pop.labels}{An optional character string with new populations names.}
+\item{pop.labels}{(optional character string) If you need to rename 
+pop/sampling sites in \code{pop.levels} or combined sites/pop
+into a different names, here is the place (e.g. 3 sites: 
+c("ONT", "QUE", "SAS") and you want to combine "ONT" and "SAS" into the same 
+grouping "CAN" use : c("CAN", "QUE", "CAN").}
 
 \item{missing.geno.threshold}{(integer) Percentage of missing genotype 
 allowed per individuals. e.g. for a maximum of 30% of missing genotype 

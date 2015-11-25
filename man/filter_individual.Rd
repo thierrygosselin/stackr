@@ -4,16 +4,11 @@
 \alias{filter_individual}
 \title{Individual filter}
 \usage{
-filter_individual(data, population.map, pop.id.start, pop.id.end, pop.levels,
-  pop.labels, ind.threshold, threshold.fixed, filename)
+filter_individual(tidy.vcf, pop.id.start, pop.id.end, pop.levels, pop.labels,
+  ind.threshold, percent, filename)
 }
 \arguments{
-\item{data}{A data frame object or file (using ".tsv")
-of class sumstats or tidy VCF.}
-
-\item{population.map}{With tidy VCF (optional). With sumstats (REQUIRED).
-The population map or individuals listed in one column.
-No headers.}
+\item{tidy.vcf}{A tidy vcf object or file (using ".tsv").}
 
 \item{pop.id.start}{The start of your population id 
 in the name of your individual sample.}
@@ -28,12 +23,14 @@ in the name of your individual sample.}
 \item{ind.threshold}{The individual threshold, proportion, percentage or 
 number e.g. 0.70, 70, 15.}
 
-\item{threshold.fixed}{Is the threshold fixed ? TRUE or FALSE.}
+\item{percent}{Is the threshold a percentage? TRUE or FALSE.
+This argument is necessary to distinguish percentage from integer individual
+threshold (e.g. 70 percent or 70 individuals).}
 
 \item{filename}{Name of the file written to the working directory.}
 }
 \description{
 Filter individuals number, percentage or fix threshold
-in a sumstats prepared file or a tidy VCF file.
+from a tidy VCF file.
 }
 
