@@ -13,15 +13,20 @@
 #' 'LOCUS'. If the whitelist is written in the directory 
 #' \code{whitelist.loci = "whitelist.txt"}. If the whitelist is in 
 #' the global environment \code{whitelist.loci = whitelist.1000loci}
-#' @param erase.paralogs (logical) \code{FALSE} Loci with more than 2 alleles 
-#' (paralogs and/or sequencing errors) will be removed. \code{TRUE} genotypes 
+#' @param erase (character) Default when missing argument = \code{"loci"}. Loci with more than 2 alleles 
+#' (paralogs and/or sequencing errors) will be removed. \code{"genotypes"}: genotypes 
 #' with more than 2 alleles (paralogs and/or sequencing errors) will be erased.
+#' Keeping the loci for other individuals.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
 #' @param pop.levels A character string with your populations ordered.
-#' @param pop.labels An optional character string with new populations names.
+#' @param pop.labels (optional character string) If you need to rename 
+#' pop/sampling sites in \code{pop.levels} or combined sites/pop
+#' into a different names, here is the place (e.g. 3 sites: 
+#' c("ONT", "QUE", "SAS") and you want to combine "ONT" and "SAS" into the same 
+#' grouping "CAN" use : c("CAN", "QUE", "CAN").
 #' @param missing.geno.threshold (integer) Percentage of missing genotype 
 #' allowed per individuals. e.g. for a maximum of 30% of missing genotype 
 #' per individuals \code{missing.geno.threshold = 30}.
@@ -41,7 +46,7 @@
 
 missing_genotypes <- function(haplotypes.file,
                               whitelist.loci = NULL,
-                              erase.paralogs = NULL,
+                              erase,
                               pop.id.start, pop.id.end, pop.levels, pop.labels, 
                               missing.geno.threshold
 ) {
@@ -67,35 +72,23 @@ missing_genotypes <- function(haplotypes.file,
   
   
   # Whitelist-------------------------------------------------------------------
-  if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "TRUE") {
+  if (is.null(whitelist.loci) | missing(whitelist.loci)) {
+    message("No whitelist to apply to the haplotypes file")
+    whitelist.loci <- NULL
+    haplotype <- haplotype
+  } else if (is.vector(whitelist.loci) == "TRUE") {
     message("Using the whitelist from the directory")
-    whitelist <- read_tsv(whitelist.loci, col_names = T)
-  } else if (missing(whitelist.loci) == "FALSE" & is.vector(whitelist.loci) == "FALSE") {
-    message("Using whitelist from your global environment")
-    whitelist <- whitelist.loci
-  } else {
-    message("No whitelist")
-    whitelist <- NULL
-  }
-  
-  
-  if (is.null(whitelist.loci) == TRUE) {
-    
-    # Combination 1: No whitelist ----------------------------------------------
-    haplotype <- haplotype    
-    
-  } else if (is.null(whitelist.loci) == FALSE) {
-    
-    # Combination 2: Using whitelist -------------------------------------------
-    
-    # just whitelist.loci
     haplotype <- haplotype %>% 
-      semi_join(whitelist, by = "LOCUS") %>% 
+      semi_join(
+        read_tsv(whitelist.loci, col_names = TRUE), 
+        by = "LOCUS") %>% 
       arrange(LOCUS)
-  }    
-  
-  # dump unused object
-  whitelist <- NULL
+  } else {
+    message("Using whitelist from your global environment")
+    haplotype <- haplotype %>% 
+      semi_join(whitelist.loci, by = "LOCUS") %>% 
+      arrange(LOCUS)
+  }
   
   # Consensus-------------------------------------------------------------------
   
@@ -104,7 +97,7 @@ missing_genotypes <- function(haplotypes.file,
     select (LOCUS) %>%
     distinct(LOCUS) %>%
     arrange(LOCUS)
-
+  
   haplotype <- haplotype %>% 
     filter(subset =! LOCUS %in% blacklist.loci.consensus$LOCUS)
   
@@ -112,7 +105,7 @@ missing_genotypes <- function(haplotypes.file,
   # Paralogs-------------------------------------------------------------------
   message("Looking for paralogs...")
   
-  if(missing(erase.paralogs) | erase.paralogs == FALSE){
+  if(missing(erase) | erase == "loci"){
     message("Loci with more than 2 alleles will be removed")
     
     paralogs <- haplotype %>%
@@ -158,7 +151,6 @@ missing_genotypes <- function(haplotypes.file,
   
   
   # Missing -------------------------------------------------------------------
-  
   if(missing(pop.labels)){
     pop.labels <- pop.levels
   } else {
@@ -174,24 +166,23 @@ missing_genotypes <- function(haplotypes.file,
         MISSING = length(INDIVIDUALS[HAPLOTYPES == "-"]),
         PERC_MISSING = round((MISSING/TOTAL)*100, 2)
       ) %>% 
-      mutate(POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
-                             levels = pop.levels, labels = pop.labels, ordered = T),
-             POP_ID = droplevels(POP_ID)
+      mutate(
+        POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end),
+        POP_ID = factor(stri_replace_all_fixed(POP_ID, pop.levels, pop.labels, vectorize_all = F), levels = pop.labels, ordered =T),
+        POP_ID = droplevels(POP_ID)
       ) %>% 
       select(POP_ID, INDIVIDUALS, TOTAL, GENOTYPED, MISSING, PERC_MISSING)
   )
-  
-  
-  if (missing(whitelist.loci) == "FALSE") {
-    write.table(missing.genotypes.ind, "missing.genotypes.ind.filtered.tsv", 
-                sep = "\t", row.names = F, col.names = T, quote = F)
-    mis.geno.ind.filename <- "missing.genotypes.ind.filtered.tsv"
-  } else {
+
+  if (missing(whitelist.loci) | is.null(whitelist.loci)) {
     write.table(missing.genotypes.ind, "missing.genotypes.ind.tsv", 
                 sep = "\t", row.names = F, col.names = T, quote = F)
     mis.geno.ind.filename <- "missing.genotypes.ind.tsv"
+  } else {
+    write.table(missing.genotypes.ind, "missing.genotypes.ind.filtered.tsv", 
+                sep = "\t", row.names = F, col.names = T, quote = F)
+    mis.geno.ind.filename <- "missing.genotypes.ind.filtered.tsv"
   }
-  
   
   # After applying threshold
   # missing.geno.threshold<-10
@@ -199,13 +190,13 @@ missing_genotypes <- function(haplotypes.file,
     filter(PERC_MISSING > missing.geno.threshold) %>% 
     select(INDIVIDUALS) %>% 
     distinct(INDIVIDUALS)
-  
-  if (missing(whitelist.loci) == "FALSE") {
-    blacklist.id.filename <- paste("blacklisted.id.filtered", missing.geno.threshold, "txt", sep = ".")
+
+  if (missing(whitelist.loci) | is.null(whitelist.loci)) {
+    blacklist.id.filename <- paste("blacklisted.id", missing.geno.threshold, "txt", sep = ".")
     write.table(blacklisted.id, blacklist.id.filename, 
                 sep = "\t", row.names = F, col.names = T, quote = F)
   } else {
-    blacklist.id.filename <- paste("blacklisted.id", missing.geno.threshold, "txt", sep = ".")
+    blacklist.id.filename <- paste("blacklisted.id.filtered", missing.geno.threshold, "txt", sep = ".")
     write.table(blacklisted.id, blacklist.id.filename, 
                 sep = "\t", row.names = F, col.names = T, quote = F)
   }
