@@ -1,8 +1,7 @@
 #' @title Genotype likelihood filter
 #' @description Filter markers based coverage and/or genotype likelihood
 #' using a tidy VCF file.
-#' @param tidy.vcf.file A data frame object or file (using ".tsv")
-#' of class tidy VCF.
+#' @param tidy.vcf A tidy vcf object or file (using ".tsv").
 #' @param allele.min.depth.threshold Threshold number
 #' of min depth of REF or ALT alleles.
 #' @param read.depth.max.threshold Threshold number
@@ -13,7 +12,9 @@
 #' the difference between the max and min GL over a loci/read/haplotype. 
 #' @param pop.threshold A threshold number: proportion, percentage
 #' or fixed number e.g. 0.70, 70 or 15.
-#' @param percent Is the threshold a percentage ? TRUE or FALSE.
+#' @param percent Is the threshold a percentage? TRUE or FALSE.
+#' This argument is necessary to distinguish percentage from integer population threshold.
+#' threshold (e.g. 5 percent or 5 populations).
 #' @param filename Name of the file written to the working directory.
 #' @details The summary statistics are averaged
 #' and nested SNP -> individuals -> population -> loci. e.g. the mean GL is the average
@@ -27,7 +28,7 @@
 #' @import dplyr
 #' @import readr
 
-filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold, gl.min.threshold, gl.diff.threshold, pop.threshold, percent, filename) {
+filter_genotype_likelihood <- function (tidy.vcf, allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold, gl.min.threshold, gl.diff.threshold, pop.threshold, percent, filename) {
   
   
   ALLELE_REF_DEPTH <- NULL
@@ -44,18 +45,25 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
   POP_ID <- NULL
   
   
-  
-  
-  if (is.vector(tidy.vcf.file) == "TRUE") {
-    data <- read_tsv(tidy.vcf.file, col_names = T)
+  if (is.vector(tidy.vcf) == "TRUE") {
+    data <- read_tsv(tidy.vcf, col_names = T)
     message("Using the tidy vcf file in your directory")
   } else {
-    data <- tidy.vcf.file
+    data <- tidy.vcf
     message("Using the tidy vcf file from your global environment")
   }
   
-  pop.number <- n_distinct(data$POP_ID)
+  pop.number <- n_distinct(data$POP_ID) # get the number of population
   
+  # make sure it's a tidy vcf with Allele Depth info
+  columns.names.tidy.vcf <- names(data) 
+  if("ALLELE_REF_DEPTH" %in% columns.names.tidy.vcf){
+    message("Looking for genotype likelihood and coverage information")
+  }else{
+    stop("This is not a tidy vcf with Allele Depth information,
+         you need to run STACKS with a version > 1.29 for this to work.")
+  }
+
   if(stri_detect_fixed(pop.threshold, ".") & pop.threshold < 1) {
     multiplication.number <- 1/pop.number
     message("Using a proportion threshold...")
@@ -70,7 +78,6 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
     threshold.id <- "population as a fixed"
     
   }
-  
   
   filter <- data %>%
     group_by(LOCUS, POP_ID) %>% # at the population level
@@ -93,9 +100,9 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
     filter((n * multiplication.number) >= pop.threshold) %>%
     select(LOCUS) %>%
     left_join(data, by = "LOCUS") %>%
-    arrange(LOCUS, POS, POP_ID)  
+    arrange(LOCUS, POS, POP_ID)
   
-
+  
   
   if (missing(filename) == "FALSE") {
     message("Saving the file in your working directory...")
@@ -104,7 +111,6 @@ filter_genotype_likelihood <- function (tidy.vcf.file, allele.min.depth.threshol
   } else {
     saving <- "Saving was not selected"
   }
-  
   
   invisible(cat(sprintf(
     "Genotype likelihood (GL) filter:
