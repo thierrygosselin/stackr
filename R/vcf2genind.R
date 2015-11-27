@@ -195,12 +195,16 @@ vcf2genind <- function(vcf.file,
         mutate(POP_ID = droplevels(POP_ID))
     )
   }
-  
-  if (missing(strata)){
+
+  if (is.null(strata) | missing(strata)) {
     strata <- NULL
   } else{
-    strata <- read_tsv(file = strata, col_names = TRUE) %>% 
-      anti_join(blacklist.id, by = "INDIVIDUALS")
+    if (is.null(blacklist.id) | missing(blacklist.id)) {
+      strata <- read_tsv(file = strata, col_names = TRUE)
+    } else {
+      strata <- read_tsv(file = strata, col_names = TRUE) %>% 
+        anti_join(blacklist.id, by = "INDIVIDUALS")
+    }
   }
   
   # dump unused object
