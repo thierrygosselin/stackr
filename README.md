@@ -41,19 +41,20 @@ Sometimes you'll get warnings while installing dependencies required for **stack
 Warning: cannot remove prior installation of package ‘stringi’
 ```
 
-To solve this problem, delete the package manually and reinstall. On MAC computers, in the **Finder**, use the shortcut **cmd+shift+g**, or in the menu bar : **GO -> Go to Folder**, copy/paste the text below:
+2 ways to solve this problem: 
+
+1. delete the problematic packages manually and reinstall. On MAC computers, in the **Finder**, use the shortcut **cmd+shift+g**, or in the menu bar : **GO -> Go to Folder**, copy/paste the text below:
 ```r
 /Library/Frameworks/R.framework/Resources/library
+#Delete the problematic packages.
 ```
-Delete the problematic packages.
 
-If you know your way around the terminal and understand the consequences of using **sudo rm -R** command, here something faster to remove problematic packages:
+2. If you know your way around the terminal and understand the consequences of using **sudo rm -R** command, here something faster to remove problematic packages:
 ```r
 sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
+#Changing **package_name** to the problematic package.
+#Reinstall the package.
 ```
-
-Changing **package_name** to the problematic package.
-Reinstall the package.
 
 **Dependencies**
 
@@ -87,19 +88,7 @@ library(purrr)
 
 **Parallel computing in R**
 
-On Mac OSX using a version of clang (the native compiler) with OpenMP greatly reduce the computation time for the imputation. There is a GCC version with OpenMP but it's highly unstable in R. To update your computer's compiler, follow the instruction below (inspired from [here](https://clang-omp.github.io)). In the terminal:
-
-```r
-cd Downloads
-git clone https://github.com/clang-omp/llvm
-git clone https://github.com/clang-omp/compiler-rt llvm/projects/compiler-rt
-git clone -b clang-omp https://github.com/clang-omp/clang llvm/tools/clang
-
-cd llvm
-./configure
-make
-sudo make install
-```
+On Mac OSX using OpenMP greatly reduce the computation time for the imputations. Follow the instructions [here] (http://gbs-cloud-tutorial.readthedocs.org/en/latest/03_computer_setup.html#update-your-computer-s-compiler) to update your computer's compiler (5 min step). 
 
 You need to tell R which compilers to use. Use TextWrangler or follow the lines below:
 ```r
@@ -109,15 +98,19 @@ nano .R/Makevars
 
 Enter the text below:
 ```r
-CC=clang
-CXX=clang++
-PKG_CFLAGS=-g -O2
-PKG_CXXFLAGS=-g -O2 -stdlib=libc++
+CC=/usr/local/bin/gcc
+CXX=/usr/local/bin/g++
+FC=/usr/local/bin/gfortran
+F77=/usr/local/bin/gfortran
+PKG_LIBS = -fopenmp -lgomp
+PKG_CFLAGS= -O3 -Wall -pipe -pedantic -std=gnu99 -fopenmp
+CFLAGS= -O3 -Wall -pipe -pedantic -std=gnu99 -fopenmp
+SHLIB_OPENMP_CFLAGS = -fopenmp
+SHLIB_OPENMP_CXXFLAGS = -fopenmp
+SHLIB_OPENMP_FCFLAGS = -fopenmp
+SHLIB_OPENMP_FFLAGS = -fopenmp
 ```
-Save and Exit with: crt-o, enter, crt-x
-
-
-Preferably, re-install all packages depending on OpenMP or Rcpp:
+Save and Exit with: crt-o, enter, crt-x. Preferably, re-install all packages depending on OpenMP or Rcpp:
 
 ```r
 install.packages("Rcpp", type = "source")
