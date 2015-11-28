@@ -52,8 +52,8 @@ Option 1. Delete the problematic packages manually and reinstall. On MAC compute
 Option 2. If you know your way around the terminal and understand the consequences of using **sudo rm -R** command, here something faster to remove problematic packages:
 ```r
 sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
-#Changing **package_name** to the problematic package.
-#Reinstall the package.
+# Changing 'package_name' to the problematic package.
+# Reinstall the package.
 ```
 
 **Dependencies**
@@ -115,7 +115,17 @@ Save and Exit with: crt-o, enter, crt-x. Preferably, re-install all packages dep
 ```r
 install.packages("Rcpp", type = "source")
 install.packages("dplyr", type = "source")
-install.packages("randomForestSRC", type = "source")
+```
+
+For RandomForestSRC package, in the Terminal:
+```r
+cd ~/Downloads
+curl -O https://cran.r-project.org/src/contrib/randomForestSRC_1.6.1.tar.gz
+tar -zxvf randomForestSRC_1.6.1.tar.gz
+cd randomForestSRC_1.6.1
+autoconf
+#Back in R:
+install.packages(pkgs = "~/Downloads/randomForestSRC", repos = NULL, type = "source")
 ```
 
 ## New
