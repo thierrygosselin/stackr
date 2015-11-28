@@ -41,15 +41,15 @@ Sometimes you'll get warnings while installing dependencies required for **stack
 Warning: cannot remove prior installation of package ‘stringi’
 ```
 
-2 ways to solve this problem: 
+To solve this problem: 
 
-1. delete the problematic packages manually and reinstall. On MAC computers, in the **Finder**, use the shortcut **cmd+shift+g**, or in the menu bar : **GO -> Go to Folder**, copy/paste the text below:
+Option 1. Delete the problematic packages manually and reinstall. On MAC computers, in the **Finder**, use the shortcut **cmd+shift+g**, or in the menu bar : **GO -> Go to Folder**, copy/paste the text below:
 ```r
 /Library/Frameworks/R.framework/Resources/library
 #Delete the problematic packages.
 ```
 
-2. If you know your way around the terminal and understand the consequences of using **sudo rm -R** command, here something faster to remove problematic packages:
+Option 2. If you know your way around the terminal and understand the consequences of using **sudo rm -R** command, here something faster to remove problematic packages:
 ```r
 sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
 #Changing **package_name** to the problematic package.
