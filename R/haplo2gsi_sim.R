@@ -836,5 +836,3 @@ haplo2gsi_sim <- function(haplotypes.file,
     stopCluster(cl)
   }
 }
-
-
