@@ -7,7 +7,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @name vcf2hierfstat
 #' @title Create a \code{hierfstat} object from a \code{STACKS} vcf file
 #' @description This function can first filter the vcf file 
-#' with a whitelist of loci
+#' with a whitelist of markers
 #' and a blacklist of individuals (optional). Then it will convert the file
 #' to a \code{hierfstat} object.
 #' Map-independent imputation using Random Forest or the most frequent category
@@ -250,7 +250,7 @@ vcf2hierfstat <- function(vcf.file,
       GT = ifelse(GT == "0/0", stri_c(REF, REF, sep = "_"),
                   ifelse(GT == "1/1",  stri_c(ALT, ALT, sep = "_"),
                          ifelse(GT == "0/1", stri_c(REF, ALT, sep = "_"),
-                                ifelse(GT == "1/0", stri_c(ALT, REF, sep = ""), "0_0")
+                                ifelse(GT == "1/0", stri_c(ALT, REF, sep = "_"), "0_0")
                          )
                   )
       )
