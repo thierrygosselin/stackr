@@ -1,15 +1,15 @@
-# Write a adegenet genind object from STACKS VCF file
+# Write a hierfstat object from STACKS VCF file
 
 # to get rid of notes in build check
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", "SAMPLES", "ALLELE", "ALLELE1", "ALLELE2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", "POLYMORPHISM", "POLYMORPHISM_MAX", "other", "strata", "hierarchy", "GROUP", "."))
 
 
-#' @name vcf2genind
-#' @title Create a \code{adegenet} \code{\link[adegenet]{genind}} object from a \code{STACKS} vcf file
+#' @name vcf2hierfstat
+#' @title Create a \code{hierfstat} object from a \code{STACKS} vcf file
 #' @description This function can first filter the vcf file 
 #' with a whitelist of loci
 #' and a blacklist of individuals (optional). Then it will convert the file
-#' to a \code{adegenet} \code{\link[adegenet]{genind}} object.
+#' to a \code{hierfstat} object.
 #' Map-independent imputation using Random Forest or the most frequent category
 #' is also available as an option.
 #' @param vcf.file The VCF file created by STACKS.
@@ -27,11 +27,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
-#' @param strata (optional) A data frame that defines population stratifications
-#'   for your samples. This is especially useful if you have a hierarchical or
-#'   factorial sampling design. See \code{\link[adegenet]{genind}} for details.
-#' @param hierarchy (optional) A formula that explicitely defines hierarchical levels 
-#' in your strata. See \code{\link[adegenet]{genind}} for details.
+#' @param fstat.filename The name of the file written to the directory.
+#' Use the extension '.dat' at the end. Default \code{fstat_gbs.dat}.
 #' @param imputations Should a map-independent imputations of markers be
 #' computed. Available choices are: (1) \code{FALSE} for no imputation.
 #' (2) \code{"max"} to use the most frequent category for imputations.
@@ -56,52 +53,49 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' the species used. e.g. with a low polymorphic taxa, and a data set 
 #' containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
 #' will require 15 min.
-#' @return When no imputation is selected an object of the 
-#' class \code{\link[adegenet]{genind}} is returned.
-#' When imputation is selected a list with 2 objects is returned
+#' @return When no imputation is selected an hierfstat object is returned.
+#' When imputation is selected a list with 2 hierfstat dataframe objects is returned
 #' and accessed with \code{$no.imputation} or \code{$imputed}.
 #' @export
-#' @rdname vcf2genind
-# @importFrom adegenet df2genind
+#' @rdname vcf2hierfstat
 #' @import reshape2
 #' @import dplyr
 #' @importFrom stringr str_pad
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
 #' G3, 1, 171-182.
+#' @references Goudet, J. (1995) FSTAT (Version 1.2): A computer program to 
+#' calculate F- statistics. Journal of Heredity, 86, 485-486.
+#' @references Goudet, J. (2005) hierfstat, a package for r to compute and test hierarchical F-statistics. Molecular Ecology Notes, 5, 184-186.
 #' @references Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
 #' Stacks: an analysis tool set for population genomics. 
 #' Molecular Ecology, 22, 3124-3140.
-#' @references Jombart T (2008) adegenet: a R package for the multivariate
-#' analysis of genetic markers. Bioinformatics, 24, 1403-1405.
-#' @references Jombart T, Ahmed I (2011) adegenet 1.3-1: 
-#' new tools for the analysis of genome-wide SNP data. 
-#' Bioinformatics, 27, 3070-3071.
 #' @references Ishwaran H. and Kogalur U.B. (2015). Random Forests for Survival,
 #'  Regression and Classification (RF-SRC), R package version 1.6.1.
 #' @references Ishwaran H. and Kogalur U.B. (2007). Random survival forests
 #' for R. R News 7(2), 25-31.
 #' @references Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008).
 #' Random survival forests. Ann. Appl. Statist. 2(3), 841-860.
-#' @seealso \code{adegenet} is available on CRAN \url{http://cran.r-project.org/web/packages/adegenet/} and github \url{https://github.com/thibautjombart/}
+#' @seealso \code{hierfstat} is available on CRAN \url{http://cran.r-project.org/web/packages/hierfstat/} and github \url{https://github.com/jgx65/hierfstat/}
 #' \code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/} and github \url{https://github.com/ehrlinger/randomForestSRC}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-vcf2genind <- function(vcf.file, 
-                       whitelist.markers = NULL, 
-                       blacklist.id = NULL, 
-                       pop.id.start, pop.id.end,
-                       pop.levels,
-                       pop.labels,
-                       strata = NULL,
-                       hierarchy = NULL,
-                       imputations = FALSE,
-                       imputations.group = "populations",
-                       num.tree = 100,
-                       iteration.rf = 10,
-                       split.number = 100,
-                       verbose = FALSE,
-                       parallel.core = 2
+vcf2hierfstat <- function(vcf.file, 
+                          whitelist.markers = NULL, 
+                          blacklist.id = NULL, 
+                          pop.id.start, 
+                          pop.id.end,
+                          pop.levels,
+                          pop.labels,
+                          fstat.filename = "fstat_gbs.dat",
+                          imputations = FALSE,
+                          imputations.group = "populations",
+                          num.tree = 100,
+                          iteration.rf = 10,
+                          split.number = 100,
+                          verbose = FALSE,
+                          parallel.core = 2
 ) {
   
   # remove NOTE about no visible binding for global variable during Build 
@@ -125,9 +119,9 @@ vcf2genind <- function(vcf.file,
   
   
   if (imputations == "FALSE") {
-    message("vcf2genind: without imputation...")
+    message("vcf2hierfstat: without imputation...")
   } else {
-    message("vcf2genind: with imputations...")
+    message("vcf2hierfstat: with imputations...")
   }
   
   # Import/read VCF ------------------------------------------------------------- 
@@ -139,11 +133,12 @@ vcf2genind <- function(vcf.file,
     comment = "##",
     progress = interactive()
   ) %>% 
+    # select(-c(QUAL, FILTER, INFO, REF, ALT)) %>% 
     select(-c(QUAL, FILTER, INFO)) %>% 
     rename(LOCUS = ID, CHROM = `#CHROM`) %>% 
     mutate(CHROM = stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1"))
   
-  # Detect STACKS version used to create the vcf
+  # Detect STACKS version
   if(stri_detect_fixed(vcf$FORMAT[1], "AD")) {
     stacks.version <- "new"
   } else{
@@ -179,7 +174,7 @@ vcf2genind <- function(vcf.file,
   vcf <- suppressWarnings(
     vcf %>%
       tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_") %>% # group markers info
-      tidyr::gather(INDIVIDUALS, FORMAT_ID, -MARKERS) %>% # Gather individuals in 1 colummn
+      tidyr::gather(INDIVIDUALS, FORMAT_ID, -c(MARKERS, REF, ALT)) %>% # Gather individuals in 1 colummn
       mutate( # Make population ready
         POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end),
         POP_ID = factor(stri_replace_all_fixed(POP_ID, pop.levels, pop.labels, vectorize_all = F), levels = pop.labels, ordered =T),
@@ -203,24 +198,25 @@ vcf2genind <- function(vcf.file,
     )
   }
   
-  # If STRATA present, filter with the blacklist of ID
-  if (is.null(strata) | missing(strata)) {
-    strata <- NULL
-  } else{
-    if (is.null(blacklist.id) | missing(blacklist.id)) {
-      strata <- read_tsv(file = strata, col_names = TRUE)
-    } else {
-      strata <- read_tsv(file = strata, col_names = TRUE) %>% 
-        anti_join(blacklist.id, by = "INDIVIDUALS")
-    }
-  }
+  # Get the number of sample (pop) for hierfstat
+  np <- nlevels(droplevels(vcf$POP_ID))
+  np.message <- stri_paste("Number of sample pop, np = ", np, sep = "")
+  message(np.message)
+  
+  # get the list of loci after filter
+  loci <- unique(vcf$MARKERS)
+  
+  # Get the number of loci
+  nl <- length(loci)
+  nl.message <- stri_paste("Number of markers, nl = ", nl, sep = "")
+  message(nl.message)
   
   # dump unused object
   blacklist.id <- NULL
   whitelist.markers <- NULL
   
-  # Conversion into genind -----------------------------------------------------
-  message("Tidy vcf into factory for conversion into genind ...")
+  # Conversion into hierfstat -----------------------------------------------------
+  message("Tidy vcf into factory for conversion into hierfstat ...")
   
   if(stacks.version == "new"){ # with new version of stacks > v.1.29
     vcf <- vcf %>%
@@ -239,66 +235,87 @@ vcf2genind <- function(vcf.file,
   # vcf.bk <- vcf
   # vcf <- vcf.bk
   
-  # Change the genotype coding for easier integration in downstream conversion to genind
-  # Genotype info include allele count
+  # Get the highest number used to label an allele
+  nu <- 4
+  
+  # allele coding
+  allele.coding <- 1
+  message("The alleles are encoded with one digit number")
+  
+  # Change the genotype coding for easier integration in downstream conversion to hierfstat
   vcf <- vcf %>% 
     mutate(
-      GT = ifelse(GT == "0/0", "2_0",
-                  ifelse(GT == "1/1", "0_2",
-                         ifelse(GT == "0/1", "1_1",
-                                ifelse(GT == "1/0", "1_1", "0_0")
+      REF= stri_replace_all_fixed(str = REF, pattern = c("A", "C", "G", "T"), replacement = c("1", "2", "3", "4"), vectorize_all = FALSE), # replace nucleotide with numbers
+      ALT = stri_replace_all_fixed(str = ALT, pattern = c("A", "C", "G", "T"), replacement = c("1", "2", "3", "4"), vectorize_all = FALSE),# replace nucleotide with numbers
+      GT = ifelse(GT == "0/0", stri_c(REF, REF, sep = "_"),
+                  ifelse(GT == "1/1",  stri_c(ALT, ALT, sep = "_"),
+                         ifelse(GT == "0/1", stri_c(REF, ALT, sep = "_"),
+                                ifelse(GT == "1/0", stri_c(ALT, REF, sep = ""), "0_0")
                          )
                   )
       )
     ) %>% 
-    arrange(MARKERS, POP_ID)
+    arrange(MARKERS, POP_ID) %>% 
+    select(-c(REF, ALT))
   
   message("step 2/3: completed")
   
   # results no imputation--------------------------------------------------------------------
-  genind.prep <- vcf %>%
-    tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_") %>% # separate the genotypes into alleles
-    tidyr::gather(key = ALLELES, COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
+  # convert to hierfstat
+  
+  hierfstat.prep <- vcf %>%
     mutate(
-      COUNT = as.integer(COUNT),
-      COUNT = replace(COUNT, which(COUNT == 0), NA) # replace 0 with NA
-      ) %>%
-    tidyr::unite(col = MARKERS_ALLELES, MARKERS , ALLELES, sep = ".") %>% 
-    dcast(INDIVIDUALS + POP_ID ~ MARKERS_ALLELES, value.var = "COUNT") %>% # make a wide format
+      GT = stri_replace_all_fixed(str = GT, pattern = "_", replacement = "", vectorize_all = FALSE),
+      GT = stri_replace_all_fixed(GT, pattern = "00", replacement = "NA", vectorize_all = FALSE),
+      GT = replace(GT, which(GT == "NA"), NA),
+      GT = as.integer(GT)
+    ) %>% 
+    dcast(INDIVIDUALS + POP_ID ~ MARKERS, value.var = "GT") %>% 
     arrange(POP_ID, INDIVIDUALS)
+  
+  rownames(hierfstat.prep) <- hierfstat.prep$INDIVIDUALS
+  
+  hierfstat.prep <- select(.data = hierfstat.prep, -INDIVIDUALS)
+  
+  res <- hierfstat.prep
   message("step 3/3: completed")
+  hierfstat.prep$POP_ID <- as.integer(hierfstat.prep$POP_ID) # Change pop id to integer
   
-  # convert to genind
-  ind <- as.character(genind.prep$INDIVIDUALS)
-  pop <- genind.prep$POP_ID
-  genind.df <- genind.prep %>%
-    select(-c(INDIVIDUALS, POP_ID))
-  rownames(genind.df) <- ind
-  loc.names <- colnames(genind.df)
+  # fstat filename
+  if (missing(fstat.filename) == "TRUE") {
+    fstat.filename <- "fstat_gbs.dat"
+  } else {
+    fstat.filename <- fstat.filename
+  }
   
-  if(missing(hierarchy)) hierarchy <- NULL
+  # FSTAT: write the first line
+  fstat.first.line <- stri_paste(np, nl, nu, allele.coding, sep = " ")
+  fstat.first.line <- as.data.frame(fstat.first.line)
+  write_delim(x = fstat.first.line, path = fstat.filename, delim = "\n", append = FALSE, 
+              col_names = FALSE)
   
-  # testing
-  # res <- adegenet::df2genind(X = genind.df, sep = "/", ncode = 2, ind.names = ind, loc.names = loc.names, pop = pop, NA.char = ".", ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
-  # res <- adegenet::df2genind(X = genind.df, sep = "/", ind.names = ind, loc.names = loc.names, pop = pop, NA.char = "9", ploidy = 2, type = "codom", strata = NULL, hierarchy = NULL)
+  # FSTAT: write the locus name to the file
+  loci.table <- as.data.frame(loci)
+  write_delim(x = loci.table, path = fstat.filename, delim = "\n", append = TRUE, 
+              col_names = FALSE)
   
-  # genind constructor
-  prevcall <- match.call()
-  res <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
-
-  if (imputations == "FALSE") {
-    message("A large 'genind' object (no imputation) was created in your Environment")
-  } else if (imputations == "max"){
+  # FSTAT: write the pop and genotypes
+  write_delim(x = hierfstat.prep, path = fstat.filename, delim = "\t", append = TRUE, 
+              col_names = FALSE)
+  savind.message <- stri_c("The hierfstat file (no imputation) was saved in your working directory: \n", getwd())
+  message(savind.message)
+  
+  if (imputations == "max"){
     message("Calculating map-independent imputations using the most frequent allele.")
   } else {
     message("Calculating map-independent imputations using random forest")
   }
   
   # dump unused objects
-  genind.prep <- NULL
-  genind.df <- NULL
+  # hierfstat.prep <- NULL
+  message("A hierfstat dataframe, without imputation, was created in your Environment")
   
-  # Imputations: genind with imputed haplotypes using Random Forest ------------------
+  # Imputations: hierfstat with imputed haplotypes using Random Forest ------------------
   if (imputations != "FALSE"){
     
     vcf.prep <- vcf %>%
@@ -411,51 +428,61 @@ vcf2genind <- function(vcf.file,
       }
     }
     
-    # transform the imputed dataset into genind object ------------------------
+    # transform the imputed dataset into hierfstat object ------------------------
     
-    message("Imputed haplotypes into factory for conversion into genind...")
-    genind.prep.imp <- suppressWarnings(
+    message("Imputed haplotypes into factory for conversion into hierfstat...")
+    hierfstat.prep.imp <- suppressWarnings(
       vcf.imp %>%
         tidyr::gather(key = MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>% # make tidy
-        tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_") %>% # separate the genotypes into alleles
-        tidyr::gather(key = ALLELES, COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
         mutate(
-          COUNT = as.integer(COUNT),
-          COUNT = replace(COUNT, which(COUNT == 0), NA), # replace 0 with NA
-          POP_ID = factor(POP_ID, levels = pop.labels, ordered = T),
-          POP_ID = droplevels(POP_ID)
+          GT = stri_replace_all_fixed(str = GT, pattern = "_", replacement = "", vectorize_all = FALSE),
+          GT = as.integer(GT)
         ) %>%
-        tidyr::unite(col = MARKERS_ALLELES, MARKERS , ALLELES, sep = ".") %>% 
-        dcast(INDIVIDUALS + POP_ID ~ MARKERS_ALLELES, value.var = "COUNT") %>% # make a wide format
+        dcast(INDIVIDUALS + POP_ID ~ MARKERS, value.var = "GT") %>% 
         arrange(POP_ID, INDIVIDUALS)
-    )    
+    )
     
-    vcf.imp <- NULL # remove unused object
+    rownames(hierfstat.prep.imp) <- hierfstat.prep.imp$INDIVIDUALS
+    hierfstat.prep.imp <- select(.data = hierfstat.prep.imp, -INDIVIDUALS)
     
-    # results ------------------------------------------------------------------
-    # 1) the genind without imputations is modified and put in a new list
     no.imputation <- res
     res <- list()
     res$no.imputation <- no.imputation
     no.imputation <- NULL # drop unused object
+    res$hierfstat.imputed <- hierfstat.prep.imp
     
-    # 2) the genind with imputations
-    ind <- as.character(genind.prep.imp$INDIVIDUALS)
-    pop <- genind.prep.imp$POP_ID
-    genind.df <- genind.prep.imp %>%
-      select(-c(INDIVIDUALS, POP_ID))
-    rownames(genind.df) <- ind
-    loc.names <- colnames(genind.df)
+    hierfstat.prep.imp$POP_ID <- as.integer(hierfstat.prep.imp$POP_ID) # Change pop id to integer
 
-    # genind constructor
-    prevcall <- match.call()
-    res$imputed  <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
-    # res$imputed <- adegenet::df2genind(X = genind.df, sep = "/", ind.names = ind, pop = pop, ploidy = 2, strata = strata, hierarchy = NULL) #testing
-    message("A large 'genind' object was created in your Environment (with and without imputations)")
+    vcf.imp <- NULL # remove unused object
+    
+    # results ------------------------------------------------------------------
+    # fstat filename
+    if (missing(fstat.filename) == "TRUE") {
+      fstat.filename <- "fstat_gbs.dat"
+    } else {
+      fstat.filename <- fstat.filename
+    }
+    # Add '_imputed' to the filename
+    fstat.filename.imp <- stri_replace_all_fixed(fstat.filename, pattern = ".dat", 
+                                                 replacement = "_imputed.dat")
+    
+    # FSTAT: write the first line
+    fstat.first.line <- stri_paste(np, nl, nu, allele.coding, sep = " ")
+    fstat.first.line <- as.data.frame(fstat.first.line)
+    write_delim(x = fstat.first.line, path = fstat.filename.imp, delim = "\n", 
+                append = FALSE, col_names = FALSE)
+    
+    # FSTAT: write the locus name to the file
+    loci.table <- as.data.frame(loci)
+    write_delim(x = loci.table, path = fstat.filename.imp, delim = "\n", append = TRUE, 
+                col_names = FALSE)
+    
+    # FSTAT: write the pop and genotypes
+    write_delim(x = hierfstat.prep.imp, path = fstat.filename.imp, delim = "\t", append = TRUE, 
+                col_names = FALSE)
+    
+    message("A large list with hierfstat dataframe was created in your Environment (with and without imputations)")
   }
-  # remove unused objects
-  genind.df <- NULL
-  genin.prep.imp <- NULL
-  # outout results -------------------------------------------------------------
   return(res)
 }
+

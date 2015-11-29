@@ -119,12 +119,13 @@ install.packages("dplyr", type = "source")
 
 For RandomForestSRC package, in the Terminal:
 ```r
+# Terminal
 cd ~/Downloads
 curl -O https://cran.r-project.org/src/contrib/randomForestSRC_1.6.1.tar.gz
 tar -zxvf randomForestSRC_1.6.1.tar.gz
-cd randomForestSRC_1.6.1
+cd randomForestSRC
 autoconf
-#Back in R:
+# Back in R:
 install.packages(pkgs = "~/Downloads/randomForestSRC", repos = NULL, type = "source")
 ```
 
@@ -138,7 +139,7 @@ Introducing *haplo2gsi_sim* function.
 
 **v.0.1.4**
 Introducing *haplo2fstat* function.
-Conversion of STACKS haplotypes file into a fstat file.
+Conversion of STACKS haplotypes file into a hierfstat object and fstat file.
 Access all the functions in the R package [hierfstat] (https://github.com/jgx65/hierfstat).
 
 **v.0.1.3**
