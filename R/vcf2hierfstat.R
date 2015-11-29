@@ -5,7 +5,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 
 
 #' @name vcf2hierfstat
-#' @title Create a \code{hierfstat} object from a \code{STACKS} vcf file
+#' @title Create a \code{hierfstat} object and fstat file from a \code{STACKS} vcf file
 #' @description This function can first filter the vcf file 
 #' with a whitelist of markers
 #' and a blacklist of individuals (optional). Then it will convert the file

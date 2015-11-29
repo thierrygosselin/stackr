@@ -4,8 +4,8 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("Catalog ID", "Catalog.I
                                                         "ALLELE", "ALLELE1", "ALLELE2", "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", 
                                                         "POLYMORPHISM", "POLYMORPHISM_MAX", "colwise", "detectCores", "mc.cores", "."))
 
-#' @name haplo2fstat
-#' @title Use the batch_x.haplotypes.tsv file to write a fstat file for use in 
+#' @name haplo2hierfstat
+#' @title Use the batch_x.haplotypes.tsv file to write a fstat file and hierfstat object to use in 
 #' \code{hierfstat} package
 #' @description This function can first filter the haplotypes file 
 #' with a whitelist of loci and a blacklist of individuals. 
@@ -53,7 +53,7 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("Catalog ID", "Catalog.I
 #' working directory. When imputation is selected, 2 fstat files are saved to
 #' the working directory.
 #' @export
-#' @rdname haplo2fstat
+#' @rdname haplo2hierfstat
 #' @import reshape2
 #' @import dplyr
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
@@ -76,16 +76,16 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 
-haplo2fstat <- function(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL, 
+haplo2hierfstat <- function(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL, 
                         fstat.filename = "fstat_gbs.dat", pop.levels, pop.id.start, pop.id.end, imputations = FALSE, 
                         imputations.group = "populations", num.tree = 100, iteration.rf = 10, split.number = 100, 
                         verbose = FALSE, parallel.core = 2) {
   
   
   if (imputations == "FALSE") {
-    message("haplo2fstat: without imputation...")
+    message("haplo2hierfstat: without imputation...")
   } else {
-    message("haplo2fstat: with imputations...")
+    message("haplo2hierfstat: with imputations...")
   }
   
   
