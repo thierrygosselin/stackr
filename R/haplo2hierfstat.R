@@ -347,7 +347,12 @@ haplo2hierfstat <- function(haplotypes.file, whitelist.loci = NULL, blacklist.id
           message(pop.imputed)
         }
         haplo.imp <- as.data.frame(bind_rows(imputed.dataset))
-        
+
+        # Second round of imputations: remove introduced NA if some pop don't have the markers by using
+        # RF globally
+        haplo.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(haplo.imp)) # Make the columns factor
+        haplo.imp <- impute_markers_rf(haplo.imp) # impute globally
+
         # dump unused objects
         haplo.filtered <- NULL
         haplo.prep <- NULL
@@ -391,8 +396,6 @@ haplo2hierfstat <- function(haplotypes.file, whitelist.loci = NULL, blacklist.id
           mutate(HAPLOTYPES = stri_replace_na(HAPLOTYPES, replacement = max(HAPLOTYPES, na.rm = TRUE))) %>% 
           dcast(INDIVIDUALS + POP_ID ~ Catalog.ID, value.var = "HAPLOTYPES") %>% 
           arrange(POP_ID, INDIVIDUALS)
-        
-        
         
       } else if (imputations.group == "global") {
         # Globally (not by pop_id)

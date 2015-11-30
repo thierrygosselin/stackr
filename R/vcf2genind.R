@@ -354,7 +354,8 @@ vcf2genind <- function(vcf.file,
         
         # Second round of imputations: remove introduced NA if some pop don't have the markers by using
         # RF globally
-        vcf.imp <- impute_markers_rf(vcf.imp)
+        vcf.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(vcf.imp)) # Make the columns factor
+        vcf.imp <- impute_markers_rf(vcf.imp) # impute globally
         
         # dump unused objects
         df.split.pop <- NULL

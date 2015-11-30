@@ -356,7 +356,14 @@ haplo2genind <- function(haplotypes.file,
           pop.imputed <- paste("Completed imputations for pop ", i, sep = "")
           message(pop.imputed)
         }
+
+        # bind rows and transform into a data frame
         haplo.imp <- as.data.frame(bind_rows(imputed.dataset))
+        
+        # Second round of imputations: remove introduced NA if some pop don't have the markers by using
+        # RF globally
+        haplo.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(haplo.imp)) # Make the columns factor
+        haplo.imp <- impute_markers_rf(haplo.imp) # impute globally
         
         # dump unused objects
         haplo.filtered <- NULL

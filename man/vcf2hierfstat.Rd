@@ -2,7 +2,7 @@
 % Please edit documentation in R/vcf2hierfstat.R
 \name{vcf2hierfstat}
 \alias{vcf2hierfstat}
-\title{Create a \code{hierfstat} object from a \code{STACKS} vcf file}
+\title{Create a \code{hierfstat} object and fstat file from a \code{STACKS} vcf file}
 \usage{
 vcf2hierfstat(vcf.file, whitelist.markers = NULL, blacklist.id = NULL,
   pop.id.start, pop.id.end, pop.levels, pop.labels,
@@ -69,7 +69,7 @@ and accessed with \code{$no.imputation} or \code{$imputed}.
 }
 \description{
 This function can first filter the vcf file 
-with a whitelist of loci
+with a whitelist of markers
 and a blacklist of individuals (optional). Then it will convert the file
 to a \code{hierfstat} object.
 Map-independent imputation using Random Forest or the most frequent category

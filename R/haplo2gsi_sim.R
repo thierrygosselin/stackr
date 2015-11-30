@@ -332,9 +332,7 @@ haplo2gsi_sim <- function(haplotypes.file,
       mutate(POP_ID = droplevels(POP_ID)))
   
   message("step 3/3: completed")
-  
-  
-  
+
   # Imputations ----------------------------------------------------------------
   if (imputations == "max"){
     message("Calculating map-independent imputations using the most frequent allele.")
@@ -378,7 +376,6 @@ haplo2gsi_sim <- function(haplotypes.file,
         df.split.pop <- split(x = haplo.imputation, f = haplo.imputation$POP_ID) # slip data frame by population
         pop.list <- names(df.split.pop) # list the pop
         imputed.dataset <-list() # create empty list
-        
         # loop trough the pop
         for (i in pop.list) {
           sep.pop <- df.split.pop[[i]]
@@ -390,9 +387,10 @@ haplo2gsi_sim <- function(haplotypes.file,
         # bind rows and transform into a data frame
         haplo.imputation <- as.data.frame(bind_rows(imputed.dataset))
         
-        # remove introduced NA if some pop don't have the markers by using
+        # Second round of imputations: remove introduced NA if some pop don't have the markers by using
         # RF globally
-        haplo.imputation <- impute_markers_rf(haplo.imputation)
+        haplo.imputation <- suppressWarnings(plyr::colwise(factor, exclude = NA)(haplo.imputation)) # Make the columns factor
+        haplo.imputation <- impute_markers_rf(haplo.imputation) # impute globally
         
         # dump unused objects
         df.split.pop <- NULL

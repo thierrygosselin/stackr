@@ -409,7 +409,8 @@ haplo2genepop <- function(haplotypes.file,
         # By pop using for loop to imputed with message when completed
         df.split.pop <- split(x = haplo.prep, f = haplo.prep$POP_ID) # slip data frame by population
         pop.list <- names(df.split.pop) # list the pop
-        imputed.dataset <-list() # create empty list 
+        imputed.dataset <-list() # create empty list
+        # loop trough the pop
         for (i in pop.list) {
           sep.pop <- df.split.pop[[i]]
           imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
@@ -417,8 +418,15 @@ haplo2genepop <- function(haplotypes.file,
           pop.imputed <- paste("Completed imputations for pop ", i, sep = "")
           message(pop.imputed)
         }
-        haplo.imp <- as.data.frame(bind_rows(imputed.dataset))
         
+        # bind rows and transform into a data frame
+        haplo.imp <- as.data.frame(bind_rows(imputed.dataset))
+
+        # Second round of imputations: remove introduced NA if some pop don't have the markers by using
+        # RF globally
+        haplo.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(haplo.imp)) # Make the columns factor
+        haplo.imp <- impute_markers_rf(haplo.imp) # impute globally
+
         # dump unused objects
         haplo.filtered <- NULL
         haplo.prep <- NULL

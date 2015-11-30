@@ -368,28 +368,23 @@ vcf2hierfstat <- function(vcf.file,
           message(pop.imputed)
         }
         vcf.imp <- suppressWarnings(as.data.frame(bind_rows(imputed.dataset)))
-        
         # Second round of imputations: remove introduced NA if some pop don't have the markers by using
         # RF globally
-        vcf.imp <- impute_markers_rf(vcf.imp)
-        
+        vcf.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(vcf.imp)) # Make the columns factor
+        vcf.imp <- impute_markers_rf(vcf.imp) # impute globally
         # dump unused objects
         df.split.pop <- NULL
         pop.list <- NULL
         sep.pop <- NULL
         imputed.dataset <- NULL
         vcf.prep <- NULL
-        
       } else if (imputations.group == "global"){
         # Globally (not by pop_id)
         message("Imputations computed globally, take a break...")
         vcf.prep <- plyr::colwise(factor, exclude = NA)(vcf.prep)
         vcf.imp <- impute_markers_rf(vcf.prep)
-        
         vcf.prep <- NULL # remove unused object
-        
       } 
-      
     } else if (imputations == "max") {
       
       if (missing(imputations.group) == "TRUE" | imputations.group == "populations"){
@@ -452,7 +447,7 @@ vcf2hierfstat <- function(vcf.file,
     res$hierfstat.imputed <- hierfstat.prep.imp
     
     hierfstat.prep.imp$POP_ID <- as.integer(hierfstat.prep.imp$POP_ID) # Change pop id to integer
-
+    
     vcf.imp <- NULL # remove unused object
     
     # results ------------------------------------------------------------------
