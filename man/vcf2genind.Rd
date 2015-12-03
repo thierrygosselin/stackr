@@ -4,11 +4,12 @@
 \alias{vcf2genind}
 \title{Create a \code{adegenet} \code{\link[adegenet]{genind}} object from a \code{STACKS} vcf file}
 \usage{
-vcf2genind(vcf.file, whitelist.markers = NULL, blacklist.id = NULL,
-  pop.id.start, pop.id.end, pop.levels, pop.labels, strata = NULL,
-  hierarchy = NULL, imputations = FALSE,
-  imputations.group = "populations", num.tree = 100, iteration.rf = 10,
-  split.number = 100, verbose = FALSE, parallel.core = 2)
+vcf2genind(vcf.file, whitelist.markers = NULL, snp.LD = NULL,
+  common.markers = FALSE, blacklist.id = NULL, pop.id.start, pop.id.end,
+  pop.levels, pop.labels, strata = NULL, hierarchy = NULL,
+  imputations = FALSE, imputations.group = "populations", num.tree = 100,
+  iteration.rf = 10, split.number = 100, verbose = FALSE,
+  parallel.core = 2)
 }
 \arguments{
 \item{vcf.file}{The VCF file created by STACKS.}
@@ -16,6 +17,13 @@ vcf2genind(vcf.file, whitelist.markers = NULL, blacklist.id = NULL,
 \item{whitelist.markers}{(optional) A whitelist containing CHROM (character or integer) and/or LOCUS (integer) and/or 
 POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
 The whitelist is in the directory (e.g. "whitelist.txt"). de novo CHROM column with 'un' need to be changed to 1.}
+
+\item{snp.LD}{(optional) Minimize linkage disequilibrium (LD) by choosing 
+among these 3 options: \code{"random"} selection, \code{"first"} or 
+\code{"last"} SNP on the same read/haplotype. Default = \code{NULL}.}
+
+\item{common.markers}{(optional) Logical. Default = \code{FALSE}. 
+With \code{TRUE}, will keep markers present in all the populations.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
 a column header 'INDIVIDUALS'. The blacklist is in the directory

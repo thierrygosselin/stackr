@@ -16,6 +16,11 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @param whitelist.markers (optional) A whitelist containing CHROM (character or integer) and/or LOCUS (integer) and/or 
 #' POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
 #' The whitelist is in the directory (e.g. "whitelist.txt"). de novo CHROM column with 'un' need to be changed to 1.
+#' @param snp.LD (optional) Minimize linkage disequilibrium (LD) by choosing 
+#' among these 3 options: \code{"random"} selection, \code{"first"} or 
+#' \code{"last"} SNP on the same read/haplotype. Default = \code{NULL}.
+#' @param common.markers (optional) Logical. Default = \code{FALSE}. 
+#' With \code{TRUE}, will keep markers present in all the populations.
 #' @param blacklist.id (optional) A blacklist with individual ID and
 #' a column header 'INDIVIDUALS'. The blacklist is in the directory
 #'  (e.g. "blacklist.txt").
@@ -88,7 +93,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 vcf2genind <- function(vcf.file, 
-                       whitelist.markers = NULL, 
+                       whitelist.markers = NULL,
+                       snp.LD = NULL,
+                       common.markers = FALSE,
                        blacklist.id = NULL, 
                        pop.id.start, pop.id.end,
                        pop.levels,
@@ -122,6 +129,7 @@ vcf2genind <- function(vcf.file,
   MARKERS_ALLELES <- NULL
   ALLELES <- NULL
   COUNT <- NULL
+  i <- NULL
   
   
   if (imputations == "FALSE") {
@@ -139,7 +147,7 @@ vcf2genind <- function(vcf.file,
     comment = "##",
     progress = interactive()
   ) %>% 
-    select(-c(QUAL, FILTER, INFO)) %>% 
+    select(-c(QUAL, FILTER, INFO, REF, ALT)) %>% 
     rename(LOCUS = ID, CHROM = `#CHROM`) %>% 
     mutate(CHROM = stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1"))
   
@@ -178,8 +186,7 @@ vcf2genind <- function(vcf.file,
   message("Making the VCF population wise")
   vcf <- suppressWarnings(
     vcf %>%
-      tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_") %>% # group markers info
-      tidyr::gather(INDIVIDUALS, FORMAT_ID, -MARKERS) %>% # Gather individuals in 1 colummn
+      tidyr::gather(INDIVIDUALS, FORMAT_ID, -c(CHROM, LOCUS, POS)) %>% # Gather individuals in 1 colummn
       mutate( # Make population ready
         POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end),
         POP_ID = factor(stri_replace_all_fixed(POP_ID, pop.levels, pop.labels, vectorize_all = F), levels = pop.labels, ordered =T),
@@ -223,48 +230,103 @@ vcf2genind <- function(vcf.file,
   message("Tidy vcf into factory for conversion into genind ...")
   
   if(stacks.version == "new"){ # with new version of stacks > v.1.29
-    vcf <- vcf %>%
-      tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"), # no imputation
-                      sep = ":", extra = "warn") %>%  # no imputation
-      select(-c(READ_DEPTH, ALLELE_DEPTH, GL)) # no imputation
+    vcf <- suppressWarnings(
+      vcf %>%
+        tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"), # no imputation
+                        sep = ":", extra = "warn") %>%  # no imputation
+        select(-c(READ_DEPTH, ALLELE_DEPTH, GL)) # no imputation
+    )
   } else { # stacks version prior to v.1.29 had no Allele Depth field...
-    vcf <- vcf %>%
-      tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "GL"), # no imputation
-                      sep = ":", extra = "warn") %>%  # no imputation
-      select(-c(READ_DEPTH, GL))  # no imputation
+    vcf <- suppressWarnings(
+      vcf %>%
+        tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "GL"), # no imputation
+                        sep = ":", extra = "warn") %>%  # no imputation
+        select(-c(READ_DEPTH, GL))  # no imputation
+    )
   }
   message("step 1/3: completed")
+  
+  # Keep only 1 SNP per haplotypes/reads
+  if(missing(snp.LD) | is.null(snp.LD)){
+    vcf <- vcf
+  } else{
+    snp.locus <- vcf %>% select(LOCUS, POS) %>% distinct(POS)
+    # Random selection
+    if(snp.LD == "random"){
+      snp.select <- snp.locus %>%
+        group_by(LOCUS) %>% 
+        sample_n(size = 1, replace = FALSE)
+      message(stri_c("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
+    }
+    
+    # Fist SNP on the read
+    if(snp.LD == "first"){
+      snp.select <- snp.locus %>%
+        group_by(LOCUS) %>% 
+        summarise(POS = min(POS))
+      message(stri_c("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
+    }
+    
+    # Last SNP on the read
+    if(snp.LD == "last"){
+      snp.select <- snp.locus %>%
+        group_by(LOCUS) %>% 
+        summarise(POS = max(POS))
+      message(stri_c("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
+    }
+    
+    # filtering the VCF to minimize LD
+    vcf <- vcf %>% semi_join(snp.select, by = c("LOCUS", "POS"))
+    message("Filtering the tidy VCF to minimize LD by keeping only 1 SNP per short read/haplotype")
+  }
+  
+  # combine CHROM, LOCUS and POS into MARKERS
+  vcf <- vcf %>%
+    mutate(
+      POS = stri_pad_left(str = POS, width = 7, pad = "0"),
+      LOCUS = stri_pad_left(str = LOCUS, width = 7, pad = "0")
+    ) %>%
+    arrange(CHROM, LOCUS, POS) %>% 
+    tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_")
+  
+  # keeping or not markers in common in all the populations
+  if(missing(common.markers) | is.null(common.markers) | common.markers == FALSE) {
+    vcf <- vcf
+  }
+  
+  if(common.markers == TRUE){ # keep only markers present in all pop
+    pop.number <- n_distinct(vcf$POP_ID)
+    
+    pop.filter <- vcf %>%
+      filter(GT != "./.") %>%
+      group_by(MARKERS) %>%
+      filter(n_distinct(POP_ID) == pop.number) %>%
+      arrange(MARKERS) %>% 
+      select(MARKERS) %>% 
+      distinct(MARKERS)
+    
+    message(stri_c("Number of original markers = ", n_distinct(vcf$MARKERS), "\n", "Number of markers present in all the populations = ", n_distinct(pop.filter$MARKERS), "\n", "Number of markers removed = ", n_distinct(vcf$MARKERS) - n_distinct(pop.filter$MARKERS)))
+    vcf <- vcf %>% semi_join(pop.filter, by = "MARKERS")
+  }
   
   # testing
   # vcf.bk <- vcf
   # vcf <- vcf.bk
   
-  # Change the genotype coding for easier integration in downstream conversion to genind
-  # Genotype info include allele count
-  vcf <- vcf %>% 
-    mutate(
-      GT = ifelse(GT == "0/0", "2_0",
-                  ifelse(GT == "1/1", "0_2",
-                         ifelse(GT == "0/1", "1_1",
-                                ifelse(GT == "1/0", "1_1", "0_0")
-                         )
-                  )
-      )
-    ) %>% 
+  vcf <- vcf %>%
+    mutate(GT = stri_replace_all_fixed(str = GT, pattern = "/", replacement = ":", vectorize_all = FALSE)) %>% 
+    mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("0:0", "1:1", "0:1", "1:0", ".:."), replacement = c("2_0", "0_2", "1_1", "1_1", "NA_NA"), vectorize_all = FALSE)) %>% 
     arrange(MARKERS, POP_ID)
-  
   message("step 2/3: completed")
   
   # results no imputation--------------------------------------------------------------------
   genind.prep <- vcf %>%
-    tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_") %>% # separate the genotypes into alleles
-    tidyr::gather(key = ALLELES, COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
-    mutate(
-      COUNT = as.integer(COUNT),
-      COUNT = replace(COUNT, which(COUNT == 0), NA) # replace 0 with NA
-      ) %>%
-    tidyr::unite(col = MARKERS_ALLELES, MARKERS , ALLELES, sep = ".") %>% 
-    dcast(INDIVIDUALS + POP_ID ~ MARKERS_ALLELES, value.var = "COUNT") %>% # make a wide format
+    tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_", extra = "drop", remove = TRUE) %>%
+    tidyr::gather(key = ALLELES, value = COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
+    tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>%
+    mutate(COUNT = replace(COUNT, which(COUNT == "NA"), NA)) %>% 
+    group_by(POP_ID, INDIVIDUALS) %>%
+    tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
     arrange(POP_ID, INDIVIDUALS)
   message("step 3/3: completed")
   
@@ -278,14 +340,10 @@ vcf2genind <- function(vcf.file,
   
   if(missing(hierarchy)) hierarchy <- NULL
   
-  # testing
-  # res <- adegenet::df2genind(X = genind.df, sep = "/", ncode = 2, ind.names = ind, loc.names = loc.names, pop = pop, NA.char = ".", ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
-  # res <- adegenet::df2genind(X = genind.df, sep = "/", ind.names = ind, loc.names = loc.names, pop = pop, NA.char = "9", ploidy = 2, type = "codom", strata = NULL, hierarchy = NULL)
-  
   # genind constructor
   prevcall <- match.call()
-  res <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
-
+  res <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = NULL, hierarchy = NULL)
+  
   if (imputations == "FALSE") {
     message("A large 'genind' object (no imputation) was created in your Environment")
   } else if (imputations == "max"){
@@ -302,11 +360,7 @@ vcf2genind <- function(vcf.file,
   if (imputations != "FALSE"){
     
     vcf.prep <- vcf %>%
-      mutate(
-        # GT = stri_replace_all_fixed(GT, pattern = "000/000", replacement = "NA", vectorize_all = FALSE),
-        GT = stri_replace_all_fixed(GT, pattern = "0_0", replacement = "NA", vectorize_all = FALSE),
-        GT = replace(GT, which(GT == "NA"), NA)
-      ) %>% 
+      mutate(GT = replace(GT, which(GT == "NA_NA"), NA)) %>% 
       dcast(INDIVIDUALS + POP_ID ~ MARKERS, value.var = "GT") %>% 
       arrange(POP_ID, INDIVIDUALS)
     
@@ -317,8 +371,14 @@ vcf2genind <- function(vcf.file,
       if (missing(parallel.core) == "TRUE"){
         # Automatically select all the core -1 
         options(rf.cores=detectCores()-1, mc.cores=detectCores()-1)
+        # Start cluster registration backend using n - 1 CPU
+        cl <- makeCluster(detectCores() - 1)
+        registerDoParallel(cl, cores = detectCores() - 1)
       } else {
         options(rf.cores = parallel.core, mc.cores = parallel.core)
+        # Start cluster registration backend using n - 1 CPU
+        cl <- makeCluster(parallel.core)
+        registerDoParallel(cl, cores = parallel.core)
       }
       
       # imputations using Random Forest with the package randomForestSRC
@@ -340,18 +400,22 @@ vcf2genind <- function(vcf.file,
         df.split.pop <- split(x = vcf.prep, f = vcf.prep$POP_ID) # slip data frame by population
         pop.list <- names(df.split.pop) # list the pop
         imputed.dataset <-list() # create empty list 
-        for (i in pop.list) {
+        # for (i in pop.list) {
+        imputed.dataset <- foreach(i=pop.list, .packages = c("magrittr", "plyr", "dplyr", "tidyr", "stringi", "readr", "randomForestSRC", "reshape2")) %dopar% {
           sep.pop <- df.split.pop[[i]]
           sep.pop <- suppressWarnings(
             plyr::colwise(factor, exclude = NA)(sep.pop)
           )
-          imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
           # message of progress for imputations by population
           pop.imputed <- paste("Completed imputations for pop ", i, sep = "")
           message(pop.imputed)
+          imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
         }
+        # close parallel connection settings
+        stopCluster(cl)
+message("Almost finished with the imputations...")
         vcf.imp <- suppressWarnings(as.data.frame(bind_rows(imputed.dataset)))
-        
+
         # Second round of imputations: remove introduced NA if some pop don't have the markers by using
         # RF globally
         vcf.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(vcf.imp)) # Make the columns factor
@@ -414,22 +478,18 @@ vcf2genind <- function(vcf.file,
     
     # transform the imputed dataset into genind object ------------------------
     
-    message("Imputed haplotypes into factory for conversion into genind...")
+    message("Imputed vcf into factory for conversion into genind...")
+    
     genind.prep.imp <- suppressWarnings(
       vcf.imp %>%
-        tidyr::gather(key = MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>% # make tidy
-        tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_") %>% # separate the genotypes into alleles
-        tidyr::gather(key = ALLELES, COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
-        mutate(
-          COUNT = as.integer(COUNT),
-          COUNT = replace(COUNT, which(COUNT == 0), NA), # replace 0 with NA
-          POP_ID = factor(POP_ID, levels = pop.labels, ordered = T),
-          POP_ID = droplevels(POP_ID)
-        ) %>%
-        tidyr::unite(col = MARKERS_ALLELES, MARKERS , ALLELES, sep = ".") %>% 
-        dcast(INDIVIDUALS + POP_ID ~ MARKERS_ALLELES, value.var = "COUNT") %>% # make a wide format
+        tidyr::gather(key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID)) %>% # make tidy
+        tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_", extra = "drop", remove = TRUE) %>%
+        tidyr::gather(key = ALLELES, value = COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
+        tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>%
+        group_by(POP_ID, INDIVIDUALS) %>%
+        tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
         arrange(POP_ID, INDIVIDUALS)
-    )    
+    )
     
     vcf.imp <- NULL # remove unused object
     
@@ -447,11 +507,10 @@ vcf2genind <- function(vcf.file,
       select(-c(INDIVIDUALS, POP_ID))
     rownames(genind.df) <- ind
     loc.names <- colnames(genind.df)
-
+    
     # genind constructor
     prevcall <- match.call()
     res$imputed  <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
-    # res$imputed <- adegenet::df2genind(X = genind.df, sep = "/", ind.names = ind, pop = pop, ploidy = 2, strata = strata, hierarchy = NULL) #testing
     message("A large 'genind' object was created in your Environment (with and without imputations)")
   }
   # remove unused objects
