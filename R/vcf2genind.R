@@ -407,15 +407,14 @@ vcf2genind <- function(vcf.file,
             plyr::colwise(factor, exclude = NA)(sep.pop)
           )
           # message of progress for imputations by population
-          pop.imputed <- paste("Completed imputations for pop ", i, sep = "")
-          message(pop.imputed)
+          message(paste("Completed imputations for pop ", i, sep = ""))
           imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
         }
         # close parallel connection settings
         stopCluster(cl)
-message("Almost finished with the imputations...")
+        message("Almost finished with the imputations...")
         vcf.imp <- suppressWarnings(as.data.frame(bind_rows(imputed.dataset)))
-
+        
         # Second round of imputations: remove introduced NA if some pop don't have the markers by using
         # RF globally
         vcf.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(vcf.imp)) # Make the columns factor

@@ -6,18 +6,23 @@
 #' @description Map-independent imputation of a VCF using Random Forest or the 
 #' most frequent category.
 #' @param vcf.file The VCF file created by STACKS.
-#' @param pop.id.start The start of your population id 
-#' in the name of your individual sample.
-#' @param pop.id.end The end of your population id 
-#' in the name of your individual sample.
 #' @param whitelist.loci (optional) A whitelist of loci and 
 #' a column header 'LOCUS'.
 #' The whitelist is in the directory (e.g. "whitelist.txt").
+#' @param snp.LD (optional) Minimize linkage disequilibrium (LD) by choosing 
+#' among these 3 options: \code{"random"} selection, \code{"first"} or 
+#' \code{"last"} SNP on the same read/haplotype. Default = \code{NULL}.
+#' @param common.markers (optional) Logical. Default = \code{FALSE}. 
+#' With \code{TRUE}, will keep markers present in all the populations.
 #' @param blacklist.id (optional) A blacklist with individual ID and
 #' a column header 'INDIVIDUALS'. The blacklist is in the directory
 #'  (e.g. "blacklist.txt").
 #' @param blacklist.genotypes A blacklist of genotypes 
 #' containing 3 columns header 'LOCUS', 'POS' and 'INDIVIDUALS'.
+#' @param pop.id.start The start of your population id 
+#' in the name of your individual sample.
+#' @param pop.id.end The end of your population id 
+#' in the name of your individual sample.
 #' @param filename The name of the file written to the directory.
 #' Use the extension ".vcf" at the end. Default \code{batch_1.vcf.imputed.vcf}.
 #' @param imputations For map-independent imputations available options are:
@@ -68,12 +73,14 @@
 #' and github \url{https://github.com/ehrlinger/randomForestSRC}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-vcf_imputation <- function(vcf.file, 
+vcf_imputation <- function(vcf.file,
+                           whitelist.loci = NULL,
+                           snp.LD = NULL,
+                           common.markers = FALSE,
+                           blacklist.id = NULL,
+                           blacklist.genotypes = NULL,
                            pop.id.start, 
                            pop.id.end, 
-                           blacklist.id = NULL,
-                           whitelist.loci = NULL,
-                           blacklist.genotypes = NULL,
                            filename = "batch_1.vcf.imputed.vcf",
                            imputations = "rf",
                            imputations.group = "populations",
@@ -97,8 +104,9 @@ vcf_imputation <- function(vcf.file,
   ALLELE_DEPTH <- NULL
   GT <- NULL
   GL <- NULL
-  MARKER <- NULL
+  MARKERS <- NULL
   everything <- NULL
+  i <- NULL
   
   # Import/read VCF ------------------------------------------------------------- 
   message("Importing the VCF...")
@@ -126,16 +134,20 @@ vcf_imputation <- function(vcf.file,
     vcf <- vcf
     message("No whitelist to apply to the VCF")
   } else if (is.vector(whitelist) == "TRUE") {
-    vcf <- vcf %>% 
-      semi_join(
-        read_tsv(whitelist, col_names = T),
-        by = "LOCUS"
-      )
     message("Filtering the VCF with the whitelist from your directory")
+    whitelist.markers <- read_tsv(whitelist.markers, col_names = TRUE)
+    columns.names.whitelist <- colnames(whitelist.markers)
+    if("CHROM" %in% columns.names.whitelist){
+      whitelist.markers$CHROM <- as.character(whitelist.markers$CHROM)
+    }
+    vcf <- vcf %>% semi_join(whitelist.markers, by = columns.names.whitelist)
   } else {
-    vcf <- vcf %>%
-      semi_join(whitelist, by = "LOCUS")
     message("Filtering the VCF with the whitelist from your global environment")
+    columns.names.whitelist <- colnames(whitelist.markers)
+    if("CHROM" %in% columns.names.whitelist){
+      whitelist.markers$CHROM <- as.character(whitelist.markers$CHROM)
+    }
+    vcf <- vcf %>% semi_join(whitelist.markers, by = columns.names.whitelist)
   }  
   
   # Gather individuals in 1 colummn --------------------------------------------
@@ -168,14 +180,13 @@ vcf_imputation <- function(vcf.file,
   # Separate FORMAT and COVERAGE columns ---------------------------------------
   message("Tidying the VCF...")
   
-  if(stacks.version == "new"){
+  if(stacks.version == "new"){ # with new version of stacks > v.1.29
     vcf <- vcf %>%
       tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
                       sep = ":", extra = "warn") %>% 
       select(-c(ALLELE_DEPTH, READ_DEPTH, GL))
     
-  } else {
-    # stacks version prior to v.1.29 had no Allele Depth field...
+  } else { # stacks version prior to v.1.29 had no Allele Depth field...
     message("Hum....")
     message("you are using an older version of STACKS...")
     message("It's not too late to use the last STACKS version, see STACKS change log for problems associated with older vcf files, for more details see: http://catchenlab.life.illinois.edu/stacks/")
@@ -191,12 +202,39 @@ vcf_imputation <- function(vcf.file,
   whitelist <- NULL
   blacklist.id <- NULL
   
-  # create a keeper list of MARKER, CHROM, ID, POS, REF and ALT
-  vcf.keeper <- vcf %>%
-    select(CHROM, LOCUS, POS, REF, ALT) %>% 
-    tidyr::unite(MARKER, CHROM, LOCUS, POS, sep = "_", remove = TRUE) %>% 
-    distinct(MARKER)
-  
+  # Keep only 1 SNP per haplotypes/reads
+  if(missing(snp.LD) | is.null(snp.LD)){
+    vcf <- vcf
+  } else{
+    snp.locus <- vcf %>% select(LOCUS, POS) %>% distinct(POS)
+    # Random selection
+    if(snp.LD == "random"){
+      snp.select <- snp.locus %>%
+        group_by(LOCUS) %>% 
+        sample_n(size = 1, replace = FALSE)
+      message(stri_c("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
+    }
+    
+    # Fist SNP on the read
+    if(snp.LD == "first"){
+      snp.select <- snp.locus %>%
+        group_by(LOCUS) %>% 
+        summarise(POS = min(POS))
+      message(stri_c("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
+    }
+    
+    # Last SNP on the read
+    if(snp.LD == "last"){
+      snp.select <- snp.locus %>%
+        group_by(LOCUS) %>% 
+        summarise(POS = max(POS))
+      message(stri_c("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
+    }
+    
+    # filtering the VCF to minimize LD
+    vcf <- vcf %>% semi_join(snp.select, by = c("LOCUS", "POS"))
+    message("Filtering the tidy VCF to minimize LD by keeping only 1 SNP per short read/haplotype")
+  }
   
   # Erasing genotypes with poor coverage and/or genotype likelihood-------------
   if (is.null(blacklist.genotypes) == FALSE) {
@@ -233,18 +271,47 @@ vcf_imputation <- function(vcf.file,
   }
   # dump unused objects
   bad.geno <- NULL
+
+  # combine CHROM, LOCUS and POS into MARKERS
+  vcf <- vcf %>%
+    arrange(CHROM, LOCUS, POS) %>% 
+    tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_")
+  
+  # keeping or not markers in common in all the populations---------------------
+  if(missing(common.markers) | is.null(common.markers) | common.markers == FALSE) {
+    vcf <- vcf
+  }
+  
+  if(common.markers == TRUE){ # keep only markers present in all pop
+    pop.number <- n_distinct(vcf$POP_ID)
+    
+    pop.filter <- vcf %>%
+      filter(GT != "./.") %>%
+      group_by(MARKERS) %>%
+      filter(n_distinct(POP_ID) == pop.number) %>%
+      arrange(MARKERS) %>% 
+      select(MARKERS) %>% 
+      distinct(MARKERS)
+    
+    message(stri_c("Number of original markers = ", n_distinct(vcf$MARKERS), "\n", "Number of markers present in all the populations = ", n_distinct(pop.filter$MARKERS), "\n", "Number of markers removed = ", n_distinct(vcf$MARKERS) - n_distinct(pop.filter$MARKERS)))
+    vcf <- vcf %>% semi_join(pop.filter, by = "MARKERS")
+  }
+  
+  # create a keeper list of MARKERS, CHROM, ID, POS, REF and ALT
+  vcf.keeper <- vcf %>%
+    select(MARKERS, REF, ALT) %>% 
+    distinct(MARKERS)
   
   # last step before imputation ------------------------------------------------
   
   vcf <- vcf %>%
     select(-REF, -ALT) %>% 
-    tidyr::unite(MARKER, CHROM, LOCUS, POS, sep = "_", remove = TRUE) %>% 
     mutate(
       GT = stri_replace_all_fixed(GT, "./.", "NA", vectorize_all=F),
       GT = replace(GT, which(GT == "NA"), NA),
       POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end)
       ) %>%
-    dcast(INDIVIDUALS + POP_ID ~ MARKER, value.var = "GT")
+    dcast(INDIVIDUALS + POP_ID ~ MARKERS, value.var = "GT")
   
   if (imputations == "max"){
     message("Calculating map-independent imputations using the most frequent allele.")
@@ -258,8 +325,14 @@ vcf_imputation <- function(vcf.file,
     if (missing(parallel.core) == "TRUE"){
       # Automatically select all the core -1 
       options(rf.cores=detectCores()-1, mc.cores=detectCores()-1)
+      # Start cluster registration backend using n - 1 CPU
+      cl <- makeCluster(detectCores() - 1)
+      registerDoParallel(cl, cores = detectCores() - 1)
     } else {
       options(rf.cores = parallel.core, mc.cores = parallel.core)
+      # Start cluster registration backend using n - 1 CPU
+      cl <- makeCluster(parallel.core)
+      registerDoParallel(cl, cores = parallel.core)
     }
     
     # imputations using Random Forest with the package randomForestSRC
@@ -281,22 +354,26 @@ vcf_imputation <- function(vcf.file,
       
       df.split.pop <- split(x = vcf, f = vcf$POP_ID) # slip data frame by population
       pop.list <- names(df.split.pop) # list the pop
-      imputed.dataset <-list() # create empty list 
-      for (i in pop.list) {
+      imputed.dataset <-list() # create empty list
+      imputed.dataset <- foreach(i=pop.list, .packages = c("magrittr", "plyr", "dplyr", "tidyr", "stringi", "readr", "randomForestSRC", "reshape2")) %dopar% {
+      # for (i in pop.list) {
         sep.pop <- df.split.pop[[i]]
         sep.pop <- suppressWarnings(
           plyr::colwise(factor, exclude = NA)(sep.pop)
         )
-        imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
         # message of progress for imputations by population
-        pop.imputed <- paste("Completed imputations for pop ", i, sep = "")
-        message(pop.imputed)
+        message(paste("Completed imputations for pop ", i, sep = ""))
+        imputed.dataset[[i]] <- impute_markers_rf(sep.pop)
       }
+      # close parallel connection settings
+      stopCluster(cl)
+      message("Almost finished with the imputations...")
       vcf.imp <- suppressWarnings(as.data.frame(bind_rows(imputed.dataset)))
       
       # Second round of imputations: remove introduced NA if some pop don't have the markers by using
       # RF globally
-      vcf.imp <- impute_markers_rf(vcf.imp)
+      vcf.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(vcf.imp)) # Make the columns factor
+      vcf.imp <- impute_markers_rf(vcf.imp) # impute globally
       
       # dump unused objects
       df.split.pop <- NULL
@@ -318,15 +395,15 @@ vcf_imputation <- function(vcf.file,
       
       vcf.imp <- suppressWarnings(
         vcf %>%
-          tidyr::gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
-          group_by(MARKER, POP_ID) %>% 
+          tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
+          group_by(MARKERS, POP_ID) %>% 
           mutate(
             GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
             GT = replace(GT, which(GT == "NA"), NA)
           ) %>%
           # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
           # will take the global observed values by markers for those cases.
-          group_by(MARKER) %>%
+          group_by(MARKERS) %>%
           mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)))
       )
       
@@ -336,8 +413,8 @@ vcf_imputation <- function(vcf.file,
       
       vcf.imp <- suppressWarnings(
         vcf %>%
-          tidyr::gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
-          group_by(MARKER) %>% 
+          tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
+          group_by(MARKERS) %>% 
           mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)))
       )
     }
@@ -347,17 +424,17 @@ vcf_imputation <- function(vcf.file,
   
   vcf.imp <- suppressWarnings(
     vcf.imp %>% 
-      tidyr::gather(MARKER, GT, -c(INDIVIDUALS, POP_ID)) %>%
+      tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
       arrange(POP_ID, INDIVIDUALS) %>% 
-      group_by(MARKER) %>% 
+      group_by(MARKERS) %>% 
       mutate(INFO = stri_paste("NS=", n(), sep = "")) %>% 
       select(-POP_ID) %>% 
-      dcast(MARKER + INFO ~ INDIVIDUALS, value.var = "GT")
+      dcast(MARKERS + INFO ~ INDIVIDUALS, value.var = "GT")
   )
   
   vcf.imp <- suppressWarnings(
-    full_join(vcf.keeper, vcf.imp, by = "MARKER") %>%
-      tidyr::separate(MARKER, c("CHROM", "ID", "POS"), sep = "_", extra = "warn") %>%
+    full_join(vcf.keeper, vcf.imp, by = "MARKERS") %>%
+      tidyr::separate(MARKERS, c("CHROM", "ID", "POS"), sep = "_", extra = "warn") %>%
       mutate(
         ID = as.numeric(ID),
         POS = as.numeric(POS),

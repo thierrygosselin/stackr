@@ -4,31 +4,39 @@
 \alias{vcf_imputation}
 \title{VCF data imputation}
 \usage{
-vcf_imputation(vcf.file, pop.id.start, pop.id.end, blacklist.id = NULL,
-  whitelist.loci = NULL, blacklist.genotypes = NULL,
-  filename = "batch_1.vcf.imputed.vcf", imputations = "rf",
-  imputations.group = "populations", num.tree = 100, iteration.rf = 10,
-  split.number = 100, verbose = FALSE, parallel.core = 2)
+vcf_imputation(vcf.file, whitelist.loci = NULL, snp.LD = NULL,
+  common.markers = FALSE, blacklist.id = NULL, blacklist.genotypes = NULL,
+  pop.id.start, pop.id.end, filename = "batch_1.vcf.imputed.vcf",
+  imputations = "rf", imputations.group = "populations", num.tree = 100,
+  iteration.rf = 10, split.number = 100, verbose = FALSE,
+  parallel.core = 2)
 }
 \arguments{
 \item{vcf.file}{The VCF file created by STACKS.}
+
+\item{whitelist.loci}{(optional) A whitelist of loci and 
+a column header 'LOCUS'.
+The whitelist is in the directory (e.g. "whitelist.txt").}
+
+\item{snp.LD}{(optional) Minimize linkage disequilibrium (LD) by choosing 
+among these 3 options: \code{"random"} selection, \code{"first"} or 
+\code{"last"} SNP on the same read/haplotype. Default = \code{NULL}.}
+
+\item{common.markers}{(optional) Logical. Default = \code{FALSE}. 
+With \code{TRUE}, will keep markers present in all the populations.}
+
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the directory
+ (e.g. "blacklist.txt").}
+
+\item{blacklist.genotypes}{A blacklist of genotypes 
+containing 3 columns header 'LOCUS', 'POS' and 'INDIVIDUALS'.}
 
 \item{pop.id.start}{The start of your population id 
 in the name of your individual sample.}
 
 \item{pop.id.end}{The end of your population id 
 in the name of your individual sample.}
-
-\item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the directory
- (e.g. "blacklist.txt").}
-
-\item{whitelist.loci}{(optional) A whitelist of loci and 
-a column header 'LOCUS'.
-The whitelist is in the directory (e.g. "whitelist.txt").}
-
-\item{blacklist.genotypes}{A blacklist of genotypes 
-containing 3 columns header 'LOCUS', 'POS' and 'INDIVIDUALS'.}
 
 \item{filename}{The name of the file written to the directory.
 Use the extension ".vcf" at the end. Default \code{batch_1.vcf.imputed.vcf}.}
