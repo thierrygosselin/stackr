@@ -4,9 +4,16 @@
 #' or a tidy VCF file.
 #' @param data A data frame object or file (using ".tsv")
 #' of class sumstats or a tidy VCF summarised.
+#' @param approach Character. By \code{"SNP"} or by \code{"haplotype"}. 
+#' The function will consider the SNP or haplotype MAF statistics to filter the marker. 
+#' Default by \code{"haplotype"}.
 #' @param local.maf.threshold Number.
 #' @param global.maf.threshold Number.
 #' @param pop.threshold Fixed number of pop required to keep the locus.
+#' @param operator \code{"AND"} or \code{"or"}. Default = \code{"or"}. 
+#' When filtering over LOCUS or SNP, do you want the local \code{"AND"} 
+#' global MAF to pass the thresholds, or ... you want the local \code{"OR"} 
+#' global MAF to pass the thresholds, to keep the marker?
 #' @param filename Name of the file written to the working directory (optional).
 #' @rdname filter_maf
 #' @export
@@ -14,12 +21,12 @@
 #' @import dplyr
 #' @import readr
 #' @details To help choose a threshold for the local and global MAF, look
-#' at the function \link{diagnostic_maf}
+#' at the function \link{diagnostic_maf}.
 #' @seealso \link{sumstats_prep}
 #' @seealso \link{summary_stats_vcf_tidy}
 
 
-filter_maf <- function(data, local.maf.threshold, global.maf.threshold, pop.threshold, filename) {
+filter_maf <- function(data, approach = "haplotype", local.maf.threshold, global.maf.threshold, pop.threshold, operator = "OR", filename) {
   
   POP_ID <- NULL
   FREQ_ALT <- NULL
@@ -36,30 +43,75 @@ filter_maf <- function(data, local.maf.threshold, global.maf.threshold, pop.thre
     message("Using the file from your global environment")
   }
   
-  
-  
-  maf.filter <- data %>%
-    group_by(LOCUS, POP_ID) %>%
-    #     summarise(MAF_DIFF = max(FREQ_ALT) - min(FREQ_ALT)) %>% 
-    #     filter(MAF_DIFF <= maf.diff.threshold) %>%
-    #     group_by(LOCUS) %>%
-    #     tally() %>%
-    #     filter((n * multiplication.number) >= pop.maf.diff.threshold) %>%
-    #     select(LOCUS) %>%
-    #     left_join(data, by="LOCUS") %>%
-    #     group_by(LOCUS, POP_ID) %>%
-    summarise(
-      GLOBAL_MAF = mean(GLOBAL_MAF, na.rm = TRUE),  
-      LOCAL_MAF = min(FREQ_ALT, na.rm = TRUE)
-    ) %>% 
-    filter(LOCAL_MAF >= local.maf.threshold | GLOBAL_MAF >= global.maf.threshold) %>%
-    group_by(LOCUS) %>%
-    tally() %>%
-    filter(n >= pop.threshold) %>% 
-    select(LOCUS) %>%
-    left_join(data, by = "LOCUS") %>%
-    arrange(LOCUS, POP_ID)
-  
+  if (missing(approach) | approach == "haplotype"){
+    if(missing(operator) | operator == "OR") {
+      maf.filter <- data %>%
+        group_by(LOCUS, POP_ID) %>%
+        #     summarise(MAF_DIFF = max(FREQ_ALT) - min(FREQ_ALT)) %>% 
+        #     filter(MAF_DIFF <= maf.diff.threshold) %>%
+        #     group_by(LOCUS) %>%
+        #     tally() %>%
+        #     filter((n * multiplication.number) >= pop.maf.diff.threshold) %>%
+        #     select(LOCUS) %>%
+        #     left_join(data, by="LOCUS") %>%
+        #     group_by(LOCUS, POP_ID) %>%
+        summarise(
+          GLOBAL_MAF = mean(GLOBAL_MAF, na.rm = TRUE),  
+          LOCAL_MAF = min(FREQ_ALT, na.rm = TRUE)
+        ) %>% 
+        filter(LOCAL_MAF >= local.maf.threshold | GLOBAL_MAF >= global.maf.threshold) %>%
+        group_by(LOCUS) %>%
+        tally() %>%
+        filter(n >= pop.threshold) %>% 
+        select(LOCUS) %>%
+        left_join(data, by = "LOCUS") %>%
+        arrange(LOCUS, POP_ID)
+    } else {
+      maf.filter <- data %>%
+        group_by(LOCUS, POP_ID) %>%
+        summarise(
+          GLOBAL_MAF = mean(GLOBAL_MAF, na.rm = TRUE),  
+          LOCAL_MAF = min(FREQ_ALT, na.rm = TRUE)
+        ) %>% 
+        filter(LOCAL_MAF >= local.maf.threshold & GLOBAL_MAF >= global.maf.threshold) %>%
+        group_by(LOCUS) %>%
+        tally() %>%
+        filter(n >= pop.threshold) %>% 
+        select(LOCUS) %>%
+        left_join(data, by = "LOCUS") %>%
+        arrange(LOCUS, POP_ID)
+    }    
+  } else {
+    if(missing(operator) | operator == "OR") {
+      maf.filter <- data %>%
+        group_by(LOCUS, POS, POP_ID) %>%
+        summarise(
+          GLOBAL_MAF = mean(GLOBAL_MAF, na.rm = TRUE),  
+          LOCAL_MAF = min(FREQ_ALT, na.rm = TRUE)
+        ) %>% 
+        filter(LOCAL_MAF >= local.maf.threshold | GLOBAL_MAF >= global.maf.threshold) %>%
+        group_by(LOCUS, POS) %>%
+        tally() %>%
+        filter(n >= pop.threshold) %>% 
+        select(LOCUS, POS) %>%
+        left_join(data, by = c("LOCUS", "POS")) %>%
+        arrange(LOCUS, POS, POP_ID)
+    } else {
+      maf.filter <- data %>%
+        group_by(LOCUS, POS, POP_ID) %>%
+        summarise(
+          GLOBAL_MAF = mean(GLOBAL_MAF, na.rm = TRUE),  
+          LOCAL_MAF = min(FREQ_ALT, na.rm = TRUE)
+        ) %>% 
+        filter(LOCAL_MAF >= local.maf.threshold & GLOBAL_MAF >= global.maf.threshold) %>%
+        group_by(LOCUS, POS) %>%
+        tally() %>%
+        filter(n >= pop.threshold) %>% 
+        select(LOCUS, POS) %>%
+        left_join(data, by = c("LOCUS", "POS")) %>%
+        arrange(LOCUS, POS, POP_ID)
+    }
+  }
   if (missing(filename) == "FALSE") {
     message("Saving the file in your working directory...")
     write_tsv(maf.filter, filename, append = FALSE, col_names = TRUE)

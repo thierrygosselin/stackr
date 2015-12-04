@@ -4,18 +4,27 @@
 \alias{filter_maf}
 \title{MAF filter}
 \usage{
-filter_maf(data, local.maf.threshold, global.maf.threshold, pop.threshold,
-  filename)
+filter_maf(data, approach = "haplotype", local.maf.threshold,
+  global.maf.threshold, pop.threshold, operator = "OR", filename)
 }
 \arguments{
 \item{data}{A data frame object or file (using ".tsv")
 of class sumstats or a tidy VCF summarised.}
+
+\item{approach}{Character. By \code{"SNP"} or by \code{"haplotype"}. 
+The function will consider the SNP or haplotype MAF statistics to filter the marker. 
+Default by \code{"haplotype"}.}
 
 \item{local.maf.threshold}{Number.}
 
 \item{global.maf.threshold}{Number.}
 
 \item{pop.threshold}{Fixed number of pop required to keep the locus.}
+
+\item{operator}{\code{"AND"} or \code{"or"}. Default = \code{"or"}. 
+When filtering over LOCUS or SNP, do you want the local \code{"AND"} 
+global MAF to pass the thresholds, or ... you want the local \code{"OR"} 
+global MAF to pass the thresholds, to keep the marker?}
 
 \item{filename}{Name of the file written to the working directory (optional).}
 }
@@ -25,7 +34,7 @@ or a tidy VCF file.
 }
 \details{
 To help choose a threshold for the local and global MAF, look
-at the function \link{diagnostic_maf}
+at the function \link{diagnostic_maf}.
 }
 \seealso{
 \link{sumstats_prep}
