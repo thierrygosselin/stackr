@@ -80,7 +80,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' for R. R News 7(2), 25-31.
 #' @references Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008).
 #' Random survival forests. Ann. Appl. Statist. 2(3), 841-860.
-#' @seealso \code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/} and github \url{https://github.com/ehrlinger/randomForestSRC}
+#' @seealso \code{beta.div} is available on Pierre Legendre web site \url{http://adn.biol.umontreal.ca/~numericalecology/Rcode/} \code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/} and github \url{https://github.com/ehrlinger/randomForestSRC}
 #' @author Laura Benestan \email{laura.benestan@@icloud.com} and
 #' Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
