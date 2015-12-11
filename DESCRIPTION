@@ -1,8 +1,8 @@
 Package: stackr
 Type: Package
 Title: GBS/RAD Data Exploration, Manipulation and Visualization using R
-Version: 0.1.5
-Date: 2015-10-26
+Version: 0.2.0
+Date: 2015-11-15
 Encoding: UTF-8
 Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
@@ -27,7 +27,8 @@ Imports:
     stringdist,
     foreach,
     parallel,
-    doParallel
+    doParallel,
+    purrr
 Suggests:
     boot,
     pegas,

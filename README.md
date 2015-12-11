@@ -60,7 +60,7 @@ sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
 
 Here the list of packages that **stackr** is depending on:
 ```r
-dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, lazyeval, adegenet, randomForestSRC, stringdist, foreach, parallel, doParallel
+dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, purrr, lazyeval, adegenet, randomForestSRC, stringdist, foreach, parallel, doParallel
 ```
 If you don't have them, no worries, it's intalled automatically during **stackr** installation. If you have them, it's your job to update them, because i'm using the latest versions...
 
@@ -130,6 +130,14 @@ install.packages(pkgs = "~/Downloads/randomForestSRC", repos = NULL, type = "sou
 ```
 
 ## New
+
+**v.0.2.0**
+Introducing several vc2... functions: 
+* vcf2betadiv: to easily convert a VCF file created in STACKS to a betadiv input file.
+* vcf2genind: same as haplo2genind but works with SNP instead of haplotypes.
+* vcf2hierfstat: same as haplo2hierfstat but works with SNP instead of haplotypes.
+* vcf2gsi_sim: conduct a full assignment workflow from STACKS VCF file, assignment in GSI_SIM and compiling results back in R. Several function arguments make it easy to conduct Training-Holdout-Leave-one-out (THL) or Leave-One-Out (LOO). Select markers randomly or based on ranked Fst. Global Fst are average by populations and  computed using Weir and Cockerham 1984 equations. Results are identical to hierfstat wc function.
+
 **v.0.1.5**
 Introducing *haplo2gsi_sim* function.
 * Conversion of STACKS haplotypes file into a gsi_sim data input file.
