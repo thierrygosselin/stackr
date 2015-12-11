@@ -132,7 +132,7 @@ install.packages(pkgs = "~/Downloads/randomForestSRC", repos = NULL, type = "sou
 ## New
 
 **v.0.2.0**
-Introducing several vc2... functions: 
+Introducing several vcf2... functions: 
 * vcf2betadiv: to easily convert a VCF file created in STACKS to a betadiv input file.
 * vcf2genind: same as haplo2genind but works with SNP instead of haplotypes.
 * vcf2hierfstat: same as haplo2hierfstat but works with SNP instead of haplotypes.
