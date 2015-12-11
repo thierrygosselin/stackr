@@ -63,6 +63,12 @@ individuals and this process is reapeated the number of times chosen by the
 a column header 'INDIVIDUALS'. The blacklist is in the directory
  (e.g. "blacklist.txt").}
 
+\item{subsample}{(Integer or Proportion) Default = \code{subsample = NULL}. 
+With a proportion argument \code{subsample = 0.15}, 15 percent of individuals
+in each populations are chosen randomly to represent the dataset. 
+With \code{subsample = 36}, 36 individuals in each populations are chosen 
+randomly to represent the dataset.}
+
 \item{gsi_sim.filename}{(optional) The name of the file written to the directory.
 Use the extension ".txt" at the end. Default \code{gsi_sim_data.txt}.
 The number of markers used will be appended to the name of the file.}
