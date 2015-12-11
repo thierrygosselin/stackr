@@ -382,7 +382,6 @@ vcf2genind <- function(vcf.file,
       }
       
       # imputations using Random Forest with the package randomForestSRC
-      
       impute_markers_rf <- function(x){
         randomForestSRC::impute.rfsrc(data = x, 
                                       ntree = num.tree, 
