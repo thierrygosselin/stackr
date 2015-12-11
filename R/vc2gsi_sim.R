@@ -53,8 +53,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID",
 #' @param blacklist.id (optional) A blacklist with individual ID and
 #' a column header 'INDIVIDUALS'. The blacklist is in the directory
 #'  (e.g. "blacklist.txt").
-#' @param subsample (integer or proportion) Default = \code{NULL}. 
-#' With a proportion argument \code{subsample = 0.15}, \code{15%} of individuals
+#' @param subsample (Integer or Proportion) Default = \code{subsample = NULL}. 
+#' With a proportion argument \code{subsample = 0.15}, \code{15/%} of individuals
 #' in each populations are chosen randomly to represent the dataset. 
 #' With \code{subsample = 36}, 36 individuals in each populations are chosen 
 #' randomly to represent the dataset.
