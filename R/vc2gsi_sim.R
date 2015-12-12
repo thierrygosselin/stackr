@@ -645,21 +645,21 @@ vcf2gsi_sim <- function(vcf.file,
       registerDoParallel(cl, cores = detectCores() - 1)
       
       #Progress combine function
-      f <- function(){
-        pb <- txtProgressBar(min=1, max=iterations.list-1,style=3)
-        count <- 0
-        function(...) {
-          count <<- count + length(list(...)) - 1
-          setTxtProgressBar(pb,count)
-          Sys.sleep(0.01)
-          flush.console()
-          c(...)
-        }
-      }
+      #       f <- function(){
+      #         pb <- txtProgressBar(min=1, max=iterations.list-1,style=3)
+      #         count <- 0
+      #         function(...) {
+      #           count <<- count + length(list(...)) - 1
+      #           setTxtProgressBar(pb,count)
+      #           Sys.sleep(0.01)
+      #           flush.console()
+      #           c(...)
+      #         }
+      #       }
       
       
       j <- NULL
-      foreach(j=iterations.list, .combine=f(), .packages = c("magrittr", "plyr", "dplyr", "tidyr", "stringi", "readr", "randomForestSRC", "reshape2")) %dopar% {
+      foreach(j=iterations.list, .packages = c("magrittr", "plyr", "dplyr", "tidyr", "stringi", "readr", "randomForestSRC", "reshape2")) %dopar% {
         # j <-100
         
         # Sampling markers ----------------------------------------------------
@@ -1223,17 +1223,17 @@ vcf2gsi_sim <- function(vcf.file,
     message("Starting parallel computations, progress bar not yet implemented, so keep track in the directory for activity")
     
     #Progress combine function
-#     f <- function(){
-#       progress.bar <- txtProgressBar(min=1, max=length(iterations.list)-1,style=3)
-#       count <- 0
-#       function(...) {
-#         count <<- count + length(list(...)) - 1
-#         setTxtProgressBar(progress.bar,count)
-#         Sys.sleep(0.01)
-#         flush.console()
-#         c(...)
-#       }
-#     }
+    #     f <- function(){
+    #       progress.bar <- txtProgressBar(min=1, max=length(iterations.list)-1,style=3)
+    #       count <- 0
+    #       function(...) {
+    #         count <<- count + length(list(...)) - 1
+    #         setTxtProgressBar(progress.bar,count)
+    #         Sys.sleep(0.01)
+    #         flush.console()
+    #         c(...)
+    #       }
+    #     }
     
     # Start cluster registration backend
     if (missing(parallel.core) == "TRUE"){
@@ -1246,9 +1246,21 @@ vcf2gsi_sim <- function(vcf.file,
     }
     
     # Going through the loop of holdout individuals-----------------------------
+    
+    # Preparing file for saving to directory preliminary results
+    filename.ass.res <- "assignement.preliminiary.results.tsv"
+    if(THL == 1){
+      ass.res <- data_frame(INDIVIDUALS = character(0), CURRENT = character(0), INFERRED = character(0), SCORE = integer(0), MARKER_NUMBER = integer(0)) #create an empty dataframe
+    } else{#THL != 1... > 1 number or < 1 for proportions 
+      ass.res <- data_frame(CURRENT = character(0), INFERRED = character(0), ASSIGNMENT_PERC = integer(0), MARKER_NUMBER = integer(0), ITERATIONS = integer(0)) #create an empty dataframe
+    }
+    write_tsv(x = ass.res, path = paste0(directory,filename.ass.res), col_names = TRUE, append = FALSE) #create an empty file
+    
     i <- NULL
     assignment.res <- list()
-      assignment.res <-foreach(i=iterations.list, .packages = c("magrittr", "plyr", "dplyr", "tidyr", "stringi", "readr", "reshape2", "purrr")) %dopar% {
+    
+    # foreach
+    assignment.res <-foreach(i=iterations.list, .packages = c("magrittr", "plyr", "dplyr", "tidyr", "stringi", "readr", "reshape2", "purrr")) %dopar% {
       
       holdout <- data.frame(i)
       # holdout <- data.frame(iterations.list[2])
@@ -1388,7 +1400,10 @@ vcf2gsi_sim <- function(vcf.file,
             file.remove(output.gsi)
           }
           
-          if(THL != 1){
+          # saving preliminary results
+          if(THL == 1){
+            write_tsv(x = assignment, path = paste0(directory,filename.ass.res), col_names = FALSE, append = TRUE) #create an empty file
+          } else{#THL != 1
             assignment <- assignment %>% 
               group_by(CURRENT, INFERRED, MARKER_NUMBER) %>% 
               tally %>% 
@@ -1404,6 +1419,7 @@ vcf2gsi_sim <- function(vcf.file,
               filter(as.character(CURRENT) == as.character(INFERRED)) %>% 
               select(CURRENT, INFERRED, ASSIGNMENT_PERC, MARKER_NUMBER) %>% 
               mutate(ITERATIONS = rep(unique(holdout$ITERATIONS), n()))
+            write_tsv(x = assignment, path = paste0(directory,filename.ass.res), col_names = FALSE, append = TRUE) #create an empty file
           }
           
           #compile assignment results each marker number for the iteration
