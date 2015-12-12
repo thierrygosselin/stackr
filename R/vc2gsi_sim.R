@@ -644,9 +644,22 @@ vcf2gsi_sim <- function(vcf.file,
       cl <- makeCluster(detectCores() - 1)
       registerDoParallel(cl, cores = detectCores() - 1)
       
+      #Progress combine function
+      f <- function(){
+        pb <- txtProgressBar(min=1, max=iterations.list-1,style=3)
+        count <- 0
+        function(...) {
+          count <<- count + length(list(...)) - 1
+          setTxtProgressBar(pb,count)
+          Sys.sleep(0.01)
+          flush.console()
+          c(...)
+        }
+      }
+      
       
       j <- NULL
-      foreach(j=iterations.list, .packages = c("magrittr", "plyr", "dplyr", "tidyr", "stringi", "readr", "randomForestSRC", "reshape2")) %dopar% {
+      foreach(j=iterations.list, .combine=f(), .packages = c("magrittr", "plyr", "dplyr", "tidyr", "stringi", "readr", "randomForestSRC", "reshape2")) %dopar% {
         # j <-100
         
         # Sampling markers ----------------------------------------------------
@@ -1208,6 +1221,20 @@ vcf2gsi_sim <- function(vcf.file,
     } # end write gsi
     
     message("Starting parallel computations, progress bar not yet implemented, so keep track in the directory for activity")
+    
+    #Progress combine function
+#     f <- function(){
+#       progress.bar <- txtProgressBar(min=1, max=length(iterations.list)-1,style=3)
+#       count <- 0
+#       function(...) {
+#         count <<- count + length(list(...)) - 1
+#         setTxtProgressBar(progress.bar,count)
+#         Sys.sleep(0.01)
+#         flush.console()
+#         c(...)
+#       }
+#     }
+    
     # Start cluster registration backend
     if (missing(parallel.core) == "TRUE"){
       # Automatically select all the core -1 
@@ -1221,7 +1248,7 @@ vcf2gsi_sim <- function(vcf.file,
     # Going through the loop of holdout individuals-----------------------------
     i <- NULL
     assignment.res <- list()
-    assignment.res <-foreach(i=iterations.list, .packages = c("magrittr", "plyr", "dplyr", "tidyr", "stringi", "readr", "reshape2", "purrr")) %dopar% {
+      assignment.res <-foreach(i=iterations.list, .packages = c("magrittr", "plyr", "dplyr", "tidyr", "stringi", "readr", "reshape2", "purrr")) %dopar% {
       
       holdout <- data.frame(i)
       # holdout <- data.frame(iterations.list[2])
@@ -1531,12 +1558,12 @@ vcf2gsi_sim <- function(vcf.file,
           }
         } # end imputation in marker number loop
         # when imputation method is finished, here you should merge the no.imputation and imputed data
-        # res[[i]] <-assignment
+        # res[[ijkl]] <-assignment
       } # End marker number loop for both with and without imputations
       return(assignment.res)
     } # End holdout individuals loop
     stopCluster(cl) # close parallel connection settings
-    
+    message("compiling the results")
     # Missing data info
     if(imputations == FALSE) {
       missing.data <- "no.imputation"
@@ -1602,13 +1629,15 @@ vcf2gsi_sim <- function(vcf.file,
         mutate(CURRENT = rep("OVERALL", n())) %>% 
         arrange(CURRENT, MARKER_NUMBER)
       
-      assignment.summary.stats <- bind_rows(assignment.stats.pop, assignment.stats.overall) %>% 
-        mutate(CURRENT = factor(CURRENT, levels = pop.levels.assignment.stats.overall, ordered = TRUE)) %>% 
-        arrange(CURRENT, MARKER_NUMBER) %>% 
-        mutate(
-          SE_MIN = MEAN - SE,
-          SE_MAX = MEAN + SE
-        )
+      assignment.summary.stats <- suppressWarnings(
+        bind_rows(assignment.stats.pop, assignment.stats.overall) %>% 
+          mutate(CURRENT = factor(CURRENT, levels = pop.levels.assignment.stats.overall, ordered = TRUE)) %>% 
+          arrange(CURRENT, MARKER_NUMBER) %>% 
+          mutate(
+            SE_MIN = MEAN - SE,
+            SE_MAX = MEAN + SE
+          )
+      )
     } # end THL == 1
     
     if(THL != 1){
