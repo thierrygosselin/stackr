@@ -25,7 +25,7 @@ make_tfam <- function(population.map, pop.id.start, pop.id.end, pop.levels, file
     select(INDIVIDUALS=X1) %>%
     mutate(
       INDIVIDUALS = as.character(INDIVIDUALS),
-      POP_ID = str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+      POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end),
       POP_ID = factor(POP_ID, levels = pop.levels, ordered =T)
       ) %>%
     select(POP_ID, INDIVIDUALS) %>%

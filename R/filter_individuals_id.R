@@ -59,7 +59,7 @@ filter_id_whitelist <- function (data, whitelist.id, pop.id.start, pop.id.end, p
   whitelist.id.filter <- whitelist.id %>%
     left_join(data, by = "INDIVIDUALS") %>%
     mutate(
-      POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+      POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end),
                       levels = pop.levels, ordered =T)
     ) %>%
     arrange(LOCUS)

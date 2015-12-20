@@ -26,11 +26,8 @@ Imports:
     randomForestSRC,
     stringdist,
     foreach,
-    doSNOW,
-    snow,
     parallel,
-    doParallel,
-    purrr
+    doParallel
 Suggests:
     boot,
     pegas,

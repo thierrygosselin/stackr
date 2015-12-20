@@ -70,7 +70,7 @@ read_stacks_haplotypes_vcf <- function(haplotypes.vcf.file, pop.id.start, pop.id
       CHROM = as.integer(CHROM),
       REF_FREQ = as.numeric(REF_FREQ),
       READ_DEPTH = as.numeric(READ_DEPTH),
-      POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+      POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end),
                       levels = pop.levels, ordered =T)
     )
   

@@ -126,7 +126,7 @@ filter_all <- function (haplotypes, vcf,
     rename(LOCUS =`Catalog ID`) %>%
     tidyr::gather(SAMPLES, HAPLOTYPES, -c(LOCUS, Cnt)) %>%
     mutate(
-      POP_ID = str_sub(SAMPLES, pop.id.start, pop.id.end),
+      POP_ID = substr(SAMPLES, pop.id.start, pop.id.end),
       POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
     )
   
@@ -221,7 +221,7 @@ filter_all <- function (haplotypes, vcf,
   
   vcf.tidy <- mutate(
     vcf, 
-    POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+    POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end),
                     levels = pop.levels, ordered =T)
   ) %>%
     arrange(LOCUS, POS, POP_ID, INDIVIDUALS)  

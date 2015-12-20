@@ -125,7 +125,7 @@ summary_haplotypes <- function(haplotypes.file,
   
   haplotype <- suppressWarnings(haplotype %>%
                                   mutate(
-                                    POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end),
+                                    POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end),
                                                     levels = pop.levels, labels = pop.labels, ordered = T),
                                     POP_ID = droplevels(POP_ID)
                                   )
@@ -328,7 +328,7 @@ summary_haplotypes <- function(haplotypes.file,
       HOM_O = HOM/N_GENOT,
       HET_O = HET/N_GENOT
     ) %>% 
-    mutate(POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end), 
+    mutate(POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
                            levels = pop.levels, ordered = T)) %>% 
     arrange(POP_ID, INDIVIDUALS)
   

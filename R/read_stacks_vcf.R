@@ -232,7 +232,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
   vcf <- suppressWarnings(
     vcf %>% 
       mutate(
-        POP_ID = factor(str_sub(INDIVIDUALS, pop.id.start, pop.id.end), 
+        POP_ID = factor(substr(INDIVIDUALS, pop.id.start, pop.id.end), 
                         levels = pop.levels, labels = pop.labels, ordered = T)
       ) %>%
       arrange(LOCUS, POS, POP_ID, INDIVIDUALS)
