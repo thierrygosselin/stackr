@@ -1,9 +1,10 @@
 # stackr
 
-[![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) 
+[![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr)
 [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-The goal of **stackr** is to make GBS/RAD data produced by [STACKS] (http://creskolab.uoregon.edu/stacks/) easy to analyse in R.
+The goal of **stackr** is to make GBS/RAD data produced by [STACKS] (http://catchenlab.life.illinois.edu/stacks/) easy to analyse in R.
 
 This is the development page of the **stackr** package for the R software, optimized for *de novo* and population genetics.
 
@@ -132,11 +133,23 @@ install.packages(pkgs = "~/Downloads/randomForestSRC", repos = NULL, type = "sou
 ## New
 
 **v.0.2.0**
-Introducing several vcf2... functions: 
+Introducing several new functions: 
 * vcf2betadiv: to easily convert a VCF file created in STACKS to a betadiv input file.
 * vcf2genind: same as haplo2genind but works with SNP instead of haplotypes.
 * vcf2hierfstat: same as haplo2hierfstat but works with SNP instead of haplotypes.
-* vcf2gsi_sim: conduct a full assignment workflow from STACKS VCF file, assignment in GSI_SIM and compiling results back in R. Several function arguments make it easy to conduct Training-Holdout-Leave-one-out (THL) or Leave-One-Out (LOO). Select markers randomly or based on ranked Fst. Global Fst are average by populations and  computed using Weir and Cockerham 1984 equations. Results are identical to hierfstat wc function.
+* GBS_assignment: conduct a full assignment workflow using gsi_sim (a tool 
+developed by Eric C. Anderson for doing and simulating genetic stock 
+identification). The arguments in the \code{GBS_assignment} function were tailored for the 
+reality of GBS data for assignment analysis while maintaining a reproducible 
+workflow. The input data is a VCF file produced by STACKS. Individuals, 
+populations and markers can be filtered and/or selected in several ways using 
+blacklist, whitelist and other arguments. Map-independent imputation of missing 
+genotype using Random Forest or the most frequent category is also available. 
+Markers can be randomly selected for a classic LOO (Leave-One-Out) assignment 
+or chosen based on ranked Fst for a THL (Traing, Holdout, Leave-one-out) 
+assignment analysis. Global Fst are average by populations and computed using 
+Weir and Cockerham 1984 equations (results are identical to hierfstat wc 
+function).
 
 **v.0.1.5**
 Introducing *haplo2gsi_sim* function.
@@ -223,7 +236,7 @@ New to pull request on github ? The process is very easy:
 * “Fixing typos” is perfectly adequate.
 
 ## GBS workflow
-The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://creskolab.uoregon.edu/stacks/) and other software. You can use the [STACKS] (http://creskolab.uoregon.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
+The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://catchenlab.life.illinois.edu/stacks/) and other software. You can use the [STACKS] (http://catchenlab.life.illinois.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
 ## stackr workflow 
 Look at step 1 as a quality insurance step. We need to modify the data to play with it efficiently in R. To have reliable summary statistics, you first need good coverage of your alleles to call your genotypes, good genotype likelihood, enough individuals in each sampling sites and enough putative populations with your markers... Step 2 is where the actual work is done to remove artifactual and uninformative markers based on summary statistics of your markers.
 ![](vignettes/stackr_workflow.png)

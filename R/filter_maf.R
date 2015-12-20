@@ -10,7 +10,7 @@
 #' @param local.maf.threshold Number.
 #' @param global.maf.threshold Number.
 #' @param pop.threshold Fixed number of pop required to keep the locus.
-#' @param operator \code{"AND"} or \code{"or"}. Default = \code{"or"}. 
+#' @param operator \code{"AND"} or \code{"OR"}. Default = \code{"OR"}. 
 #' When filtering over LOCUS or SNP, do you want the local \code{"AND"} 
 #' global MAF to pass the thresholds, or ... you want the local \code{"OR"} 
 #' global MAF to pass the thresholds, to keep the marker?

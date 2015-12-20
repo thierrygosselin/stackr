@@ -21,7 +21,7 @@ Default by \code{"haplotype"}.}
 
 \item{pop.threshold}{Fixed number of pop required to keep the locus.}
 
-\item{operator}{\code{"AND"} or \code{"or"}. Default = \code{"or"}. 
+\item{operator}{\code{"AND"} or \code{"OR"}. Default = \code{"OR"}. 
 When filtering over LOCUS or SNP, do you want the local \code{"AND"} 
 global MAF to pass the thresholds, or ... you want the local \code{"OR"} 
 global MAF to pass the thresholds, to keep the marker?}
