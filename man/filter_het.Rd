@@ -4,12 +4,16 @@
 \alias{filter_het}
 \title{Heterozygosity filter}
 \usage{
-filter_het(data, het.threshold, het.diff.threshold, pop.threshold, percent,
-  filename)
+filter_het(data, approach = "haplotype", het.threshold, het.diff.threshold,
+  pop.threshold, percent, filename)
 }
 \arguments{
 \item{data}{A data frame object or file (using ".tsv")
 of class sumstats or a tidy VCF summarised.}
+
+\item{approach}{Character. By \code{"SNP"} or by \code{"haplotype"}. 
+The function will consider the SNP or haplotype MAF statistics to filter the marker. 
+Default by \code{"haplotype"}.}
 
 \item{het.threshold}{Number (0 - 0.5)}
 
