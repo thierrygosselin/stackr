@@ -35,7 +35,7 @@ install_github("thierrygosselin/stackr") # to install
 library(stackr) # to load
 ```
 
-**Note:**
+**Problems during installation:**
 
 Sometimes you'll get warnings while installing dependencies required for **stackr** or other R packages.
 ```r
