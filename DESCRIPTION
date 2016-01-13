@@ -8,7 +8,6 @@ Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
   person("Anne-Laure", "Ferchaud", role = "ctb"),
   person("Laura", "Benestan", role = "ctb"))
-
 Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: Set of tools to look at GBS/RAD data created by STACKS software.
 Depends:
