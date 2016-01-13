@@ -14,11 +14,12 @@ This is the development page of the **stackr** package for the R software, optim
 * Filters genetic markers based on: coverage (read depth, REF and ALT allele depth), genotype likelihood, number of individuals, number of populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis)
 * `ggplot2`-based plotting to view distributions of summary statistics and create publication-ready figures
 * Convert data into *genepop*, *genind*, *fstat*, and *gtypes* object for easy integration with [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
-* Impute GBS markers without a genetic map using Random Forest within the *haplo2genepop*, *haplo2genind*, *haplo2fstat*, *haplo2gtypes* and *haplo2colony* functions 
+* Impute GBS markers without a genetic map using Random Forest within the *haplo2genepop*, *haplo2genind*, *haplo2hierfstat*, *haplo2gtypes*, *haplo2colony*, *vcf2genind*, *vcf2hierfstat*, *vcf2betadiv* and *vcf_imputation* functions 
 
 **Requirement:**
 Because STACKS is always under development (more than 100 versions so far!), 
-**stackr** will work best with Stacks version >= 1.29.
+**stackr** will work best with Stacks version >= 1.29. 
+Send me an e-mail if you desperately need to use prior versions.
 
 ## Installation
 You can try out the dev version of **stackr**. Follow the 2 steps below:
