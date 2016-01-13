@@ -95,9 +95,6 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
   if (missing(pop.id.start)) stop("pop.id.start required")
   if (missing(pop.id.end)) stop("pop.id.end required")
   
-  # if (missing(filename)) gsi_sim.filename <- "gsi_sim_data.txt"
-  
-  
   # Import/read VCF ************************************************************
   message("Importing the VCF...")
   vcf <- read_delim(
@@ -106,7 +103,7 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
     comment = "##",
     progress = interactive()
   ) %>%
-    select(-c(QUAL, FILTER, INFO)) %>%
+    select(-c(QUAL, FILTER)) %>%
     rename(LOCUS = ID, CHROM = `#CHROM`) %>%
     mutate(
       CHROM = stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1")
