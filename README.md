@@ -111,19 +111,6 @@ Introducing several new functions:
 * vcf2betadiv: to easily convert a VCF file created in STACKS to a betadiv input file.
 * vcf2genind: same as haplo2genind but works with SNP instead of haplotypes.
 * vcf2hierfstat: same as haplo2hierfstat but works with SNP instead of haplotypes.
-* GBS_assignment: conduct a full assignment workflow using gsi_sim (a tool 
-developed by Eric C. Anderson for doing and simulating genetic stock 
-identification). The arguments in the \code{GBS_assignment} function were tailored for the 
-reality of GBS data for assignment analysis while maintaining a reproducible 
-workflow. The input data is a VCF file produced by STACKS. Individuals, 
-populations and markers can be filtered and/or selected in several ways using 
-blacklist, whitelist and other arguments. Map-independent imputation of missing 
-genotype using Random Forest or the most frequent category is also available. 
-Markers can be randomly selected for a classic LOO (Leave-One-Out) assignment 
-or chosen based on ranked Fst for a THL (Traing, Holdout, Leave-one-out) 
-assignment analysis. Global Fst are average by populations and computed using 
-Weir and Cockerham 1984 equations (results are identical to hierfstat wc 
-function).
 
 **v.0.1.5**
 Introducing *haplo2gsi_sim* function.
