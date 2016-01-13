@@ -4,6 +4,9 @@
 #' or a tidy VCF file.
 #' @param data A data frame object or file (using ".tsv")
 #' of class sumstats or a tidy VCF summarised.
+#' @param approach Character. By \code{"SNP"} or by \code{"haplotype"}. 
+#' The function will consider the SNP or haplotype MAF statistics to filter the marker. 
+#' Default by \code{"haplotype"}.
 #' @param het.threshold Number (0 - 0.5)
 #' @param het.diff.threshold Number (0 - 1).
 #' @param pop.threshold Fixed number of pop required to keep the locus.
@@ -17,7 +20,7 @@
 #' @seealso \link{plot_density_distribution_het}
 
 
-filter_het <- function(data, het.threshold, het.diff.threshold, pop.threshold, percent, filename) {
+filter_het <- function(data, approach = "haplotype", het.threshold, het.diff.threshold, pop.threshold, percent, filename) {
   
   POP_ID <- NULL
   LOCUS <- NULL
@@ -50,21 +53,39 @@ filter_het <- function(data, het.threshold, het.diff.threshold, pop.threshold, p
     threshold.id <- "population as a fixed"
   }
   
-  het.filter <- data %>%
-    select(LOCUS, POS, POP_ID, HET_O) %>%
-    group_by (LOCUS, POP_ID) %>%
-    summarise(
-      HET_DIFF = max(HET_O) - min(HET_O),
-      HET_MAX = max(HET_O)
-    ) %>%
-    filter(HET_DIFF <= het.diff.threshold & HET_MAX <= het.threshold) %>%  
-    group_by(LOCUS) %>%
-    tally() %>%
-    filter((n * multiplication.number) >= pop.threshold) %>%
-    select(LOCUS) %>%
-    left_join(data, by="LOCUS") %>%
-    arrange(LOCUS, POP_ID)
-  
+  if (missing(approach) | approach == "haplotype"){
+    message("Approach selected: haplotype")
+    het.filter <- data %>%
+      select(LOCUS, POS, POP_ID, HET_O) %>%
+      group_by (LOCUS, POP_ID) %>%
+      summarise(
+        HET_DIFF = max(HET_O) - min(HET_O),
+        HET_MAX = max(HET_O)
+      ) %>%
+      filter(HET_DIFF <= het.diff.threshold & HET_MAX <= het.threshold) %>%  
+      group_by(LOCUS) %>%
+      tally() %>%
+      filter((n * multiplication.number) >= pop.threshold) %>%
+      select(LOCUS) %>%
+      left_join(data, by="LOCUS") %>%
+      arrange(LOCUS, POP_ID)
+  } else {
+    message("Approach selected: SNP")
+    het.filter <- data %>%
+      select(LOCUS, POS, POP_ID, HET_O) %>%
+      group_by(LOCUS, POS, POP_ID) %>%
+      summarise(
+        HET_DIFF = max(HET_O) - min(HET_O),
+        HET_MAX = max(HET_O)
+      ) %>%
+      filter(HET_DIFF <= het.diff.threshold & HET_MAX <= het.threshold) %>%  
+      group_by(LOCUS, POS) %>%
+      tally() %>%
+      filter((n * multiplication.number) >= pop.threshold) %>%
+      select(LOCUS, POS) %>%
+      left_join(data, by = c("LOCUS", "POS")) %>%
+      arrange(LOCUS, POS, POP_ID)
+  }
   
   if (missing(filename) == "FALSE") {
     message("Saving the file in your working directory...")
@@ -73,7 +94,6 @@ filter_het <- function(data, het.threshold, het.diff.threshold, pop.threshold, p
   } else {
     saving <- "Saving was not selected..."
   }
-  
   
   invisible(cat(sprintf(
     "HET filter:
@@ -96,9 +116,7 @@ Working directory:
     n_distinct(data$LOCUS), n_distinct(het.filter$LOCUS),
     saving, getwd()
   )))
-  
   return(het.filter)
-  
 }
 
 

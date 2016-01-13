@@ -4,6 +4,9 @@
 #' or a tidy VCF file.
 #' @param data A data frame object or file (using ".tsv")
 #' of class sumstats or a tidy VCF summarised.
+#' @param approach Character. By \code{"SNP"} or by \code{"haplotype"}. 
+#' The function will consider the SNP or haplotype MAF statistics to filter the marker. 
+#' Default by \code{"haplotype"}.
 #' @param fis.min.threshold Number
 #' @param fis.max.threshold Number.
 #' @param fis.diff.threshold Number (0 - 1)
@@ -17,7 +20,7 @@
 #' @import readr
 
 
-filter_fis <- function(data, fis.min.threshold, fis.max.threshold, fis.diff.threshold, pop.threshold, percent, filename) {
+filter_fis <- function(data, approach = "haplotype", fis.min.threshold, fis.max.threshold, fis.diff.threshold, pop.threshold, percent, filename) {
   
   POP_ID <- NULL
   LOCUS <- NULL
@@ -25,7 +28,7 @@ filter_fis <- function(data, fis.min.threshold, fis.max.threshold, fis.diff.thre
   FIS_MIN <- NULL
   FIS_MAX <- NULL
   FIS_DIFF <- NULL
-
+  
   
   if (is.vector(data) == "TRUE") {
     data <- read_tsv(data, col_names = T)
@@ -51,23 +54,45 @@ filter_fis <- function(data, fis.min.threshold, fis.max.threshold, fis.diff.thre
     threshold.id <- "population as a fixed"
   }
   
-  fis.filter <- data %>%
-    select(LOCUS, POS, POP_ID, FIS) %>%
-    group_by (LOCUS, POP_ID) %>%
-    summarise(
-      FIS_MIN = min(FIS),
-      FIS_MAX = max(FIS),
-      FIS_DIFF = FIS_MAX-FIS_MIN
-    ) %>%
-    filter(FIS_MIN >= fis.min.threshold) %>%
-    filter(FIS_MAX <= fis.max.threshold) %>%
-    filter(FIS_DIFF <= fis.diff.threshold) %>%
-    group_by(LOCUS) %>%
-    tally() %>%
-    filter((n * multiplication.number) >= pop.threshold) %>%
-    select(LOCUS) %>%
-    left_join(data, by="LOCUS") %>%
-    arrange(LOCUS, POP_ID)
+  if (missing(approach) | approach == "haplotype"){
+    message("Approach selected: haplotype")
+    fis.filter <- data %>%
+      select(LOCUS, POS, POP_ID, FIS) %>%
+      group_by (LOCUS, POP_ID) %>%
+      summarise(
+        FIS_MIN = min(FIS),
+        FIS_MAX = max(FIS),
+        FIS_DIFF = FIS_MAX-FIS_MIN
+      ) %>%
+      filter(FIS_MIN >= fis.min.threshold) %>%
+      filter(FIS_MAX <= fis.max.threshold) %>%
+      filter(FIS_DIFF <= fis.diff.threshold) %>%
+      group_by(LOCUS) %>%
+      tally() %>%
+      filter((n * multiplication.number) >= pop.threshold) %>%
+      select(LOCUS) %>%
+      left_join(data, by="LOCUS") %>%
+      arrange(LOCUS, POP_ID)
+  } else {
+    message("Approach selected: SNP")
+    fis.filter <- data %>%
+      select(LOCUS, POS, POP_ID, FIS) %>%
+      group_by(LOCUS, POS, POP_ID) %>%
+      summarise(
+        FIS_MIN = min(FIS),
+        FIS_MAX = max(FIS),
+        FIS_DIFF = FIS_MAX-FIS_MIN
+      ) %>%
+      filter(FIS_MIN >= fis.min.threshold) %>%
+      filter(FIS_MAX <= fis.max.threshold) %>%
+      filter(FIS_DIFF <= fis.diff.threshold) %>%
+      group_by(LOCUS, POS) %>%
+      tally() %>%
+      filter((n * multiplication.number) >= pop.threshold) %>%
+      select(LOCUS, POS) %>%
+      left_join(data, by = c("LOCUS", "POS")) %>%
+      arrange(LOCUS, POS, POP_ID)
+}
   
   
   if (missing(filename) == "FALSE") {
@@ -98,7 +123,5 @@ Working directory:
     n_distinct(data$LOCUS), n_distinct(fis.filter$LOCUS),
     saving, getwd()
   )))
-  
   return(fis.filter)
-  
 }

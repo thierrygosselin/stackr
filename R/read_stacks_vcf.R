@@ -7,14 +7,23 @@
 #' in the name of your individual sample.
 #' @param pop.levels An character string with your populations ordered.
 #' @param pop.labels An optional character string with new populations names.
-#' @param whitelist An optional filter of loci can be applied to the vcf, using
-#' a file in the working directory (e.g. "myfile.txt") or an object
-#' in the global environment.
-#' @param blacklist (optional) Blacklist file with loci to filter out
-#' of the vcf, using a file in the working directory (e.g. "myfile.txt")
-#' or an object in the global environment.
+
+#' @param whitelist (optional) A whitelist containing CHROM (character
+#' or integer) and/or LOCUS (integer) and/or
+#' POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
+#' The whitelist is in the working directory (e.g. "whitelist.txt").
+#' de novo CHROM column with 'un' need to be changed to 1. 
+#' Default \code{NULL} for no whitelist of markers.
+
+#' @param blacklist (optional) A blacklist containing CHROM (character
+#' or integer) and/or LOCUS (integer) and/or
+#' POS (integer) columns header. To filter out by CHROM and/or locus and/or by snp.
+#' The blacklist is in the working directory (e.g. "blacklist.loci.txt").
+#' de novo CHROM column with 'un' need to be changed to 1. 
+#' Default \code{NULL} for no blacklist of markers.
+
 #' @param blacklist.id (optional) A blacklist with individual ID and
-#' a column header 'INDIVIDUALS'. The blacklist is in the directory
+#' a column header 'INDIVIDUALS'. The blacklist is in the working directory
 #'  (e.g. "blacklist.id.30.txt").
 #' @param filename (optional) The name of the file written in the directory.
 #' @rdname read_stacks_vcf
@@ -53,7 +62,7 @@
 
 read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.labels, whitelist, blacklist, blacklist.id,
                             filename) {
-
+  
   X1 <- NULL
   POP_ID <- NULL
   QUAL <- NULL
@@ -73,24 +82,37 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
   ALLELE_DEPTH <- NULL
   GT <- NULL
   GL <- NULL
-  #   ALLELE_P <- NULL
-  #   ALLELE_Q <- NULL
   ALLELE_REF_DEPTH <- NULL
   ALLELE_ALT_DEPTH <- NULL
   
-  # Import/read VCF ------------------------------------------------------------- 
-  message("Importing the VCF...")
+  # Checking for missing and/or default arguments ******************************
+  if (missing(vcf.file)) stop("VCF file required")
+  if (missing(whitelist)) whitelist <- NULL # no Whitelist
+  if (missing(blacklist)) blacklist <- NULL
+  if (missing(blacklist.id)) blacklist.id <- NULL # No blacklist of ID
+  if (missing(pop.levels)) stop("pop.levels required")
+  if (missing(pop.labels)) pop.labels <- pop.levels # pop.labels
+  if (missing(pop.id.start)) stop("pop.id.start required")
+  if (missing(pop.id.end)) stop("pop.id.end required")
   
+  # if (missing(filename)) gsi_sim.filename <- "gsi_sim_data.txt"
+  
+  
+  # Import/read VCF ************************************************************
+  message("Importing the VCF...")
   vcf <- read_delim(
-    vcf.file, 
-    delim = "\t", 
+    vcf.file,
+    delim = "\t",
     comment = "##",
     progress = interactive()
-  ) %>% 
-    select(-c(QUAL, FILTER)) %>%
-    rename(LOCUS = ID, CHROM = `#CHROM`)
+  ) %>%
+    select(-c(QUAL, FILTER, INFO)) %>%
+    rename(LOCUS = ID, CHROM = `#CHROM`) %>%
+    mutate(
+      CHROM = stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1")
+    )
   
-  # detect stacks version
+  # Detect STACKS version ******************************************************
   if(stri_detect_fixed(vcf$FORMAT[1], "AD")) {
     stacks.version <- "new"
   } else{
@@ -99,37 +121,38 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
   
   vcf <- vcf %>% select(-FORMAT)
   
-  # Whitelist/Blacklist ---------------------------------------------------------- 
-  if (missing(whitelist) == "TRUE") {
-    vcf <- vcf
+  # Whitelist of markers *******************************************************
+  if (is.null(whitelist)) { # no Whitelist
     message("No whitelist to apply to the VCF")
-  } else if (is.vector(whitelist) == "TRUE") {
-    vcf <- vcf %>% 
-      semi_join(
-        read_tsv(whitelist, col_names = T),
-        by = "LOCUS"
-      )
+    vcf <- vcf
+  } else { # with Whitelist of markers
     message("Filtering the VCF with the whitelist from your directory")
-  } else {
-    vcf <- vcf %>%
-      semi_join(whitelist, by = "LOCUS")
-    message("Filtering the VCF with the whitelist from your global environment")
+    whitelist <- read_tsv(whitelist, col_names = TRUE)
+    columns.names.whitelist <- colnames(whitelist)
+    if ("CHROM" %in% columns.names.whitelist){
+      whitelist$CHROM <- as.character(whitelist$CHROM)
+    }
+    vcf <- suppressWarnings(
+      vcf %>%
+        semi_join(whitelist, by = columns.names.whitelist)
+    )
   }
   
-  if (missing(blacklist) == "TRUE") {
-    vcf <- vcf
+  # Blacklist of markers *******************************************************
+  if (is.null(blacklist)) { # no Blacklist
     message("No blacklist to apply to the VCF")
-  } else if (is.vector(blacklist) == "TRUE") {
+    vcf <- vcf
+  } else { # with Blacklist of markers
     message("Filtering the VCF with the blacklist from your directory")
-    vcf <- vcf  %>% 
-      anti_join(
-        read_tsv(blacklist, col_names = T),
-        by = "LOCUS"
-      )
-  } else {
-    message("Filtering the VCF with the blacklist from your global environment")
-    vcf <- vcf %>% 
-      anti_join(blacklist, by = "LOCUS")
+    blacklist <- read_tsv(blacklist, col_names = TRUE)
+    columns.names.blacklist <- colnames(blacklist)
+    if ("CHROM" %in% columns.names.blacklist){
+      blacklist$CHROM <- as.character(blacklist$CHROM)
+    }
+    vcf <- suppressWarnings(
+      vcf %>%
+        anti_join(blacklist, by = columns.names.blacklist)
+    )
   }
   
   # Make VCF tidy-----------------------------------------------------------------
@@ -148,38 +171,30 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
   vcf <- tidyr::gather(vcf, INDIVIDUALS, FORMAT, -c(CHROM:ALT_FREQ))
   message("Gathering individuals in 1 column")
   
-  # Blacklist id----------------------------------------------------------------
-  
-  if (missing(blacklist.id) == "TRUE") {
+  # Blacklist id ***************************************************************
+  if (is.null(blacklist.id)) { # No blacklist of ID
     message("No individual blacklisted")
-    blacklist.id <- NULL
     vcf <- vcf
-  } else if (is.vector(blacklist.id) == "TRUE") {
+  } else { # With blacklist of ID
     message("Using the blacklisted id from the directory")
     blacklist.id <- read_tsv(blacklist.id, col_names = T)
     vcf <- suppressWarnings(
-      vcf %>% 
-        anti_join(blacklist.id, by = "INDIVIDUALS")
-    )
-  } else {
-    message("Using the blacklisted id from your global environment")
-    blacklist.id <- blacklist.id
-    vcf <- suppressWarnings(
-      vcf %>% 
-        anti_join(blacklist.id, by = "INDIVIDUALS")
+      vcf %>%
+        anti_join(blacklist.id, by = "INDIVIDUALS") %>%
+        mutate(POP_ID = droplevels(POP_ID))
     )
   }
-  
+
   # Separate FORMAT and COVERAGE columns ---------------------------------------
   message("Tidying the VCF...")
   
   if(stacks.version == "new"){
     vcf <- suppressWarnings(
       vcf %>%
-      tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
-                      sep = ":", extra = "warn") %>% 
-      tidyr::separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
-                      sep = ",", extra = "warn")
+        tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
+                        sep = ":", extra = "warn") %>% 
+        tidyr::separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
+                        sep = ",", extra = "warn")
     )
   } else {
     # stacks version prior to v.1.29 had no Allele Depth field...
@@ -198,7 +213,6 @@ read_stacks_vcf <- function(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.
   
   vcf <- vcf %>%
     mutate(
-      CHROM = suppressWarnings(as.numeric(stri_replace_all_fixed(CHROM, "un", "1", vectorize_all=F))),
       GL = suppressWarnings(as.numeric(stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all=F)))
     ) %>%
     # Mutate read depth

@@ -132,6 +132,10 @@ install.packages(pkgs = "~/Downloads/randomForestSRC", repos = NULL, type = "sou
 
 ## New
 
+**v.0.2.1**
+* 'read_stacks_vcf' can now use a whitelist or blacklist of loci that works with CHROM and/or SNP and/or LOCUS.
+* 'filter_maf', 'filter_fis', 'filter_het' now works by haplotypes or SNP.
+
 **v.0.2.0**
 Introducing several new functions: 
 * vcf2betadiv: to easily convert a VCF file created in STACKS to a betadiv input file.
