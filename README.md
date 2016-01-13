@@ -56,8 +56,7 @@ sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
 # Changing 'package_name' to the problematic package.
 # Reinstall the package.
 ```
-
-**Parallel computing in R**
+## Parallel computing in R and stackr
 
 On Mac OSX using OpenMP greatly reduce the computation time for the imputations. Follow the instructions [here] (http://gbs-cloud-tutorial.readthedocs.org/en/latest/03_computer_setup.html#update-your-computer-s-compiler) to update your computer's compiler (5 min step). 
 
