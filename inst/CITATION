@@ -4,8 +4,8 @@ citEntry(
 entry="Manual",
 title = "stackr: GBS/RAD Data Exploration, Manipulation and Visualization using R",
 year = "2015",
-author = "Thierry Gosselin",
+author = "Thierry Gosselin", "Louis Bernatchez"
 url = "https://github.com/thierrygosselin/stackr",
 doi = "http://dx.doi.org/10.5281/zenodo.19647",
-textVersion = paste("Thierry Gosselin (2015). stackr: GBS/RAD Data Exploration, Manipulation and Visualization using R. R package version 0.1.1. https://github.com/thierrygosselin/stackr. doi : 10.5281/zenodo.19647")
+textVersion = paste("Thierry Gosselin, Louis Bernatchez, (2015). stackr: GBS/RAD Data Exploration, Manipulation and Visualization using R. R package version 0.2.1. https://github.com/thierrygosselin/stackr. doi : 10.5281/zenodo.19647")
 )
