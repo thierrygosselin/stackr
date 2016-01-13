@@ -57,36 +57,6 @@ sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
 # Reinstall the package.
 ```
 
-**Dependencies**
-
-Here the list of packages that **stackr** is depending on:
-```r
-dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, purrr, lazyeval, adegenet, randomForestSRC, stringdist, foreach, parallel, doParallel
-```
-If you don't have them, no worries, it's intalled automatically during **stackr** installation. If you have them, it's your job to update them, because i'm using the latest versions...
-
-**Common use**
-
-When working in R I usually do this:
-```r
-# Clean my desk
-rm(list=ls())
-
-# load the required libraries
-library(reshape2)
-library(ggplot2)
-library(stringr)
-library(stringi)
-library(plyr)
-library(dplyr) # load this package after plyr to work properly
-library(tidyr)
-library(readr)
-library(randomForestSRC)
-library(doParallel)
-library(stackr)
-library(purrr)
-```
-
 **Parallel computing in R**
 
 On Mac OSX using OpenMP greatly reduce the computation time for the imputations. Follow the instructions [here] (http://gbs-cloud-tutorial.readthedocs.org/en/latest/03_computer_setup.html#update-your-computer-s-compiler) to update your computer's compiler (5 min step). 
@@ -254,6 +224,35 @@ Step 1. Load the necessary librairies, here is an example of how to do this:
 library(adegenet)
 library(stackr)
 ```
+
+
+*Dependencies*: here the list of packages that **stackr** is depending on.
+```r
+dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, purrr, lazyeval, adegenet, randomForestSRC, stringdist, foreach, parallel, doParallel
+```
+If you don't have them, no worries, it's intalled automatically during **stackr** installation. If you have them, it's your job to update them, because i'm using the latest versions...
+
+*When working in R I usually do this:*
+```r
+# Clean my desk
+rm(list=ls())
+
+# load the required libraries
+library(reshape2)
+library(ggplot2)
+library(stringr)
+library(stringi)
+library(plyr)
+library(dplyr) # load this package after plyr to work properly
+library(tidyr)
+library(readr)
+library(randomForestSRC)
+library(doParallel)
+library(stackr)
+library(purrr)
+```
+
+
 Step 2. Set your working directory (e.g. the path to your **stacks** output files and 
 where you want the output to be saved):
 
