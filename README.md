@@ -104,7 +104,7 @@ install.packages(pkgs = "~/Downloads/randomForestSRC", repos = NULL, type = "sou
 
 **v.0.2.1**
 * 'read_stacks_vcf' can now use a whitelist or blacklist of loci that works with CHROM and/or SNP and/or LOCUS.
-* 'filter_maf', 'filter_fis', 'filter_het' now works by haplotypes or SNP.
+* 'filter_maf', 'filter_fis', 'filter_het' and 'filter_genotype_likelihood' now works by haplotypes or SNP.
 
 **v.0.2.0**
 Introducing several new functions: 

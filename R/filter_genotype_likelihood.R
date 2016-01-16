@@ -2,21 +2,27 @@
 #' @description Filter markers based coverage and/or genotype likelihood
 #' using a tidy VCF file.
 #' @param tidy.vcf A tidy vcf object or file (using ".tsv").
-#' @param allele.min.depth.threshold Threshold number
-#' of min depth of REF or ALT alleles.
-#' @param read.depth.max.threshold Threshold number
-#' of maximum read depth.
+#' @param approach Character. By \code{"SNP"} or by \code{"haplotype"}. 
+#' The function will consider the SNP or haplotype MAF statistics to filter the marker. 
+#' Default by \code{"haplotype"}.
+
+#' @param allele.min.depth.threshold (integer) The minimum depth of coverage for
+#' the alleles (REF and ALT).
+#' @param read.depth.max.threshold (integer) The maximum depth of coverage for the
+#' read.
 #' @param gl.mean.threshold Threshold number of mean genotype likelihood. 
 #' @param gl.min.threshold Threshold number of min genotype likelihood. 
 #' @param gl.diff.threshold Threshold number of diff genotype likelihood,
-#' the difference between the max and min GL over a loci/read/haplotype. 
+#' the difference between the max and min GL over a loci/read/haplotype.
+
 #' @param pop.threshold A threshold number: proportion, percentage
-#' or fixed number e.g. 0.70, 70 or 15.
+#' or fixed number e.g. 0.50, 50 or 5.
 #' @param percent Is the threshold a percentage? TRUE or FALSE.
 #' This argument is necessary to distinguish percentage from integer population threshold.
-#' threshold (e.g. 5 percent or 5 populations).
+#' (e.g. 5 percent or 5 populations).
+
 #' @param filename Name of the file written to the working directory.
-#' @details The summary statistics are averaged
+#' @details Using the haplotype approach: The summary statistics are averaged
 #' and nested SNP -> individuals -> population -> loci. e.g. the mean GL is the average
 #' genotype likelihood for all individuals of pop x for loci x.
 #' Here the filter focus on global trend accross pop for individual loci.
@@ -28,7 +34,30 @@
 #' @import dplyr
 #' @import readr
 
-filter_genotype_likelihood <- function (tidy.vcf, allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold, gl.min.threshold, gl.diff.threshold, pop.threshold, percent, filename) {
+#' @examples
+#' \dontrun{
+#' If I have 10 populations, the codes below will give the same numbers:
+#' 
+#' beluga.vcf.tidy.gl <- filter_genotype_likelihood(tidy.vcf = beluga.vcf.tidy, 
+#' approach = "haplotype", allele.min.depth.threshold = 10, 
+#' read.depth.max.threshold = 100, gl.mean.threshold = 20, 
+#' gl.min.threshold = 5, gl.diff.threshold = 100, 
+#' pop.threshold = 50, percent = TRUE)
+#' 
+#' beluga.vcf.tidy.gl <- filter_genotype_likelihood(tidy.vcf = beluga.vcf.tidy, 
+#' approach = "haplotype", allele.min.depth.threshold = 10, 
+#' read.depth.max.threshold = 100, gl.mean.threshold = 20, 
+#' gl.min.threshold = 5, gl.diff.threshold = 100, 
+#' pop.threshold = 0.5, percent = FALSE)
+#' 
+#' beluga.vcf.tidy.gl <- filter_genotype_likelihood(tidy.vcf = beluga.vcf.tidy, 
+#' approach = "haplotype", allele.min.depth.threshold = 10, 
+#' read.depth.max.threshold = 100, gl.mean.threshold = 20, 
+#' gl.min.threshold = 5, gl.diff.threshold = 100, 
+#' pop.threshold = 5, percent = FALSE)
+#' }
+
+filter_genotype_likelihood <- function (tidy.vcf, approach = "haplotype", allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold, gl.min.threshold, gl.diff.threshold, pop.threshold, percent, filename) {
   
   
   ALLELE_REF_DEPTH <- NULL
@@ -46,7 +75,7 @@ filter_genotype_likelihood <- function (tidy.vcf, allele.min.depth.threshold, re
   
   
   if (is.vector(tidy.vcf) == "TRUE") {
-    data <- read_tsv(tidy.vcf, col_names = T)
+    data <- read_tsv(tidy.vcf, col_names = TRUE)
     message("Using the tidy vcf file in your directory")
   } else {
     data <- tidy.vcf
@@ -63,7 +92,7 @@ filter_genotype_likelihood <- function (tidy.vcf, allele.min.depth.threshold, re
     stop("This is not a tidy vcf with Allele Depth information,
          you need to run STACKS with a version > 1.29 for this to work.")
   }
-
+  
   if(stri_detect_fixed(pop.threshold, ".") & pop.threshold < 1) {
     multiplication.number <- 1/pop.number
     message("Using a proportion threshold...")
@@ -76,33 +105,57 @@ filter_genotype_likelihood <- function (tidy.vcf, allele.min.depth.threshold, re
     multiplication.number <- 1
     message("Using a fixed threshold...")
     threshold.id <- "population as a fixed"
-    
   }
   
-  filter <- data %>%
-    group_by(LOCUS, POP_ID) %>% # at the population level
-    summarise(
-      MIN_REF = min(ALLELE_REF_DEPTH, na.rm = T),
-      MIN_ALT = min(ALLELE_ALT_DEPTH, na.rm = T),
-      READ_DEPTH_MAX = max(READ_DEPTH, na.rm = T),
-      GL_MEAN = mean(GL, na.rm = T),
-      GL_MEDIAN = median(GL, na.rm = T),
-      GL_MIN = min(GL, na.rm = T),
-      GL_MAX = max(GL, na.rm = T),
-      GL_DIFF = GL_MAX - GL_MIN
-    ) %>%
-    filter(MIN_REF >= allele.min.depth.threshold | MIN_ALT >= allele.min.depth.threshold) %>%
-    filter(READ_DEPTH_MAX <= read.depth.max.threshold) %>% # read coverage
-    filter(GL_MEAN >= gl.mean.threshold & GL_MIN >= gl.min.threshold) %>%  # GL
-    filter(GL_DIFF <= gl.diff.threshold) %>%
-    group_by(LOCUS) %>%
-    tally() %>% # Globally accross loci
-    filter((n * multiplication.number) >= pop.threshold) %>%
-    select(LOCUS) %>%
-    left_join(data, by = "LOCUS") %>%
-    arrange(LOCUS, POS, POP_ID)
-  
-  
+  if (missing(approach) | approach == "haplotype"){
+    message("Approach selected: haplotype")
+    filter <- data %>%
+      group_by(LOCUS, POP_ID) %>% # at the population level
+      summarise(
+        MIN_REF = min(ALLELE_REF_DEPTH, na.rm = T),
+        MIN_ALT = min(ALLELE_ALT_DEPTH, na.rm = T),
+        READ_DEPTH_MAX = max(READ_DEPTH, na.rm = T),
+        GL_MEAN = mean(GL, na.rm = T),
+        GL_MEDIAN = median(GL, na.rm = T),
+        GL_MIN = min(GL, na.rm = T),
+        GL_MAX = max(GL, na.rm = T),
+        GL_DIFF = GL_MAX - GL_MIN
+      ) %>%
+      filter(MIN_REF >= allele.min.depth.threshold | MIN_ALT >= allele.min.depth.threshold) %>%
+      filter(READ_DEPTH_MAX <= read.depth.max.threshold) %>% # read coverage
+      filter(GL_MEAN >= gl.mean.threshold & GL_MIN >= gl.min.threshold) %>%  # GL
+      filter(GL_DIFF <= gl.diff.threshold) %>%
+      group_by(LOCUS) %>%
+      tally() %>% # Globally accross loci
+      filter((n * multiplication.number) >= pop.threshold) %>%
+      select(LOCUS) %>%
+      left_join(data, by = "LOCUS") %>%
+      arrange(LOCUS, POS, POP_ID)
+  } else {
+    message("Approach selected: SNP")
+    filter <- data %>%
+      group_by(LOCUS, POS, POP_ID) %>% # at the population level
+      summarise(
+        MIN_REF = min(ALLELE_REF_DEPTH, na.rm = T),
+        MIN_ALT = min(ALLELE_ALT_DEPTH, na.rm = T),
+        READ_DEPTH_MAX = max(READ_DEPTH, na.rm = T),
+        GL_MEAN = mean(GL, na.rm = T),
+        GL_MEDIAN = median(GL, na.rm = T),
+        GL_MIN = min(GL, na.rm = T),
+        GL_MAX = max(GL, na.rm = T),
+        GL_DIFF = GL_MAX - GL_MIN
+      ) %>%
+      filter(MIN_REF >= allele.min.depth.threshold | MIN_ALT >= allele.min.depth.threshold) %>%
+      filter(READ_DEPTH_MAX <= read.depth.max.threshold) %>% # read coverage
+      filter(GL_MEAN >= gl.mean.threshold & GL_MIN >= gl.min.threshold) %>%  # GL
+      filter(GL_DIFF <= gl.diff.threshold) %>%
+      group_by(LOCUS, POS) %>%
+      tally() %>% # Globally accross loci
+      filter((n * multiplication.number) >= pop.threshold) %>%
+      select(LOCUS, POS) %>%
+      left_join(data, by = c("LOCUS", "POS")) %>%
+      arrange(LOCUS, POS, POP_ID)
+  }
   
   if (missing(filename) == "FALSE") {
     message("Saving the file in your working directory...")
@@ -135,3 +188,4 @@ Working directory:
   )))
   filter
 }
+

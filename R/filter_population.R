@@ -8,7 +8,7 @@
 #' or fixed number e.g. 0.70, 70 or 15.
 #' @param percent Is the threshold a percentage? TRUE or FALSE.
 #' This argument is necessary to distinguish percentage from integer population threshold.
-#' threshold (e.g. 5 percent or 5 populations).
+#' (e.g. 5 percent or 5 populations).
 #' @param filename Name of the file written to the working directory.
 #' @rdname filter_population
 #' @export

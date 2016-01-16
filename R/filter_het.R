@@ -30,7 +30,7 @@ filter_het <- function(data, approach = "haplotype", het.threshold, het.diff.thr
   
   
   if (is.vector(data) == "TRUE") {
-    data <- read_tsv(data, col_names = T)
+    data <- read_tsv(data, col_names = TRUE)
     message("Using the file in your directory")
   } else {
     data <- data
