@@ -4,18 +4,22 @@
 \alias{filter_genotype_likelihood}
 \title{Genotype likelihood filter}
 \usage{
-filter_genotype_likelihood(tidy.vcf, allele.min.depth.threshold,
-  read.depth.max.threshold, gl.mean.threshold, gl.min.threshold,
-  gl.diff.threshold, pop.threshold, percent, filename)
+filter_genotype_likelihood(tidy.vcf, approach = "haplotype",
+  allele.min.depth.threshold, read.depth.max.threshold, gl.mean.threshold,
+  gl.min.threshold, gl.diff.threshold, pop.threshold, percent, filename)
 }
 \arguments{
 \item{tidy.vcf}{A tidy vcf object or file (using ".tsv").}
 
-\item{allele.min.depth.threshold}{Threshold number
-of min depth of REF or ALT alleles.}
+\item{approach}{Character. By \code{"SNP"} or by \code{"haplotype"}. 
+The function will consider the SNP or haplotype MAF statistics to filter the marker. 
+Default by \code{"haplotype"}.}
 
-\item{read.depth.max.threshold}{Threshold number
-of maximum read depth.}
+\item{allele.min.depth.threshold}{(integer) The minimum depth of coverage for
+the alleles (REF and ALT).}
+
+\item{read.depth.max.threshold}{(integer) The maximum depth of coverage for the
+read.}
 
 \item{gl.mean.threshold}{Threshold number of mean genotype likelihood.}
 
@@ -25,11 +29,11 @@ of maximum read depth.}
 the difference between the max and min GL over a loci/read/haplotype.}
 
 \item{pop.threshold}{A threshold number: proportion, percentage
-or fixed number e.g. 0.70, 70 or 15.}
+or fixed number e.g. 0.50, 50 or 5.}
 
 \item{percent}{Is the threshold a percentage? TRUE or FALSE.
 This argument is necessary to distinguish percentage from integer population threshold.
-threshold (e.g. 5 percent or 5 populations).}
+(e.g. 5 percent or 5 populations).}
 
 \item{filename}{Name of the file written to the working directory.}
 }
@@ -38,12 +42,35 @@ Filter markers based coverage and/or genotype likelihood
 using a tidy VCF file.
 }
 \details{
-The summary statistics are averaged
+Using the haplotype approach: The summary statistics are averaged
 and nested SNP -> individuals -> population -> loci. e.g. the mean GL is the average
 genotype likelihood for all individuals of pop x for loci x.
 Here the filter focus on global trend accross pop for individual loci.
 The gl.diff.threshold can spot big difference in GL for a loci, e.g. when
 3 SNP have similar GL the difference will be close to 0, higher value, higher
 the difference between the SNP inside the loci.
+}
+\examples{
+\dontrun{
+If I have 10 populations, the codes below will give the same numbers:
+
+beluga.vcf.tidy.gl <- filter_genotype_likelihood(tidy.vcf = beluga.vcf.tidy, 
+approach = "haplotype", allele.min.depth.threshold = 10, 
+read.depth.max.threshold = 100, gl.mean.threshold = 20, 
+gl.min.threshold = 5, gl.diff.threshold = 100, 
+pop.threshold = 50, percent = TRUE)
+
+beluga.vcf.tidy.gl <- filter_genotype_likelihood(tidy.vcf = beluga.vcf.tidy, 
+approach = "haplotype", allele.min.depth.threshold = 10, 
+read.depth.max.threshold = 100, gl.mean.threshold = 20, 
+gl.min.threshold = 5, gl.diff.threshold = 100, 
+pop.threshold = 0.5, percent = FALSE)
+
+beluga.vcf.tidy.gl <- filter_genotype_likelihood(tidy.vcf = beluga.vcf.tidy, 
+approach = "haplotype", allele.min.depth.threshold = 10, 
+read.depth.max.threshold = 100, gl.mean.threshold = 20, 
+gl.min.threshold = 5, gl.diff.threshold = 100, 
+pop.threshold = 5, percent = FALSE)
+}
 }
 
