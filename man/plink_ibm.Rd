@@ -4,23 +4,26 @@
 \alias{plink_ibm}
 \title{Identity-by-missingness (IBM) analysis.}
 \usage{
-plink_ibm(vcf.file, whitelist = NULL, denovo, blacklist.id, strata,
-  strata.select)
+plink_ibm(vcf.file, whitelist = NULL, denovo = TRUE, blacklist.id = NULL,
+  strata, strata.select)
 }
 \arguments{
 \item{vcf.file}{The VCF file created by STACKS.}
 
 \item{whitelist}{(optional) A whitelist of markers to keep, 
-for VCFTools 2 columns are required: 'CHROM' and 'POS'. Default = \code{NULL}.}
+for VCFTools 2 columns are required: 'CHROM' and 'POS'. 
+Default = \code{whitelist = NULL}.}
 
-\item{denovo}{(logical) Default \code{TRUE}. For de novo analysis the vcf file 
-created by stacks as a \code{un} in the \code{CHROM} column. We need to change that 
-internally for the function to work in VCFTools and PLINK.}
+\item{denovo}{(logical) Default \code{denovo = TRUE}. For de novo analysis 
+the vcf file created by stacks as a \code{un} in the \code{CHROM} column. 
+We need to change that internally for the function to work in VCFTools and 
+PLINK.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID. NO 
-column header. The blacklist is in the directory (e.g. "blacklist.id.txt").}
+column header. The blacklist is in the directory (e.g. "blacklist.id.txt").
+Default \code{blacklist.id = NULL}}
 
-\item{strata}{(optional) File with column header 'INDIVIDUALS' and any other 
+\item{strata}{File with column header 'INDIVIDUALS' and any other 
 columns containing e.g. population id, sequencer id, lanes, etc. 
 Any info that might impact missing data. 
 Willl be used in \code{strata.select} argument.}
@@ -31,8 +34,8 @@ or \code{"LANES"}, if you have a column in your strata file that starts
 with LANES (for sequencing lane...).}
 }
 \value{
-The function returns a list with the identity-by-missingness results ($ibm) and 
-a MDS plot (MultiDimensional Scaling) of ibm results ($plot)
+The function returns a list with the identity-by-missingness results 
+($ibm) and a MDS plot (MultiDimensional Scaling) of ibm results ($plot)
 In the working directory:
 the modified vcf file, if de novo was selected, plink tfiles and ibm results.
 }
@@ -42,6 +45,23 @@ identity-by-missingness (IBM) analysis.
 }
 \examples{
 \dontrun{
+With raw VCF without filtering the loci:
+ibm <- plink_ibm(
+vcf.file = "batch_1.vcf", 
+denovo = TRUE, 
+strata = "population.map.txt", 
+strata.select = "POP_ID"
+)
+
+With filtered data:
+ibm <- plink_ibm(
+vcf.file = "batch_1.vcf", 
+whitelist = "whitelist.vcf.txt", 
+denovo = TRUE, 
+strata = "population.map.txt", 
+strata.select = "POP_ID"
+)
+
 If the object for the function is 'ibm' then:
 to access the figure
 ibm.plot <- ibm$plot

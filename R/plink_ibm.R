@@ -4,13 +4,16 @@
 #' identity-by-missingness (IBM) analysis.
 #' @param vcf.file The VCF file created by STACKS.
 #' @param whitelist (optional) A whitelist of markers to keep, 
-#' for VCFTools 2 columns are required: 'CHROM' and 'POS'. Default = \code{NULL}.
-#' @param denovo (logical) Default \code{TRUE}. For de novo analysis the vcf file 
-#' created by stacks as a \code{un} in the \code{CHROM} column. We need to change that 
-#' internally for the function to work in VCFTools and PLINK.
+#' for VCFTools 2 columns are required: 'CHROM' and 'POS'. 
+#' Default: \code{whitelist = NULL}.
+#' @param denovo (logical) Default: \code{denovo = TRUE}. For de novo analysis 
+#' the vcf file created by stacks as a \code{un} in the \code{CHROM} column. 
+#' We need to change that internally for the function to work in VCFTools and 
+#' PLINK.
 #' @param blacklist.id (optional) A blacklist with individual ID. NO 
 #' column header. The blacklist is in the directory (e.g. "blacklist.id.txt").
-#' @param strata (optional) File with column header 'INDIVIDUALS' and any other 
+#' Default: \code{blacklist.id = NULL}
+#' @param strata File with column header 'INDIVIDUALS' and any other 
 #' columns containing e.g. population id, sequencer id, lanes, etc. 
 #' Any info that might impact missing data. 
 #' Willl be used in \code{strata.select} argument.
@@ -18,12 +21,29 @@
 #' e.g. use \code{"POP_ID")} to see the strata column \code{"POP_ID"} 
 #' or \code{"LANES"}, if you have a column in your strata file that starts 
 #' with LANES (for sequencing lane...).
-#' @return The function returns a list with the identity-by-missingness results ($ibm) and 
-#' a MDS plot (MultiDimensional Scaling) of ibm results ($plot)
+#' @return The function returns a list with the identity-by-missingness results 
+#' ($ibm) and a MDS plot (MultiDimensional Scaling) of ibm results ($plot)
 #' In the working directory:
 #' the modified vcf file, if de novo was selected, plink tfiles and ibm results.
 #' @examples
 #' \dontrun{
+#' With raw VCF without filtering the loci:
+#' ibm <- plink_ibm(
+#' vcf.file = "batch_1.vcf", 
+#' denovo = TRUE, 
+#' strata = "population.map.txt", 
+#' strata.select = "POP_ID"
+#' )
+#' 
+#' With filtered data:
+#' ibm <- plink_ibm(
+#' vcf.file = "batch_1.vcf", 
+#' whitelist = "whitelist.vcf.txt", 
+#' denovo = TRUE, 
+#' strata = "population.map.txt", 
+#' strata.select = "POP_ID"
+#' )
+#' 
 #' If the object for the function is 'ibm' then:
 #' to access the figure
 #' ibm.plot <- ibm$plot
@@ -45,19 +65,28 @@
 #' Molecular Ecology, 22, 3124-3140.
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-plink_ibm <- function(vcf.file, whitelist = NULL, denovo, blacklist.id, strata, strata.select){
+plink_ibm <- function(vcf.file, whitelist = NULL, denovo = TRUE, blacklist.id = NULL, strata, strata.select){
   
   IID <- NULL
   FID <- NULL
   C1 <- NULL
   C2 <- NULL
   
+  # Checking for missing and/or default arguments ******************************
+  if (missing(vcf.file)) stop("VCF file required")
+  if (missing(whitelist)) whitelist <- NULL # no Whitelist
+  if (missing(denovo)) denovo <- TRUE
+  if (missing(blacklist.id)) blacklist.id <- NULL
+  if (missing(strata)) stop("strata file required")
+  if (missing(strata.select)) stop("strata.select argument is required")
+  
+  
   
   # empty list for results
   res <- list()
   
   # de novo
-  if(missing(denovo) | (denovo == TRUE)){
+  if(denovo == TRUE){
     # For de novo assembly, modify Stacks vcf file chrom column from "un" to "1"
     system(paste("perl -pe 's/^un/1/' ", vcf.file, " > ", "batch_1.modified.ibm.vcf", sep = ""))
     plink.input.file <- "batch_1.modified.ibm.vcf"
@@ -66,11 +95,11 @@ plink_ibm <- function(vcf.file, whitelist = NULL, denovo, blacklist.id, strata, 
   }
   
   # no whitelist
-  if (is.null(whitelist) | missing(whitelist)) {
+  if (is.null(whitelist)) {
     message("No whitelist to filter the VCF")
     
     # no blakclist id
-    if(is.null(blacklist.id) | missing(blacklist.id)){
+    if(is.null(blacklist.id)){
       message("No blacklisted id to apply to the VCF")
       
       # creates a PLINK tfile
@@ -99,7 +128,7 @@ plink_ibm <- function(vcf.file, whitelist = NULL, denovo, blacklist.id, strata, 
     
   } else { #with whitelist
     message("Filtering the VCF with the whitelist from your directory")
-    if(is.null(blacklist.id) | missing(blacklist.id)){ # no blacklist id
+    if(is.null(blacklist.id)){ # no blacklist id
       message("No blacklisted id to apply to the VCF")
       
       system(paste("vcftools --vcf ", plink.input.file, " --positions ", whitelist, " --recode", "--out batch_1.modified.ibm.filtered"))
@@ -156,6 +185,5 @@ plink_ibm <- function(vcf.file, whitelist = NULL, denovo, blacklist.id, strata, 
           strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
     )
   res$plot <- ibm.plot
-  
   return(res)
 }
