@@ -50,10 +50,23 @@
 #' The ibm results of plink in a dataframe with your strata:
 #' ibm.results <- ibm$ibm
 #' }
+
+#' @note \code{plink_ibm} assumes that the command line version of 
+#' VCFtools \url{https://vcftools.github.io/index.html} and
+#' PLINK version 1.90 \url{https://www.cog-genomics.org/plink2} are 
+#' properly installed and available on the command line, so it is executable from 
+#' any directory (more info on how to do this, here 
+#' \url{http://gbs-cloud-tutorial.readthedocs.org/en/latest/03_computer_setup.html?highlight=bash_profile#save-time}.
+#' On MacOSX, the easiest way is to put plink binary and VCFtools binaries
+#' in the folder \code{/usr/local/bin}.
+
 #' @export
 #' @rdname plink_ibm
 #' @import reshape2
 #' @import dplyr
+
+#' @references Danecek P, Auton A, Abecasis G et al. (2011) 
+#' The variant call format and VCFtools. Bioinformatics, 27, 2156–2158.
 #' @references Purcell S, Neale B, Todd-Brown K et al. (2007) 
 #' PLINK: a tool set for whole-genome association and population-based linkage 
 #' analyses. American Journal of Human Genetics, 81, 559–575.

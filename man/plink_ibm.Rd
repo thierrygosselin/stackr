@@ -12,16 +12,16 @@ plink_ibm(vcf.file, whitelist = NULL, denovo = TRUE, blacklist.id = NULL,
 
 \item{whitelist}{(optional) A whitelist of markers to keep, 
 for VCFTools 2 columns are required: 'CHROM' and 'POS'. 
-Default = \code{whitelist = NULL}.}
+Default: \code{whitelist = NULL}.}
 
-\item{denovo}{(logical) Default \code{denovo = TRUE}. For de novo analysis 
+\item{denovo}{(logical) Default: \code{denovo = TRUE}. For de novo analysis 
 the vcf file created by stacks as a \code{un} in the \code{CHROM} column. 
 We need to change that internally for the function to work in VCFTools and 
 PLINK.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID. NO 
 column header. The blacklist is in the directory (e.g. "blacklist.id.txt").
-Default \code{blacklist.id = NULL}}
+Default: \code{blacklist.id = NULL}}
 
 \item{strata}{File with column header 'INDIVIDUALS' and any other 
 columns containing e.g. population id, sequencer id, lanes, etc. 
@@ -42,6 +42,16 @@ the modified vcf file, if de novo was selected, plink tfiles and ibm results.
 \description{
 Diagnose your missing genotypes pattern with PLINK's 
 identity-by-missingness (IBM) analysis.
+}
+\note{
+\code{plink_ibm} assumes that the command line version of 
+VCFtools \url{https://vcftools.github.io/index.html} and
+PLINK version 1.90 \url{https://www.cog-genomics.org/plink2} are 
+properly installed and available on the command line, so it is executable from 
+any directory (more info on how to do this, here 
+\url{http://gbs-cloud-tutorial.readthedocs.org/en/latest/03_computer_setup.html?highlight=bash_profile#save-time}.
+On MacOSX, the easiest way is to put plink binary and VCFtools binaries
+in the folder \code{/usr/local/bin}.
 }
 \examples{
 \dontrun{
@@ -73,6 +83,9 @@ ibm.results <- ibm$ibm
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
 \references{
+Danecek P, Auton A, Abecasis G et al. (2011) 
+The variant call format and VCFtools. Bioinformatics, 27, 2156–2158.
+
 Purcell S, Neale B, Todd-Brown K et al. (2007) 
 PLINK: a tool set for whole-genome association and population-based linkage 
 analyses. American Journal of Human Genetics, 81, 559–575.
