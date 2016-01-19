@@ -95,18 +95,18 @@ filename, getwd()
 
 #' @title Whitelist loci for VCF tools
 #' @description This function creates a whitelist of loci for VCF tools.
-#' With 2 columns (CHROM and ID).
+#' With 2 columns (CHROM and POS).
 #' @param data A tidy vcf or sumstats prep file (using ".tsv") or object in
 #' your Environment.
 #' @param filename The name of the file written in the directory.
-#' @rdname whitelist_loci_vcf
+#' @rdname whitelist_snp_vcf
 #' @export
 #' @import dplyr
 #' @import readr
 #' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-whitelist_loci_vcf <- function(data, filename) {
+whitelist_snp_vcf <- function(data, filename) {
   
   if (is.vector(data) == "TRUE") {
     data <- read_tsv(data, col_names = T)
@@ -114,7 +114,9 @@ whitelist_loci_vcf <- function(data, filename) {
     data <- data
   }
   
-  whitelist <- data %>% select(POS) %>% distinct(POS) %>% 
+  whitelist <- data %>% 
+    select(POS) %>% 
+    distinct(POS) %>% 
     mutate(CHROM = rep("1", n())) %>% 
     arrange(CHROM, POS) %>% 
     group_by(CHROM) %>%
