@@ -2,8 +2,8 @@
 % Please edit documentation in R/haplo2colony.R
 \name{haplo2colony}
 \alias{haplo2colony}
-\title{From a \code{batch_x.haplotypes.tsv} STACKS file
-export \code{COLONY} input files}
+\title{Conduct parentage analysis in COLONY easily by converting 
+a \code{batch_x.haplotypes.tsv} STACKS file into a \code{COLONY} input files}
 \usage{
 haplo2colony(haplotypes.file, blacklist.id = NULL, whitelist.loci = NULL,
   sample.markers = "all", pop.id.start, pop.id.end, pop.select = "all",

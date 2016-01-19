@@ -5,8 +5,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 
 
 #' @name haplo2colony
-#' @title From a \code{batch_x.haplotypes.tsv} STACKS file
-#' export \code{COLONY} input files 
+#' @title Conduct parentage analysis in COLONY easily by converting 
+#' a \code{batch_x.haplotypes.tsv} STACKS file into a \code{COLONY} input files 
 #' @description This function can first filter the haplotypes file 
 #' with a whitelist of loci and a blacklist of individuals (optional). 
 #' Then it will convert the file to the required \code{COLONY} input files.

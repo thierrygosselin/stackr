@@ -51,7 +51,8 @@ properly installed and available on the command line, so it is executable from
 any directory (more info on how to do this, here 
 \url{http://gbs-cloud-tutorial.readthedocs.org/en/latest/03_computer_setup.html?highlight=bash_profile#save-time}.
 On MacOSX, the easiest way is to put plink binary and VCFtools binaries
-in the folder \code{/usr/local/bin}.
+in the folder \code{/usr/local/bin}. For a copy/paste tutorial on how to
+install VCFtools and PLINK follow the steps here \url{http://gbs-cloud-tutorial.readthedocs.org/en/latest/07_start_from_new_image.html#install-gbs-software}
 }
 \examples{
 \dontrun{
