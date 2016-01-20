@@ -60,6 +60,31 @@ facet by pop \code{fig +facet_wrap(~POP_ID, nrow=2,ncol=5)}
 where \code{nrow} and \code{ncol} in this exeample would spread 
 the 10 populations on 2 rows and 5 columns.
 }
+\examples{
+\dontrun{
+Missing genotypes before filtering
+I want a blacklist of individuals with more than 30\% missing data.
+missing.info.before.filter <- missing_genotypes(
+haplotypes.file = "batch_1.haplotypes.tsv",
+pop.id.start = 5,
+pop.id.end = 7, 
+pop.levels = c("QUE", "ONT", "MAN"),
+erase = "loci", 
+missing.geno.threshold = 30
+)
+
+To update the blacklist with the filtered dataset:
+missing.info.after.filter <- missing_genotypes(
+haplotypes.file = "batch_1.haplotypes.tsv", 
+pop.id.start = 5, 
+pop.id.end = 7, 
+pop.levels = c("QUE", "ONT", "MAN"),
+whitelist.loci = "whitelist.loci.txt", 
+erase = "loci", 
+missing.geno.threshold = 30
+)
+}
+}
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }

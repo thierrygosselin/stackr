@@ -38,6 +38,32 @@
 #' facet by pop \code{fig +facet_wrap(~POP_ID, nrow=2,ncol=5)}
 #' where \code{nrow} and \code{ncol} in this exeample would spread 
 #' the 10 populations on 2 rows and 5 columns.
+
+#' @examples
+#' \dontrun{
+#' Missing genotypes before filtering
+#' I want a blacklist of individuals with more than 30% missing data.
+#' missing.info.before.filter <- missing_genotypes(
+#' haplotypes.file = "batch_1.haplotypes.tsv",
+#' pop.id.start = 5,
+#' pop.id.end = 7, 
+#' pop.levels = c("QUE", "ONT", "MAN"),
+#' erase = "loci", 
+#' missing.geno.threshold = 30
+#' )
+#' 
+#' To update the blacklist with the filtered dataset:
+#' missing.info.after.filter <- missing_genotypes(
+#' haplotypes.file = "batch_1.haplotypes.tsv", 
+#' pop.id.start = 5, 
+#' pop.id.end = 7, 
+#' pop.levels = c("QUE", "ONT", "MAN"),
+#' whitelist.loci = "whitelist.loci.txt", 
+#' erase = "loci", 
+#' missing.geno.threshold = 30
+#' )
+#' }
+
 #' @export
 #' @rdname missing_genotypes
 #' @import reshape2
@@ -61,6 +87,18 @@ missing_genotypes <- function(haplotypes.file,
   MISSING_GROUP <- NULL
   N_IND <- NULL
   
+  # Checking for missing and/or default arguments ******************************
+  if (missing(haplotypes.file)) stop("haplotypes.file required")
+  if (missing(whitelist.loci)) whitelist.loci <- NULL # no Whitelist
+  if (missing(erase)) erase <- NULL # no genotype to erase
+  if (missing(pop.levels)) stop("pop.levels required")
+  if (missing(pop.labels)) pop.labels <- pop.levels # pop.labels
+  if (missing(pop.id.start)) stop("pop.id.start required")
+  if (missing(pop.id.end)) stop("pop.id.end required")
+  if (missing(missing.geno.threshold)) stop("missing.geno.threshold required")
+  
+  
+  
   # Haplotype file--------------------------------------------------------------
   haplotype <- suppressWarnings(
     read_tsv(file = haplotypes.file, col_names = T, na = "-") %>%
@@ -72,7 +110,7 @@ missing_genotypes <- function(haplotypes.file,
   
   
   # Whitelist-------------------------------------------------------------------
-  if (is.null(whitelist.loci) | missing(whitelist.loci)) {
+  if (is.null(whitelist.loci)) {
     message("No whitelist to apply to the haplotypes file")
     whitelist.loci <- NULL
     haplotype <- haplotype
@@ -100,12 +138,11 @@ missing_genotypes <- function(haplotypes.file,
   
   haplotype <- haplotype %>% 
     filter(subset =! LOCUS %in% blacklist.loci.consensus$LOCUS)
-  
-  
+
   # Paralogs-------------------------------------------------------------------
   message("Looking for paralogs...")
   
-  if(missing(erase) | erase == "loci"){
+  if(erase == "loci"){
     message("Loci with more than 2 alleles will be removed")
     
     paralogs <- haplotype %>%
@@ -139,10 +176,24 @@ missing_genotypes <- function(haplotypes.file,
     percent.haplo <- paste(round(((erased.genotype.number/total.genotype.number.haplo)*100), 2), "%", sep = " ")
     message(stri_paste("Out of a total of ", total.genotype.number.haplo, " genotypes, ", percent.haplo, " (", erased.genotype.number, ")"," will be erased"))
     
-    message("Erasing... Erasing...")
+    # keep track of blacklisted genotypes
+    blacklist.genotypes <- haplotype %>% 
+      filter(POLYMORPHISM > 1) %>% 
+      select(INDIVIDUALS, LOCUS)
+    
+    if (is.null(whitelist.loci)) {
+      blacklist.genotypes.filename <- paste("blacklist.genotypes", missing.geno.threshold, "txt", sep = ".")
+      write.table(blacklist.genotypes, blacklist.genotypes.filename, 
+                  sep = "\t", row.names = F, col.names = T, quote = F)
+    } else {
+      blacklist.genotypes.filename <- paste("blacklist.genotypes.filtered", missing.geno.threshold, "txt", sep = ".")
+      write.table(blacklist.genotypes, blacklist.genotypes.filename, 
+                  sep = "\t", row.names = F, col.names = T, quote = F)
+    }
+    message("A blacklist of genotypes was written in your working directory")
     
     # Erasing genotype with the blacklist
-    
+    message("Erasing... Erasing...")
     haplotype <- suppressWarnings(
       haplotype %>%
         mutate(HAPLOTYPES = ifelse(POLYMORPHISM > 1, "-", HAPLOTYPES))
@@ -151,12 +202,6 @@ missing_genotypes <- function(haplotypes.file,
   
   
   # Missing -------------------------------------------------------------------
-  if(missing(pop.labels)){
-    pop.labels <- pop.levels
-  } else {
-    pop.labels <- pop.labels
-  }
-  
   missing.genotypes.ind <- suppressWarnings(
     haplotype %>%
       group_by(INDIVIDUALS) %>%
@@ -173,8 +218,8 @@ missing_genotypes <- function(haplotypes.file,
       ) %>% 
       select(POP_ID, INDIVIDUALS, TOTAL, GENOTYPED, MISSING, PERC_MISSING)
   )
-
-  if (missing(whitelist.loci) | is.null(whitelist.loci)) {
+  
+  if (is.null(whitelist.loci)) {
     write.table(missing.genotypes.ind, "missing.genotypes.ind.tsv", 
                 sep = "\t", row.names = F, col.names = T, quote = F)
     mis.geno.ind.filename <- "missing.genotypes.ind.tsv"
@@ -190,8 +235,8 @@ missing_genotypes <- function(haplotypes.file,
     filter(PERC_MISSING > missing.geno.threshold) %>% 
     select(INDIVIDUALS) %>% 
     distinct(INDIVIDUALS)
-
-  if (missing(whitelist.loci) | is.null(whitelist.loci)) {
+  
+  if (is.null(whitelist.loci)) {
     blacklist.id.filename <- paste("blacklisted.id", missing.geno.threshold, "txt", sep = ".")
     write.table(blacklisted.id, blacklist.id.filename, 
                 sep = "\t", row.names = F, col.names = T, quote = F)
@@ -237,7 +282,7 @@ missing_genotypes <- function(haplotypes.file,
     dcast(POP_ID + N ~ MISSING_GROUP, value.var = "INDIVIDUALS") %>% 
     arrange(POP_ID)
   
-  if (missing(whitelist.loci) == "FALSE") {
+  if (is.null(whitelist.loci)) {
     write.table(missing.genotypes.pop, "missing.genotypes.pop.filtered.tsv", 
                 sep = "\t", row.names = F, col.names = T, quote = F)
     mis.geno.pop.filename <- "missing.genotypes.pop.filtered.tsv"
@@ -254,6 +299,10 @@ missing_genotypes <- function(haplotypes.file,
   res$blacklisted.id <- blacklisted.id
   res$plot.missing <- plot.missing
   
+  if(erase == "genotypes"){
+    res$blacklist.genotypes <- blacklist.genotypes
+  }
+    
   invisible(cat(sprintf(
     "
 Missing genotypes information per ind filename: %s
