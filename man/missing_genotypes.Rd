@@ -18,7 +18,7 @@ the global environment \code{whitelist.loci = whitelist.1000loci}}
 
 \item{erase}{(character) Default when missing argument = \code{"loci"}. Loci with more than 2 alleles 
 (paralogs and/or sequencing errors) will be removed. \code{"genotypes"}: genotypes 
-with more than 2 alleles (paralogs and/or sequencing errors) will be erased.
+with more than 2 alleles by individual (paralogs and/or sequencing errors) will be erased.
 Keeping the loci for other individuals.}
 
 \item{pop.id.start}{The start of your population id 
@@ -49,8 +49,8 @@ per individuals and per population. Density distribution plot of misssing
 information is produced. This function also create a blacklist
 of individuals based on the desired threshold of missing genotype. 
 When a whitelist of loci is provided, \code{_filtered} will be appended 
-to the filename. Locus with more than 3 alleles (paralogs and/or sequencing errors) can be deleted or 
-genotypes with more than 3 alleles can be erased.
+to the filename. Locus with more than 2 alleles by individual (paralogs and/or sequencing errors) can be deleted or 
+genotypes with more than 2 alleles by individual can be erased.
 }
 \details{
 For the plot, to see the information with the popualtion in 
