@@ -6,8 +6,8 @@
 #' information is produced. This function also create a blacklist
 #' of individuals based on the desired threshold of missing genotype. 
 #' When a whitelist of loci is provided, \code{_filtered} will be appended 
-#' to the filename. Locus with more than 3 alleles (paralogs and/or sequencing errors) can be deleted or 
-#' genotypes with more than 3 alleles can be erased.
+#' to the filename. Locus with more than 2 alleles by individual (paralogs and/or sequencing errors) can be deleted or 
+#' genotypes with more than 2 alleles by individual can be erased.
 #' @param haplotypes.file The 'batch_x.haplotypes.tsv' created by STACKS.
 #' @param whitelist.loci (optional) A whitelist of loci with a column header 
 #' 'LOCUS'. If the whitelist is written in the directory 
@@ -15,7 +15,7 @@
 #' the global environment \code{whitelist.loci = whitelist.1000loci}
 #' @param erase (character) Default when missing argument = \code{"loci"}. Loci with more than 2 alleles 
 #' (paralogs and/or sequencing errors) will be removed. \code{"genotypes"}: genotypes 
-#' with more than 2 alleles (paralogs and/or sequencing errors) will be erased.
+#' with more than 2 alleles by individual (paralogs and/or sequencing errors) will be erased.
 #' Keeping the loci for other individuals.
 #' @param pop.id.start The start of your population id 
 #' in the name of your individual sample.
