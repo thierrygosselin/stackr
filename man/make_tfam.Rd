@@ -15,11 +15,26 @@ in the name of your individual sample.}
 \item{pop.id.end}{The end of your population id 
 in the name of your individual sample.}
 
-\item{pop.levels}{An optional character string with your populations ordered.}
+\item{pop.levels}{(optional) Character string with your populations ordered.}
 
 \item{filename}{The name of the file written in the directory.}
 }
 \description{
 Make a tfam file for PLINK. Useful in ADMIXTURE for bootstrapping.
+}
+\examples{
+\dontrun{
+make_tfam(
+population.map = "population_map_turle.txt", 
+pop.id.start = 1, 
+pop.id.end = 3, 
+pop.levels = c("GAP", "ISA", "CRU"),
+filename="turtle.tfam")
+}
+}
+\references{
+Purcell S, Neale B, Todd-Brown K et al. (2007) 
+PLINK: a tool set for whole-genome association and population-based linkage 
+analyses. American Journal of Human Genetics, 81, 559–575.
 }
 
