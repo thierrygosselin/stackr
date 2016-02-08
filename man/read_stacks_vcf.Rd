@@ -3,12 +3,22 @@
 \name{read_stacks_vcf}
 \alias{read_stacks_vcf}
 \title{Read a VCF file produced by STACKS and transform in tidy format}
-\usage{
-read_stacks_vcf(vcf.file, pop.id.start, pop.id.end, pop.levels, pop.labels,
-  whitelist, blacklist, blacklist.id, filename)
-}
 \arguments{
 \item{vcf.file}{The VCF file created by STACKS.}
+
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
+The whitelist is in the working directory (e.g. "whitelist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+Default \code{NULL} for no whitelist of markers.}
+
+\item{blacklist.markers}{(optional) A blacklist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
+The blacklist is in the working directory (e.g. "blacklist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+Default \code{NULL} for no blacklist of markers.}
 
 \item{pop.id.start}{The start of your population id 
 in the name of your individual sample.}
@@ -20,23 +30,28 @@ in the name of your individual sample.}
 
 \item{pop.labels}{An optional character string with new populations names.}
 
-\item{whitelist}{(optional) A whitelist containing CHROM (character
-or integer) and/or LOCUS (integer) and/or
-POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
-The whitelist is in the working directory (e.g. "whitelist.txt").
-de novo CHROM column with 'un' need to be changed to 1. 
-Default \code{NULL} for no whitelist of markers.}
-
-\item{blacklist}{(optional) A blacklist containing CHROM (character
-or integer) and/or LOCUS (integer) and/or
-POS (integer) columns header. To filter out by CHROM and/or locus and/or by snp.
-The blacklist is in the working directory (e.g. "blacklist.loci.txt").
-de novo CHROM column with 'un' need to be changed to 1. 
-Default \code{NULL} for no blacklist of markers.}
-
 \item{blacklist.id}{(optional) A blacklist with individual ID and
 a column header 'INDIVIDUALS'. The blacklist is in the working directory
- (e.g. "blacklist.id.30.txt").}
+(e.g. "blacklist.txt").}
+
+\item{pop.select}{(string) Conduct the assignment analysis on a
+selected list of populations. Default = \code{NULL} for no selection and keep
+all population.
+e.g. \code{pop.select = "QUE"} to select QUE population samples.
+\code{pop.select = c("QUE", "ONT")} to select QUE and ONT population samples.}
+
+\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
+average quality, e.g. genotype with more than 2 alleles in diploid likely 
+sequencing errors or genotypes with poor genotype likelihood or coverage. 
+The blacklist as a minimum of 2 column headers (markers and individuals). 
+Markers can be 1 column (CHROM or LOCUS or POS), 
+a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
+all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
+or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
+INDIVIDUALS (character) columns header. The blacklist must be in the working 
+directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
+with 'un' need to be changed to 1. Default \code{NULL} for no blacklist of 
+genotypes to erase.}
 
 \item{filename}{(optional) The name of the file written in the directory.}
 }
@@ -59,8 +74,8 @@ vcf.file = "batch_1.vcf",
 pop.id.start = 5, 
 pop.id.end = 7, 
 pop.levels = c("JAP", "ALK", "QUE", "LAB", "NOR"), 
-whitelist = "whitelist.loci.txt", 
-blacklist = "blacklist.loci.paralogs.txt", 
+whitelist.markers = "whitelist.loci.txt", 
+blacklist.markers = "blacklist.paralogs.txt", 
 filename = "vcf.tidy.paralogs.tsv")
 }
 }
