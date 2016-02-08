@@ -215,13 +215,11 @@ read_stacks_vcf <- function(vcf.file,
         tidyr::separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
                         sep = ",", extra = "warn")
     )
-  } else {
-    # stacks version prior to v.1.29 had no Allele Depth field...
-    message("Hum....")
-    message("you are using an older version of STACKS...")
-    message("It's not too late to use the last STACKS version, see STACKS change log for problems associated with older vcf files, for more details see: http://catchenlab.life.illinois.edu/stacks/")
-    message("Continuing to work on tidying your VCF, for this time ;)")
-    
+  } else {# stacks version prior to v.1.29 had no Allele Depth field...
+    message("Using an older version of STACKS:")
+    message("see STACKS change log for problems associated with older vcf files, 
+for more details see: http://catchenlab.life.illinois.edu/stacks/")
+
     vcf <- vcf %>%
       tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "GL"),
                       sep = ":", extra = "warn")
@@ -239,22 +237,25 @@ read_stacks_vcf <- function(vcf.file,
     }
     
     # control check to keep only whitelisted markers from the blacklist of genotypes
-    if (!is.null(whitelist.markers)){
+    if (is.null(whitelist.markers)){
+      blacklist.genotype <- blacklist.genotype
+    } else {
       message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
       # updating the whitelist of markers to have all columns that id markers
       whitelist.markers.ind <- vcf %>% select(CHROM, LOCUS, POS, INDIVIDUALS) %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
       # updating the blacklist.genotype
       blacklist.genotype <- suppressWarnings(semi_join(whitelist.markers.ind, blacklist.genotype, by = columns.names.blacklist.genotype))
-    } else {
-      blacklist.genotype <- blacklist.genotype
+      columns.names.blacklist.genotype <- colnames(blacklist.genotype)
     }
-    
+
     # control check to remove blacklisted individuals from the blacklist of genotypes
     if (is.null(blacklist.id)){
       blacklist.genotype <- blacklist.genotype
     } else {
-      message("Control check to remove blacklisted individuals present in the blacklist of genotypes to erase.")
+      message("Control check to remove blacklisted individuals 
+              present in the blacklist of genotypes to erase.")
       blacklist.genotype <- suppressWarnings(anti_join(blacklist.genotype, blacklist.id, by = "INDIVIDUALS"))
+      columns.names.blacklist.genotype <- colnames(blacklist.genotype)
     }
     
     # Add one column that will allow to include the blacklist in the dataset 
