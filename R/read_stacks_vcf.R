@@ -204,54 +204,6 @@ read_stacks_vcf <- function(vcf.file,
     )
   }
   
-  # Blacklist genotypes ********************************************************
-  if (is.null(blacklist.genotype)) { # no Whitelist
-    message("No genotype to erase")
-    vcf <- vcf
-  } else {
-    message("Erasing genotype with the blacklist")
-    blacklist.genotype <- read_tsv(blacklist.genotype, col_names = TRUE)
-    columns.names.blacklist.genotype <- colnames(blacklist.genotype)
-    if ("CHROM" %in% columns.names.blacklist.genotype){
-      columns.names.blacklist.genotype$CHROM <- as.character(columns.names.blacklist.genotype$CHROM)
-    }
-    
-    # control check to keep only whitelisted markers from the blacklist of genotypes
-    if (!is.null(whitelist.markers)){
-      message("Control check to keep only whitelisted markers 
-              present in the blacklist of genotypes to erase.")
-      # updating the whitelist of markers to have all columns that id markers
-      whitelist.markers.ind <- vcf %>% select(CHROM, LOCUS, POS, INDIVIDUALS) %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
-      # updating the blacklist.genotype
-      blacklist.genotype <- suppressWarnings(semi_join(whitelist.markers.ind, blacklist.genotype, by = columns.names.blacklist.genotype))
-    } else {
-      blacklist.genotype <- blacklist.genotype
-    }
-    
-    # control check to remove blacklisted individuals from the blacklist of genotypes
-    if (!is.null(blacklist.id)){
-      message("Control check to remove blacklisted individuals 
-              present in the blacklist of genotypes to erase.")
-      blacklist.genotype <- suppressWarnings(anti_join(blacklist.genotype, blacklist.id, by = "INDIVIDUALS"))
-    } else {
-      blacklist.genotype <- blacklist.genotype
-    }
-    
-    # Add one column that will allow to include the blacklist in the dataset 
-    # by x column(s) of markers
-    blacklist.genotype <- mutate(.data = blacklist.genotype, ERASE = rep("erase", n()))
-    
-    vcf <- suppressWarnings(
-      vcf %>%
-        full_join(blacklist.genotype, by = c("CHROM", "LOCUS", "POS", "INDIVIDUALS")) %>%
-        mutate(
-          ERASE = stri_replace_na(str = ERASE, replacement = "ok"),
-          GT = ifelse(ERASE == "erase", "./.", GT)
-        ) %>% 
-        select(-ERASE)
-    )
-  } # end erase genotypes
-  
   # Separate FORMAT and COVERAGE columns ---------------------------------------
   message("Tidying the VCF...")
   
@@ -274,6 +226,51 @@ read_stacks_vcf <- function(vcf.file,
       tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "GL"),
                       sep = ":", extra = "warn")
   }
+  
+  # Blacklist genotypes ********************************************************
+  if (is.null(blacklist.genotype)) { # no Whitelist
+    message("No genotype to erase")
+    vcf <- vcf
+  } else {
+    blacklist.genotype <- read_tsv(blacklist.genotype, col_names = TRUE)
+    columns.names.blacklist.genotype <- colnames(blacklist.genotype)
+    if ("CHROM" %in% columns.names.blacklist.genotype){
+      columns.names.blacklist.genotype$CHROM <- as.character(columns.names.blacklist.genotype$CHROM)
+    }
+    
+    # control check to keep only whitelisted markers from the blacklist of genotypes
+    if (!is.null(whitelist.markers)){
+      message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
+      # updating the whitelist of markers to have all columns that id markers
+      whitelist.markers.ind <- vcf %>% select(CHROM, LOCUS, POS, INDIVIDUALS) %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
+      # updating the blacklist.genotype
+      blacklist.genotype <- suppressWarnings(semi_join(whitelist.markers.ind, blacklist.genotype, by = columns.names.blacklist.genotype))
+    } else {
+      blacklist.genotype <- blacklist.genotype
+    }
+    
+    # control check to remove blacklisted individuals from the blacklist of genotypes
+    if (is.null(blacklist.id)){
+      blacklist.genotype <- blacklist.genotype
+    } else {
+      message("Control check to remove blacklisted individuals present in the blacklist of genotypes to erase.")
+      blacklist.genotype <- suppressWarnings(anti_join(blacklist.genotype, blacklist.id, by = "INDIVIDUALS"))
+    }
+    
+    # Add one column that will allow to include the blacklist in the dataset 
+    # by x column(s) of markers
+    blacklist.genotype <- mutate(.data = blacklist.genotype, ERASE = rep("erase", n()))
+    message("Erasing genotype...")
+    vcf <- suppressWarnings(
+      vcf %>%
+        full_join(blacklist.genotype, by = columns.names.blacklist.genotype) %>%
+        mutate(
+          ERASE = stri_replace_na(str = ERASE, replacement = "ok"),
+          GT = ifelse(ERASE == "erase", "./.", GT)
+        ) %>% 
+        select(-ERASE)
+    )
+  } # end erase genotypes
   
   # Work with Mutate on CHROM and GL -------------------------------------------
   message("Fixing columns...")
