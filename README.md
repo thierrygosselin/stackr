@@ -22,7 +22,7 @@ Because STACKS is always under development (more than 100 versions so far!),
 Send me an e-mail if you desperately need to use prior versions.
 
 ## Installation
-You can try out the dev version of **stackr**. Follow the 2 steps below:
+You can try out the dev version of **stackr**. Follow the 3 steps below:
 
 Step 1 You will need the package *devtools*
 ```r
@@ -34,6 +34,34 @@ Step 2 Install **stackr**:
 ```r
 install_github("thierrygosselin/stackr") # to install
 library(stackr) # to load
+```
+
+Step 3 For faster imputations, you need to install an OpenMP enabled **randomForestSRC package** [website](http://www.ccs.miami.edu/~hishwaran/rfsrc.html).
+
+Option 1: From source (Linux & Mac OSX)
+
+```r
+# Terminal
+cd ~/Downloads
+curl -O https://cran.r-project.org/src/contrib/randomForestSRC_2.0.7.tar.gz
+tar -zxvf randomForestSRC_2.0.7.tar.gz
+cd randomForestSRC
+autoconf
+# Back in R:
+install.packages(pkgs = "~/Downloads/randomForestSRC", repos = NULL, type = "source")
+```
+Option 2: Use a pre-compiled binary (Mac OSX & Windows) [instructions here] (http://www.ccs.miami.edu/~hishwaran/rfsrc.html) or quick copy/paste solution below:
+
+```r
+# Mac OSX
+library("devtools")
+install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.0.7.tgz")
+```
+
+```r
+# Windows
+library("devtools")
+install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.0.7.zip")
 ```
 
 **Problems during installation:**
@@ -86,18 +114,6 @@ Save and Exit with: crt-o, enter, crt-x. Preferably, re-install all packages dep
 ```r
 install.packages("Rcpp", type = "source")
 install.packages("dplyr", type = "source")
-```
-
-For RandomForestSRC package, in the Terminal:
-```r
-# Terminal
-cd ~/Downloads
-curl -O https://cran.r-project.org/src/contrib/randomForestSRC_1.6.1.tar.gz
-tar -zxvf randomForestSRC_1.6.1.tar.gz
-cd randomForestSRC
-autoconf
-# Back in R:
-install.packages(pkgs = "~/Downloads/randomForestSRC", repos = NULL, type = "source")
 ```
 
 ## New
