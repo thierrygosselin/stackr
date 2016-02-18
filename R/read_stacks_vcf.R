@@ -210,7 +210,7 @@ read_stacks_vcf <- function(vcf.file,
   if(stacks.version == "new"){
     vcf <- suppressWarnings(
       vcf %>%
-        tidyr::separate(FORMAT, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
+        tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
                         sep = ":", extra = "warn") %>% 
         tidyr::separate(ALLELE_DEPTH, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
                         sep = ",", extra = "warn")
