@@ -13,6 +13,7 @@ Description: Set of tools to look at GBS/RAD data created by STACKS software.
 Depends:
     R (>= 3.0.1),
 Imports:
+    data.table,
     dplyr,
     reshape2,
     ggplot2,

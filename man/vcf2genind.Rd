@@ -3,22 +3,27 @@
 \name{vcf2genind}
 \alias{vcf2genind}
 \title{Create a \code{adegenet} \code{\link[adegenet]{genind}} object from a \code{STACKS} vcf file}
-\usage{
-vcf2genind(vcf.file, whitelist.markers = NULL, snp.LD = NULL,
-  common.markers = FALSE, blacklist.id = NULL, pop.id.start, pop.id.end,
-  pop.levels, pop.labels, strata = NULL, hierarchy = NULL,
-  imputations = FALSE, imputations.group = "populations", num.tree = 100,
-  iteration.rf = 10, split.number = 100, verbose = FALSE,
-  parallel.core = 2)
-}
 \arguments{
-\item{vcf.file}{The VCF file created by STACKS.}
+\item{data}{The VCF file created by STACKS.}
 
 \item{whitelist.markers}{(optional) A whitelist containing CHROM (character or integer) and/or LOCUS (integer) and/or 
 POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
 The whitelist is in the directory (e.g. "whitelist.txt"). de novo CHROM column with 'un' need to be changed to 1.}
 
-\item{snp.LD}{(optional) Minimize linkage disequilibrium (LD) by choosing 
+\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
+average quality, e.g. genotype with more than 2 alleles in diploid likely 
+sequencing errors or genotypes with poor genotype likelihood or coverage. 
+The blacklist as a minimum of 2 column headers (markers and individuals). 
+Markers can be 1 column (CHROM or LOCUS or POS), 
+a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
+all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
+or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
+INDIVIDUALS (character) columns header. The blacklist must be in the working 
+directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
+with 'un' need to be changed to 1. Default \code{NULL} for no blacklist of 
+genotypes to erase.}
+
+\item{snp.ld}{(optional) Minimize linkage disequilibrium (LD) by choosing 
 among these 3 options: \code{"random"} selection, \code{"first"} or 
 \code{"last"} SNP on the same read/haplotype. Default = \code{NULL}.}
 
@@ -29,29 +34,39 @@ With \code{TRUE}, will keep markers present in all the populations.}
 a column header 'INDIVIDUALS'. The blacklist is in the directory
  (e.g. "blacklist.txt").}
 
-\item{pop.id.start}{The start of your population id 
-in the name of your individual sample.}
-
-\item{pop.id.end}{The end of your population id 
-in the name of your individual sample.}
-
 \item{pop.levels}{(required) A character string with your populations ordered.}
 
 \item{pop.labels}{(optional) A character string of your populations labels.
 If you need to rename sampling sites in \code{pop.levels} or combined sites/pop
 into a different names, here is the place.}
 
-\item{strata}{(optional) A data frame that defines population stratifications
-for your samples. This is especially useful if you have a hierarchical or
-factorial sampling design. See \code{\link[adegenet]{genind}} for details.}
+\item{pop.id.start}{The start of your population id 
+in the name of your individual sample.}
+
+\item{pop.id.end}{The end of your population id 
+in the name of your individual sample.}
+
+\item{strata}{(optional) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. Default: \code{strata = NULL}. 
+This is especially useful if you have a hierarchical or factorial sampling 
+design. See also \code{\link[adegenet]{genind}} for details.}
+
+\item{pop.select}{(string) Conduct the assignment analysis on a
+selected list of populations. Default = \code{NULL} for no selection and keep
+all population.
+e.g. \code{pop.select = "QUE"} to select QUE population samples.
+\code{pop.select = c("QUE", "ONT")} to select QUE and ONT population samples.}
 
 \item{hierarchy}{(optional) A formula that explicitely defines hierarchical levels 
 in your strata. See \code{\link[adegenet]{genind}} for details.}
 
-\item{imputations}{Should a map-independent imputations of markers be
+\item{imputation.method}{Should a map-independent imputations of markers be
 computed. Available choices are: (1) \code{FALSE} for no imputation.
 (2) \code{"max"} to use the most frequent category for imputations.
 (3) \code{"rf"} using Random Forest algorithm. Default = \code{FALSE}.}
+
+\item{impute}{(character) Imputation on missing genotype 
+\code{impute = "genotype"} or alleles \code{impute = "allele"}.}
 
 \item{imputations.group}{\code{"global"} or \code{"populations"}.
 Should the imputations be computed globally or by populations. If you choose
