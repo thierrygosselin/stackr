@@ -311,8 +311,7 @@ vcf2genind <- function(data,
     # control check to keep only whitelisted markers from the blacklist of genotypes
     if (!is.null(whitelist.markers)) {
       blacklist.genotype <- blacklist.genotype
-      message("Control check to keep only whitelisted markers 
-              present in the blacklist of genotypes to erase.")
+      message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
       # updating the whitelist of markers to have all columns that id markers
         whitelist.markers.ind <- input %>% select(CHROM, LOCUS, POS, INDIVIDUALS) %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
       
@@ -324,8 +323,7 @@ vcf2genind <- function(data,
     
     # control check to remove blacklisted individuals from the blacklist of genotypes
     if (!is.null(blacklist.id)) {
-      message("Control check to remove blacklisted individuals 
-              present in the blacklist of genotypes to erase.")
+      message("Control check to remove blacklisted individuals present in the blacklist of genotypes to erase.")
       blacklist.genotype <- suppressWarnings(anti_join(blacklist.genotype, blacklist.id, by = "INDIVIDUALS"))
       columns.names.blacklist.genotype <- colnames(blacklist.genotype)
     }
@@ -453,7 +451,7 @@ vcf2genind <- function(data,
   
   # genind constructor
   prevcall <- match.call()
-  res <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = strata)
+  res <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
   
   if (imputation.method == FALSE) {
     message("A large 'genind' object (no imputation) was created in your Environment")
@@ -486,9 +484,9 @@ vcf2genind <- function(data,
         tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_") %>%  # separate the genotypes into alleles
         tidyr::gather(key = ALLELES, GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% 
         mutate(GT = replace(GT, which(GT == "NA"), NA)) %>%
-        tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ":") %>%
-        group_by(INDIVIDUALS, POP_ID) %>% 
-        tidyr::spread(data = ., key = MARKERS_ALLELES, value = GT) %>% 
+        # tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ":") %>%
+        group_by(INDIVIDUALS, POP_ID, ALLELES) %>% 
+        tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
         ungroup() %>% 
         arrange(POP_ID, INDIVIDUALS)
     }
@@ -568,24 +566,44 @@ vcf2genind <- function(data,
     if (imputation.method == "max") { # End imputation max
       if (imputations.group == "populations") {
         message("Imputations computed by populations")
+
+        if (impute == "genotype"){
+          input.imp <- suppressWarnings(
+            input.prep %>%
+              tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
+              group_by(MARKERS, POP_ID) %>%
+              mutate(
+                GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
+                GT = replace(GT, which(GT == "NA"), NA)
+              ) %>%
+              # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
+              # will take the global observed values by markers for those cases.
+              group_by(MARKERS) %>%
+              mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
+              group_by(INDIVIDUALS, POP_ID) %>% 
+              tidyr::spread(data = ., key = MARKERS, value = GT) %>%
+              ungroup()
+          )
+        }
         
-        input.imp <- suppressWarnings(
-          input.prep %>%
-            tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
-            group_by(MARKERS, POP_ID) %>%
-            mutate(
-              GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
-              GT = replace(GT, which(GT == "NA"), NA)
-            ) %>%
-            # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
-            # will take the global observed values by markers for those cases.
-            group_by(MARKERS) %>%
-            mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
-            group_by(INDIVIDUALS, POP_ID) %>% 
-            tidyr::spread(data = ., key = MARKERS, value = GT) %>%
-            ungroup()
-        )
-        
+        if (impute == "allele"){
+          input.imp <- suppressWarnings(
+            input.prep %>%
+              tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
+              group_by(MARKERS, POP_ID) %>%
+              mutate(
+                GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
+                GT = replace(GT, which(GT == "NA"), NA)
+              ) %>%
+              # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
+              # will take the global observed values by markers for those cases.
+              group_by(MARKERS) %>%
+              mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
+              group_by(INDIVIDUALS, POP_ID, ALLELES) %>% 
+              tidyr::spread(data = ., key = MARKERS, value = GT) %>%
+              ungroup()
+          )
+        }
         input.prep <- NULL # remove unused object
         
       } # End imputation max populations 
@@ -593,15 +611,29 @@ vcf2genind <- function(data,
         # Globally (not by pop_id)
         message("Imputations computed globally")
         
-        input.imp <- suppressWarnings(
-          input.prep %>%
-            tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
-            group_by(MARKERS) %>%
-            mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
-            group_by(INDIVIDUALS, POP_ID) %>% 
-            tidyr::spread(data = ., key = MARKERS, value = GT) %>%
-            ungroup()
-        )
+        if (impute == "genotype"){
+          input.imp <- suppressWarnings(
+            input.prep %>%
+              tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
+              group_by(MARKERS) %>%
+              mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
+              group_by(INDIVIDUALS, POP_ID) %>% 
+              tidyr::spread(data = ., key = MARKERS, value = GT) %>%
+              ungroup()
+          )
+        }
+        
+        if (impute == "allele"){
+          input.imp <- suppressWarnings(
+            input.prep %>%
+              tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
+              group_by(MARKERS) %>%
+              mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
+              group_by(INDIVIDUALS, POP_ID, ALLELES) %>% 
+              tidyr::spread(data = ., key = MARKERS, value = GT) %>%
+              ungroup()
+          )
+        }
         
         input.prep <- NULL # remove unused object
       } # End imputation max global 
@@ -625,8 +657,8 @@ vcf2genind <- function(data,
     if (impute == "allele") {
       genind.prep.imp <- suppressWarnings(
         input.imp %>%
-          tidyr::gather(key = MARKERS_ALLELES, value = GT, -c(INDIVIDUALS, POP_ID)) %>%
-          tidyr::separate(col = MARKERS_ALLELES, into = c("MARKERS", "ALLELES"), sep = ":", extra = "drop", remove = TRUE) %>% 
+          tidyr::gather(key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
+          # tidyr::separate(col = MARKERS_ALLELES, into = c("MARKERS", "ALLELES"), sep = ":", extra = "drop", remove = TRUE) %>% 
           tidyr::spread(data = ., key = ALLELES, value = GT) %>%
           tidyr::unite(GT, A1, A2, sep = "_") %>%
           mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("REF_REF", "ALT_ALT", "REF_ALT", "ALT_REF"), replacement = c("2_0", "0_2", "1_1", "1_1"), vectorize_all = FALSE)) %>%
