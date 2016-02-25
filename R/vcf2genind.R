@@ -423,16 +423,7 @@ vcf2genind <- function(data,
     mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("0:0", "1:1", "0:1", "1:0", ".:."), replacement = c("2_0", "0_2", "1_1", "1_1", "NA_NA"), vectorize_all = FALSE)) %>%
     select(-REF, -ALT) %>% 
     arrange(MARKERS, POP_ID)
-  
-  if (impute == "allele") {
-    input.impute.allele <- input %>%
-      mutate(GT = stri_replace_all_fixed(str = GT, pattern = "/", replacement = ":", vectorize_all = FALSE)) %>% 
-      mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("0:0", "1:1", "0:1", "1:0", ".:."), replacement = c("REF_REF", "ALT_ALT", "REF_ALT", "ALT_REF", "NA_NA"), vectorize_all = FALSE)) %>% 
-      select(-REF, -ALT) %>% 
-      arrange(MARKERS, POP_ID)
-  }
-  
-  input <- NULL # unused object
+
   # results no imputation--------------------------------------------------------------------
   genind.prep <- input.count %>%
     tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_", extra = "drop", remove = TRUE) %>%
@@ -481,8 +472,13 @@ vcf2genind <- function(data,
         arrange(POP_ID, INDIVIDUALS)
     }
     
+    
     if (impute == "allele") {
-      input.prep <- input.impute.allele %>%
+      input.prep <- input %>%
+        mutate(GT = stri_replace_all_fixed(str = GT, pattern = "/", replacement = ":", vectorize_all = FALSE)) %>% 
+        mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("0:0", "1:1", "0:1", "1:0", ".:."), replacement = c("REF_REF", "ALT_ALT", "REF_ALT", "ALT_REF", "NA_NA"), vectorize_all = FALSE)) %>% 
+        select(-REF, -ALT) %>% 
+        arrange(MARKERS, POP_ID) %>% 
         tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_") %>%  # separate the genotypes into alleles
         tidyr::gather(key = ALLELES, GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% 
         mutate(GT = replace(GT, which(GT == "NA"), NA)) %>%
@@ -492,6 +488,7 @@ vcf2genind <- function(data,
         ungroup() %>% 
         arrange(POP_ID, INDIVIDUALS)
     }
+    input <- NULL # unused object
     
     # Imputation with Random Forest
     if (imputation.method == "rf") {
