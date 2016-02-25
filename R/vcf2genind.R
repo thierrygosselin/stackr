@@ -158,6 +158,7 @@ vcf2genind <- function(data,
   if (missing(hierarchy)) hierarchy <- NULL
   if (missing(imputation.method)) imputation.method <- FALSE
   if (imputation.method != FALSE & missing(impute)) stop("impute argument is necessary")
+  if (imputation.method == FALSE & missing(impute)) impute <- NULL
   if (missing(imputations.group)) imputations.group <- "populations"
   if (missing(num.tree)) num.tree <- 100
   if (missing(iteration.rf)) iteration.rf <- 10
