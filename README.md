@@ -26,7 +26,7 @@ You can try out the dev version of **stackr**. Follow the 3 steps below:
 
 Step 1 You will need the package *devtools*
 ```r
-install.packages("devtools") # to install
+if (!require("devtools")) install.packages("devtools") # to install
 library(devtools) # to load
 ```
 
@@ -117,6 +117,12 @@ install.packages("dplyr", type = "source")
 ```
 
 ## New
+
+**v.0.2.2**
+* vcf2genepop: to easily convert a VCF file created in STACKS to a genepop input file.
+This function comes with the commonly used arguments in **stackr**: 
+map-dependent imputation, whitelist, blacklist, etc. For the haplotype version, see
+haplo2genepop.
 
 **v.0.2.1**
 * 'read_stacks_vcf' can now use a whitelist or blacklist of loci that works with CHROM and/or SNP and/or LOCUS.
@@ -232,6 +238,24 @@ library(stackr)
 *Dependencies*: here the list of packages that **stackr** is depending on.
 ```r
 dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, purrr, lazyeval, adegenet, randomForestSRC, stringdist, foreach, parallel, doParallel
+
+
+if (!require("reshape2")) install.packages("reshape2")
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("stringr")) install.packages("stringr")
+if (!require("stringi")) install.packages("stringi")
+if (!require("plyr")) install.packages("plyr")
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("tidyr")) install.packages("tidyr")
+if (!require("readr")) install.packages("readr")
+if (!require("purrr")) install.packages("purrr")
+if (!require("data.table")) install.packages("data.table")
+if (!require("lazyeval")) install.packages("lazyeval")
+if (!require("adegenet")) install.packages("adegenet")
+if (!require("parallel")) install.packages("parallel")
+if (!require("stringdist")) install.packages("stringdist")
+if (!require("foreach")) install.packages("foreach")
+if (!require("doParallel")) install.packages("doParallel")
 ```
 If you don't have them, no worries, it's intalled automatically during **stackr** installation. If you have them, it's your job to update them, because i'm using the latest versions...
 

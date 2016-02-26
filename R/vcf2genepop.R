@@ -1,11 +1,11 @@
-# Write a adegenet genind object from STACKS VCF file
+# VCF data imputation using Random Forest
 
-#' @name vcf2genind
-#' @title Create a \code{adegenet} \code{\link[adegenet]{genind}} object from a \code{STACKS} vcf file
+#' @name vcf2genepop
+#' @title VCF to genepop with filters and data imputation
 #' @description This function can first filter the vcf file 
-#' with a whitelist of loci
-#' and a blacklist of individuals (optional). Then it will convert the file
-#' to a \code{adegenet} \code{\link[adegenet]{genind}} object.
+#' with a whitelist of loci and a blacklist of individuals (optional). 
+#' Then it will convert the file
+#' to a genepop file.
 #' Map-independent imputation using Random Forest or the most frequent category
 #' is also available as an option.
 #' @param data The VCF file created by STACKS.
@@ -72,18 +72,26 @@
 #' programming of Random Forest imputations. For more info on how to install the
 #' OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 #' If not selected \code{detectCores()-1} is used as default.
+
+#' @param genepop.filename The name of the file written to the directory.
+#' Use the extension ".gen" at the end. 
+#' Default: \code{genepop.filename = "genepop.gen"}.
+#' @param genepop.header The first line of the Genepop file.
+#' Default: \code{genepop.header = "my firt genepop"}.
+
+
 #' @details The imputations using Random Forest requires more time to compute and can take several
 #' minutes and hours depending on the size of the dataset and polymorphism of
 #' the species used. e.g. with a low polymorphic taxa, and a data set 
 #' containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
 #' will require 15 min.
-#' @return When no imputation is selected an object of the 
-#' class \code{\link[adegenet]{genind}} is returned.
-#' When imputation is selected a list with 2 objects is returned
-#' and accessed with \code{$no.imputation} or \code{$imputed}.
+
+#' @return When no imputation is selected a genepop file is saved to the 
+#' working directory. When imputation is selected 2 genepop files are saved to
+#' the working directory.
+
 #' @export
-#' @rdname vcf2genind
-# @importFrom adegenet df2genind
+#' @rdname vcf2genepop
 #' @import reshape2
 #' @import dplyr
 #' @import stringi
@@ -119,37 +127,43 @@ if(getRversion() >= "2.15.1") {
                            "POLYMORPHISM", "POLYMORPHISM_MAX", "other", 
                            "strata", "hierarchy", "GROUP", ".", 'MARKERS', 
                            'MARKERS_ALLELES', 'STRATA'
-                           )
-                         )
+  )
+  )
 }
 
 
-vcf2genind <- function(data, 
-                       whitelist.markers = NULL,
-                       blacklist.genotype = NULL,
-                       snp.ld = NULL,
-                       common.markers = FALSE,
-                       blacklist.id = NULL,
-                       pop.id.start, pop.id.end,
-                       pop.levels,
-                       pop.labels,
-                       strata = NULL,
-                       pop.select = NULL,
-                       hierarchy = NULL,
-                       imputation.method = FALSE,
-                       impute,
-                       imputations.group = "populations",
-                       num.tree = 100,
-                       iteration.rf = 10,
-                       split.number = 100,
-                       verbose = FALSE,
-                       parallel.core
+vcf2genepop <- function(data, 
+                        whitelist.markers = NULL,
+                        blacklist.genotype = NULL,
+                        snp.ld = NULL,
+                        common.markers = FALSE,
+                        blacklist.id = NULL,
+                        pop.id.start, pop.id.end,
+                        pop.levels,
+                        pop.labels,
+                        strata = NULL,
+                        pop.select = NULL,
+                        hierarchy = NULL,
+                        imputation.method = FALSE,
+                        impute,
+                        imputations.group = "populations",
+                        num.tree = 100,
+                        iteration.rf = 10,
+                        split.number = 100,
+                        verbose = FALSE,
+                        parallel.core,
+                        genepop.filename,
+                        genepop.header
 ) {
   if (missing(data)) stop("Input file missing")
   if (missing(whitelist.markers)) whitelist.markers <- NULL # no Whitelist
   if (missing(blacklist.id)) blacklist.id <- NULL # No blacklist of ID
   if (missing(blacklist.genotype)) blacklist.genotype <- NULL # no genotype to erase
+  if (missing(pop.id.start)) pop.id.start <- NULL
+  if (missing(pop.id.end)) pop.id.end <- NULL
   if (missing(strata)) strata <- NULL
+  if (missing(pop.levels)) stop("pop.levels required")
+  if (missing(pop.labels)) pop.labels <- pop.levels # pop.labels
   if (missing(pop.select)) pop.select <- NULL
   if (missing(snp.ld)) snp.ld <- NULL
   if (missing(common.markers)) common.markers <- FALSE
@@ -163,11 +177,13 @@ vcf2genind <- function(data,
   if (missing(split.number)) split.number <- 100
   if (missing(verbose)) verbose <- FALSE
   if (missing(parallel.core)) parallel.core <- detectCores()-1
+  if (missing(genepop.filename)) genepop.filename <- "genepop.gen"
+  if (missing(genepop.header)) genepop.header <- "my firt genepop"
   
   if (imputation.method == "FALSE") {
-    message("vcf2genind: without imputation...")
+    message("vcf2genepop: without imputation...")
   } else {
-    message("vcf2genind: with imputations...")
+    message("vcf2genepop: with/without imputations...")
   }
   
   # Import whitelist of markers ************************************************
@@ -194,7 +210,7 @@ vcf2genind <- function(data,
   
   if (is.null(strata) & is.null(pop.id.start) & is.null(pop.id.end)) {
     stop("pop.id.start and pop.id.end or strata arguments are required to 
-           identify your populations with a VCF file")
+         identify your populations with a VCF file")
   }
   
   input <- data.table::fread(
@@ -257,7 +273,7 @@ vcf2genind <- function(data,
   
   # Conversion into genind -----------------------------------------------------
   # Tidy VCF
-  message("Tidy vcf into factory for conversion into genind ...")
+  message("Tidy vcf into genepop factory...")
   
   if (stacks.version == "new") { # with new version of stacks > v.1.29
     input <- input %>%
@@ -313,7 +329,7 @@ vcf2genind <- function(data,
       blacklist.genotype <- blacklist.genotype
       message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
       # updating the whitelist of markers to have all columns that id markers
-        whitelist.markers.ind <- input %>% select(CHROM, LOCUS, POS, INDIVIDUALS) %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
+      whitelist.markers.ind <- input %>% select(CHROM, LOCUS, POS, INDIVIDUALS) %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
       
       
       # updating the blacklist.genotype
@@ -345,6 +361,7 @@ vcf2genind <- function(data,
   
   
   # dump unused object
+  blacklist.genotype <- NULL
   blacklist.id <- NULL
   whitelist.markers <- NULL
   
@@ -415,53 +432,71 @@ vcf2genind <- function(data,
   } # End common markers
   
   # Change the genotype coding  **********************************************
-  message("Changing genotype to count of alleles for adegenet genind conversion")
-  input.count <- input %>%
-    mutate(GT = stri_replace_all_fixed(str = GT, pattern = "/", replacement = ":", vectorize_all = FALSE)) %>%
-    mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("0:0", "1:1", "0:1", "1:0", ".:."), replacement = c("2_0", "0_2", "1_1", "1_1", "NA_NA"), vectorize_all = FALSE)) %>%
-    select(-REF, -ALT) %>% 
-    arrange(MARKERS, POP_ID)
-
+  message("Recoding genotypes for genepop")
+  input <- input %>%
+    mutate(
+      REF= stri_replace_all_fixed(str = REF, pattern = c("A", "C", "G", "T"), replacement = c("1", "2", "3", "4"), vectorize_all = FALSE), # replace nucleotide with numbers
+      ALT = stri_replace_all_fixed(str = ALT, pattern = c("A", "C", "G", "T"), replacement = c("1", "2", "3", "4"), vectorize_all = FALSE),# replace nucleotide with numbers
+      REF = stri_pad_left(str = REF, width = 3, pad = "0"),
+      ALT = stri_pad_left(str = ALT, width = 3, pad = "0"),
+      GT = ifelse(GT == "0/0", stri_join(REF, REF, sep = "_"),
+                  ifelse(GT == "1/1",  stri_join(ALT, ALT, sep = "_"),
+                         ifelse(GT == "0/1", stri_join(REF, ALT, sep = "_"),
+                                ifelse(GT == "1/0", stri_join(ALT, REF, sep = "_"), "000_000")
+                         )
+                  )
+      )
+    ) %>%
+    arrange(MARKERS, POP_ID) %>%
+    select(-c(REF, ALT))
+  
+  loci <- input %>% select(MARKERS) %>% distinct(MARKERS) %>% arrange(MARKERS)
+  
   # results no imputation--------------------------------------------------------------------
-  genind.prep <- input.count %>%
-    tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_", extra = "drop", remove = TRUE) %>%
-    tidyr::gather(key = ALLELES, value = COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
-    tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>%
-    mutate(COUNT = replace(COUNT, which(COUNT == "NA"), NA)) %>% 
+  genepop.prep <- input %>%
+    mutate(
+      GT= stri_replace_all_fixed(str = GT, pattern = "_", replacement = "", vectorize_all = FALSE)
+    ) %>% 
+    arrange(MARKERS) %>% 
+    select(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
     group_by(POP_ID, INDIVIDUALS) %>%
-    tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
-    arrange(POP_ID, INDIVIDUALS)
+    tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
+    arrange(POP_ID, INDIVIDUALS) %>%
+    ungroup() %>% 
+    mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = ""))
   
-  # convert to genind
-  ind <- as.character(genind.prep$INDIVIDUALS)
-  pop <- genind.prep$POP_ID
-  genind.df <- genind.prep %>% ungroup() %>% 
-    select(-c(INDIVIDUALS, POP_ID))
-  rownames(genind.df) <- ind
-  loc.names <- colnames(genind.df)
+  # Create a vector with the population ordered by levels
+  pop <- genepop.prep$POP_ID
+  # levels(pop)
   
-  # genind constructor
-  prevcall <- match.call()
-  res <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
+  # split genepop by populations
+  genepop.prep <- select(.data = genepop.prep, -POP_ID)
+  genepop.split <- split(genepop.prep, pop)
   
-  if (imputation.method == FALSE) {
-    message("A large 'genind' object (no imputation) was created in your Environment")
-  } else if (imputation.method == "max"){
-    message("Calculating map-independent imputations using the most frequent allele.")
-  } else {
-    message("Calculating map-independent imputations using random forest")
+  # Write the file in genepop format
+  message("Output: No imputation")
+  
+  genepop.header <- as.data.frame(genepop.header)
+  write.table(genepop.header, file = genepop.filename, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  write_delim(x = loci, path = genepop.filename, delim = "\n", append = TRUE, col_names = FALSE)
+  pop.sep <- as.data.frame("pop")
+  for (i in 1:length(genepop.split)) {
+    write_delim(x = pop.sep, path = genepop.filename, delim = "\n", append = TRUE, col_names = FALSE)
+    write_delim(x = genepop.split[[i]], path = genepop.filename, delim = " ", append = TRUE, col_names = FALSE)
   }
+  message(paste0("Genepop file: ", genepop.filename))
+  message(paste0("Written to the working directory: \n", getwd()))
   
-  # dump unused objects
-  genind.df <- NULL
+  genepop.prep <- NULL
+  genepop.split <- NULL
   
   # Imputations: genind with imputed haplotypes using Random Forest*************
   if (imputation.method != "FALSE") {
     
     if (impute == "genotype") {
-      input.prep <- input.count %>%
+      input.prep <- input %>%
         mutate(
-          GT = stri_replace_all_fixed(GT, pattern = "NA_NA", replacement = "NA", vectorize_all = FALSE),
+          GT = stri_replace_all_fixed(GT, pattern = "000_000", replacement = "NA", vectorize_all = FALSE),
           GT = replace(GT, which(GT == "NA"), NA)
         ) %>%
         group_by(INDIVIDUALS, POP_ID) %>% 
@@ -470,16 +505,14 @@ vcf2genind <- function(data,
         arrange(POP_ID, INDIVIDUALS)
     }
     
-    
     if (impute == "allele") {
       input.prep <- input %>%
-        mutate(GT = stri_replace_all_fixed(str = GT, pattern = "/", replacement = ":", vectorize_all = FALSE)) %>% 
-        mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("0:0", "1:1", "0:1", "1:0", ".:."), replacement = c("REF_REF", "ALT_ALT", "REF_ALT", "ALT_REF", "NA_NA"), vectorize_all = FALSE)) %>% 
-        select(-REF, -ALT) %>% 
-        arrange(MARKERS, POP_ID) %>% 
         tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_") %>%  # separate the genotypes into alleles
-        tidyr::gather(key = ALLELES, GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% 
-        mutate(GT = replace(GT, which(GT == "NA"), NA)) %>%
+        tidyr::gather(key = ALLELES, GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
+        mutate(
+          GT = stri_replace_all_fixed(GT, pattern = "000", replacement = "NA", vectorize_all = FALSE),
+          GT = replace(GT, which(GT == "NA"), NA)
+        ) %>% 
         # tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ":") %>%
         group_by(INDIVIDUALS, POP_ID, ALLELES) %>% 
         tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
@@ -518,7 +551,6 @@ vcf2genind <- function(data,
           )
           # message of progress for imputations by population
           message(paste("Completed imputations for pop ", pop.list, sep = ""))
-          # imputed.dataset[[i]] <- impute_markers_rf(sep.pop) # test with foreach
           imputed.dataset <- impute_genotype_rf(sep.pop)
           return(imputed.dataset)
         } # End impute_rf_pop
@@ -563,7 +595,7 @@ vcf2genind <- function(data,
     if (imputation.method == "max") { # End imputation max
       if (imputations.group == "populations") {
         message("Imputations computed by populations")
-
+        
         if (impute == "genotype"){
           input.imp <- suppressWarnings(
             input.prep %>%
@@ -631,68 +663,78 @@ vcf2genind <- function(data,
               ungroup()
           )
         }
-        
         input.prep <- NULL # remove unused object
       } # End imputation max global 
     } # End imputations max
     
     # transform the imputed dataset into genind object ------------------------
-    message("Imputed vcf into factory for conversion into genind...")
+    message("Imputed vcf into genepop factory...")
     if (impute == "genotype") {
-      genind.prep.imp <- suppressWarnings(
+      genepop.prep.imp <- suppressWarnings(
         input.imp %>%
           tidyr::gather(key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID)) %>% # make tidy
-          tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_", extra = "drop", remove = TRUE) %>%
-          tidyr::gather(key = ALLELES, value = COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
-          tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>%
+          mutate(
+            GT= stri_replace_all_fixed(str = GT, pattern = "_", replacement = "", vectorize_all = FALSE)
+          ) %>%
+          arrange(MARKERS, POP_ID, INDIVIDUALS) %>%
           group_by(POP_ID, INDIVIDUALS) %>%
-          tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
+          tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
           arrange(POP_ID, INDIVIDUALS)
       )
     }
     
     if (impute == "allele") {
-      genind.prep.imp <- suppressWarnings(
+      genepop.prep.imp <- suppressWarnings(
         input.imp %>%
           tidyr::gather(key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
-          # tidyr::separate(col = MARKERS_ALLELES, into = c("MARKERS", "ALLELES"), sep = ":", extra = "drop", remove = TRUE) %>% 
+          mutate(
+            GT= stri_replace_all_fixed(str = GT, pattern = "_", replacement = "", vectorize_all = FALSE)
+          ) %>% 
           tidyr::spread(data = ., key = ALLELES, value = GT) %>%
-          tidyr::unite(GT, A1, A2, sep = "_") %>%
-          mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("REF_REF", "ALT_ALT", "REF_ALT", "ALT_REF"), replacement = c("2_0", "0_2", "1_1", "1_1"), vectorize_all = FALSE)) %>%
-          tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_", extra = "drop", remove = TRUE) %>%
-          tidyr::gather(key = ALLELES, value = COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
-          tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>%
+          tidyr::unite(GT, A1, A2, sep = "") %>%
+          arrange(MARKERS, POP_ID, INDIVIDUALS) %>% 
           group_by(POP_ID, INDIVIDUALS) %>%
-          tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
+          tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
           arrange(POP_ID, INDIVIDUALS)
       )
     }
     input.imp <- NULL # remove unused object
     
-    # results ------------------------------------------------------------------
-    # 1) the genind without imputations is modified and put in a new list
-    no.imputation <- res
-    res <- list()
-    res$no.imputation <- no.imputation
-    no.imputation <- NULL # drop unused object
-    
-    # 2) the genind with imputations
-    ind <- as.character(genind.prep.imp$INDIVIDUALS)
-    pop <- genind.prep.imp$POP_ID
-    genind.df <- genind.prep.imp %>%
+    genepop.prep.imp <- genepop.prep.imp %>%
+      arrange(POP_ID, INDIVIDUALS) %>%
       ungroup() %>% 
-      select(-c(INDIVIDUALS, POP_ID))
-    rownames(genind.df) <- ind
-    loc.names <- colnames(genind.df)
+      mutate(INDIVIDUALS = paste(INDIVIDUALS, ",", sep = "")) %>% 
+      select(-POP_ID)
     
-    # genind constructor
-    prevcall <- match.call()
-    res$imputed  <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
-    message("A large 'genind' object was created in your Environment (with and without imputations)")
-  } # End imputations
-  # remove unused objects
-  genind.df <- NULL
-  genin.prep.imp <- NULL
-  # outout results -------------------------------------------------------------
-  return(res)
+    # split genepop by populations
+    genepop.imp.split <- split(genepop.prep.imp, pop)
+    
+    # Write the file in genepop format 
+    message("Output: with imputations")
+    
+    # Add "_imputed" to the filename
+    genepop.filename.imp <- stri_replace_all_fixed(genepop.filename,
+                                                   pattern = ".gen",
+                                                   replacement = "_imputed.gen")
+    
+    
+    genepop.header <- genepop.header$genepop.header
+    genepop.header <- stri_join(genepop.header, "with imputation", sep = " ")
+    genepop.header <- as.data.frame(genepop.header)
+    write.table(genepop.header, file = genepop.filename.imp, col.names = FALSE, row.names = FALSE, quote = FALSE)
+    loci.table <- as.data.frame(loci)
+    write_delim(x = loci.table, path = genepop.filename.imp, delim = "\n", append = TRUE, col_names = FALSE)
+    pop.sep <- as.data.frame("pop")
+    for (i in 1:length(genepop.imp.split)) {
+      write_delim(x = pop.sep, path = genepop.filename.imp, delim = "\n", append = TRUE, col_names = FALSE)
+      write_delim(x = genepop.imp.split[[i]], path = genepop.filename.imp, delim = " ", append = TRUE, col_names = FALSE)
+    }    
+    
+    
+    message(paste0("Genepop file: ", genepop.filename.imp))
+    message(paste0("Written to the working directory: \n", getwd()))
+    
+    genepop.prep <- NULL
+    genepop.split <- NULL
+  } # End imputation
 }
