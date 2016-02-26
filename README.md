@@ -203,7 +203,7 @@ This however requires manual curation of the file to work directly with COLONY.
 * Interaction with [STACKS] (http://creskolab.uoregon.edu/stacks/) database (Web-interface)
 * Reference genome tools
 * Maybe try some integration with other GBS approaches: AftrRAD, pyRAD, dDocent
-* ...suggestions ?
+* ...suggestions ? = vcf2genepop ???
 
 ## Contributions:
 
