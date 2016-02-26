@@ -237,9 +237,6 @@ library(stackr)
 
 *Dependencies*: here the list of packages that **stackr** is depending on.
 ```r
-dplyr, reshape2, ggplot2, readr, stringr, stringi, tidyr, purrr, lazyeval, adegenet, randomForestSRC, stringdist, foreach, parallel, doParallel
-
-
 if (!require("reshape2")) install.packages("reshape2")
 if (!require("ggplot2")) install.packages("ggplot2")
 if (!require("stringr")) install.packages("stringr")
