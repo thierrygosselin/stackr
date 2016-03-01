@@ -89,6 +89,30 @@
 #' @import stringi
 #' @importFrom data.table fread
 
+#' @examples
+#' \dontrun{
+#' snowcrab <- vcf2genind(
+#' data = "batch_1.vcf",
+#' whitelist.markers = "whitelist.txt",
+#' common.markers = TRUE,
+#' blacklist.id = "blacklist.id.lobster.tsv",
+#' pop.levels = c("PAN", "COS")
+#' pop.id.start = 5, pop.id.end = 7,
+#' imputation.method = "rf",
+#' impute = "genotype",
+#' imputations.group <- "populations", 
+#' num.tree <- 100,
+#' iteration.rf <- 10,
+#' split.number <- 100,
+#' verbose <- FALSE,
+#' parallel.core = 12
+#' )
+#' 
+#' A list with 2 genind objects, with and without imputation: 
+#' no.imputation <- snowcrab$no.imputation
+#' imputed <- snowcrab$imputed
+#' }
+
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
 #' G3, 1, 171-182.
@@ -165,7 +189,7 @@ vcf2genind <- function(data,
   if (missing(parallel.core)) parallel.core <- detectCores()-1
   
   if (imputation.method == "FALSE") {
-    message("vcf2genind: without imputation...")
+    message("vcf2genind: no imputation...")
   } else {
     message("vcf2genind: with imputations...")
   }
@@ -443,6 +467,8 @@ vcf2genind <- function(data,
   # genind constructor
   prevcall <- match.call()
   res <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
+  # sum <- summary(res) # test
+  # sum$NA.perc # test
   
   if (imputation.method == FALSE) {
     message("A large 'genind' object (no imputation) was created in your Environment")
@@ -689,10 +715,14 @@ vcf2genind <- function(data,
     prevcall <- match.call()
     res$imputed  <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
     message("A large 'genind' object was created in your Environment (with and without imputations)")
+    # sum <- summary(res$imputed) # test
+    # sum$NA.perc # test
+    
   } # End imputations
   # remove unused objects
   genind.df <- NULL
   genin.prep.imp <- NULL
+  
   # outout results -------------------------------------------------------------
   return(res)
 }

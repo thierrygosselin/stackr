@@ -14,7 +14,7 @@
 #' \code{whitelist.loci = "whitelist.txt"}. If the whitelist is in 
 #' the global environment \code{whitelist.loci = whitelist.1000loci}
 #' @param erase (character) Default when missing argument = \code{"loci"}. Loci with more than 2 alleles 
-#' (paralogs and/or sequencing errors) will be removed. \code{"genotypes"}: genotypes 
+#' (paralogs and/or sequencing errors) will be removed. \code{"genotype"}: genotypes 
 #' with more than 2 alleles by individual (paralogs and/or sequencing errors) will be erased.
 #' Keeping the loci for other individuals.
 #' @param pop.id.start The start of your population id 
@@ -32,7 +32,7 @@
 #' per individuals \code{missing.geno.threshold = 30}.
 #' @return a list with 4 data frames: $missing.genotypes.ind,
 #' $missing.genotypes.pop, $blacklisted.id, $plot.missing. A 5th data frame is
-#' added when \code{erase = genotypes} is selected: $blacklist.genotypes.
+#' added when \code{erase = genotype} is selected: $blacklist.genotypes.
 #' @details For the plot, to see the information with the popualtion in 
 #' different facet, use \code{+facet_wrap(~POP_ID, nrow=2,ncol=5)} 
 #' after the object of the plot, e.g. \code{fig <- missing$plot.missing}, to have
@@ -91,7 +91,7 @@ missing_genotypes <- function(haplotypes.file,
   # Checking for missing and/or default arguments ******************************
   if (missing(haplotypes.file)) stop("haplotypes.file required")
   if (missing(whitelist.loci)) whitelist.loci <- NULL # no Whitelist
-  if (missing(erase)) erase <- NULL # no genotype to erase
+  if (missing(erase)) erase <- "loci"
   if (missing(pop.levels)) stop("pop.levels required")
   if (missing(pop.labels)) pop.labels <- pop.levels # pop.labels
   if (missing(pop.id.start)) stop("pop.id.start required")
@@ -300,7 +300,7 @@ missing_genotypes <- function(haplotypes.file,
   res$blacklisted.id <- blacklisted.id
   res$plot.missing <- plot.missing
   
-  if(erase == "genotypes"){
+  if(erase == "genotype"){
     res$blacklist.genotypes <- blacklist.genotypes
   }
     

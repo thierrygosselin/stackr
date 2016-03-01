@@ -17,7 +17,7 @@ missing_genotypes(haplotypes.file, whitelist.loci = NULL, erase, pop.id.start,
 the global environment \code{whitelist.loci = whitelist.1000loci}}
 
 \item{erase}{(character) Default when missing argument = \code{"loci"}. Loci with more than 2 alleles 
-(paralogs and/or sequencing errors) will be removed. \code{"genotypes"}: genotypes 
+(paralogs and/or sequencing errors) will be removed. \code{"genotype"}: genotypes 
 with more than 2 alleles by individual (paralogs and/or sequencing errors) will be erased.
 Keeping the loci for other individuals.}
 
@@ -42,7 +42,7 @@ per individuals \code{missing.geno.threshold = 30}.}
 \value{
 a list with 4 data frames: $missing.genotypes.ind,
 $missing.genotypes.pop, $blacklisted.id, $plot.missing. A 5th data frame is
-added when \code{erase = genotypes} is selected: $blacklist.genotypes.
+added when \code{erase = genotype} is selected: $blacklist.genotypes.
 }
 \description{
 Use this function to have a summary of missing genotypes 

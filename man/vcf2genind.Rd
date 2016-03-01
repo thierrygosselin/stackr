@@ -110,6 +110,30 @@ the species used. e.g. with a low polymorphic taxa, and a data set
 containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
 will require 15 min.
 }
+\examples{
+\dontrun{
+snowcrab <- vcf2genind(
+data = "batch_1.vcf",
+whitelist.markers = "whitelist.txt",
+common.markers = TRUE,
+blacklist.id = "blacklist.id.lobster.tsv",
+pop.levels = c("PAN", "COS")
+pop.id.start = 5, pop.id.end = 7,
+imputation.method = "rf",
+impute = "genotype",
+imputations.group <- "populations", 
+num.tree <- 100,
+iteration.rf <- 10,
+split.number <- 100,
+verbose <- FALSE,
+parallel.core = 12
+)
+
+A list with 2 genind objects, with and without imputation: 
+no.imputation <- snowcrab$no.imputation
+imputed <- snowcrab$imputed
+}
+}
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }

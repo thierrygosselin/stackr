@@ -5,42 +5,86 @@
 \title{Convert between batch_x.haplotypes.tsv and \code{adegenet} 
 \code{\link[adegenet]{genind}} object}
 \usage{
-haplo2genind(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL,
-  pop.levels, pop.id.start, pop.id.end, strata = NULL, hierarchy = NULL,
-  imputations = FALSE, imputations.group = "populations", num.tree = 100,
+haplo2genind(data, whitelist.markers = NULL, blacklist.genotype = NULL,
+  erase = "genotype", common.markers = NULL, blacklist.id = NULL,
+  pop.levels, pop.labels, pop.id.start, pop.id.end, pop.select = NULL,
+  strata = NULL, hierarchy = NULL, imputation.method = FALSE,
+  impute = "genotypes", imputations.group = "populations", num.tree = 100,
   iteration.rf = 10, split.number = 100, verbose = FALSE,
-  parallel.core = 2)
+  parallel.core = NULL)
 }
 \arguments{
-\item{haplotypes.file}{The 'batch_x.haplotypes.tsv' created by STACKS.}
+\item{data}{Haplotype file created in STACKS
+e.g. \code{data = "batch_1.haplotypes.tsv"},}
 
-\item{whitelist.loci}{(optional) A whitelist of loci and 
-a column header 'LOCUS'.
-The whitelist is in the directory (e.g. "whitelist.txt").}
+\item{whitelist.markers}{(optional) A whitelist containing a LOCUS (integer) 
+column header. The whitelist is in the working directory (e.g. "whitelist.txt").
+Default: \code{whitelist.markers = NULL} for no whitelist of markers. 
+In the stacks haplotype file, the \code{LOCUS = Catalog ID}.}
+
+\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
+average quality, e.g. genotype with more than 2 alleles in diploid likely 
+sequencing errors or genotypes with poor genotype likelihood or coverage. 
+The blacklist file header should be \code{LOCUS}. If you need to work at the
+SNP level, use \code{vcf2genind}.}
+
+\item{erase}{(character) If you don't use the \code{blacklist.genotype} 
+argument you still need to decide what to do with loci or genotypes with more
+than 2 alleles. Loci with more than 2 alleles (paralogs and/or sequencing 
+errors) will be removed with \code{erase = "loci"}. 
+Default: \code{erase= "genotype"} will erase genotypes with more than 
+2 alleles by individual (paralogs and/or sequencing errors), keeping the loci
+for other individuals.}
+
+\item{common.markers}{(optional) Logical. Default = \code{FALSE}.
+With \code{TRUE}, will keep markers genotyped in all the populations.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the directory
- (e.g. "blacklist.txt").}
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").}
 
-\item{pop.levels}{(optional) A character string with your populations ordered.}
+\item{pop.levels}{(required) A character string with your populations ordered.}
 
-\item{pop.id.start}{The start of your population id 
-in the name of your individual sample.}
+\item{pop.labels}{(optional) A character string for your populations labels.
+If you need to rename sampling sites in \code{pop.levels} or combined sites/pop
+into a different names, here is the place.}
 
-\item{pop.id.end}{The end of your population id 
-in the name of your individual sample.}
+\item{pop.id.start}{The start of your population id
+in the name of your individual sample. Your individuals are identified 
+in this form : SPECIES-POPULATION-MATURITY-YEAR-ID = CHI-QUE-ADU-2014-020,
+then, \code{pop.id.start} = 5. If you didn't name your individuals
+with the pop id in it, use the \code{strata} argument.}
 
-\item{strata}{(optional) A data frame that defines population stratifications
-for your samples. This is especially useful if you have a hierarchical or
-factorial sampling design. See \code{\link[adegenet]{genind}} for details.}
+\item{pop.id.end}{The end of your population id
+in the name of your individual sample. Your individuals are identified 
+in this form : SPECIES-POPULATION-MATURITY-YEAR-ID = CHI-QUE-ADU-2014-020,
+then, \code{pop.id.end} = 7. If you didn't name your individuals
+with the pop id in it, use the \code{strata} argument.}
+
+\item{pop.select}{(string) Conduct the assignment analysis on a
+selected list of populations. Default = \code{NULL} for no selection and keep
+all population.
+e.g. \code{pop.select = "QUE"} to select QUE population samples.
+\code{pop.select = c("QUE", "ONT")} to select QUE and ONT population samples.}
+
+\item{strata}{(optional) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. Default: \code{strata = NULL}. With a 
+data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+PLINK files, the \code{tfam} first 2 columns are used. 
+If a \code{strata} file is specified, the strata file will have
+precedence. The \code{STRATA} column can be any hierarchical grouping.}
 
 \item{hierarchy}{(optional) A formula that explicitely defines hierarchical levels 
 in your strata. See \code{\link[adegenet]{genind}} for details.}
 
-\item{imputations}{Should a map-independent imputations of markers be
+\item{imputation.method}{Should a map-independent imputations of markers be
 computed. Available choices are: (1) \code{FALSE} for no imputation.
 (2) \code{"max"} to use the most frequent category for imputations.
- (3) \code{"rf"} using Random Forest algorithm. Default = \code{FALSE}.}
+(3) \code{"rf"} using Random Forest algorithm. 
+Default: \code{imputation.method = FALSE}.}
+
+\item{impute}{(character) Imputation on missing genotype 
+\code{impute = "genotype"} or alleles \code{impute = "allele"}.}
 
 \item{imputations.group}{\code{"global"} or \code{"populations"}.
 Should the imputations be computed globally or by populations. If you choose
@@ -49,13 +93,13 @@ Default = \code{"populations"}.}
 
 \item{num.tree}{The number of trees to grow in Random Forest. Default is 100.}
 
-\item{iteration.rf}{The number of iterations of missing data algorithm 
+\item{iteration.rf}{The number of iterations of missing data algorithm
 in Random Forest. Default is 10.}
 
-\item{split.number}{Non-negative integer value used to specify 
+\item{split.number}{Non-negative integer value used to specify
 random splitting in Random Forest. Default is 100.}
 
-\item{verbose}{Logical. Should trace output be enabled on each iteration 
+\item{verbose}{Logical. Should trace output be enabled on each iteration
 in Random Forest ? Default is \code{FALSE}.}
 
 \item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
@@ -78,11 +122,38 @@ Map-independent imputation using Random Forest or the most frequent category
 is also available as an option.
 }
 \details{
-The imputations using Random Forest requires more time to compute and can take several
+You need to have either the \code{pop.id.start} and \code{pop.id.end}
+or the \code{strata} argument, to identify your populations.
+The imputations using Random Forest requires more time to compute
+and can take several
 minutes and hours depending on the size of the dataset and polymorphism of
-the species used. e.g. with a low polymorphic taxa, and a data set 
-containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
+the species used. e.g. with a low polymorphic taxa, and a data set
+containing 30\% missing data, 5 000 haplotypes loci and 500 individuals
 will require 15 min.
+}
+\examples{
+\dontrun{
+snowcrab <- haplo2genind(
+data = "batch_1.haplotypes.tsv",
+whitelist.markers = "whitelist.txt",
+common.markers = TRUE,
+blacklist.id = "blacklist.id.lobster.tsv",
+pop.levels = c("PAN", "COS")
+pop.id.start = 5, pop.id.end = 7,
+imputation.method = "rf",
+impute = "genotype",
+imputations.group <- "populations", 
+num.tree <- 100,
+iteration.rf <- 10,
+split.number <- 100,
+verbose <- FALSE,
+parallel.core = 12
+)
+
+A list with 2 genind objects, with and without imputation: 
+no.imputation <- snowcrab$no.imputation
+imputed <- snowcrab$imputed
+}
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
