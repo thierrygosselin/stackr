@@ -44,7 +44,7 @@
 #' \code{INDIVIDUALS} and \code{STRATA}. Default: \code{strata = NULL}. 
 #' This is especially useful if you have a hierarchical or factorial sampling 
 #' design. See also \code{\link[adegenet]{genind}} for details.
-#' @param pop.select (string) Conduct the assignment analysis on a
+#' @param pop.select (string) Conduct the conversion on a
 #' selected list of populations. Default = \code{NULL} for no selection and keep
 #' all population.
 #' e.g. \code{pop.select = "QUE"} to select QUE population samples.
