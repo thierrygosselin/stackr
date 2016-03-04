@@ -176,6 +176,8 @@ vcf2genind <- function(data,
   if (missing(strata)) strata <- NULL
   if (missing(pop.select)) pop.select <- NULL
   if (missing(snp.ld)) snp.ld <- NULL
+  if (missing(pop.levels)) stop("pop.levels required")
+  if (missing(pop.labels)) pop.labels <- pop.levels # pop.labels
   if (missing(common.markers)) common.markers <- FALSE
   if (missing(hierarchy)) hierarchy <- NULL
   if (missing(imputation.method)) imputation.method <- FALSE
