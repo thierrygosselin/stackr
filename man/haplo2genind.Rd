@@ -9,7 +9,7 @@ haplo2genind(data, whitelist.markers = NULL, blacklist.genotype = NULL,
   erase = "genotype", common.markers = NULL, blacklist.id = NULL,
   pop.levels, pop.labels, pop.id.start, pop.id.end, pop.select = NULL,
   strata = NULL, hierarchy = NULL, imputation.method = FALSE,
-  impute = "genotypes", imputations.group = "populations", num.tree = 100,
+  impute = "genotype", imputations.group = "populations", num.tree = 100,
   iteration.rf = 10, split.number = 100, verbose = FALSE,
   parallel.core = NULL)
 }

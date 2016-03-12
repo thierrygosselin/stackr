@@ -175,7 +175,7 @@ haplo2genind <- function(data,
                          strata = NULL,
                          hierarchy = NULL,
                          imputation.method = FALSE,
-                         impute = "genotypes",
+                         impute = "genotype",
                          imputations.group = "populations",
                          num.tree = 100,
                          iteration.rf = 10,
@@ -224,10 +224,10 @@ haplo2genind <- function(data,
       if ("CHROM" %in% columns.names.whitelist) {
         whitelist.markers$CHROM <- as.character(whitelist.markers$CHROM)
       }
+      whitelist.markers <- select(.data = whitelist.markers, LOCUS)
+      columns.names.whitelist <- colnames(whitelist.markers)
     }
     
-    whitelist.markers <- select(.data = whitelist.markers, LOCUS)
-    columns.names.whitelist <- colnames(whitelist.markers)
     
     
     # Import blacklist id ********************************************************
