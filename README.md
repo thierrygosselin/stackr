@@ -13,8 +13,8 @@ This is the development page of the **stackr** package for the R software, optim
 * Transform the VCF file, *batch_x.vcf*, into a tidy format to visualise and filter summary statistics within R
 * Filters genetic markers based on: coverage (read depth, REF and ALT allele depth), genotype likelihood, number of individuals, number of populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis)
 * `ggplot2`-based plotting to view distributions of summary statistics and create publication-ready figures
-* Convert data into *genepop*, *genind*, *fstat*, and *gtypes* object for easy integration with [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
-* Impute GBS markers without a genetic map using Random Forest within the *haplo2genepop*, *haplo2genind*, *haplo2hierfstat*, *haplo2gtypes*, *haplo2colony*, *vcf2genind*, *vcf2hierfstat*, *vcf2betadiv* and *vcf_imputation* functions 
+* Convert data into *genepop*, *genind*, *fstat*, *gtypes*, *betadiv* and *dadi* files or objects for easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
+* Impute GBS markers without a genetic map using Random Forest within the *haplo2genepop*, *haplo2genind*, *haplo2hierfstat*, *haplo2gtypes*, *haplo2colony*, *vcf2genind*, *vcf2hierfstat*, *vcf2betadiv*, *vcf2dadi* and *vcf_imputation* functions 
 
 **Requirement:**
 Because STACKS is always under development (more than 100 versions so far!), 
@@ -117,6 +117,11 @@ install.packages("dplyr", type = "source")
 ```
 
 ## New
+
+**v.0.2.3**
+* vcf2dadi: to easily convert a VCF file created in STACKS to a dadi input file.
+This function comes with the commonly used arguments in **stackr**: 
+map-dependent imputation, whitelist, blacklist, common marker filtering, etc.
 
 **v.0.2.2**
 * vcf2genepop: to easily convert a VCF file created in STACKS to a genepop input file.
