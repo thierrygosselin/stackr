@@ -3,34 +3,23 @@
 \name{vcf_imputation}
 \alias{vcf_imputation}
 \title{VCF data imputation}
-\usage{
-vcf_imputation(vcf.file, whitelist.loci = NULL, snp.LD = NULL,
-  common.markers = FALSE, blacklist.id = NULL, blacklist.genotypes = NULL,
-  pop.id.start, pop.id.end, filename = "batch_1.vcf.imputed.vcf",
-  imputations = "rf", imputations.group = "populations", num.tree = 100,
-  iteration.rf = 10, split.number = 100, verbose = FALSE,
-  parallel.core = 2)
-}
 \arguments{
-\item{vcf.file}{The VCF file created by STACKS.}
+\item{data}{The VCF file created by STACKS or imputed VCF file created
+by \code{\link[stackr]{vcf_imputation}}.}
 
-\item{whitelist.loci}{(optional) A whitelist of loci and 
-a column header 'LOCUS'.
-The whitelist is in the directory (e.g. "whitelist.txt").}
-
-\item{snp.LD}{(optional) Minimize linkage disequilibrium (LD) by choosing 
-among these 3 options: \code{"random"} selection, \code{"first"} or 
-\code{"last"} SNP on the same read/haplotype. Default = \code{NULL}.}
-
-\item{common.markers}{(optional) Logical. Default = \code{FALSE}. 
-With \code{TRUE}, will keep markers present in all the populations.}
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character or integer) and/or LOCUS (integer) and/or 
+POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
+The whitelist is in the directory (e.g. "whitelist.txt"). de novo CHROM column with 'un' need to be changed to 1.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
 a column header 'INDIVIDUALS'. The blacklist is in the directory
  (e.g. "blacklist.txt").}
 
-\item{blacklist.genotypes}{A blacklist of genotypes 
-containing 3 columns header 'LOCUS', 'POS' and 'INDIVIDUALS'.}
+\item{pop.levels}{(required) A character string with your populations ordered.}
+
+\item{pop.labels}{(optional) A character string of your populations labels.
+If you need to rename sampling sites in \code{pop.levels} or combined sites/pop
+into a different names, here is the place.}
 
 \item{pop.id.start}{The start of your population id 
 in the name of your individual sample.}
@@ -38,12 +27,43 @@ in the name of your individual sample.}
 \item{pop.id.end}{The end of your population id 
 in the name of your individual sample.}
 
-\item{filename}{The name of the file written to the directory.
-Use the extension ".vcf" at the end. Default \code{batch_1.vcf.imputed.vcf}.}
+\item{strata}{(optional) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. Default: \code{strata = NULL}. 
+This is especially useful if you have a hierarchical or factorial sampling 
+design. See also \code{\link[adegenet]{genind}} for details.}
 
-\item{imputations}{For map-independent imputations available options are:
-(1) \code{"max"} to use the most frequent category for imputations.
- (2) \code{"rf"} using Random Forest algorithm. Default = \code{"rf"}.}
+\item{pop.select}{(string) Conduct the assignment analysis on a
+selected list of populations. Default = \code{NULL} for no selection and keep
+all population.
+e.g. \code{pop.select = "QUE"} to select QUE population samples.
+\code{pop.select = c("QUE", "ONT")} to select QUE and ONT population samples.}
+
+\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
+average quality, e.g. genotype with more than 2 alleles in diploid likely 
+sequencing errors or genotypes with poor genotype likelihood or coverage. 
+The blacklist as a minimum of 2 column headers (markers and individuals). 
+Markers can be 1 column (CHROM or LOCUS or POS), 
+a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
+all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
+or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
+INDIVIDUALS (character) columns header. The blacklist must be in the working 
+directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
+with 'un' need to be changed to 1. Default \code{NULL} for no blacklist of 
+genotypes to erase.}
+
+\item{snp.ld}{(optional) Minimize linkage disequilibrium (LD) by choosing 
+among these 3 options: \code{"random"} selection, \code{"first"} or 
+\code{"last"} SNP on the same read/haplotype. Default = \code{NULL}.}
+
+\item{common.markers}{(optional) Logical. Default = \code{FALSE}. 
+With \code{TRUE}, will keep markers present in all the populations.}
+
+\item{imputation.method}{Available choices are: (1) \code{"max"} to use the 
+most frequent category for imputations.
+(2) \code{"rf"} using Random Forest algorithm. Default = \code{"rf"}.}
+
+\item{impute}{(character) Imputation on missing genotype 
+\code{impute = "genotype"} or alleles \code{impute = "allele"}.}
 
 \item{imputations.group}{\code{"global"} or \code{"populations"}.
 Should the imputations be computed globally or by populations. If you choose
@@ -61,11 +81,13 @@ random splitting in Random Forest. Default is 100.}
 \item{verbose}{Logical. Should trace output be enabled on each iteration 
 in Random Forest ? Default is \code{FALSE}.}
 
-\item{parallel.core}{(optional) The number of core for OpenMP 
-shared-memory parallel programming of Random Forest imputations. 
-For more info on how to install the
+\item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
+programming of Random Forest imputations. For more info on how to install the
 OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 If not selected \code{detectCores()-1} is used as default.}
+
+\item{filename}{The name of the file written to the directory.
+Use the extension ".vcf" at the end. Default \code{vcf.imputed.data.time.vcf}.}
 }
 \value{
 When no imputation is selected ....
@@ -80,6 +102,26 @@ and can take several minutes and hours depending on the size of
 the dataset and polymorphism of the species used. e.g. with a 
 low polymorphic taxa, and a data set containing 30\% missing data, 
 5 000 haplotypes loci and 500 individuals will require 15 min.
+}
+\examples{
+\dontrun{
+vcf_imputation(
+data = "batch_1.vcf", 
+whitelist.markers = "whitelist.loci.txt",
+pop.id.start = 5,
+pop.id.end = 7, 
+pop.levels = c("PAN", "COS"),
+common.markers = TRUE, 
+imputation.method = "max", 
+impute = "allele", 
+imputations.group = "populations", 
+num.tree = 100, 
+iteration.rf = 10, 
+split.number = 100, 
+verbose = FALSE, 
+parallel.core = 8
+)
+}
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}

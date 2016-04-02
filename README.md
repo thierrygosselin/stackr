@@ -117,6 +117,8 @@ install.packages("dplyr", type = "source")
 ```
 
 ## New
+**v.0.2.4**
+* updated the vcf_imputation function for the commonly used arguments in **stackr**.
 
 **v.0.2.3**
 * vcf2dadi: to easily convert a VCF file created in STACKS to a dadi input file.

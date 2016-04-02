@@ -122,6 +122,44 @@ the species used. e.g. with a low polymorphic taxa, and a data set
 containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
 will require 15 min.
 }
+\examples{
+\dontrun{
+vcf2dadi(
+data = "batch_1.vcf", 
+whitelist.markers = "whitelist.loci.txt",
+pop.id.start = 5,
+pop.id.end = 7, 
+pop.levels = c("PAN", "COS"),
+common.markers = TRUE, 
+fasta.ingroup = "batch_1.ingroup.fa", 
+fasta.outgroup = "batch_1.outgroup.fa", 
+sumstats.ingroup = "batch_1.sumstats.ingroup.tsv", 
+sumstats.outgroup = "batch_1.sumstats.outgroup.tsv"
+)
+
+With Imputations:
+vcf2dadi(
+data = "batch_1.vcf", 
+whitelist.markers = "whitelist.loci.txt",
+pop.id.start = 5,
+pop.id.end = 7, 
+pop.levels = c("PAN", "COS"),
+common.markers = TRUE, 
+fasta.ingroup = "batch_1.ingroup.fa", 
+fasta.outgroup = "batch_1.outgroup.fa", 
+sumstats.ingroup = "batch_1.sumstats.ingroup.tsv", 
+sumstats.outgroup = "batch_1.sumstats.outgroup.tsv",
+imputation.method = "max", 
+impute = "allele", 
+imputations.group = "populations", 
+num.tree = 100, 
+iteration.rf = 10, 
+split.number = 100, 
+verbose = FALSE, 
+parallel.core = 8
+)
+}
+}
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com} and
 Anne-Laure Ferchaud \email{annelaureferchaud@gmail.com}

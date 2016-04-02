@@ -116,6 +116,44 @@
 #' @import stringi
 #' @importFrom data.table fread
 
+#' @examples
+#' \dontrun{
+#' vcf2dadi(
+#' data = "batch_1.vcf", 
+#' whitelist.markers = "whitelist.loci.txt",
+#' pop.id.start = 5,
+#' pop.id.end = 7, 
+#' pop.levels = c("PAN", "COS"),
+#' common.markers = TRUE, 
+#' fasta.ingroup = "batch_1.ingroup.fa", 
+#' fasta.outgroup = "batch_1.outgroup.fa", 
+#' sumstats.ingroup = "batch_1.sumstats.ingroup.tsv", 
+#' sumstats.outgroup = "batch_1.sumstats.outgroup.tsv"
+#' )
+#' 
+#' With Imputations:
+#' vcf2dadi(
+#' data = "batch_1.vcf", 
+#' whitelist.markers = "whitelist.loci.txt",
+#' pop.id.start = 5,
+#' pop.id.end = 7, 
+#' pop.levels = c("PAN", "COS"),
+#' common.markers = TRUE, 
+#' fasta.ingroup = "batch_1.ingroup.fa", 
+#' fasta.outgroup = "batch_1.outgroup.fa", 
+#' sumstats.ingroup = "batch_1.sumstats.ingroup.tsv", 
+#' sumstats.outgroup = "batch_1.sumstats.outgroup.tsv",
+#' imputation.method = "max", 
+#' impute = "allele", 
+#' imputations.group = "populations", 
+#' num.tree = 100, 
+#' iteration.rf = 10, 
+#' split.number = 100, 
+#' verbose = FALSE, 
+#' parallel.core = 8
+#' )
+#' }
+
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
 #' G3, 1, 171-182.
@@ -148,8 +186,6 @@ if(getRversion() >= "2.15.1") {
   )
   )
 }
-
-
 
 vcf2dadi <- function(
   data,
