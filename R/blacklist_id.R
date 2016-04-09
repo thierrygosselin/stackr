@@ -33,8 +33,8 @@
 #' @return a list with 4 data frames: $missing.genotypes.ind,
 #' $missing.genotypes.pop, $blacklisted.id, $plot.missing. A 5th data frame is
 #' added when \code{erase = genotype} is selected: $blacklist.genotypes.
-#' @details For the plot, to see the information with the popualtion in 
-#' different facet, use \code{+facet_wrap(~POP_ID, nrow=2,ncol=5)} 
+#' @details For the plot, to see the information with the population in 
+#' different facets, use \code{+facet_wrap(~POP_ID, nrow=2,ncol=5)} 
 #' after the object of the plot, e.g. \code{fig <- missing$plot.missing}, to have
 #' facet by pop \code{fig +facet_wrap(~POP_ID, nrow=2,ncol=5)}
 #' where \code{nrow} and \code{ncol} in this exeample would spread 
