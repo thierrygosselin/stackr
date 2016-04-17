@@ -54,8 +54,8 @@ to the filename. Locus with more than 2 alleles by individual (paralogs and/or s
 genotypes with more than 2 alleles by individual can be erased.
 }
 \details{
-For the plot, to see the information with the popualtion in 
-different facet, use \code{+facet_wrap(~POP_ID, nrow=2,ncol=5)} 
+For the plot, to see the information with the population in 
+different facets, use \code{+facet_wrap(~POP_ID, nrow=2,ncol=5)} 
 after the object of the plot, e.g. \code{fig <- missing$plot.missing}, to have
 facet by pop \code{fig +facet_wrap(~POP_ID, nrow=2,ncol=5)}
 where \code{nrow} and \code{ncol} in this exeample would spread 
