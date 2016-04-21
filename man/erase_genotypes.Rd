@@ -41,7 +41,7 @@ Genotypes below average quality i.e. below threshold for the
 coverage of REF and/or ALT allele and genotype likelihood
 are zeroed from the file. The function erase SNP in the VCF file and loci
 in the haplotypes file.
-Also creates a blacklist of genotypes erase based on the genotype 
+Also creates a blacklist of genotypes erased based on the genotype 
 likelihood threshold, the REF and ALT allele coverage threshold.
 The ratio is calculated : 
 (read depth ALT allele - read depth REF allele)/(read depth ALT allele + read

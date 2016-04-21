@@ -117,13 +117,22 @@ install.packages("dplyr", type = "source")
 ```
 
 ## New
+**v.0.2.5**
+* vcf2plink: to easily convert a VCF file created in STACKS to a PLINK input 
+file (tped/tfam format). This function comes with the commonly used arguments 
+in **stackr**: map-independent imputation, whitelist, blacklist, common marker filtering, etc.
+
+* data_pruning: to prune your dataset with whitelist, blacklist of individuals, 
+erase genotypes, use common markers and other filtering (see function argument 
+while waiting for the upcomming documentation).
+
 **v.0.2.4**
 * updated the vcf_imputation function for the commonly used arguments in **stackr**.
 
 **v.0.2.3**
 * vcf2dadi: to easily convert a VCF file created in STACKS to a dadi input file.
 This function comes with the commonly used arguments in **stackr**: 
-map-dependent imputation, whitelist, blacklist, common marker filtering, etc.
+map-independent imputation, whitelist, blacklist, common marker filtering, etc.
 
 **v.0.2.2**
 * vcf2genepop: to easily convert a VCF file created in STACKS to a genepop input file.

@@ -43,7 +43,8 @@ and a summary of the haplotypes file by population.
 \description{
 STACKS batch_x.haplotypes.tsv file summary.
 The output of the function is a summary table for populations with putative
-paralogs, consensus, monomorphic and polymorphic loci. 
+paralogs, consensus, monomorphic and polymorphic loci. Detected paralogs are 
+removed while estimating the subsequent statistics.
 The haplotypes statistics for the observed and expected homozygosity and
 heterozygosity. Wright’s inbreeding coefficient (Fis), and a proxy measure of 
 the realized proportion of the genome that is identical by descent (IBDG),
