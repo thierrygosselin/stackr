@@ -11,46 +11,46 @@ genotypes_summary(genotypes, markers, filter.monomorphic = TRUE,
   ind.genotyped = 1, joinmap = FALSE, onemap = FALSE, filename = FALSE)
 }
 \arguments{
-\item{genotypes}{The \code{batch_x.genotypes.txt} created by STACKS genotypes
+\item{genotypes}{The \code{genotypes = batch_x.genotypes.txt} created by STACKS genotypes
 module.}
 
-\item{markers}{The \code{batch_1.markers.tsv} created by STACKS genotypes
+\item{markers}{The \code{markers = batch_x.markers.tsv} created by STACKS genotypes
 module.}
 
 \item{filter.monomorphic}{(optional) Should monomorphic loci be filtered out.
-Default = \code{TRUE}.}
+Default: \code{filter.monomorphic = TRUE}.}
 
 \item{filter.missing.band}{(optional) Should loci with missing 
-band be filtered out. Default = \code{TRUE}.}
+band be filtered out. Default: \code{filter.missing.band = TRUE}.}
 
 \item{filter.mean.log.likelihood}{(optional) Should a mean log likelihood 
 filter be applied to the loci. 
-Default = \code{FALSE}. e.g. filter.mean.log.likelihood = -10.}
+Default: \code{filter.mean.log.likelihood = FALSE}. e.g. filter.mean.log.likelihood = -10.}
 
 \item{B}{(optional) Should the the segregation distortion p-value 
 be computed with a Monte Carlo test with \code{B} replicates. 
 For more details, see package \code{stats} function
- \code{chisq.test}. Default = \code{FALSE}.}
+ \code{chisq.test}. Default: \code{B = FALSE}.}
 
 \item{filter.GOF}{(optional) Filer the goodness-of-fit for segregation 
-distortion. Default = \code{FALSE}.}
+distortion. Default: \code{filter.GOF = FALSE}.}
 
 \item{filter.GOF.p.value}{(optional) Filer the goodness-of-fit p-value of 
-GOF segregation distortion. Default = \code{FALSE}.}
+GOF segregation distortion. Default: \code{filter.GOF.p.value = FALSE}.}
 
 \item{ind.genotyped}{Number. Filter the number of individual
 progeny required to keep the marker.}
 
 \item{joinmap}{(optional) Name of the JoinMap file to write 
 in the working directory. e.g. "joinmap.turtle.family3.loc".
-Default = \code{FALSE}.}
+Default: \code{joinmap = FALSE}.}
 
 \item{onemap}{(optional) Name of the OneMap file to write 
 in the working directory. e.g. "onemap.turtle.family3.txt".
-Default = \code{FALSE}.}
+Default: \code{onemap = FALSE}.}
 
 \item{filename}{(optional) The name of the summary file written 
-in the directory.}
+in the directory. No default.}
 }
 \value{
 The function returns a list with the 
@@ -61,7 +61,7 @@ the working direcvtory.
 }
 \description{
 Useful summary of \code{batch_x.genotypes.txt} and
- \code{batch_1.markers.tsv} files produced by STACKS genotypes module use 
+ \code{batch_x.markers.tsv} files produced by STACKS genotypes module use 
  for linkage mapping. Filter segregation distortion and output JoinMap and or
  OneMap file.
 }
@@ -74,7 +74,18 @@ work in progress...
 }
 \examples{
 \dontrun{
-work in progress...
+linkage.map.crab <- genotypes_summary(
+genotypes = "batch_10.markers.tsv", 
+markers = "batch_10.genotypes_300.txt", 
+filter.monomorphic = TRUE, 
+filter.missing.band = TRUE, 
+filter.mean.log.likelihood = -10, 
+B = FALSE, 
+joinmap = "test.loc", 
+onemap = "test.onemap.txt", 
+ind.genotyped = 300, 
+filename = "genotypes.summary.tsv"
+)
 }
 }
 \author{

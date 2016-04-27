@@ -41,9 +41,9 @@ markers present in the dataset be filtered out ?
 Default: \code{monomorphic.out = TRUE}.}
 
 \item{blacklist.genotype}{(optional) Useful to erase genotype with below 
-average quality, e.g. genotype with more than 2 alleles in diploid likely 
+average quality, e.g. genotype with more than 2 alleles in diploid individual likely corresponding to
 sequencing errors or genotypes with poor genotype likelihood or coverage. 
-The blacklist as a minimum of 2 column headers (markers and individuals). 
+The blacklist has a minimum of 2 column headers (markers and individuals). 
 Markers can be 1 column (CHROM or LOCUS or POS), 
 a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
 all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
@@ -134,7 +134,7 @@ working directory or \code{folder}
 \description{
 This function enable to prune the data set with different 
 argument (see below) in order to be prep for subsequent analysis.
-Various input files is offered. Individuals, populations and
+Various input files are offered. Individuals, populations and
 markers can be filtered and/or selected in several ways using blacklist,
 whitelist and other arguments.
 }

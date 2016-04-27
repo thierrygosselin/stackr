@@ -4,38 +4,38 @@
 #' @title Summary of \code{batch_x.genotypes.txt} and
 #' \code{batch_1.markers.tsv} files.
 #' @description Useful summary of \code{batch_x.genotypes.txt} and
-#'  \code{batch_1.markers.tsv} files produced by STACKS genotypes module use 
+#'  \code{batch_x.markers.tsv} files produced by STACKS genotypes module use 
 #'  for linkage mapping. Filter segregation distortion and output JoinMap and or
 #'  OneMap file.
-#' @param genotypes The \code{batch_x.genotypes.txt} created by STACKS genotypes
+#' @param genotypes The \code{genotypes = batch_x.genotypes.txt} created by STACKS genotypes
 #' module.
-#' @param markers The \code{batch_1.markers.tsv} created by STACKS genotypes
+#' @param markers The \code{markers = batch_x.markers.tsv} created by STACKS genotypes
 #' module.
 #' @param filter.monomorphic (optional) Should monomorphic loci be filtered out.
-#' Default = \code{TRUE}.
+#' Default: \code{filter.monomorphic = TRUE}.
 #' @param filter.missing.band (optional) Should loci with missing 
-#' band be filtered out. Default = \code{TRUE}.
+#' band be filtered out. Default: \code{filter.missing.band = TRUE}.
 #' @param filter.mean.log.likelihood (optional) Should a mean log likelihood 
 #' filter be applied to the loci. 
-#' Default = \code{FALSE}. e.g. filter.mean.log.likelihood = -10.
+#' Default: \code{filter.mean.log.likelihood = FALSE}. e.g. filter.mean.log.likelihood = -10.
 #' @param B (optional) Should the the segregation distortion p-value 
 #' be computed with a Monte Carlo test with \code{B} replicates. 
 #' For more details, see package \code{stats} function
-#'  \code{chisq.test}. Default = \code{FALSE}.
+#'  \code{chisq.test}. Default: \code{B = FALSE}.
 #' @param filter.GOF (optional) Filer the goodness-of-fit for segregation 
-#' distortion. Default = \code{FALSE}.
+#' distortion. Default: \code{filter.GOF = FALSE}.
 #' @param filter.GOF.p.value (optional) Filer the goodness-of-fit p-value of 
-#' GOF segregation distortion. Default = \code{FALSE}.
+#' GOF segregation distortion. Default: \code{filter.GOF.p.value = FALSE}.
 #' @param ind.genotyped Number. Filter the number of individual
 #' progeny required to keep the marker.
 #' @param joinmap (optional) Name of the JoinMap file to write 
 #' in the working directory. e.g. "joinmap.turtle.family3.loc".
-#' Default = \code{FALSE}.
+#' Default: \code{joinmap = FALSE}.
 #' @param onemap (optional) Name of the OneMap file to write 
 #' in the working directory. e.g. "onemap.turtle.family3.txt".
-#' Default = \code{FALSE}.
+#' Default: \code{onemap = FALSE}.
 #' @param filename (optional) The name of the summary file written 
-#' in the directory.
+#' in the directory. No default.
 #' @return The function returns a list with the 
 #' genotypes summary \code{$geno.sum}, joinmap markers \code{$joinmap.sum} 
 #' and onemap markers \code{$onemap.sum} summary (use $ to access each 
@@ -51,7 +51,18 @@
 #' @details work in progress...
 #' @examples
 #' \dontrun{
-#' work in progress...
+#' linkage.map.crab <- genotypes_summary(
+#' genotypes = "batch_10.markers.tsv", 
+#' markers = "batch_10.genotypes_300.txt", 
+#' filter.monomorphic = TRUE, 
+#' filter.missing.band = TRUE, 
+#' filter.mean.log.likelihood = -10, 
+#' B = FALSE, 
+#' joinmap = "test.loc", 
+#' onemap = "test.onemap.txt", 
+#' ind.genotyped = 300, 
+#' filename = "genotypes.summary.tsv"
+#' )
 #' }
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
@@ -61,7 +72,20 @@
 #' Molecular Ecology, 22, 3124-3140.
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, filter.missing.band = TRUE, filter.mean.log.likelihood = FALSE, B = FALSE, filter.GOF = FALSE, filter.GOF.p.value = FALSE, ind.genotyped = 1, joinmap = FALSE, onemap = FALSE, filename = FALSE){
+genotypes_summary <- function(
+  genotypes,
+  markers,
+  filter.monomorphic = TRUE,
+  filter.missing.band = TRUE,
+  filter.mean.log.likelihood = FALSE,
+  B = FALSE,
+  filter.GOF = FALSE,
+  filter.GOF.p.value = FALSE,
+  ind.genotyped = 1,
+  joinmap = FALSE,
+  onemap = FALSE, 
+  filename = FALSE
+  ){
   
   
   GENOTYPES <- NULL
@@ -80,6 +104,20 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
   TOTAL_GENOTYPES <- NULL
   MARKERS <- NULL
   `1` <- NULL
+  
+  if (missing(genotypes)) stop("batch_x.genotypes.txt file created by STACKS genotypes is required")
+  if (missing(markers)) stop("batch_x.markers.tsv file created by STACKS genotypes is required")
+  if (missing(filter.monomorphic)) filter.monomorphic <- TRUE
+  if (filter.monomorphic == FALSE) message("Keeping monomorphic markers for linkage mapping is not recommended")
+  if (missing(filter.missing.band)) filter.missing.band <- TRUE
+  if (missing(filter.mean.log.likelihood)) filter.mean.log.likelihood <- FALSE
+  if (missing(B)) B <- FALSE
+  if (missing(filter.GOF)) filter.GOF <- FALSE
+  if (missing(filter.GOF.p.value)) filter.GOF.p.value <- FALSE
+  if (missing(ind.genotyped)) stop("ind.genotyped argument is missing")
+  if (missing(joinmap)) joinmap <- FALSE
+  if (missing(onemap)) onemap <- FALSE
+  if (missing(filename)) filename <- FALSE
   
   
   message.genotypes <- paste("Importing ", genotypes, sep = "" )
@@ -292,16 +330,9 @@ genotypes_summary <- function(genotypes, markers, filter.monomorphic = TRUE, fil
   
   # Filter number of individuals genotyped
   message("Filterin number of individuals genotyped")
-  if(missing (ind.genotyped) == TRUE){
-    geno.sum <- geno.sum %>% 
-      filter(TOTAL_GENOTYPES > 1)
-  } else {
     geno.sum <- geno.sum %>% 
       filter(TOTAL_GENOTYPES > ind.genotyped)
-  }
-  
-  
-  
+
   # pattern summary
   joinmap.sum <- geno.sum %>%
     group_by(JOINMAP) %>%
@@ -432,6 +463,5 @@ Working directory: %s",
     saving, getwd()
   )))
   return(res) 
-  
 }
 
