@@ -2,7 +2,7 @@
 # Genotype summary
 
 #' @title Summary of \code{batch_x.genotypes.txt} and
-#' \code{batch_1.markers.tsv} files.
+#' \code{batch_x.markers.tsv} files.
 #' @description Useful summary of \code{batch_x.genotypes.txt} and
 #'  \code{batch_x.markers.tsv} files produced by STACKS genotypes module use 
 #'  for linkage mapping. Filter segregation distortion and output JoinMap and or
