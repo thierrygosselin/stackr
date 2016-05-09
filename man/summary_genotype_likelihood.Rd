@@ -4,31 +4,42 @@
 \alias{summary_genotype_likelihood}
 \title{Genotype likelihood summary}
 \usage{
-summary_genotype_likelihood(tidy.vcf.file, pop.levels, filename)
+summary_genotype_likelihood(tidy.vcf, pop.levels, approach, folder)
 }
 \arguments{
-\item{tidy.vcf.file}{The tidy VCF file created with read_stacks_vcf.}
+\item{tidy.vcf}{A tidy vcf object or file (using ".tsv"), 
+created with read_stacks_vcf.}
 
-\item{pop.levels}{Character string defining your ordered populations.}
+\item{pop.levels}{(optional) Character string defining your ordered populations.}
 
-\item{filename}{The name of the file written in the directory.}
+\item{approach}{Character. By \code{"SNP"} or by \code{"haplotype"}. 
+The function will consider the SNP or haplotype GL statistics to filter the marker. 
+Default: \code{approach = "haplotype"}.}
+
+\item{folder}{(optional) Path to folder where results will be saved. 
+Default: \code{folder = NULL}, the working directory is used.}
 }
 \value{
-A list with 2 tables: the long format of loci ($gl.summary.long)
-and populations genotype likelihood statistics
-and the short format by populations ($gl.summary.pop).
-The short-format is more user-friendly and
-is written to the working directory.
+A list with 3 object (data frames): the statistics at the 
+individual level ($gl.individuals, 
+saved as: "genotype.likelihood.individual.summary.tsv"), a long format with information by 
+marker and population ($gl.summary.marker.pop) and the overall summary by 
+population ($gl.summary.pop). Those 3 data frames are also written in your
+working directory.
 }
 \description{
-This function create 2 tables summary of the important
-genotype likelihood statistics from the tidy vcf created
+This function create 3 summary tables with 
+genotype likelihood statistics. Individuals, populations and markers information is provided.
+The input data is a tidy vcf created.
 with \link{read_stacks_vcf}.
 }
 \details{
 The table contains summary statistics: mean, median, min, max and 
-diff (max-min), of genotype likelihood by locus and populations. To access 
+diff (max-min), of genotype likelihood for individuals, markers and populations. To access 
 the two tables, use $. The table that summarise by populations was created
 using average nested: loci -> individuals -> populations.
+Using the haplotype approach: The summary statistics are averaged
+and nested SNP -> individuals -> population -> loci. e.g. the mean GL is the average
+genotype likelihood for all individuals of pop x for loci x.
 }
 
