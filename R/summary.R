@@ -503,14 +503,14 @@ summary_haplotypes <- function(haplotypes.file,
   
   summary.prep <- suppressWarnings(
     haplo.filtered.consensus %>% 
-    filter(HAPLOTYPES != "-") %>%
-    select(-INDIVIDUALS) %>%
-    tidyr::separate(
-      col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
-      sep = "/", extra = "drop", remove = T
-    ) %>%
-    mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
-    tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
+      filter(HAPLOTYPES != "-") %>%
+      select(-INDIVIDUALS) %>%
+      tidyr::separate(
+        col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"), 
+        sep = "/", extra = "drop", remove = T
+      ) %>%
+      mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
+      tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
   )
   
   summary.pop <- summary.prep %>%
@@ -853,7 +853,8 @@ summary_stats_pop <- function(data, filename) {
 #' @title Coverage summary
 #' @description This function create a table summary of the important
 #' coverage statistics from the tidy vcf created with read_stacks_vcf.
-#' @param tidy.vcf.file The tidy VCF file created with read_stacks_vcf.
+#' @param tidy.vcf A tidy vcf object or file (using ".tsv"), 
+#' created with read_stacks_vcf.
 #' @param pop.levels Character string defining your ordered populations.
 #' @param filename Name of the file saved to the working directory.
 #' @details The tables contains summary statistics (mean, median, min, max)
@@ -868,7 +869,7 @@ summary_stats_pop <- function(data, filename) {
 #' @rdname summary_coverage
 #' @export
 
-summary_coverage <- function (tidy.vcf.file, pop.levels, filename) {
+summary_coverage <- function (tidy.vcf, pop.levels, filename) {
   
   POP_ID <- NULL
   READ_DEPTH <- NULL
@@ -878,12 +879,12 @@ summary_coverage <- function (tidy.vcf.file, pop.levels, filename) {
   
   
   
-  if (is.vector(tidy.vcf.file) == "TRUE") {
-    data <- read_tsv(tidy.vcf.file, col_names = T, col_types = "iiiiccddcdccddddc")
+  if (is.vector(tidy.vcf) == "TRUE") {
+    data <- read_tsv(tidy.vcf, col_names = T, col_types = "iiiiccddcdccddddc")
     message("Using the file in your directory")
     
   } else {
-    data = tidy.vcf.file
+    data = tidy.vcf
     message("Using the file from your global environment")
     
   }
@@ -983,7 +984,8 @@ summary_coverage <- function (tidy.vcf.file, pop.levels, filename) {
 #' @description This function create a table summary of the genotypes
 #' below a user-define threshold.
 #' coverage statistics by populations.
-#' @param tidy.vcf.file The tidy VCF file created with read_stacks_vcf.
+#' @param tidy.vcf A tidy vcf object or file (using ".tsv"), 
+#' created with read_stacks_vcf.
 #' @param pop.levels Character string defining your ordered populations.
 #' @param read.depth.threshold The read depth threshold to evaluate.
 #' @param filename.low.coverage Filename of the low coverage table written
@@ -1003,7 +1005,7 @@ summary_coverage <- function (tidy.vcf.file, pop.levels, filename) {
 #' @export
 
 
-table_low_coverage_summary <- function(tidy.vcf.file,
+table_low_coverage_summary <- function(tidy.vcf,
                                        pop.levels, 
                                        read.depth.threshold,
                                        filename.low.coverage,
@@ -1018,24 +1020,24 @@ table_low_coverage_summary <- function(tidy.vcf.file,
   TOTAL_NUMBER <- NULL
   IMBALANCE_NUMBER <- NULL
   
-  if (is.vector(tidy.vcf.file) == "TRUE") {
-    data <- read_tsv(tidy.vcf.file, 
+  if (is.vector(tidy.vcf) == "TRUE") {
+    data <- read_tsv(tidy.vcf, 
                      col_names = T, 
                      col_types = "diidccddccccdddddc") %>%
       mutate(INDIVIDUALS = factor(INDIVIDUALS))
     message("Using the file in your directory")
     
   } else {
-    data <- tidy.vcf.file
+    data <- tidy.vcf
     message("Using the file from your global environment")
     
   }
   
   if (missing(pop.levels) == "TRUE") {
-    data <- tidy.vcf.file
+    data <- tidy.vcf
     
   } else {
-    data <- tidy.vcf.file %>%
+    data <- tidy.vcf %>%
       mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T))
   }
   
@@ -1105,121 +1107,163 @@ Written in the directory:
 ## Genotype likelihood ###
 
 #' @title Genotype likelihood summary
-#' @description This function create 2 tables summary of the important
-#' genotype likelihood statistics from the tidy vcf created
+#' @description This function create 3 summary tables with 
+#' genotype likelihood statistics. Individuals, populations and markers information is provided.
+#' The input data is a tidy vcf created.
 #' with \link{read_stacks_vcf}.
-#' @param tidy.vcf.file The tidy VCF file created with read_stacks_vcf.
-#' @param pop.levels Character string defining your ordered populations.
-#' @param filename The name of the file written in the directory.
-#' @return A list with 2 tables: the long format of loci ($gl.summary.long)
-#' and populations genotype likelihood statistics
-#' and the short format by populations ($gl.summary.pop).
-#' The short-format is more user-friendly and
-#' is written to the working directory.
+#' @param tidy.vcf A tidy vcf object or file (using ".tsv"), 
+#' created with read_stacks_vcf.
+#' @param pop.levels (optional) Character string defining your ordered populations.
+#' @param approach Character. By \code{"SNP"} or by \code{"haplotype"}. 
+#' The function will consider the SNP or haplotype GL statistics to filter the marker. 
+#' Default: \code{approach = "haplotype"}.
+#' @param folder (optional) Path to folder where results will be saved. 
+#' Default: \code{folder = NULL}, the working directory is used.
+
+#' @return A list with 3 object (data frames): the statistics at the 
+#' individual level ($gl.individuals, 
+#' saved as: "genotype.likelihood.individual.summary.tsv"), a long format with information by 
+#' marker and population ($gl.summary.marker.pop) and the overall summary by 
+#' population ($gl.summary.pop). Those 3 data frames are also written in your
+#' working directory.
 #' @details The table contains summary statistics: mean, median, min, max and 
-#' diff (max-min), of genotype likelihood by locus and populations. To access 
+#' diff (max-min), of genotype likelihood for individuals, markers and populations. To access 
 #' the two tables, use $. The table that summarise by populations was created
 #' using average nested: loci -> individuals -> populations.
+#' Using the haplotype approach: The summary statistics are averaged
+#' and nested SNP -> individuals -> population -> loci. e.g. the mean GL is the average
+#' genotype likelihood for all individuals of pop x for loci x.
+
 #' @rdname summary_genotype_likelihood
 #' @export
 
-summary_genotype_likelihood <- function(tidy.vcf.file, pop.levels, filename){
+summary_genotype_likelihood <- function(tidy.vcf, pop.levels, approach, folder){
   
   POP_ID <- NULL
   GL <- NULL
   GL_MAX <- NULL
   GL_MIN <- NULL
   INDIVIDUALS <- NULL
+  GENOTYPE_LIKELIHOOD_GROUP <- NULL
   
   
+  if (missing(pop.levels)) pop.levels <- NULL
+  if (missing(approach)) approach <- "haplotype"
   
-  if (is.vector(tidy.vcf.file) == "TRUE") {
-    data <- read_tsv(tidy.vcf.file, col_names = T, col_types = "iiiiccddcdccddddc")
+  if (approach == "haplotype"){
+    message("Approach: haplotype")
+  } else {
+    message("Approach: SNP")
+  }
+  
+  if (missing(folder)) folder <- NULL
+  
+  # set the working directory to save results
+  if (is.null(folder)) {
+    folder <- getwd()
+  }
+  
+  # import data
+  message("Importing data")
+  if (is.vector(tidy.vcf) == "TRUE") {
+    data <- data.table::fread(
+      input = tidy.vcf,
+      sep = "\t",
+      stringsAsFactors = FALSE, 
+      header = TRUE,
+      showProgress = TRUE,
+      verbose = FALSE
+    ) %>% 
+      as_data_frame()
     message("Using the file in your directory")
   } else {
-    data <- tidy.vcf.file
+    data <- tidy.vcf
     message("Using the file from your global environment")
     
   }
   
-  GL.loci.pop <- data %>%
-    group_by(LOCUS, POP_ID) %>%
-    summarise(
-      GL_MEAN = mean(GL, na.rm = T),
-      GL_MEDIAN = median(GL, na.rm = T),
-      GL_MIN = min(GL, na.rm = T),
-      GL_MAX = max(GL, na.rm = T),
-      GL_DIFF = GL_MAX - GL_MIN
-    ) %>%
-    melt(
-      id.vars = c("LOCUS", "POP_ID"),
-      variable.name = "GENOTYPE_LIKELIHOOD_GROUP", 
-      value.name = "VALUE"
-    )
+  # make sure it's a tidy vcf with Allele Depth info
+  columns.names.tidy.vcf <- names(data) 
+  if("ALLELE_REF_DEPTH" %in% columns.names.tidy.vcf){
+    message("Looking for genotype likelihood information")
+  }else{
+    stop("This is not a tidy vcf with Allele Depth information,
+         you need to run STACKS with a version > 1.29 for this to work.")
+  }
   
-  if (missing(pop.levels) == "TRUE") {
-    GL.loci.pop.summary <- GL.loci.pop
-  } else {
-    GL.loci.pop.summary <- GL.loci.pop %>%
-      mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)) %>%
+  if (!is.null(pop.levels)) {
+    data <- data %>%
+      mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = TRUE)) %>%
       arrange(POP_ID)
   }
   
-  
-  GL.pop <- data %>%
-    group_by(POP_ID, INDIVIDUALS) %>%
+  # summary individuals
+  message("Summarising GL info: individual")
+  gl.individuals <- data %>% 
+    group_by(POP_ID, INDIVIDUALS) %>% 
     summarise(
-      GL_MEAN = mean(GL, na.rm = T),
-      GL_MEDIAN = median(GL, na.rm = T),
-      GL_MIN = min(GL, na.rm = T),
-      GL_MAX = max(GL, na.rm = T),
+      GL_MEAN = mean(GL, na.rm = TRUE),
+      GL_MEDIAN = median(GL, na.rm = TRUE),
+      GL_MIN = min(GL, na.rm = TRUE),
+      GL_MAX = max(GL, na.rm = TRUE),
       GL_DIFF = GL_MAX - GL_MIN
-    ) %>%
+    ) %>%  
+    arrange(POP_ID, INDIVIDUALS)
+  write_tsv(x = gl.individuals, path = stri_paste(folder,"/genotype.likelihood.individual.summary.tsv"), col_names = TRUE)
+
+  # summary by locus and pop
+  message("Summarising GL info: marker and pop")
+  if (approach == "haplotype"){ # by haplotype
+    gl.summary.marker.pop <- data %>%
+      ungroup() %>% 
+      group_by(LOCUS, POP_ID) %>%
+      summarise(
+        GL_MEAN = mean(GL, na.rm = T),
+        GL_MEDIAN = median(GL, na.rm = T),
+        GL_MIN = min(GL, na.rm = T),
+        GL_MAX = max(GL, na.rm = T),
+        GL_DIFF = GL_MAX - GL_MIN
+      ) %>%
+      melt(
+        id.vars = c("LOCUS", "POP_ID"),
+        variable.name = "GENOTYPE_LIKELIHOOD_GROUP", 
+        value.name = "VALUE"
+      ) %>% 
+      arrange(LOCUS, POP_ID, GENOTYPE_LIKELIHOOD_GROUP)
+  } else { # by SNP
+    gl.summary.marker.pop <- data %>%
+      ungroup() %>% 
+      group_by(LOCUS, POS, POP_ID) %>%
+      summarise(
+        GL_MEAN = mean(GL, na.rm = T),
+        GL_MEDIAN = median(GL, na.rm = T),
+        GL_MIN = min(GL, na.rm = T),
+        GL_MAX = max(GL, na.rm = T),
+        GL_DIFF = GL_MAX - GL_MIN
+      ) %>%
+      melt(
+        id.vars = c("LOCUS", "POS", "POP_ID"),
+        variable.name = "GENOTYPE_LIKELIHOOD_GROUP", 
+        value.name = "VALUE"
+      ) %>% 
+      arrange(LOCUS, POS, POP_ID, GENOTYPE_LIKELIHOOD_GROUP)
+  }
+  write_tsv(x = gl.summary.marker.pop, path = stri_paste(folder,"/genotype.likelihood.summary.marker.pop.tsv"), col_names = TRUE)
+
+  # Summary by pop overall locus
+  message("Summarising GL info: pop")
+  gl.summary.pop <- gl.individuals %>%
     group_by(POP_ID) %>%
-    summarise_each_(funs(mean), vars = c("GL_MEAN", "GL_MEDIAN", "GL_MIN", "GL_MAX", "GL_DIFF")) %>%
-    melt(
-      id.vars = c("POP_ID"),
-      variable.name = "GENOTYPE_LIKELIHOOD_GROUP", 
-      value.name = "VALUE"
-    )
+    summarise_each_(funs(mean), vars = c("GL_MEAN", "GL_MEDIAN", "GL_MIN", "GL_MAX", "GL_DIFF"))
+  write_tsv(x = gl.summary.pop, path = stri_paste(folder,"/genotype.likelihood.summary.pop.tsv"), col_names = TRUE)
   
-  if (missing(pop.levels) == "TRUE") {
-    GL.pop.summary <- GL.pop
-  } else {
-    GL.pop.summary <- GL.pop %>%
-      mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)) %>%
-      arrange(POP_ID)
-  }
-  
-  GL.pop.summary.table <- GL.pop.summary %>%
-    dcast(POP_ID ~ GENOTYPE_LIKELIHOOD_GROUP, value.var = "VALUE")
-  
-  
-  message("Saving the summary table by pop in your working directory")
-  write.table(GL.pop.summary.table, 
-              filename,
-              sep = "\t",
-              row.names = F,
-              col.names = T,
-              quote = F
-  )
-  
-  
-  invisible(cat(sprintf(
-    "Filename:
-%s
-Written in the directory:
-%s",
-    filename, getwd()
-  )))
-  
+
   # results
   results <- list()
-  results$gl.summary.long <- GL.loci.pop.summary
-  results$gl.summary.pop <- GL.pop.summary.table
-  
+  results$gl.individuals <- gl.individuals
+  results$gl.summary.marker.pop <- gl.summary.marker.pop
+  results$gl.summary.pop <- gl.summary.pop
   return(results)
-  
 }
 
 
