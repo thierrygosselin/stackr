@@ -117,6 +117,14 @@ install.packages("dplyr", type = "source")
 ```
 
 ## New
+
+**v.0.2.6**
+* dart2df_genind_plink: swiss army knife tool to prepare DArT output file (wide 
+or binary format) for population genetics analysis. Import, filter and transform 
+a DArT output file to different format: tidy data frame of genotypes, genind object 
+and/or PLINK `tped/tfam` format. Map-independent imputation also available.
+
+
 **v.0.2.5**
 * vcf2plink: to easily convert a VCF file created in STACKS to a PLINK input 
 file (tped/tfam format). This function comes with the commonly used arguments 
@@ -342,3 +350,9 @@ dapc.optim.a.score$best
 ## Functions found in **stackr** ![](vignettes/stackr_functions.png)
 
 Vignettes are in development, check periodically for updates.
+
+## Citation:
+To get the citation, inside R:
+```r
+citation("stackr")
+```
