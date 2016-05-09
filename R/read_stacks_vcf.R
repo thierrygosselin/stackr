@@ -21,7 +21,7 @@
 #' in the name of your individual sample.
 #' @param pop.id.end The end of your population id 
 #' in the name of your individual sample.
-#' @param pop.levels An character string with your populations ordered.
+#' @param pop.levels An character string with your populations ordered. 
 #' @param pop.labels An optional character string with new populations names.
 
 #' @param blacklist.id (optional) A blacklist with individual ID and
@@ -277,11 +277,11 @@ for more details see: http://catchenlab.life.illinois.edu/stacks/")
   message("Fixing columns...")
   vcf <- vcf %>%
     mutate(
-      GL = suppressWarnings(as.numeric(stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all=F)))
+      GL = suppressWarnings(as.numeric(stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all=FALSE)))
     ) %>%
     # Mutate read depth
     mutate(
-      READ_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all=F)))
+      READ_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all=FALSE)))
       )
   
   # mutate the alleles REF/ALT depth
