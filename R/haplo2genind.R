@@ -515,12 +515,17 @@ haplo2genind <- function(data,
         mutate(COUNT = replace(COUNT, which(COUNT == "erase"), NA)) %>% 
         arrange(POP_ID, INDIVIDUALS, MARKERS, ALLELES) %>% 
         tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE) %>%
-        tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
+        tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT)%>%
+        mutate(
+          INDIVIDUALS = as.character(INDIVIDUALS),
+          POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
+          POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
+        ) %>% 
         arrange(POP_ID, INDIVIDUALS)
     )
     
     # genind constructor **********************************************************
-    ind <- as.character(genind.prep$INDIVIDUALS)
+    ind <- genind.prep$INDIVIDUALS
     pop <- genind.prep$POP_ID
     genind.df <- genind.prep %>% ungroup() %>% 
       select(-c(INDIVIDUALS, POP_ID))
@@ -747,7 +752,12 @@ haplo2genind <- function(data,
         ungroup() %>%
         arrange(POP_ID, INDIVIDUALS, MARKERS, ALLELES) %>% 
         tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE) %>%
-        tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
+        tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT)%>%
+        mutate(
+          INDIVIDUALS = as.character(INDIVIDUALS),
+          POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
+          POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
+        ) %>% 
         arrange(POP_ID, INDIVIDUALS)
     )
     input.imp <- NULL
@@ -758,7 +768,7 @@ haplo2genind <- function(data,
     res$no.imputation <- no.imputation
     
     # 2) the genind with imputations
-    ind <- as.character(genind.prep.imp$INDIVIDUALS)
+    ind <- genind.prep.imp$INDIVIDUALS
     pop <- genind.prep.imp$POP_ID
     genind.df <- genind.prep.imp %>% ungroup() %>% 
       select(-c(INDIVIDUALS, POP_ID))

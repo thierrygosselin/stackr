@@ -455,11 +455,16 @@ vcf2genind <- function(data,
     tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>%
     mutate(COUNT = replace(COUNT, which(COUNT == "NA"), NA)) %>% 
     group_by(POP_ID, INDIVIDUALS) %>%
-    tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
+    tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>%
+    mutate(
+      INDIVIDUALS = as.character(INDIVIDUALS),
+      POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
+      POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
+    ) %>% 
     arrange(POP_ID, INDIVIDUALS)
   
   # convert to genind
-  ind <- as.character(genind.prep$INDIVIDUALS)
+  ind <- genind.prep$INDIVIDUALS
   pop <- genind.prep$POP_ID
   genind.df <- genind.prep %>% ungroup() %>% 
     select(-c(INDIVIDUALS, POP_ID))
@@ -674,7 +679,12 @@ vcf2genind <- function(data,
           tidyr::gather(key = ALLELES, value = COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
           tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>%
           group_by(POP_ID, INDIVIDUALS) %>%
-          tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
+          tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT)%>%
+          mutate(
+            INDIVIDUALS = as.character(INDIVIDUALS),
+            POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
+            POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
+          ) %>% 
           arrange(POP_ID, INDIVIDUALS)
       )
     }
@@ -691,7 +701,12 @@ vcf2genind <- function(data,
           tidyr::gather(key = ALLELES, value = COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
           tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>%
           group_by(POP_ID, INDIVIDUALS) %>%
-          tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
+          tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT)%>%
+          mutate(
+            INDIVIDUALS = as.character(INDIVIDUALS),
+            POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
+            POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
+          ) %>% 
           arrange(POP_ID, INDIVIDUALS)
       )
     }
@@ -705,7 +720,7 @@ vcf2genind <- function(data,
     no.imputation <- NULL # drop unused object
     
     # 2) the genind with imputations
-    ind <- as.character(genind.prep.imp$INDIVIDUALS)
+    ind <- genind.prep.imp$INDIVIDUALS
     pop <- genind.prep.imp$POP_ID
     genind.df <- genind.prep.imp %>%
       ungroup() %>% 
