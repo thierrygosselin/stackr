@@ -3,7 +3,7 @@
 \name{genotypes_summary}
 \alias{genotypes_summary}
 \title{Summary of \code{batch_x.genotypes.txt} and
-\code{batch_1.markers.tsv} files.}
+\code{batch_x.markers.tsv} files.}
 \usage{
 genotypes_summary(genotypes, markers, filter.monomorphic = TRUE,
   filter.missing.band = TRUE, filter.mean.log.likelihood = FALSE,
