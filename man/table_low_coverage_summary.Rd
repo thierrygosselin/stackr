@@ -4,11 +4,12 @@
 \alias{table_low_coverage_summary}
 \title{Table of low coverage genotypes}
 \usage{
-table_low_coverage_summary(tidy.vcf.file, pop.levels, read.depth.threshold,
+table_low_coverage_summary(tidy.vcf, pop.levels, read.depth.threshold,
   filename.low.coverage, filename.low.coverage.imbalance)
 }
 \arguments{
-\item{tidy.vcf.file}{The tidy VCF file created with read_stacks_vcf.}
+\item{tidy.vcf}{A tidy vcf object or file (using ".tsv"), 
+created with read_stacks_vcf.}
 
 \item{pop.levels}{Character string defining your ordered populations.}
 
