@@ -80,20 +80,17 @@ erase_genotypes <- function(tidy.vcf.file, haplotypes.file, read.depth.threshold
     tidy.vcf.file %>%
       mutate(
         GT = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "./.", GT),
-        READ_DEPTH = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", READ_DEPTH),
-        READ_DEPTH = as.numeric(READ_DEPTH)
+        READ_DEPTH = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", READ_DEPTH))
       )
   )
   
-  message("Step 2: Refence and Alternate Alleles Depth")
+  message("Step 2: Reference and Alternate Alleles Depth")
   
   tidy.vcf.file <- suppressWarnings(
     tidy.vcf.file %>% 
       mutate(
-        ALLELE_REF_DEPTH = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_REF_DEPTH),
-        ALLELE_ALT_DEPTH = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_ALT_DEPTH),
-        ALLELE_REF_DEPTH = as.numeric(ALLELE_REF_DEPTH),
-        ALLELE_ALT_DEPTH = as.numeric(ALLELE_ALT_DEPTH)
+        ALLELE_REF_DEPTH = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_REF_DEPTH)),
+        ALLELE_ALT_DEPTH = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_ALT_DEPTH))
       )
   )
   
@@ -102,10 +99,8 @@ erase_genotypes <- function(tidy.vcf.file, haplotypes.file, read.depth.threshold
   tidy.vcf.file <- suppressWarnings(
     tidy.vcf.file %>% 
       mutate(
-        ALLELE_COVERAGE_RATIO = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_COVERAGE_RATIO),
-        GL = ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", GL),
-        ALLELE_COVERAGE_RATIO = as.numeric(ALLELE_COVERAGE_RATIO),
-        GL = as.numeric(GL)
+        ALLELE_COVERAGE_RATIO = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", ALLELE_COVERAGE_RATIO)),
+        GL = as.numeric(ifelse(LOCUS %in% blacklist$LOCUS & POS %in% blacklist$POS & INDIVIDUALS %in% blacklist$INDIVIDUALS, "NA", GL))
       )
   )
   if (missing(filename)) {
