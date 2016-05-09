@@ -456,6 +456,7 @@ vcf2genind <- function(data,
     mutate(COUNT = replace(COUNT, which(COUNT == "NA"), NA)) %>% 
     group_by(POP_ID, INDIVIDUALS) %>%
     tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>%
+    ungroup () %>% 
     mutate(
       INDIVIDUALS = as.character(INDIVIDUALS),
       POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
@@ -680,6 +681,7 @@ vcf2genind <- function(data,
           tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>%
           group_by(POP_ID, INDIVIDUALS) %>%
           tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT)%>%
+          ungroup () %>% 
           mutate(
             INDIVIDUALS = as.character(INDIVIDUALS),
             POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
@@ -702,6 +704,7 @@ vcf2genind <- function(data,
           tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>%
           group_by(POP_ID, INDIVIDUALS) %>%
           tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT)%>%
+          ungroup () %>% 
           mutate(
             INDIVIDUALS = as.character(INDIVIDUALS),
             POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.

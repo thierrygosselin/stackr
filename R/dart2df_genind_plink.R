@@ -1264,6 +1264,7 @@ dart2df_genind_plink <- function(data,
       tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE) %>% 
       group_by(POP_ID, INDIVIDUALS) %>%
       tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>%
+      ungroup () %>% 
       mutate(
         INDIVIDUALS = as.character(INDIVIDUALS),
         POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
@@ -1303,6 +1304,7 @@ dart2df_genind_plink <- function(data,
         tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE) %>% 
         group_by(POP_ID, INDIVIDUALS) %>%
         tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>%
+        ungroup () %>%
         mutate(
           INDIVIDUALS = as.character(INDIVIDUALS),
           POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.

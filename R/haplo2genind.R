@@ -516,6 +516,7 @@ haplo2genind <- function(data,
         arrange(POP_ID, INDIVIDUALS, MARKERS, ALLELES) %>% 
         tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE) %>%
         tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT)%>%
+        ungroup () %>% 
         mutate(
           INDIVIDUALS = as.character(INDIVIDUALS),
           POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
@@ -753,6 +754,7 @@ haplo2genind <- function(data,
         arrange(POP_ID, INDIVIDUALS, MARKERS, ALLELES) %>% 
         tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE) %>%
         tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT)%>%
+        ungroup () %>%
         mutate(
           INDIVIDUALS = as.character(INDIVIDUALS),
           POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
