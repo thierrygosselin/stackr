@@ -181,12 +181,12 @@ plot_density_distribution_genotype_likelihood <- function(data, aes.colour,
   VALUE <- NULL
 
   # BREAKS <- seq(0, 150, by = 20)
-  ggplot(data, aes(x = VALUE, na.rm = T))+
+  suppressWarnings(ggplot(data, aes(x = VALUE, na.rm = T))+
     geom_line(aes.colour, stat = "density", size = 0.5, adjust = adjust.bin)+
     #  scale_colour_manual(name = "Filters", values = c("black", "blue"))+
     #  scale_x_continuous(breaks = BREAKS)+
-    labs(x = "Loci Genotype Likelihood")+
-    labs(y = "Loci (scaled density)")+
+    labs(x = "Markers Genotype Likelihood")+
+    labs(y = "Markers (scaled density)")+
     expand_limits(x = 0)+
     theme(
       legend.position = "none",
@@ -195,6 +195,7 @@ plot_density_distribution_genotype_likelihood <- function(data, aes.colour,
       legend.title = element_text(size = 10, family = "Helvetica", face = "bold"),
       legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
       strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold"))
+  )
 }
 
 
@@ -217,15 +218,16 @@ plot_boxplot_genotype_likelihood <- function(data) {
   
   
   ggplot(data, aes(x = factor(POP_ID), y = VALUE, na.rm = T))+
-    geom_violin(trim = F)+
+    geom_violin(trim = TRUE)+
     geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
     stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
     labs(x = "Sampling sites")+
-    labs(y = "Genotype likelihood of loci")+
+    labs(y = "Genotype likelihood of markers")+
     theme(
       legend.position = "none",
       axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
       axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
+      axis.text.x = element_text(size = 8, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5), 
       legend.title = element_text(size = 10, family = "Helvetica", face = "bold"),
       legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
       strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
