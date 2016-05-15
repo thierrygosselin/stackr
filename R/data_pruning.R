@@ -135,6 +135,7 @@
 #' @import dplyr
 #' @import stringi
 #' @importFrom data.table fread
+#' @importFrom utils write.table packageVersion
 
 #' @examples
 #' \dontrun{
@@ -1053,26 +1054,26 @@ data_pruning <- function(data,
      # File format
      file.format <- "##fileformat=VCFv4.0"
      file.format <- as.data.frame(file.format)
-     write.table(x = file.format, file = filename, sep = " ", append = FALSE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+     utils::write.table(x = file.format, file = filename, sep = " ", append = FALSE, col.names = FALSE, row.names = FALSE, quote = FALSE)
      
      # File date
      file.date <- stri_replace_all_fixed(Sys.Date(), pattern = "-", replacement = "")
      file.date <- stri_paste("##fileDate=", file.date, sep = "")
-     write.table(x = file.date, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+     utils::write.table(x = file.date, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
      
      # Source
-     file.source <- as.data.frame(stri_paste("##source=stackr v.", packageVersion("stackr"), sep = ""))
-     write.table(x = file.source, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+     file.source <- as.data.frame(stri_paste("##source=stackr v.", utils::packageVersion("stackr"), sep = ""))
+     utils::write.table(x = file.source, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
      
      # Info field 1
      info1 <- '##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of Samples With Data">'
      info1 <- as.data.frame(info1)
-     write.table(x = info1, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+     utils::write.table(x = info1, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
      
      # Format field 1
      format1 <- '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">'
      format1 <- as.data.frame(format1)
-     write.table(x = format1, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+     utils::write.table(x = format1, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
      
      # Write the prunned vcf to the file
      suppressWarnings(
