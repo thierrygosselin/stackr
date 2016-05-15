@@ -9,7 +9,7 @@ used by CSIRO genomic projects.}
 
 \item{strata}{A tab delimited file with columns header:
 \code{INDIVIDUALS} and \code{POP_ID}. 
-Use the column \code{POP_ID} for any hierarchical grouping. If a third column
+Note: the column \code{POP_ID} refers to any grouping of individuals. If a third column
 named \code{NEW_ID} is used, this column will be used to replace the
 \code{INDIVIDUALS} column in the main data file.}
 
@@ -85,10 +85,16 @@ global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
 
 \item{plink}{(optional, logical). To have the filtered data set output as 
-plink \code{tped/tfam} file, use \code{plink = TRUE}.}
+plink \code{tped/tfam} file, use \code{plink = TRUE}. 
+Default: \code{plink = NULL}}
 
 \item{genind}{(optional, logical). To have the filtered data set output as 
-genind object to use inside adegenet, use \code{genind = TRUE}.}
+genind object to use inside adegenet, use \code{genind = TRUE}. 
+Default: \code{genind = NULL}}
+
+\item{genepop}{(optional, logical). To have the filtered data set output as 
+a genepop file, use \code{genepop = TRUE}. 
+Default: \code{genepop = NULL}.}
 
 \item{filename}{(optional) The name of the file written to the directory.
 No file extension at the end.}

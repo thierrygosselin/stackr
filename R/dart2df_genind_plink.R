@@ -9,7 +9,7 @@
 
 #' @param strata A tab delimited file with columns header:
 #' \code{INDIVIDUALS} and \code{POP_ID}. 
-#' Use the column \code{POP_ID} for any hierarchical grouping. If a third column
+#' Note: the column \code{POP_ID} refers to any grouping of individuals. If a third column
 #' named \code{NEW_ID} is used, this column will be used to replace the
 #' \code{INDIVIDUALS} column in the main data file.
 
@@ -84,9 +84,14 @@
 
 
 #' @param plink (optional, logical). To have the filtered data set output as 
-#' plink \code{tped/tfam} file, use \code{plink = TRUE}.
+#' plink \code{tped/tfam} file, use \code{plink = TRUE}. 
+#' Default: \code{plink = NULL}
 #' @param genind (optional, logical). To have the filtered data set output as 
-#' genind object to use inside adegenet, use \code{genind = TRUE}.
+#' genind object to use inside adegenet, use \code{genind = TRUE}. 
+#' Default: \code{genind = NULL}
+#' @param genepop (optional, logical). To have the filtered data set output as 
+#' a genepop file, use \code{genepop = TRUE}. 
+#' Default: \code{genepop = NULL}.
 
 #' @param filename (optional) The name of the file written to the directory.
 #' No file extension at the end.
@@ -159,7 +164,8 @@ if (getRversion() >= "2.15.1") {
   utils::globalVariables(
     c("ID", "CloneID", "SnpPosition", "CallRate", "AvgCountRef", "AvgCountSnp", 
       "RepAvg", "NOT_USEFUL", "SNP", "CALL_RATE", "AVG_COUNT_REF", 
-      "AVG_COUNT_SNP", "REP_AVG", "NEW_ID", "SNP_N", "ALLELE_NAME", "ALLELE_NUMBER"
+      "AVG_COUNT_SNP", "REP_AVG", "NEW_ID", "SNP_N", "ALLELE_NAME", "ALLELE_NUMBER",
+      "ALLELES_COUNT"
     )
   )
 }
@@ -184,6 +190,7 @@ dart2df_genind_plink <- function(data,
                                  maf.operator,
                                  plink,
                                  genind,
+                                 genepop,
                                  filename,
                                  imputation.method = FALSE,
                                  impute = "genotypes",
@@ -220,6 +227,7 @@ dart2df_genind_plink <- function(data,
   if (missing(maf.operator)) maf.operator <- "OR"
   if (missing(plink)) plink <- NULL
   if (missing(genind)) genind <- NULL
+  if (missing(genepop)) genepop <- NULL
   if (missing(filename)) filename <- NULL
   if (missing(imputation.method)) imputation.method <- FALSE
   if (missing(imputations.group)) imputations.group <- "populations"
@@ -234,11 +242,10 @@ dart2df_genind_plink <- function(data,
   if (common.markers == FALSE) common.markers <- NULL
   if (plink == FALSE) plink <- NULL
   if (genind == FALSE) genind <- NULL
-  if (plot.reproducibility == FALSE) plot.reproducibility <- NULL
-  if (plot.coverage == FALSE) plot.coverage <- NULL
-  if (plot.call.rate == FALSE) plot.call.rate <- NULL
-  if (plot.number.snp.reads == FALSE) plot.number.snp.reads <- NULL
-  
+  # if (plot.reproducibility == FALSE) plot.reproducibility <- NULL
+  # if (plot.coverage == FALSE) plot.coverage <- NULL
+  # if (plot.call.rate == FALSE) plot.call.rate <- NULL
+  # if (plot.number.snp.reads == FALSE) plot.number.snp.reads <- NULL
   
   # Filename ------------------------------------------------------------------
   # Create a folder based on filename to save the output files *****************
@@ -888,8 +895,8 @@ dart2df_genind_plink <- function(data,
       REF = stri_pad_left(str = REF, pad = "0", width = 3),
       ALT = stri_pad_left(str = ALT, pad = "0", width = 3),
       GENOTYPE = ifelse(GT == "REF_REF", stri_join(REF, REF, sep = "/"),
-                  ifelse(GT == "ALT_ALT",  stri_join(ALT, ALT, sep = "/"), 
-                         ifelse(GT == "REF_ALT",  stri_join(REF, ALT, sep = "/"), "000/000")))
+                        ifelse(GT == "ALT_ALT",  stri_join(ALT, ALT, sep = "/"), 
+                               ifelse(GT == "REF_ALT",  stri_join(REF, ALT, sep = "/"), "000/000")))
     ) %>% 
     select(-GT) %>% 
     arrange(MARKERS, POP_ID, INDIVIDUALS)  
@@ -1144,8 +1151,8 @@ dart2df_genind_plink <- function(data,
         REF = stri_pad_left(str = REF, pad = "0", width = 3),
         ALT = stri_pad_left(str = ALT, pad = "0", width = 3),
         GENOTYPE = ifelse(GT == "REF_REF", stri_join(REF, REF, sep = "/"),
-                    ifelse(GT == "ALT_ALT",  stri_join(ALT, ALT, sep = "/"), 
-                           ifelse(GT == "REF_ALT",  stri_join(REF, ALT, sep = "/"), "000/000")))
+                          ifelse(GT == "ALT_ALT",  stri_join(ALT, ALT, sep = "/"), 
+                                 ifelse(GT == "REF_ALT",  stri_join(REF, ALT, sep = "/"), "000/000")))
       ) %>% 
       select(MARKERS, REF, ALT, POP_ID, INDIVIDUALS, GENOTYPE)
     
@@ -1153,7 +1160,7 @@ dart2df_genind_plink <- function(data,
     filtered.data.name <- stri_paste(filename, "_tidy_imputed", ".tsv", sep = "")
     message(stri_paste("Writing the tidy, filtered and imputed data set: ", filtered.data.name, "\nWorking directory: ", getwd()))
     write_tsv(x = input.imp.df, path = filtered.data.name, col_names = TRUE)
-
+    
     
   } # End imputations
   
@@ -1203,7 +1210,7 @@ dart2df_genind_plink <- function(data,
     write_delim(x = tfam, path = stri_paste(filename, ".tfam", sep = ""), col_names = FALSE, delim = " ")
     
     if (imputation.method != "FALSE") {
-      message("Generating the imputed PLINK tped and tfam files")
+      message("Generating the PLINK tped and tfam files: with imputations")
       tped <- input.imp %>% 
         arrange(INDIVIDUALS) %>% 
         mutate(
@@ -1252,16 +1259,23 @@ dart2df_genind_plink <- function(data,
   if (genind == TRUE) {
     message("Generating the adegenet genind object")
     genind.prep <- input %>%
-      select(MARKERS, INDIVIDUALS, POP_ID, GT) %>% 
+      select(MARKERS, INDIVIDUALS, POP_ID, GT, REF, ALT) %>% 
       mutate(
         GT = as.character(GT),
         GT = stri_replace_all_fixed(str = GT, pattern = c("REF_REF", "ALT_ALT", "REF_ALT"), replacement = c("2_0", "0_2", "1_1"), vectorize_all = FALSE),
-        GT = replace(GT, which(GT == "0_0"), NA)
+        GT = replace(GT, which(GT == "0_0"), NA),
+        REF = stri_replace_all_fixed(str = REF, pattern = "0", replacement = "", vectorize_all = FALSE),
+        ALT = stri_replace_all_fixed(str = ALT, pattern = "0", replacement = "", vectorize_all = FALSE)
       ) %>% 
       arrange(MARKERS, POP_ID) %>%
-      tidyr::separate(col = GT, into = c("001", "002"), sep = "_", extra = "drop", remove = TRUE) %>%
-      tidyr::gather(key = ALLELES, value = COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
+      tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_", extra = "drop", remove = TRUE) %>%
+      tidyr::unite(REF, REF, A1, sep = "/", remove = TRUE) %>% 
+      tidyr::unite(ALT, ALT, A2, sep = "/", remove = TRUE) %>% 
+      tidyr::gather(key = ALLELES, value = ALLELES_COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
+      select(-ALLELES) %>% 
+      tidyr::separate(col = ALLELES_COUNT, into = c("ALLELES", "COUNT"), sep = "/", extra = "drop", remove = TRUE) %>%
       tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE) %>% 
+      mutate(COUNT = replace(COUNT, which(COUNT == "NA"), NA)) %>% 
       group_by(POP_ID, INDIVIDUALS) %>%
       tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>%
       ungroup () %>% 
@@ -1271,7 +1285,7 @@ dart2df_genind_plink <- function(data,
         POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
       ) %>% 
       arrange(POP_ID, INDIVIDUALS)
-    
+      
     # genind arguments common to all data.type
     ind <- genind.prep$INDIVIDUALS
     pop <- genind.prep$POP_ID
@@ -1290,26 +1304,33 @@ dart2df_genind_plink <- function(data,
     genind.data <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = ~POP_ID/INDIVIDUALS)
     
     if (imputation.method != FALSE) {
-      message("Generating the adegenet imputed genind object")
+      message("Generating the adegenet genind object: with imputations")
       genind.prep.imp <- input.imp %>%
-        select(MARKERS, INDIVIDUALS, POP_ID, GT) %>% 
+        select(MARKERS, INDIVIDUALS, POP_ID, GT, REF, ALT) %>% 
         mutate(
           GT = as.character(GT),
           GT = stri_replace_all_fixed(str = GT, pattern = c("REF_REF", "ALT_ALT", "REF_ALT"), replacement = c("2_0", "0_2", "1_1"), vectorize_all = FALSE),
-          GT = replace(GT, which(GT == "0_0"), NA)
-        ) %>%
+          GT = replace(GT, which(GT == "0_0"), NA),
+          REF = stri_replace_all_fixed(str = REF, pattern = "0", replacement = "", vectorize_all = FALSE),
+          ALT = stri_replace_all_fixed(str = ALT, pattern = "0", replacement = "", vectorize_all = FALSE)
+        ) %>% 
         arrange(MARKERS, POP_ID) %>%
-        tidyr::separate(col = GT, into = c("001", "002"), sep = "_", extra = "drop", remove = TRUE) %>%
-        tidyr::gather(key = ALLELES, value = COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
+        tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_", extra = "drop", remove = TRUE) %>%
+        tidyr::unite(REF, REF, A1, sep = "/", remove = TRUE) %>% 
+        tidyr::unite(ALT, ALT, A2, sep = "/", remove = TRUE) %>% 
+        tidyr::gather(key = ALLELES, value = ALLELES_COUNT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% # make tidy
+        select(-ALLELES) %>% 
+        tidyr::separate(col = ALLELES_COUNT, into = c("ALLELES", "COUNT"), sep = "/", extra = "drop", remove = TRUE) %>%
         tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE) %>% 
+        mutate(COUNT = replace(COUNT, which(COUNT == "NA"), NA)) %>% 
         group_by(POP_ID, INDIVIDUALS) %>%
         tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>%
-        ungroup () %>%
+        ungroup () %>% 
         mutate(
           INDIVIDUALS = as.character(INDIVIDUALS),
           POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
           POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
-          ) %>% 
+        ) %>% 
         arrange(POP_ID, INDIVIDUALS)
       
       # genind arguments common to all data.type
@@ -1329,12 +1350,45 @@ dart2df_genind_plink <- function(data,
       prevcall <- match.call()
       genind.data.imp <- adegenet::genind(tab = genind.df.imp, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = ~POP_ID/INDIVIDUALS)
     } # end genind imp
-
+    
   } # end genind
   
   if (is.null(genind)) {
     genind.data <- "not selected"
     genind.data.imp <- "not selected"
+  }
+  
+  if (genepop == TRUE) {
+    message("Generating the genepop file")
+    genepop.prep <- input %>% 
+      select(POP_ID, INDIVIDUALS, MARKERS, GT, REF, ALT) %>% 
+      mutate(
+        REF = stri_pad_left(REF, width = 3, pad = "0"),
+        ALT = stri_pad_left(ALT, width = 3, pad = "0"),
+        GENOTYPE = ifelse(GT == "REF_REF", stri_join(REF, REF, sep = ""),
+                          ifelse(GT == "ALT_ALT",  stri_join(ALT, ALT, sep = ""), 
+                                 ifelse(GT == "REF_ALT",  stri_join(REF, ALT, sep = ""), "000000")))
+      ) %>% 
+      select(-c(GT, REF, ALT))
+    stackr::write_genepop(data = genepop.prep, genepop.header = "stackr::dart2df_genind_plink: no imputations", markers.line.format = "line", filename = stri_paste(filename, ".gen", sep = ""))
+    genepop.prep <- NULL
+    if (imputation.method != FALSE) {
+      message("Generating the genepop file: with imputations")
+      genepop.prep.imp <- input.imp %>% 
+        select(POP_ID, INDIVIDUALS, MARKERS, GT, REF, ALT) %>% 
+        mutate(
+          REF = stri_pad_left(REF, width = 3, pad = "0"),
+          ALT = stri_pad_left(ALT, width = 3, pad = "0"),
+          GENOTYPE = ifelse(GT == "REF_REF", stri_join(REF, REF, sep = ""),
+                            ifelse(GT == "ALT_ALT",  stri_join(ALT, ALT, sep = ""), 
+                                   ifelse(GT == "REF_ALT",  stri_join(REF, ALT, sep = ""), "000000")))
+        ) %>% 
+        select(-c(GT, REF, ALT))
+      stackr::write_genepop(data = genepop.prep.imp, genepop.header = "stackr::dart2df_genind_plink: imputed data", markers.line.format = "line", filename = stri_paste(filename, "_imputed.gen", sep = ""))
+      genepop.prep.imp <- NULL
+    }
+  } else {
+    message("genepop output not selected")
   }
   
   # Results ----------------------------------------------------------------------
