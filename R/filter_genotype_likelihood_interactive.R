@@ -404,7 +404,7 @@ filter_genotype_likelihood_interactive <- function (tidy.vcf,
         group_by(LOCUS, POP_ID) %>% # at the population level
         summarise(
           GL_MEAN = mean(GL, na.rm = TRUE),
-          GL_MEDIAN = median(GL, na.rm = TRUE),
+          GL_MEDIAN = stats::median(GL, na.rm = TRUE),
           GL_MIN = min(GL, na.rm = TRUE),
           GL_MAX = max(GL, na.rm = TRUE),
           GL_DIFF = GL_MAX - GL_MIN
@@ -415,7 +415,7 @@ filter_genotype_likelihood_interactive <- function (tidy.vcf,
         group_by(LOCUS, POS, POP_ID) %>% # at the population level
         summarise(
           GL_MEAN = mean(GL, na.rm = TRUE),
-          GL_MEDIAN = median(GL, na.rm = TRUE),
+          GL_MEDIAN = stats::median(GL, na.rm = TRUE),
           GL_MIN = min(GL, na.rm = TRUE),
           GL_MAX = max(GL, na.rm = TRUE),
           GL_DIFF = GL_MAX - GL_MIN

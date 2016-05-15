@@ -19,6 +19,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("LOCUS","POS", "CHROM"))
 #' @export
 #' @import dplyr
 #' @import readr
+#' @importFrom utils write.table
 #' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
@@ -32,7 +33,7 @@ whitelist_loci <- function(data, filename, col.header) {
   
   whitelist <- data %>% select(LOCUS) %>% distinct(LOCUS) %>% arrange(LOCUS)
   
-    write.table(whitelist, filename, sep = "\t", row.names = F, col.names = col.header,
+    utils::write.table(whitelist, filename, sep = "\t", row.names = F, col.names = col.header,
               quote = F)
 invisible(
   cat(
@@ -60,6 +61,7 @@ filename, getwd()
 #' @export
 #' @import dplyr
 #' @import readr
+#' @importFrom utils write.table
 #' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
@@ -76,7 +78,7 @@ whitelist_loci_snp <- function(data, filename, col.header) {
     distinct(POS) %>% 
     arrange(LOCUS, POS)
   
-  write.table(whitelist, filename, sep = "\t", row.names = F, col.names = col.header,
+  utils::write.table(whitelist, filename, sep = "\t", row.names = F, col.names = col.header,
               quote = F)
   invisible(
   cat(
@@ -103,6 +105,7 @@ filename, getwd()
 #' @export
 #' @import dplyr
 #' @import readr
+#' @importFrom utils write.table
 #' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
@@ -122,7 +125,7 @@ whitelist_snp_vcf <- function(data, filename) {
     group_by(CHROM) %>%
     select(CHROM, POS)
   
-  write.table(whitelist, filename, sep = "\t", row.names = F, col.names = T,
+  utils::write.table(whitelist, filename, sep = "\t", row.names = F, col.names = T,
               quote = F)
   invisible(
   cat(
@@ -177,9 +180,7 @@ blacklist_loci <- function(before.filter.data, after.filter.data, filename,
               by = "LOCUS") %>%
     arrange(LOCUS)
   
-  write.table(blacklist, filename, sep = "\t", row.names = F,
-              col.names = col.header, quote = F)
-  
+  write_tsv(x = blacklist, path = filename, col_names = col.header)
   invisible(
   cat(
     sprintf(

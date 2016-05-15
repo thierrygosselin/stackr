@@ -271,7 +271,7 @@ vcf2genepop <- function(data,
     input <- suppressWarnings(input %>% filter(POP_ID %in% pop.select))
   }
   
-  # Conversion into genind -----------------------------------------------------
+  # Conversion into genepop -----------------------------------------------------
   # Tidy VCF
   message("Tidy vcf into genepop factory...")
   

@@ -30,6 +30,8 @@
 #' @param pop.labels An optional character string with new populations names.
 #' @param read.length The length in nucleotide of your reads (e.g. 80 or 100).
 #' @import stringdist
+#' @importFrom utils combn
+#' @importFrom stats lm
 #' @return The function returns a list with the summary, the paralogs and
 #' consensus loci by populations and unique loci, the individual's info for FH and Pi and 3 plots (use $ to access each 
 #' objects). 
@@ -450,7 +452,7 @@ summary_haplotypes <- function(haplotypes.file,
       } else{
         
         #1 Get all pairwise comparison
-        allele_pairwise <- combn(unique(y), 2)
+        allele_pairwise <- utils::combn(unique(y), 2)
         # allele_pairwise
         
         #2 Calculate pairwise nucleotide mismatches
@@ -597,7 +599,7 @@ summary_haplotypes <- function(haplotypes.file,
   
   scatter.plot <- ggplot(fh.pi, aes(x = FH, y = PI)) + 
     geom_point(aes(colour = POP_ID)) +
-    stat_smooth(method = lm, level = 0.95, fullrange = F, na.rm = T)+
+    stat_smooth(method = stats::lm, level = 0.95, fullrange = F, na.rm = T)+
     labs(x = "Individual IBDg (FH)") + 
     labs(y = "Individual nucleotide diversity (Pi)") +
     theme(
@@ -867,6 +869,7 @@ summary_stats_pop <- function(data, filename) {
 #' The short-format is more user-friendly and
 #' is written to the working directory.
 #' @rdname summary_coverage
+#' @importFrom stats median
 #' @export
 
 summary_coverage <- function (tidy.vcf, pop.levels, filename) {
@@ -893,15 +896,15 @@ summary_coverage <- function (tidy.vcf, pop.levels, filename) {
     group_by(LOCUS, POP_ID) %>%
     summarise(
       READ_MEAN = mean(READ_DEPTH, na.rm = T),
-      READ_MEDIAN = median(READ_DEPTH, na.rm = T),
+      READ_MEDIAN = stats::median(READ_DEPTH, na.rm = T),
       READ_MIN = min(READ_DEPTH, na.rm = T),
       READ_MAX = max(READ_DEPTH, na.rm = T),
       REF_MEAN = mean(ALLELE_REF_DEPTH, na.rm = T),
-      REF_MEDIAN = median(ALLELE_REF_DEPTH, na.rm = T),
+      REF_MEDIAN = stats::median(ALLELE_REF_DEPTH, na.rm = T),
       REF_MIN = min(ALLELE_REF_DEPTH, na.rm = T),
       REF_MAX = max(ALLELE_REF_DEPTH, na.rm = T),
       ALT_MEAN = mean(ALLELE_ALT_DEPTH, na.rm = T),
-      ALT_MEDIAN = median(ALLELE_ALT_DEPTH, na.rm = T),
+      ALT_MEDIAN = stats::median(ALLELE_ALT_DEPTH, na.rm = T),
       ALT_MIN = min(ALLELE_ALT_DEPTH, na.rm = T),
       ALT_MAX = max(ALLELE_ALT_DEPTH, na.rm = T)
     ) %>%
@@ -923,15 +926,15 @@ summary_coverage <- function (tidy.vcf, pop.levels, filename) {
     group_by(POP_ID, INDIVIDUALS) %>%
     summarise(
       READ_DEPTH_MEAN = mean(READ_DEPTH, na.rm = T),
-      READ_DEPTH_MEDIAN = median(READ_DEPTH, na.rm = T),
+      READ_DEPTH_MEDIAN = stats::median(READ_DEPTH, na.rm = T),
       READ_DEPTH_MIN = min(READ_DEPTH, na.rm = T),
       READ_DEPTH_MAX = max(READ_DEPTH, na.rm = T),
       ALLELE_REF_DEPTH_MEAN = mean(ALLELE_REF_DEPTH, na.rm = T),
-      ALLELE_REF_DEPTH_MEDIAN = median(ALLELE_REF_DEPTH, na.rm = T),
+      ALLELE_REF_DEPTH_MEDIAN = stats::median(ALLELE_REF_DEPTH, na.rm = T),
       ALLELE_REF_DEPTH_MIN = min(ALLELE_REF_DEPTH, na.rm = T),
       ALLELE_REF_DEPTH_MAX = max(ALLELE_REF_DEPTH, na.rm = T),
       ALLELE_ALT_DEPTH_MEAN = mean(ALLELE_ALT_DEPTH, na.rm = T),
-      ALLELE_ALT_DEPTH_MEDIAN = median(ALLELE_ALT_DEPTH, na.rm = T),
+      ALLELE_ALT_DEPTH_MEDIAN = stats::median(ALLELE_ALT_DEPTH, na.rm = T),
       ALLELE_ALT_DEPTH_MIN = min(ALLELE_ALT_DEPTH, na.rm = T),
       ALLELE_ALT_DEPTH_MAX = max(ALLELE_ALT_DEPTH, na.rm = T)
     ) %>%
@@ -1134,6 +1137,7 @@ Written in the directory:
 #' and nested SNP -> individuals -> population -> loci. e.g. the mean GL is the average
 #' genotype likelihood for all individuals of pop x for loci x.
 
+#' @importFrom stats median
 #' @rdname summary_genotype_likelihood
 #' @export
 

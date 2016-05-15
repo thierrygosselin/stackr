@@ -48,6 +48,8 @@
 #' @export
 #' @import dplyr
 #' @import readr
+#' @importFrom stats chisq.test
+#' @importFrom utils write.table
 #' @details work in progress...
 #' @examples
 #' \dontrun{
@@ -187,7 +189,7 @@ genotypes_summary <- function(
       filter(PATTERN=="abxac" | PATTERN=="abxcd") %>%
       group_by(LOCUS) %>%
       do(
-        CHISQ=chisq.test(c(.$aa,.$ab, .$ac, .$bc), 
+        CHISQ=stats::chisq.test(c(.$aa,.$ab, .$ac, .$bc), 
                          p = c(0.25, 0.25, 0.25, 0.25), 
                          simulate.p.value = FALSE, B = B)
       ) %>%
@@ -201,7 +203,7 @@ genotypes_summary <- function(
       filter(PATTERN=="abxab") %>%
       group_by(LOCUS) %>%
       do(
-        CHISQ=chisq.test(c(.$aa,.$ab, .$bb), 
+        CHISQ=stats::chisq.test(c(.$aa,.$ab, .$bb), 
                          p = c(0.25, 0.5, 0.25), 
                          simulate.p.value = FALSE, B = B)
       ) %>%
@@ -215,7 +217,7 @@ genotypes_summary <- function(
       filter(PATTERN=="aaxab" | PATTERN=="abxaa") %>%
       group_by(LOCUS) %>%
       do(
-        CHISQ=chisq.test(c(.$aa,.$ab), 
+        CHISQ=stats::chisq.test(c(.$aa,.$ab), 
                          p = c(0.5,0.5), 
                          simulate.p.value = FALSE, B = B)
       ) %>%
@@ -249,7 +251,7 @@ genotypes_summary <- function(
       filter(PATTERN=="abxac" | PATTERN=="abxcd") %>%
       group_by(LOCUS) %>%
       do(
-        CHISQ=chisq.test(c(.$aa,.$ab, .$ac, .$bc), 
+        CHISQ=stats::chisq.test(c(.$aa,.$ab, .$ac, .$bc), 
                          p = c(0.25, 0.25, 0.25, 0.25), 
                          simulate.p.value = TRUE, B = B)
       ) %>%
@@ -266,7 +268,7 @@ genotypes_summary <- function(
       filter(PATTERN=="abxab") %>%
       group_by(LOCUS) %>%
       do(
-        CHISQ=chisq.test(c(.$aa,.$ab, .$bb), 
+        CHISQ=stats::chisq.test(c(.$aa,.$ab, .$bb), 
                          p = c(0.25, 0.5, 0.25), 
                          simulate.p.value = TRUE, B = B)
       ) %>%
@@ -282,7 +284,7 @@ genotypes_summary <- function(
       filter(PATTERN=="aaxab" | PATTERN=="abxaa") %>%
       group_by(LOCUS) %>%
       do(
-        CHISQ=chisq.test(c(.$aa,.$ab), 
+        CHISQ=stats::chisq.test(c(.$aa,.$ab), 
                          p = c(0.5,0.5), 
                          simulate.p.value = TRUE, B = B)
       ) %>%
@@ -374,11 +376,11 @@ genotypes_summary <- function(
     joinmap.file <- file(joinmap, "write")
     cat(paste("name = fill this", "popt = fill this with cross type", locus.number , ind.number, sep = "\n"), sep = "\n", file = joinmap.file, append = TRUE)
     
-    write.table(joinmap.data, file = joinmap.file, append = TRUE, col.names = FALSE,
+    utils::write.table(joinmap.data, file = joinmap.file, append = TRUE, col.names = FALSE,
                 row.names = FALSE, sep = "\t", quote = FALSE)
     
     suppressWarnings(
-      write.table(progeny.names, file = joinmap.file, append = TRUE, col.names = "individual names:",
+      utils::write.table(progeny.names, file = joinmap.file, append = TRUE, col.names = "individual names:",
                   row.names = FALSE, sep = "\t", quote = FALSE)
     )
     
@@ -433,7 +435,7 @@ genotypes_summary <- function(
     # Now write the output 
     onemap.file <- file(onemap, "write")
     cat(paste(nrow(progeny.names), nrow(geno.sum), sep="\t"), sep = "\n", file = onemap.file, append = TRUE)
-    write.table(onemap.data, file = onemap.file, append = TRUE, col.names = FALSE,
+    utils::write.table(onemap.data, file = onemap.file, append = TRUE, col.names = FALSE,
                 row.names = FALSE, sep = ",", quote = FALSE)
     close(onemap.file)
     message.onemap1 <- paste("OneMap filename saved to your working directory: ", onemap, sep = "")

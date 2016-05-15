@@ -116,7 +116,7 @@ filter_genotype_likelihood <- function (tidy.vcf, approach = "haplotype", allele
         MIN_ALT = min(ALLELE_ALT_DEPTH, na.rm = T),
         READ_DEPTH_MAX = max(READ_DEPTH, na.rm = T),
         GL_MEAN = mean(GL, na.rm = T),
-        GL_MEDIAN = median(GL, na.rm = T),
+        GL_MEDIAN = stats::median(GL, na.rm = T),
         GL_MIN = min(GL, na.rm = T),
         GL_MAX = max(GL, na.rm = T),
         GL_DIFF = GL_MAX - GL_MIN
@@ -140,7 +140,7 @@ filter_genotype_likelihood <- function (tidy.vcf, approach = "haplotype", allele
         MIN_ALT = min(ALLELE_ALT_DEPTH, na.rm = T),
         READ_DEPTH_MAX = max(READ_DEPTH, na.rm = T),
         GL_MEAN = mean(GL, na.rm = T),
-        GL_MEDIAN = median(GL, na.rm = T),
+        GL_MEDIAN = stats::median(GL, na.rm = T),
         GL_MIN = min(GL, na.rm = T),
         GL_MAX = max(GL, na.rm = T),
         GL_DIFF = GL_MAX - GL_MIN
