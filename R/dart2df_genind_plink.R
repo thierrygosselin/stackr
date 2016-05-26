@@ -1,9 +1,12 @@
 # Import, filter and transform a dart output file to different format
 
 #' @name dart2df_genind_plink
+
 #' @title swiss army knife tool to prepare DArT output file for population genetics analysis.
+
 #' @description Import, filter and transform a DArT output file to different format: 
 #' data frame of genotypes, genind object and/or PLINK \code{tped/tfam} format.
+
 #' @param data DArT output file in wide format or binary format tipically 
 #' used by CSIRO genomic projects.
 
@@ -14,6 +17,11 @@
 #' \code{INDIVIDUALS} column in the main data file.
 
 #' @param pop.levels (optional string) A character string with your populations ordered.
+
+#' @param blacklist.id (optional) A blacklist with individual ID and
+#' a column header 'INDIVIDUALS'. The blacklist is in the working directory
+#' (e.g. "blacklist.txt").
+#' Default: \code{blacklist.id = NULL}.
 
 #' @param pop.select (optional string) Keep specific populations. 
 #' Default = \code{NULL} for no selection and keep all population.
@@ -31,28 +39,28 @@
 #' use : \code{filter.reproducibility = 0.99}.
 
 #' @param plot.reproducibility (optional, logical) Plot the distribution 
-#' (violin plot) of reproducibility. Default: \code{plot.reproducibility = NULL}.
+#' (violin plot) of reproducibility. Default: \code{plot.reproducibility = FALSE}.
 
 #' @param filter.coverage.high (optional, numerical) Filter the upper bound of the
 #' \code{AvgCountSnp} column in the data set. Default: \code{filter.coverage.high = NULL}.
 #' e.g to keep markers with coverage <= 150 (depth of coverage),
 #' use : \code{filter.coverage.high = 150}.
+
 #' @param filter.coverage.low (optional, numerical) Filter the lower bound of the 
 #' \code{AvgCountSnp} column in the data set. Default: \code{filter.coverage.low = NULL}.
 #' e.g to keep markers with coverage >= 10 (depth of coverage),
 #' use : \code{filter.coverage.low = 10}.
 #' 
 #' @param plot.coverage (optional, logical) Plot the coverage distribution 
-#' (violin plot). Default: \code{plot.coverage = NULL}.
+#' (violin plot). Default: \code{plot.coverage = FALSE}.
 
 #' @param filter.call.rate (optional, numerical) Filter the \code{CallRate} 
 #' column in the data set. Default: \code{filter.call.rate = NULL}. e.g to keep 
 #' markers genotyped in more than 95% of the individuals use :
 #' \code{filter.call.rate = 0.95}
+
 #' @param plot.call.rate (optional, logical) Plot the distribution 
-#' (violin plot) of call rate. Default: \code{plot.call.rate = NULL}.
-
-
+#' (violin plot) of call rate. Default: \code{plot.call.rate = FALSE}.
 
 #' @param filter.snp.ld (optional, character) With anonymous markers from
 #' reduce representation library like RADseq/GBS/DArT de novo discovery, 
@@ -61,8 +69,8 @@
 #' by choosing among these options: 
 #' \code{"1snp"} to keep only reads with 1 SNP/reads,
 #' \code{"2snp"} to keep only reads with at most 2 SNP/reads,
-#'\code{"random"} to select 1 SNP/reads randomly, 
-#'  \code{"first"} to select the first SNP on all reads, 
+#' \code{"random"} to select 1 SNP/reads randomly, 
+#' \code{"first"} to select the first SNP on all reads, 
 #' \code{"last"} to select the last SNP on all reads 
 #' (last SNP are usually associated to higher error rate...). 
 #' Default: \code{snp.ld = NULL}.
@@ -74,9 +82,11 @@
 #' Default: \code{maf.thresholds = NULL}. 
 #' e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold 
 #' of 0.05 and a global threshold of 0.1.
+
 #' @param maf.pop.num.threshold (integer, optional) When maf thresholds are used,
 #' this argument is for the number of pop required to pass the maf thresholds
 #' to keep the locus. Default: \code{maf.pop.num.threshold = 1}
+
 #' @param maf.operator (character, optional) \code{maf.operator = "AND"} or default \code{maf.operator = "OR"}.
 #' When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 #' global MAF to pass the thresholds, or ... you want the local \code{"OR"}
@@ -85,22 +95,24 @@
 
 #' @param plink (optional, logical). To have the filtered data set output as 
 #' plink \code{tped/tfam} file, use \code{plink = TRUE}. 
-#' Default: \code{plink = NULL}
+#' Default: \code{plink = FALSE}
+
 #' @param genind (optional, logical). To have the filtered data set output as 
 #' genind object to use inside adegenet, use \code{genind = TRUE}. 
-#' Default: \code{genind = NULL}
+#' Default: \code{genind = FALSE}
+
 #' @param genepop (optional, logical). To have the filtered data set output as 
 #' a genepop file, use \code{genepop = TRUE}. 
-#' Default: \code{genepop = NULL}.
+#' Default: \code{genepop = FALSE}.
 
 #' @param filename (optional) The name of the file written to the directory.
-#' No file extension at the end.
+#' No file extension at the end. Default: \code{filename = NULL}
 
 #' @param imputation.method Should a map-independent imputations of markers be
 #' computed. Available choices are: (1) \code{FALSE} for no imputation.
 #' (2) \code{"max"} to use the most frequent category for imputations.
 #' (3) \code{"rf"} using Random Forest algorithm. 
-#' Default: \code{imputation.method = FALSE}.
+#' Default: \code{imputation.method = NULL}.
 #' @param impute (character) Imputation on missing genotype 
 #' \code{impute = "genotype"} or alleles \code{impute = "allele"}.
 #' @param imputations.group \code{"global"} or \code{"populations"}.
@@ -165,41 +177,46 @@ if (getRversion() >= "2.15.1") {
     c("ID", "CloneID", "SnpPosition", "CallRate", "AvgCountRef", "AvgCountSnp", 
       "RepAvg", "NOT_USEFUL", "SNP", "CALL_RATE", "AVG_COUNT_REF", 
       "AVG_COUNT_SNP", "REP_AVG", "NEW_ID", "SNP_N", "ALLELE_NAME", "ALLELE_NUMBER",
-      "ALLELES_COUNT"
+      "ALLELES_COUNT", "GENOTYPED_PROP"
     )
   )
 }
 
 dart2df_genind_plink <- function(data,
                                  strata,
-                                 pop.levels,
-                                 pop.select,
-                                 filter.monomorphic,
-                                 common.markers,
-                                 filter.reproducibility,
-                                 plot.reproducibility,
-                                 filter.coverage.high,
-                                 filter.coverage.low,
-                                 plot.coverage,
-                                 filter.call.rate,
-                                 plot.call.rate,
-                                 filter.snp.ld,
-                                 plot.number.snp.reads,
-                                 maf.thresholds,
-                                 maf.pop.num.threshold,
-                                 maf.operator,
-                                 plink,
-                                 genind,
-                                 genepop,
-                                 filename,
-                                 imputation.method = FALSE,
+                                 pop.levels = NULL,
+                                 blacklist.id = NULL,
+                                 pop.select = NULL,
+                                 filter.monomorphic = TRUE,
+                                 common.markers = TRUE,
+                                 filter.reproducibility = NULL,
+                                 plot.reproducibility = FALSE,
+                                 filter.coverage.high = NULL,
+                                 filter.coverage.low = NULL,
+                                 plot.coverage = FALSE,
+                                 filter.call.rate = NULL,
+                                 plot.call.rate = FALSE,
+                                 filter.ind.missing.geno = NULL,
+                                 plot.ind.missing.geno = FALSE,
+                                 filter.markers.missing.ind = NULL,
+                                 plot.markers.missing.ind = FALSE,
+                                 filter.snp.ld = NULL,
+                                 plot.number.snp.reads = FALSE,
+                                 maf.thresholds = NULL,
+                                 maf.pop.num.threshold = 1,
+                                 maf.operator = "OR",
+                                 plink = FALSE,
+                                 genind = FALSE,
+                                 genepop = FALSE,
+                                 filename = NULL,
+                                 imputation.method = NULL,
                                  impute = "genotypes",
                                  imputations.group = "populations",
                                  num.tree = 100,
                                  iteration.rf = 10,
                                  split.number = 100,
                                  verbose = FALSE,
-                                 parallel.core = NULL,
+                                 parallel.core = detectCores()-1,
                                  ...) {
   
   cat("#######################################################################\n")
@@ -209,39 +226,39 @@ dart2df_genind_plink <- function(data,
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file missing")
   if (missing(strata)) stop("strata file missing")
-  if (missing(pop.levels)) pop.levels <- NULL
-  if (missing(pop.select)) pop.select <- NULL
-  if (missing(filter.monomorphic)) filter.monomorphic <- TRUE
-  if (missing(common.markers)) common.markers <- TRUE
-  if (missing(filter.reproducibility)) filter.reproducibility <- NULL
-  if (missing(plot.reproducibility)) plot.reproducibility <- NULL
-  if (missing(filter.coverage.high)) filter.coverage.high <- NULL
-  if (missing(filter.coverage.low)) filter.coverage.low <- NULL
-  if (missing(plot.coverage)) plot.coverage <- NULL
-  if (missing(filter.call.rate)) filter.call.rate <- NULL
-  if (missing(plot.call.rate)) plot.call.rate <- NULL
-  if (missing(filter.snp.ld)) filter.snp.ld <- NULL
-  if (missing(plot.number.snp.reads)) plot.number.snp.reads <- NULL
-  if (missing(maf.thresholds)) maf.thresholds <- NULL
-  if (missing(maf.pop.num.threshold)) maf.pop.num.threshold <- 1
-  if (missing(maf.operator)) maf.operator <- "OR"
-  if (missing(plink)) plink <- NULL
-  if (missing(genind)) genind <- NULL
-  if (missing(genepop)) genepop <- NULL
-  if (missing(filename)) filename <- NULL
-  if (missing(imputation.method)) imputation.method <- FALSE
-  if (missing(imputations.group)) imputations.group <- "populations"
-  if (imputation.method != FALSE & missing(impute)) stop("impute argument is necessary")
-  if (imputation.method == FALSE & missing(impute)) impute <- NULL
-  if (missing(num.tree)) num.tree <- 100
-  if (missing(iteration.rf)) iteration.rf <- 10
-  if (missing(split.number)) split.number <- 100
-  if (missing(verbose)) verbose <- FALSE
-  if (missing(parallel.core) | is.null(parallel.core)) parallel.core <- detectCores()-1
-  if (filter.monomorphic == FALSE) filter.monomorphic <- NULL
-  if (common.markers == FALSE) common.markers <- NULL
-  if (plink == FALSE) plink <- NULL
-  if (genind == FALSE) genind <- NULL
+  # if (missing(pop.levels)) pop.levels <- NULL
+  # if (missing(pop.select)) pop.select <- NULL
+  # if (missing(filter.monomorphic)) filter.monomorphic <- TRUE
+  # if (missing(common.markers)) common.markers <- TRUE
+  # if (missing(filter.reproducibility)) filter.reproducibility <- NULL
+  # if (missing(plot.reproducibility)) plot.reproducibility <- NULL
+  # if (missing(filter.coverage.high)) filter.coverage.high <- NULL
+  # if (missing(filter.coverage.low)) filter.coverage.low <- NULL
+  # if (missing(plot.coverage)) plot.coverage <- NULL
+  # if (missing(filter.call.rate)) filter.call.rate <- NULL
+  # if (missing(plot.call.rate)) plot.call.rate <- NULL
+  # if (missing(filter.snp.ld)) filter.snp.ld <- NULL
+  # if (missing(plot.number.snp.reads)) plot.number.snp.reads <- NULL
+  # if (missing(maf.thresholds)) maf.thresholds <- NULL
+  # if (missing(maf.pop.num.threshold)) maf.pop.num.threshold <- 1
+  # if (missing(maf.operator)) maf.operator <- "OR"
+  # if (missing(plink)) plink <- NULL
+  # if (missing(genind)) genind <- NULL
+  # if (missing(genepop)) genepop <- NULL
+  # if (missing(filename)) filename <- NULL
+  # if (missing(imputation.method)) imputation.method <- FALSE
+  # if (missing(imputations.group)) imputations.group <- "populations"
+  # if (imputation.method != FALSE & missing(impute)) stop("impute argument is necessary")
+  # if (imputation.method == FALSE & missing(impute)) impute <- NULL
+  # if (missing(num.tree)) num.tree <- 100
+  # if (missing(iteration.rf)) iteration.rf <- 10
+  # if (missing(split.number)) split.number <- 100
+  # if (missing(verbose)) verbose <- FALSE
+  # if (missing(parallel.core) | is.null(parallel.core)) parallel.core <- detectCores()-1
+  # if (filter.monomorphic == FALSE) filter.monomorphic <- NULL
+  # if (common.markers == FALSE) common.markers <- NULL
+  # if (plink == FALSE) plink <- NULL
+  # if (genind == FALSE) genind <- NULL
   # if (plot.reproducibility == FALSE) plot.reproducibility <- NULL
   # if (plot.coverage == FALSE) plot.coverage <- NULL
   # if (plot.call.rate == FALSE) plot.call.rate <- NULL
@@ -295,7 +312,7 @@ dart2df_genind_plink <- function(data,
   
   # Tidying data ---------------------------------------------------------------
   if (binary == 0) {
-    message("Tidying the dataset")
+    message("Tidying the dataset...")
     input <- input %>% 
       # working on the column to keep the interesting info
       tidyr::separate(col = LOCUS, into = c("LOCUS", "NOT_USEFUL"), sep = "\\|", extra = "drop") %>%  
@@ -389,6 +406,16 @@ dart2df_genind_plink <- function(data,
       mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered =TRUE))
   }
   
+  # Import blacklist id ********************************************************
+  if (is.null(blacklist.id)) { # No blacklist of ID
+    message("Blacklisted individuals: no")
+  } else { # With blacklist of ID
+    message("Blacklisted individuals: yes")
+    blacklist.id <- read_tsv(blacklist.id, col_names = TRUE)
+    message("Filtering with blacklist of individuals")
+    input <- suppressWarnings(anti_join(input, blacklist.id, by = "INDIVIDUALS"))
+  }
+
   # pop.select ------------------------------------------------------------------
   if (!is.null(pop.select)) {
     message(stri_join(length(pop.select), "population(s) selected", sep = " "))
@@ -689,6 +716,86 @@ dart2df_genind_plink <- function(data,
       )+
       facet_grid(~GROUP)
   }
+  
+  # Filtering for missing genotype per individuals -----------------------------
+  # filter.ind.missing.geno = NULL,
+  # plot.ind.missing.geno = FALSE,
+  
+  # if (!is.null(filter.ind.missing.geno)) {
+    filter.ind.missing.geno <- 0.8
+    filter <- input %>% 
+      group_by(INDIVIDUALS) %>% 
+      summarise(
+        GENOTYPED_PROP = length(GT[GT != "0_0"])/length(GT)
+      ) %>% 
+      filter(GENOTYPED_PROP >= filter.ind.missing.geno)
+    
+
+    whitelist.filter <- filter %>% select(MARKERS, LOCUS, POS) %>% distinct(MARKERS, LOCUS, POS)
+    
+    blacklist.call.rate <- input %>% 
+      select(MARKERS, LOCUS, POS) %>% 
+      distinct(MARKERS, LOCUS, POS) %>%
+      filter(!MARKERS %in% whitelist.filter$MARKERS)
+    
+    message(stri_paste("Filter call rate: ", n_distinct(input$MARKERS) - n_distinct(filter$MARKERS), " markers deleted"))
+    if (length(blacklist.call.rate$MARKERS > 0)) {
+      write_tsv(x = blacklist.call.rate, path = "blacklist.call.rate.tsv", col_names = TRUE)
+    }
+    if (!is.null(plot.call.rate)) {
+      data.combined <- bind_rows(
+        data.before <- input %>% 
+          select(POP_ID, INDIVIDUALS, CALL_RATE) %>% 
+          mutate(GROUP = rep("before", n())),
+        data.after <- filter %>% 
+          select(POP_ID, INDIVIDUALS, CALL_RATE) %>% 
+          mutate(GROUP = rep("after", n()))
+      ) %>% 
+        mutate(GROUP = factor(GROUP, levels = c("before", "after"), ordered = TRUE))
+      
+      call.rate.plot <- ggplot(data.combined, aes(x = factor(POP_ID), y = CALL_RATE, na.rm = TRUE))+
+        geom_violin(trim = TRUE)+
+        geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
+        stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
+        labs(x = "Sampling sites")+
+        labs(y = "Markers call rate")+
+        theme(
+          legend.position = "none",
+          axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
+          axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
+          axis.text.x = element_text(size = 8, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5), 
+          legend.title = element_text(size = 10, family = "Helvetica", face = "bold"),
+          legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
+          strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+        )+
+        facet_grid(~GROUP)
+      
+      
+  }
+  
+  if (is.null(filter.call.rate) & !is.null(plot.call.rate)) {
+    data.combined <- input %>% 
+      select(POP_ID, INDIVIDUALS, CALL_RATE) %>% 
+      mutate(GROUP = rep("before filter", n()))
+    
+    call.rate.plot <- ggplot(data.combined, aes(x = factor(POP_ID), y = CALL_RATE, na.rm = TRUE))+
+      geom_violin(trim = TRUE)+
+      geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
+      stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
+      labs(x = "Sampling sites")+
+      labs(y = "Markers call rate before filter")+
+      theme(
+        legend.position = "none",
+        axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
+        axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
+        axis.text.x = element_text(size = 8, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5), 
+        legend.title = element_text(size = 10, family = "Helvetica", face = "bold"),
+        legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
+        strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+      )+
+      facet_grid(~GROUP)
+  }
+  
   
   # snp.ld  --------------------------------------------------------------------
   

@@ -15,6 +15,11 @@ named \code{NEW_ID} is used, this column will be used to replace the
 
 \item{pop.levels}{(optional string) A character string with your populations ordered.}
 
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
+
 \item{pop.select}{(optional string) Keep specific populations. 
 Default = \code{NULL} for no selection and keep all population.
 e.g. \code{pop.select = c("QUE", "ONT")} to select QUE and ONT population samples.}
@@ -31,7 +36,7 @@ e.g to keep markers with reproducibility >= 99%,
 use : \code{filter.reproducibility = 0.99}.}
 
 \item{plot.reproducibility}{(optional, logical) Plot the distribution 
-(violin plot) of reproducibility. Default: \code{plot.reproducibility = NULL}.}
+(violin plot) of reproducibility. Default: \code{plot.reproducibility = FALSE}.}
 
 \item{filter.coverage.high}{(optional, numerical) Filter the upper bound of the
 \code{AvgCountSnp} column in the data set. Default: \code{filter.coverage.high = NULL}.
@@ -44,7 +49,7 @@ e.g to keep markers with coverage >= 10 (depth of coverage),
 use : \code{filter.coverage.low = 10}.}
 
 \item{plot.coverage}{(optional, logical) Plot the coverage distribution 
-(violin plot). Default: \code{plot.coverage = NULL}.}
+(violin plot). Default: \code{plot.coverage = FALSE}.}
 
 \item{filter.call.rate}{(optional, numerical) Filter the \code{CallRate} 
 column in the data set. Default: \code{filter.call.rate = NULL}. e.g to keep 
@@ -52,7 +57,7 @@ markers genotyped in more than 95% of the individuals use :
 \code{filter.call.rate = 0.95}}
 
 \item{plot.call.rate}{(optional, logical) Plot the distribution 
-(violin plot) of call rate. Default: \code{plot.call.rate = NULL}.}
+(violin plot) of call rate. Default: \code{plot.call.rate = FALSE}.}
 
 \item{filter.snp.ld}{(optional, character) With anonymous markers from
 reduce representation library like RADseq/GBS/DArT de novo discovery, 
@@ -62,7 +67,7 @@ by choosing among these options:
 \code{"1snp"} to keep only reads with 1 SNP/reads,
 \code{"2snp"} to keep only reads with at most 2 SNP/reads,
 \code{"random"} to select 1 SNP/reads randomly, 
- \code{"first"} to select the first SNP on all reads, 
+\code{"first"} to select the first SNP on all reads, 
 \code{"last"} to select the last SNP on all reads 
 (last SNP are usually associated to higher error rate...). 
 Default: \code{snp.ld = NULL}.
@@ -86,24 +91,24 @@ global MAF to pass the thresholds, to keep the marker?}
 
 \item{plink}{(optional, logical). To have the filtered data set output as 
 plink \code{tped/tfam} file, use \code{plink = TRUE}. 
-Default: \code{plink = NULL}}
+Default: \code{plink = FALSE}}
 
 \item{genind}{(optional, logical). To have the filtered data set output as 
 genind object to use inside adegenet, use \code{genind = TRUE}. 
-Default: \code{genind = NULL}}
+Default: \code{genind = FALSE}}
 
 \item{genepop}{(optional, logical). To have the filtered data set output as 
 a genepop file, use \code{genepop = TRUE}. 
-Default: \code{genepop = NULL}.}
+Default: \code{genepop = FALSE}.}
 
 \item{filename}{(optional) The name of the file written to the directory.
-No file extension at the end.}
+No file extension at the end. Default: \code{filename = NULL}}
 
 \item{imputation.method}{Should a map-independent imputations of markers be
 computed. Available choices are: (1) \code{FALSE} for no imputation.
 (2) \code{"max"} to use the most frequent category for imputations.
 (3) \code{"rf"} using Random Forest algorithm. 
-Default: \code{imputation.method = FALSE}.}
+Default: \code{imputation.method = NULL}.}
 
 \item{impute}{(character) Imputation on missing genotype 
 \code{impute = "genotype"} or alleles \code{impute = "allele"}.}
