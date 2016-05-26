@@ -1012,8 +1012,8 @@ tidy_genomic_data <- function(
     input <- mutate(
       .data = input,
       POP_ID = factor(
-        stri_replace_all_fixed(
-          POP_ID, pop.levels, pop.labels, vectorize_all = FALSE),
+        stri_replace_all_regex(
+          POP_ID, stri_paste("^", pop.levels, "$", sep = ""), pop.labels, vectorize_all = FALSE),
         levels = unique(pop.labels), ordered = TRUE
       )
     )
