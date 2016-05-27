@@ -118,6 +118,13 @@ install.packages("dplyr", type = "source")
 ## New features
 Version, new feature and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.2.8**
+* bug fix in `tidy_genomic_data` while using data.table::melt.data.table instead 
+of tidyr::gather, and forgot to 
+(i) add variable.factor = FALSE when melting the vcf and (ii) use as_data_frame
+at the end of the melting to be able to continue working with dplyr verbs.
+
+
 **v.0.2.7**
 * Added a `NEWS.md` file to track changes to the package.
 * New function: `individuals2strata`. Several functions in **stackr** and 
