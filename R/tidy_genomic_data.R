@@ -405,9 +405,11 @@ tidy_genomic_data <- function(
     input <- data.table::melt.data.table(
       data = as.data.table(input), 
       id.vars = c("CHROM", "LOCUS", "POS", "REF", "ALT"), 
-      variable.name = "INDIVIDUALS", 
+      variable.name = "INDIVIDUALS",
+      variable.factor = FALSE,
       value.name = "FORMAT_ID"
-    )
+    ) %>% 
+      as_data_frame()
     
     # population levels and strata  --------------------------------------------
     if (!is.null(blacklist.id)) {
@@ -705,7 +707,7 @@ tidy_genomic_data <- function(
   # Import DF ******************************************************************
   if (data.type == "df.file") { # DATA FRAME OF GENOTYPES
     input <- read_long_tidy_wide(data = data)
-
+    
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
       message("Filtering with whitelist of markers")
@@ -1018,7 +1020,7 @@ tidy_genomic_data <- function(
       )
     )
   }
-
+  
   # dump unused object
   blacklist.id <- NULL
   whitelist.markers <- NULL
