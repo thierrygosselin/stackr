@@ -89,9 +89,9 @@
 
 #' @return When no imputation is selected the PLINK files are saved to the 
 #' working directory. When imputation is selected 4 files are saved to
-#' the working directory. The PLINK file returned is in the \code{tped/tfam} 
+#' the working directory. The PLINK file returned is in the \code{tped/tmap} 
 #' format. The \code{strata} or the population arguments above are used 
-#' for first 2 columns of the \code{tfam} file.
+#' for first 2 columns of the \code{tmap} file.
 
 
 #' @export
@@ -496,7 +496,7 @@ vcf2plink <- function(data,
   # results no imputation--------------------------------------------------------------------
   message("Output: No imputation")
   
-  # to create a PLINK tped and tfam
+  # to create a PLINK tped and tmap
   tped <- input %>% 
     mutate(GT = ifelse(GT == "00_00", "0_0", GT)) %>% 
     arrange(INDIVIDUALS) %>% 
@@ -516,7 +516,7 @@ vcf2plink <- function(data,
   
   write_delim(x = tped, path = filename.tped, col_names = FALSE, delim = " ")
   
-  # Create a tfam file
+  # Create a tmap file
   tfam <- input %>% 
     select(POP_ID, INDIVIDUALS) %>% 
     distinct(POP_ID, INDIVIDUALS) %>% 
