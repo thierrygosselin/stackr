@@ -1,7 +1,7 @@
 # VCF data imputation using Random Forest
 
 #' @name vcf2plink
-#' @title VCF to genepop with filters and data imputation
+#' @title VCF to PLINK with filters and data imputation
 #' @description This function can first filter the vcf file 
 #' with a whitelist of loci and a blacklist of individuals (optional). 
 #' Then it will convert the file
