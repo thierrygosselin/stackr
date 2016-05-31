@@ -176,7 +176,7 @@
 #' 
 #' \item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
 #' 
-#' \item genepop data file (e.g. \code{data = kiwi_data.gen}). Here, the function can only use
+#' \item genepop data file (e.g. \code{data = "kiwi_data.gen"}). Here, the function can only use
 #' alleles encoded with 3 digits.
 #' }
 
