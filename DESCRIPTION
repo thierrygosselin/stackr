@@ -37,8 +37,6 @@ Suggests:
     hierfstat,
     knitr,
     rmarkdown
-Remotes:
-    github::thierrygosselin/assigner
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr

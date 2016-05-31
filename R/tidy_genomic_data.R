@@ -1194,7 +1194,7 @@ tidy_genomic_data <- function(
       )
       
       if (maf.operator == "OR") {
-        vcf.maf <- maf.data %>%
+        vcf.maf <- vcf.maf %>%
           group_by(LOCUS, POP_ID) %>%
           summarise(
             MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
@@ -1208,7 +1208,7 @@ tidy_genomic_data <- function(
           left_join(input, by = "LOCUS") %>%
           arrange(LOCUS, POP_ID)
       } else { # AND operator between local and global maf
-        vcf.maf <- maf.data %>%
+        vcf.maf <- vcf.maf %>%
           group_by(LOCUS, POP_ID) %>%
           summarise(
             MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
@@ -1227,7 +1227,7 @@ tidy_genomic_data <- function(
     
     if (maf.approach == "SNP") { # SNP approach
       if (maf.operator == "OR") {
-        vcf.maf <- maf.data %>%
+        vcf.maf <- vcf.maf %>%
           group_by(MARKERS, POP_ID) %>%
           summarise(
             MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
@@ -1241,7 +1241,7 @@ tidy_genomic_data <- function(
           left_join(input, by = "MARKERS") %>%
           arrange(MARKERS, POP_ID)
       } else { # AND operator between local and global maf
-        vcf.maf <- maf.data %>%
+        vcf.maf <- vcf.maf %>%
           group_by(MARKERS, POP_ID) %>%
           summarise(
             MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
