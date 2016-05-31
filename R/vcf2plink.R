@@ -1,11 +1,11 @@
 # VCF data imputation using Random Forest
 
 #' @name vcf2plink
-#' @title VCF to genepop with filters and data imputation
+#' @title VCF to plink with filters and data imputation
 #' @description This function can first filter the vcf file 
 #' with a whitelist of loci and a blacklist of individuals (optional). 
 #' Then it will convert the file
-#' to a PLINK tped and tmap file.
+#' to a PLINK tped and tfam file.
 #' Map-independent imputation using Random Forest or the most frequent category
 #' is also available as an option.
 #' @param data The VCF file created by STACKS.
@@ -198,17 +198,17 @@ vcf2plink <- function(data,
     file.date <- stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
     file.date <- stri_sub(file.date, from = 1, to = 13)
     filename.tped <- stri_paste("data_", file.date, ".tped")
-    filename.tmap <- stri_paste("data_", file.date, ".tmap")
+    filename.tfam <- stri_paste("data_", file.date, ".tfam")
     if (imputation.method != FALSE) {
       filename.tped.imp <- stri_paste("data_imputed_", file.date, ".tped")
-      filename.tmap.imp <- stri_paste("data_imputed_", file.date, ".tmap")
+      filename.tfam.imp <- stri_paste("data_imputed_", file.date, ".tfam")
     }
   } else {
     filename.tped <- stri_paste(filename, ".tped")
-    filename.tmap <- stri_paste(filename, ".tmap")
+    filename.tfam <- stri_paste(filename, ".tfam")
     if (imputation.method != FALSE) {
       filename.tped.imp <- stri_paste(filename, "_imputed", ".tped")
-      filename.tmap.imp <- stri_paste(filename, "_imputed", ".tmap")
+      filename.tfam.imp <- stri_paste(filename, "_imputed", ".tfam")
     }
   }
   
@@ -529,7 +529,7 @@ vcf2plink <- function(data,
     )
   
   # the tfam must have the same name as the tped 
-  write_delim(x = tfam, path = filename.tmap, col_names = FALSE, delim = " ")
+  write_delim(x = tfam, path = filename.tfam, col_names = FALSE, delim = " ")
 
   # Imputations ***************************************************************
   if (imputation.method != "FALSE") {
@@ -758,7 +758,7 @@ vcf2plink <- function(data,
       )
     
     # the tfam must have the same name as the tped 
-    write_delim(x = tfam.imp, path = filename.tmap.imp, col_names = FALSE, delim = " ")
+    write_delim(x = tfam.imp, path = filename.tfam.imp, col_names = FALSE, delim = " ")
     
     # removed objects
     input <- NULL
