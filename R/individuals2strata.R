@@ -7,7 +7,10 @@
 #' use this function to rapidly create a strata file. 
 #' Several functions in \pkg{stackr} and \pkg{assigner} requires 
 #' a \code{strata} argument, i.e. a data frame with the individuals and 
-#' associated groupings. 
+#' associated groupings. If you have already run 
+#' \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
+#' the strata file is similar to a stacks `population map file`, make sure you 
+#' have the required column names  (\code{INDIVIDUALS} and \code{STRATA}).
 
 #' @param data A file or data frame object with individuals in a column. The 
 #' column name is \code{INDIVIDUALS}.
