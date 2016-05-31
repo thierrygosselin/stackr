@@ -28,8 +28,7 @@ Imports:
     foreach,
     parallel,
     doParallel,
-    purrr,
-    assigner
+    purrr
 Suggests:
     boot,
     pegas,
