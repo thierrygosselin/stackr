@@ -2,7 +2,7 @@
 % Please edit documentation in R/vcf2plink.R
 \name{vcf2plink}
 \alias{vcf2plink}
-\title{VCF to genepop with filters and data imputation}
+\title{VCF to plink with filters and data imputation}
 \arguments{
 \item{data}{The VCF file created by STACKS.}
 
@@ -106,7 +106,7 @@ for first 2 columns of the \code{tfam} file.
 This function can first filter the vcf file 
 with a whitelist of loci and a blacklist of individuals (optional). 
 Then it will convert the file
-to a PLINK tped and tmap file.
+to a PLINK tped and tfam file.
 Map-independent imputation using Random Forest or the most frequent category
 is also available as an option.
 }

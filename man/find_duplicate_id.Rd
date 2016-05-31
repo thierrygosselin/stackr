@@ -21,13 +21,6 @@ A list with 2 objects:
 \description{
 The function computes pairwise genome similarity 
 to highligh potential duplicate individuals.
- \code{\link[assigner]{fst_WC84}} 
-is very fast and the computations takes advantage of \code{\link[dplyr]{dplyr}}, 
-\code{tidyr}, \code{purrr} and 
-\code{\link[parallel]{mclapply}} for parallel computing. 
-
-This function is dedicated to Louis Bernatchez!
-In the hope that your students found the function fast and usefull.
 }
 \examples{
 \dontrun{
