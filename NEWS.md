@@ -1,3 +1,34 @@
+# stackr v.0.2.8
+* bug fix in `tidy_genomic_data` while using data.table::melt.data.table instead 
+of tidyr::gather, and forgot to 
+(i) add variable.factor = FALSE when melting the vcf and (ii) use as_data_frame
+at the end of the melting to be able to continue working with dplyr verbs.
+
+
+# stackr v.0.2.7
+* Added a `NEWS.md` file to track changes to the package.
+* New function: `individuals2strata`. Several functions in **stackr** and 
+[assigner] (https://github.com/thierrygosselin/assigner) requires a `strata`
+argument, i.e. a data frame with the individuals and associated groupings. 
+You can do it manually, however, if your individuals have a consistent naming scheme 
+(e.g. SPECIES-POPULATION-MATURITY-YEAR-ID = CHI-QUE-ADU-2014-020), 
+use this function to rapidly create a strata file.
+* New function: `tidy_genomic_data`. 
+Transform common genomic dataset format in a tidy data frame. Used internally in
+**stackr** and [assigner] (https://github.com/thierrygosselin/assigner)
+and might be of interest for users.
+* New function: `read_long_tidy_wide`. Read genomic data frames in long/tidy and wide format.
+Used internally in **stackr** and [assigner] (https://github.com/thierrygosselin/assigner)
+and might be of interest for users.
+* New function: `stackr_imputations_module`. 
+Map-independent imputation of missing genotype using Random Forest
+or the most frequent category. Impute genotypes or alleles. 
+Used internally in **stackr** and [assigner] (https://github.com/thierrygosselin/assigner)
+and might be of interest for users.
+* New function: `find_duplicate_id`
+Compute pairwise genome similarity to highligh potential duplicate individuals.
+
+
 # stackr v.0.2.6
 * dart2df_genind_plink: swiss army knife tool to prepare DArT output file (wide 
 or binary format) for population genetics analysis. Import, filter and transform 

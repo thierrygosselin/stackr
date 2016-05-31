@@ -9,8 +9,8 @@ The goal of **stackr** is to make GBS/RAD data produced by [STACKS] (http://catc
 This is the development page of the **stackr** package for the R software, optimized for *de novo* and population genetics.
 
 **Use stackr to:**
-* Read and modify *batch_x.sumstats.tsv* and *batch_x.haplotypes.tsv* files
-* Transform the VCF file, *batch_x.vcf*, into a tidy format to visualise and filter summary statistics within R
+* Read and modify several output files produced by [STACKS] (http://catchenlab.life.illinois.edu/stacks/)
+* Transform the **VCF file**, into a tidy format to visualise and filter summary statistics within R
 * Filters genetic markers based on: coverage (read depth, REF and ALT allele depth), genotype likelihood, number of individuals, number of populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis)
 * `ggplot2`-based plotting to view distributions of summary statistics and create publication-ready figures
 * Convert data into *genepop*, *genind*, *fstat*, *gtypes*, *betadiv* and *dadi* files or objects for easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
@@ -18,7 +18,7 @@ This is the development page of the **stackr** package for the R software, optim
 
 **Requirement:**
 Because STACKS is always under development (more than 100 versions so far!), 
-**stackr** will work best with Stacks version >= 1.29. 
+**stackr** will work best with Stacks version >= 1.19. 
 Send me an e-mail if you desperately need to use prior versions.
 
 ## Installation
@@ -118,35 +118,10 @@ install.packages("dplyr", type = "source")
 ## New features
 Version, new feature and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
-**v.0.2.8**
-* bug fix in `tidy_genomic_data` while using data.table::melt.data.table instead 
-of tidyr::gather, and forgot to 
-(i) add variable.factor = FALSE when melting the vcf and (ii) use as_data_frame
-at the end of the melting to be able to continue working with dplyr verbs.
+**v.0.2.9**
+* bug fix in `tidy_genomic_data`
+* bug fix between stackr -> devtools -> github -> travis, [this page helped] (http://itsalocke.com/using-travis-make-sure-use-github-pat/)
 
-
-**v.0.2.7**
-* Added a `NEWS.md` file to track changes to the package.
-* New function: `individuals2strata`. Several functions in **stackr** and 
-[assigner] (https://github.com/thierrygosselin/assigner) requires a `strata`
-argument, i.e. a data frame with the individuals and associated groupings. 
-You can do it manually, however, if your individuals have a consistent naming scheme 
-(e.g. SPECIES-POPULATION-MATURITY-YEAR-ID = CHI-QUE-ADU-2014-020), 
-use this function to rapidly create a strata file.
-* New function: `tidy_genomic_data`. 
-Transform common genomic dataset format in a tidy data frame. Used internally in
-**stackr** and [assigner] (https://github.com/thierrygosselin/assigner)
-and might be of interest for users.
-* New function: `read_long_tidy_wide`. Read genomic data frames in long/tidy and wide format.
-Used internally in **stackr** and [assigner] (https://github.com/thierrygosselin/assigner)
-and might be of interest for users.
-* New function: `stackr_imputations_module`. 
-Map-independent imputation of missing genotype using Random Forest
-or the most frequent category. Impute genotypes or alleles. 
-Used internally in **stackr** and [assigner] (https://github.com/thierrygosselin/assigner)
-and might be of interest for users.
-* New function: `find_duplicate_id`
-Compute pairwise genome similarity to highligh potential duplicate individuals.
 
 For previous news:
 [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
