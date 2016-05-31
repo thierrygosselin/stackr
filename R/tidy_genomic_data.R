@@ -30,7 +30,7 @@
 #' Default \code{whitelist.markers = NULL} for no whitelist of markers.
 
 
-#' @param monomorphic.out (optional) For PLINK file, should the monomorphic 
+#' @param monomorphic.out (optional) Should the monomorphic 
 #' markers present in the dataset be filtered out ? 
 #' Default: \code{monomorphic.out = TRUE}.
 
@@ -683,30 +683,11 @@ tidy_genomic_data <- function(
       )
     }
     
-    # Removing monomorphic markers
-    if (monomorphic.out) {
-      message("Removing monomorphic markers...")
-      mono.markers <- remove.missing.gt %>%
-        group_by(LOCUS, GT) %>%
-        distinct %>% 
-        group_by(LOCUS) %>%
-        tally %>% 
-        filter(n == 1) %>% 
-        select(LOCUS) %>% 
-        arrange(LOCUS)
-      
-      # Remove the markers from the dataset
-      input <- anti_join(input, mono.markers, by = "LOCUS")
-      message(paste0("Number of monomorphic markers removed: ", n_distinct(mono.markers$LOCUS)))
-    }
-    
     # Unused objects
     tped.header.prep <- NULL
     tped.header.integer <- NULL
     tped.header.names <- NULL
     remove.missing.gt <- NULL
-    mono.markers <- NULL
-    
   } # End import PLINK
   
   # Import DF ******************************************************************
@@ -1112,6 +1093,30 @@ tidy_genomic_data <- function(
     input <- suppressWarnings(input %>% semi_join(pop.filter, by = "MARKERS"))
     pop.filter <- NULL # ununsed object
   } # End common markers
+  
+  # Removing monomorphic markers------------------------------------------------
+  if (monomorphic.out) {
+    message("Removing monomorphic markers...")
+    
+    mono.markers <- input %>%
+      select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
+      tidyr::separate(data = ., col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
+      tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
+      filter(GT != "000") %>%
+      group_by(MARKERS, GT) %>% 
+      tally %>%
+      ungroup() %>% 
+      select(MARKERS) %>% 
+      group_by(MARKERS) %>% 
+      tally %>% 
+      filter(n == 1) %>% 
+      select(MARKERS)
+
+    
+    # Remove the markers from the dataset
+    input <- anti_join(input, mono.markers, by = "MARKERS")
+    message(paste0("Number of monomorphic markers removed: ", n_distinct(mono.markers$MARKERS)))
+  }
   
   # Minor Allele Frequency filter ********************************************
   # maf.thresholds <- c(0.05, 0.1) # test
