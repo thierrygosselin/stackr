@@ -1,44 +1,28 @@
 #' @name vcf2dadi
-#' @title Create a \code{dadi} SNP input file from a STACKS vcf file.
-#' @description This function will create a \code{dadi} SNP input file and a 
-#' joint allele frequency spectrum file (folded) using STACKS \code{batch_x.vcf} file
-#' or an imputed vcf file see \code{\link[stackr]{vcf_imputation}}. If your VCF 
-#' is not filtered, you can supply the function a whitelist of loci and a 
+#' @title Create a \code{dadi} SNP input file from a any vcf file.
+#' @description This function will create a \code{dadi} SNP input file using a
+#' VCF file (Danecek et al. 2011) or an imputed vcf file see \code{\link[stackr]{vcf_imputation}}. 
+#' If your VCF is not filtered, you can supply the function a whitelist of loci and a 
 #' blacklist of individuals.
 
-#' @param data The VCF file created by STACKS or imputed VCF file created
-#' by \code{\link[stackr]{vcf_imputation}}.
+#' @param data (biallelic data) 6 options: vcf, plink, genind, genepop, 
+#' and a data frame in wide or long/tidy format. \emph{See details}.
+#' The function uses 
+#' \href{https://github.com/thierrygosselin/stackr}{stackr} 
+#' \code{\link[stackr]{read_long_tidy_wide}} and 
+#' \code{\link[stackr]{tidy_genomic_data}}.
 
-#' @param whitelist.markers (optional) A whitelist containing CHROM (character or integer) and/or LOCUS (integer) and/or 
-#' POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
-#' The whitelist is in the directory (e.g. "whitelist.txt"). de novo CHROM column with 'un' need to be changed to 1.
+#' @param marker.number (Integer or string of number or "all") Calculations with
+#' fixed or subsample of your markers. Default= \code{"all"}.
+#' e.g. To test 500, 1000, 2000 and all  the markers:
+#' \code{marker.number = c(500, 1000, 2000, "all")}.
+#' To use only 500 makers \code{marker.number = 500}.
+
 
 #' @param blacklist.id (optional) A blacklist with individual ID and
-#' a column header 'INDIVIDUALS'. The blacklist is in the directory
-#'  (e.g. "blacklist.txt").
-
-#' @param pop.levels (required) A character string with your populations ordered.
-
-#' @param pop.labels (optional) A character string of your populations labels.
-#' If you need to rename sampling sites in \code{pop.levels} or combined sites/pop
-#' into a different names, here is the place.
-
-#' @param pop.id.start The start of your population id 
-#' in the name of your individual sample.
-
-#' @param pop.id.end The end of your population id 
-#' in the name of your individual sample.
-
-#' @param strata (optional) A tab delimited file with 2 columns with header:
-#' \code{INDIVIDUALS} and \code{STRATA}. Default: \code{strata = NULL}. 
-#' This is especially useful if you have a hierarchical or factorial sampling 
-#' design. See also \code{\link[adegenet]{genind}} for details.
-
-#' @param pop.select (string) Conduct the assignment analysis on a
-#' selected list of populations. Default = \code{NULL} for no selection and keep
-#' all population.
-#' e.g. \code{pop.select = "QUE"} to select QUE population samples.
-#' \code{pop.select = c("QUE", "ONT")} to select QUE and ONT population samples.
+#' a column header 'INDIVIDUALS'. The blacklist is in the working directory
+#' (e.g. "blacklist.txt").
+#' Default: \code{blacklist.id = NULL}.
 
 #' @param blacklist.genotype (optional) Useful to erase genotype with below 
 #' average quality, e.g. genotype with more than 2 alleles in diploid likely 
@@ -50,16 +34,134 @@
 #' or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
 #' INDIVIDUALS (character) columns header. The blacklist must be in the working 
 #' directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
-#' with 'un' need to be changed to 1. Default \code{NULL} for no blacklist of 
+#' with 'un' need to be changed to 1. 
+#' Default: \code{blacklist.genotype = NULL} for no blacklist of 
 #' genotypes to erase.
 
+#' @param whitelist.markers (optional) A whitelist containing CHROM (character
+#' or integer) and/or LOCUS (integer) and/or
+#' POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
+#' The whitelist is in the working directory (e.g. "whitelist.txt").
+#' de novo CHROM column with 'un' need to be changed to 1. 
+#' In the VCF, the column ID is the LOCUS identification.
+#' Default \code{whitelist.markers = NULL} for no whitelist of markers.
 
-#' @param snp.ld (optional) Minimize linkage disequilibrium (LD) by choosing 
-#' among these 3 options: \code{"random"} selection, \code{"first"} or 
-#' \code{"last"} SNP on the same read/haplotype. Default = \code{NULL}.
+#' @param monomorphic.out (optional) Should the monomorphic 
+#' markers present in the dataset be filtered out ? 
+#' Default: \code{monomorphic.out = TRUE}.
 
-#' @param common.markers (optional) Logical. Default = \code{FALSE}. 
-#' With \code{TRUE}, will keep markers present in all the populations.
+#' @param snp.ld (optional) \strong{For VCF file only}. 
+#' SNP short distance linkage disequilibrium pruning. With anonymous markers from
+#' RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
+#' choosing among these 3 options: \code{"random"} selection, \code{"first"} or
+#' \code{"last"} SNP on the same short read/haplotype. For long distance linkage
+#' disequilibrium pruning, see details below.
+#' Default: \code{snp.ld = NULL}.
+
+#' @param common.markers (optional) Logical. Default: \code{common.markers = TRUE}, 
+#' will only keep markers in common (genotyped) between all the populations.
+
+#' @param maf.thresholds (string, double, optional) String with 
+#' local/populations and global/overall maf thresholds, respectively.
+#' e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold 
+#' of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame 
+#' files. Use stackr for haplotypes files and use the whitelist of markers.
+#' Default: \code{maf.thresholds = NULL}. 
+
+#' @param maf.pop.num.threshold (integer, optional) When maf thresholds are used,
+#' this argument is for the number of pop required to pass the maf thresholds
+#' to keep the locus. Default: \code{maf.pop.num.threshold = 1}
+
+#' @param maf.approach (character, optional). By \code{maf.approach = "SNP"} or 
+#' by \code{maf.approach = "haplotype"}.
+#' The function will consider the SNP or ID/LOCUS/haplotype/read MAF statistics 
+#' to filter the markers.
+#' Default is \code{maf.approach = "SNP"}. The \code{haplotype} approach is 
+#' restricted to VCF file.
+
+#' @param maf.operator (character, optional) \code{maf.operator = "AND"} or 
+#' default \code{maf.operator = "OR"}.
+#' When filtering over LOCUS or SNP, do you want the local \code{"AND"}
+#' global MAF to pass the thresholds, or ... you want the local \code{"OR"}
+#' global MAF to pass the thresholds, to keep the marker?
+
+#' @param max.marker An optional integer useful to subsample marker number in 
+#' large PLINK file. e.g. if the data set 
+#' contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
+#' subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
+#' keep specific markers.
+#' Default: \code{max.marker = NULL}.
+
+#' @param pop.levels (optional, string) This refers to the levels in a factor. In this 
+#' case, the id of the pop.
+#' Use this argument to have the pop ordered your way instead of the default 
+#' alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
+#' instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+#' Default: \code{pop.levels = NULL}.
+
+#' @param pop.labels (optional, string) Use this argument to rename/relabel
+#' your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
+#' into a new pop called \code{"NEW"}:
+#' (1) First, define the levels for your pop with \code{pop.levels} argument: 
+#' \code{pop.levels = c("QUE", "ONT", "ALB")}. 
+#' (2) then, use \code{pop.labels} argument: 
+#' \code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+#' To rename \code{"QUE"} to \code{"TAS"}:
+#' \code{pop.labels = c("TAS", "ONT", "ALB")}.
+#' Default: \code{pop.labels = NULL}. When pop.levels is not null and pop.labels
+#' is not specified. pop.labels = pop.levels.
+#' If you find this too complicated, there is also the
+#' \code{strata} argument that can do the same thing, see below.
+
+#' @param strata (optional for data frame and PLINK files, 
+#' required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+#' \code{INDIVIDUALS} and \code{STRATA}. With a 
+#' data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+#' PLINK files, the \code{tfam} first 2 columns are used. 
+#' If a \code{strata} file is specified, the strata file will have
+#' precedence. The \code{STRATA} column can be any hierarchical grouping. 
+#' To create a strata file see \code{\link[stackr]{individuals2strata}}.
+#' Default: \code{strata = NULL}.
+
+#' @param pop.select (string, optional) Selected list of populations for 
+#' the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
+#'and \code{ONT} population samples (out of 20 pops).
+# Default: \code{pop.select = NULL} 
+
+#' @param imputation.method (character, optional) 
+#' Methods available for map-independent imputations of missing genotype: 
+#' (1) \code{"max"} to use the most frequent category for imputations.
+#' (2) \code{"rf"} using Random Forest algorithm. 
+#' Default: no imputation \code{imputation.method = NULL}.
+
+#' @param impute (character, optional) Imputation on missing genotype 
+#' \code{impute = "genotype"} or alleles \code{impute = "allele"}.
+#' Default: \code{"genotype"}.
+
+#' @param imputations.group (character, optional) \code{"global"} or \code{"populations"}.
+#' Should the imputations be computed globally or by populations. If you choose
+#' global, turn the verbose to \code{TRUE}, to see progress.
+#' Default = \code{"populations"}.
+
+#' @param num.tree (integer, optional) The number of trees to grow in Random Forest. 
+#' Default: \code{num.tree = 100}.
+
+#' @param iteration.rf (integer, optional) The number of iterations of missing data algorithm
+#' in Random Forest. 
+#' Default: \code{iteration.rf = 10}.
+
+#' @param split.number (integer, optional) Non-negative integer value used to specify
+#' random splitting in Random Forest. 
+#' Default: \code{split.number = 100}.
+
+#' @param verbose (logical, optional) Should trace output be enabled on each iteration
+#' in Random Forest ? 
+#' Default: \code{verbose = FALSE}.
+
+#' @param parallel.core (optional) The number of core for OpenMP shared-memory parallel
+#' programming of Random Forest imputations. For more info on how to install the
+#' OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
+#' If not selected \code{detectCores()-1} is used as default.
 
 #' @param fasta.outgroup (optional) The fasta output file from STACKS. This file is 
 #' required to use an outgroup. Default: \code{fasta.outgroup = NULL}.
@@ -77,52 +179,90 @@
 #' required to use with an outgroup. Leave empty if no outgroup. 
 #' Default: \code{sumstats.ingroup = NULL}.
 
-
 #' @param dadi.input.filename (optional) Name of the \code{dadi} SNP input file 
 #' written to the working directory. e.g. \code{dadi.file.txt}. 
 #' Default use date and time to make the file. If used, the file extension
 #' need to finish with \code{.txt}.
 
-#' @param imputation.method Should a map-independent imputations of markers be
-#' computed. Available choices are: (1) \code{FALSE} for no imputation.
-#' (2) \code{"max"} to use the most frequent category for imputations.
-#' (3) \code{"rf"} using Random Forest algorithm. Default = \code{FALSE}.
-#' @param impute (character) Imputation on missing genotype 
-#' \code{impute = "genotype"} or alleles \code{impute = "allele"}.
-#' @param imputations.group \code{"global"} or \code{"populations"}.
-#' Should the imputations be computed globally or by populations. If you choose
-#' global, turn the verbose to \code{TRUE}, to see progress.
-#' Default = \code{"populations"}.
-#' @param num.tree The number of trees to grow in Random Forest. Default is 100.
-#' @param iteration.rf The number of iterations of missing data algorithm 
-#' in Random Forest. Default is 10.
-#' @param split.number Non-negative integer value used to specify 
-#' random splitting in Random Forest. Default is 100.
-#' @param verbose Logical. Should trace output be enabled on each iteration 
-#' in Random Forest ? Default is \code{FALSE}.
-#' @param parallel.core (optional) The number of core for OpenMP shared-memory parallel
-#' programming of Random Forest imputations. For more info on how to install the
-#' OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
-#' If not selected \code{detectCores()-1} is used as default.
-#' @details The imputations using Random Forest requires more time to compute and can take several
+#' @details 
+#' \strong{Input files:}
+#' \enumerate{
+#' \item VCF file (e.g. \code{data = "batch_1.vcf"}). 
+#' To make the VCF population ready, you need the \code{strata} argument.
+#' 
+#' \item haplotype file created in STACKS (e.g. \code{data = "batch_1.haplotypes.tsv"}).
+#' To make the haplotype file population ready, you need the \code{strata} argument.
+#' 
+#' \item Data frame
+#' Tab delimitted.
+#' \strong{2 genotypes formats are available, both use 3 character per allele:}
+#' 6 characters no allele separator: e.g. \code{001002 of 111333} (for heterozygote individual).
+#' 6 characters WITH an allele separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
+#' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
+#' Missing alleles are coded \code{000}.
+#' To discriminate the long from the wide format, 
+#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
+#' for columns number, > 20 for wide 
+#' (i.e. don't use less than 10 markers in wide format, the function was not designed for that).
+#' 
+#' Data Frame wide format:
+#' The wide format cannot store metadata info.
+#' The wide format contains starts with these 2 id columns: 
+#' \code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
+#' the remaining columns are the markers in separate columns storing genotypes.
+#' This format requires column numbers to be larger than 20.
+
+#' Data frame long/tidy format:
+#' This format requires column numbers to be within the range: 4 min - 20 max.
+#' The long format is considered to be a tidy data frame and can store metadata info. 
+#' (e.g. from a VCF see \pkg{stackr} \code{\link[stackr]{tidy_genomic_data}}). The 4 columns
+#' required in the long format are: \code{INDIVIDUALS}, \code{POP_ID}, 
+#' \code{MARKERS} and \code{GENOTYPE or GT}.
+#' 
+#' Note that the \code{POP_ID} column can be any hierarchical grouping. 
+#' See the argument \code{strata} for other means of controlling grouping used 
+#' in the assignment.
+#' 
+#' \item PLINK file in 
+#' \code{tped/tfam} format (e.g. \code{data =  "data.assignment.tped"}). 
+#' The first 2 columns of the \code{tfam} file will be used for the 
+#' \code{strata} argument below, unless a new one is provided. 
+#' Columns 1, 3 and 4 of the \code{tped} are discarded. The remaining columns 
+#' correspond to the genotype in the format \code{01/04} 
+#' where \code{A = 01, C = 02, G = 03 and T = 04}. For \code{A/T} format, use 
+#' PLINK or bash to convert.
+#' Use \href{http://vcftools.sourceforge.net/}{VCFTOOLS} with \code{--plink-tped} 
+#' to convert very large VCF file. For \code{.ped} file conversion to 
+#' \code{.tped} use \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK} 
+#' with \code{--recode transpose},
+#' 
+#' \item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
+#' 
+#' \item genepop data file (e.g. \code{data = kiwi_data.gen}). Here, the function can only use
+#' alleles encoded with 3 digits.
+#' }
+
+#' The imputations using Random Forest requires more time to compute
+#' and can take several
 #' minutes and hours depending on the size of the dataset and polymorphism of
-#' the species used. e.g. with a low polymorphic taxa, and a data set 
-#' containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
+#' the species used. e.g. with a low polymorphic taxa, and a data set
+#' containing 30\% missing data, 5 000 haplotypes loci and 500 individuals
 #' will require 15 min.
 
 #' @export
 #' @rdname vcf2dadi
+#' @import parallel
 #' @import dplyr
 #' @import stringi
 #' @importFrom data.table fread
+
 
 #' @examples
 #' \dontrun{
 #' vcf2dadi(
 #' data = "batch_1.vcf", 
 #' whitelist.markers = "whitelist.loci.txt",
-#' pop.id.start = 5,
-#' pop.id.end = 7, 
+#' strata = "strata.file.tsv",
 #' pop.levels = c("PAN", "COS"),
 #' common.markers = TRUE, 
 #' fasta.ingroup = "batch_1.ingroup.fa", 
@@ -135,8 +275,7 @@
 #' vcf2dadi(
 #' data = "batch_1.vcf", 
 #' whitelist.markers = "whitelist.loci.txt",
-#' pop.id.start = 5,
-#' pop.id.end = 7, 
+#' strata = "strata.file.tsv",
 #' pop.levels = c("PAN", "COS"),
 #' common.markers = TRUE, 
 #' fasta.ingroup = "batch_1.ingroup.fa", 
@@ -160,6 +299,9 @@
 #' @references Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
 #' Stacks: an analysis tool set for population genomics. 
 #' Molecular Ecology, 22, 3124-3140.
+#' @references Danecek P, Auton A, Abecasis G et al. (2011)
+#' The variant call format and VCFtools.
+#' Bioinformatics, 27, 2156-2158.
 #' @references Gutenkunst RN, Hernandez RD, Williamson SH, Bustamante CD (2009)
 #' Inferring the Joint Demographic History of Multiple Populations 
 #' from Multidimensional SNP Frequency Data (G McVean, Ed,). 
@@ -182,327 +324,177 @@ if(getRversion() >= "2.15.1") {
                            "Allele1", "Allele2", "POP", "IN_GROUP", "OUT_GROUP",
                            "ID.FILTER", "ANCESTRAL", "SEQUENCES", "GARBAGE", 
                            "Chr", "Locus", "BP", "Col", "SNP_READ_POS", "FASTA_REF",
-                           "contains", "Locus ID", "i", "m"
+                           "contains", "Locus ID", "i", "m", "PROBLEM", "REF2", "ALT2"
   )
   )
 }
 
 vcf2dadi <- function(
   data,
-  whitelist.markers = NULL, 
   blacklist.id = NULL,
-  pop.id.start, 
-  pop.id.end,
-  pop.levels,
-  pop.labels,
-  strata = NULL,
-  pop.select = NULL,
   blacklist.genotype = NULL,
+  whitelist.markers = NULL,
+  monomorphic.out = TRUE,
   snp.ld = NULL,
-  common.markers = FALSE,
-  fasta.ingroup = NULL,
-  fasta.outgroup = NULL,
-  sumstats.ingroup = NULL,
-  sumstats.outgroup = NULL,
-  dadi.input.filename = NULL,
-  imputation.method = FALSE,
-  impute,
+  common.markers = TRUE,
+  maf.thresholds = NULL,
+  maf.pop.num.threshold = 1,
+  maf.approach = "SNP",
+  maf.operator = "OR",
+  max.marker = NULL,
+  strata = NULL,
+  pop.levels = NULL,
+  pop.labels = NULL,
+  pop.select = NULL,
+  imputation.method = NULL,
+  impute = "genotype",
   imputations.group = "populations",
   num.tree = 100,
   iteration.rf = 10,
   split.number = 100,
   verbose = FALSE,
-  parallel.core
+  fasta.ingroup = NULL,
+  fasta.outgroup = NULL,
+  sumstats.ingroup = NULL,
+  sumstats.outgroup = NULL,
+  dadi.input.filename = NULL,
+  parallel.core = detectCores()-1
 ){
   
   # dadi unicode character: \u2202
-  
+  # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file missing")
-  if (missing(whitelist.markers)) whitelist.markers <- NULL # no Whitelist
-  if (missing(blacklist.id)) blacklist.id <- NULL # No blacklist of ID
-  if (missing(strata)) strata <- NULL
-  if (missing(pop.select)) pop.select <- NULL
-  if (missing(blacklist.genotype)) blacklist.genotype <- NULL # no genotype to erase
-  if (missing(pop.levels)) stop("pop.levels required")
-  if (missing(pop.labels)) pop.labels <- pop.levels # pop.labels
-  if (missing(common.markers)) common.markers <- FALSE
-  if (missing(snp.ld)) snp.ld <- NULL
+  if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
+  if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
   if (missing(fasta.outgroup)) fasta.outgroup <- NULL
   if (missing(fasta.ingroup)) fasta.ingroup <- NULL
   if (missing(sumstats.outgroup)) sumstats.outgroup <- NULL
   if (missing(sumstats.ingroup)) sumstats.ingroup <- NULL
-  
   if (missing(dadi.input.filename)) dadi.input.filename <- NULL
-  
-  
-  if (missing(imputation.method)) imputation.method <- FALSE
-  if (imputation.method != FALSE & missing(impute)) stop("impute argument is necessary")
-  if (imputation.method == FALSE & missing(impute)) impute <- NULL
-  if (missing(imputations.group)) imputations.group <- "populations"
-  if (missing(num.tree)) num.tree <- 100
-  if (missing(iteration.rf)) iteration.rf <- 10
-  if (missing(split.number)) split.number <- 100
-  if (missing(verbose)) verbose <- FALSE
-  if (missing(parallel.core)) parallel.core <- detectCores()-1
-  
   if (imputation.method == "FALSE") {
     message("vcf2dadi: no imputation...")
   } else {
     message("vcf2dadi: with imputations...")
   }
+  
   # File type detection ********************************************************
-  data.type <- read_lines(file = data, skip = 2, n_max = 1)
-  
-  if (stri_detect_fixed(str = data.type, pattern = "##source=stackr")) {
-    data.type <- "vcf.imputed"
-    message("File type: imputed VCF")
+  if(adegenet::is.genind(data)){
+    data.type <- "genind.file"
+    message("File type: genind object")
   } else {
-    data.type <- "vcf.raw"
-    message("File type: VCF non imputed")
-  }
-  
-  # Import whitelist of markers ************************************************
-  if (is.null(whitelist.markers)) { # no Whitelist
-    message("Whitelist of markers: no")
-  } else { # with Whitelist of markers
-    message("Whitelist of markers: yes")
-    whitelist.markers <- read_tsv(whitelist.markers, col_names = TRUE)
-    columns.names.whitelist <- colnames(whitelist.markers)
-    if ("CHROM" %in% columns.names.whitelist) {
-      whitelist.markers$CHROM <- as.character(whitelist.markers$CHROM)
+    data.type <- readChar(con = data, nchars = 16L, useBytes = TRUE)
+    if (identical(data.type, "##fileformat=VCF") | stri_detect_fixed(str = data, pattern = ".vcf")) {
+      data.type <- "vcf.file"
+      # message("File type: VCF")
     }
-  }
-  
-  # Import blacklist id ********************************************************
-  if (is.null(blacklist.id)) { # No blacklist of ID
-    message("Blacklisted individuals: no")
-  } else { # With blacklist of ID
-    message("Blacklisted individuals: yes")
-    blacklist.id <- read_tsv(blacklist.id, col_names = TRUE)
-  }
-  
-  # Import/read VCF ------------------------------------------------------------- 
-  message("Importing the VCF...")
-  
-  # no imputation
-  input <- data.table::fread(
-    input = data,
-    sep = "\t",
-    stringsAsFactors = FALSE, 
-    header = TRUE,
-    # Automatically filter with blacklist of id
-    drop = c("QUAL", "FILTER", "INFO", blacklist.id$INDIVIDUALS),
-    skip = "CHROM",
-    showProgress = TRUE,
-    verbose = FALSE
-  ) %>% 
-    as_data_frame() %>% 
-    rename(LOCUS = ID, CHROM = `#CHROM`) %>%
-    mutate(
-      CHROM = stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1")
-    )
-  
-  # Filter with whitelist of markers
-  if (!is.null(whitelist.markers)) {
-    input <- suppressWarnings(semi_join(input, whitelist.markers, by = columns.names.whitelist))
-  }
-  
-  # Detect STACKS version
-  if (stri_detect_fixed(input$FORMAT[1], "AD")) {
-    stacks.version <- "new"
-  } else {
-    stacks.version <- "old"
-  }
-  input <- input %>% select(-FORMAT)
-  
-  # Tidying the VCF to make it easy to work on the data for conversion
-  message("Making the VCF population wise")
-  input <- input %>%
-    tidyr::gather(INDIVIDUALS, FORMAT_ID, -c(CHROM, LOCUS, POS, REF, ALT)) # Gather individuals in 1 colummn
-  
-  if (is.null(strata)){
-    input <- input %>%
-      mutate( # Make population ready
-        POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end),
-        POP_ID = factor(stri_replace_all_fixed(POP_ID, pop.levels, pop.labels, vectorize_all = FALSE), levels = unique(pop.labels), ordered = TRUE),
-        INDIVIDUALS =  as.character(INDIVIDUALS)
-      )
-  } else { # Make population ready with the strata provided
-    strata.df <- read_tsv(file = strata, col_names = TRUE, col_types = "cc") %>% 
-      rename(POP_ID = STRATA)
-    
-    input <- input %>%
-      mutate(INDIVIDUALS =  as.character(INDIVIDUALS)) %>% 
-      left_join(strata.df, by = "INDIVIDUALS") %>% 
-      mutate(POP_ID = factor(POP_ID, levels = unique(pop.labels), ordered =TRUE))
-  }
-  
-  # Pop select
-  if (!is.null(pop.select)) {
-    message(stri_join(length(pop.select), "population(s) selected", sep = " "))
-    input <- suppressWarnings(input %>% filter(POP_ID %in% pop.select))
-  }
-  
-  # Conversion -----------------------------------------------------
-  # Tidy VCF
-  message("Tidying the vcf ...")
-  
-  if (stacks.version == "new") { # with new version of stacks > v.1.29
-    input <- input %>%
-      tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "ALLELE_DEPTH", "GL"),
-                      sep = ":", extra = "warn") %>%
-      select(-c(READ_DEPTH, ALLELE_DEPTH, GL))
-  } else { # stacks version prior to v.1.29 had no Allele Depth field...
-    input <- input %>%
-      tidyr::separate(FORMAT_ID, c("GT", "READ_DEPTH", "GL"),
-                      sep = ":", extra = "warn") %>%
-      select(-c(READ_DEPTH, GL))
-  }
-  
-  # Blacklist genotypes ********************************************************
-  if (is.null(blacklist.genotype)) { # no Whitelist
-    message("Erasing genotype: no")
-  } else {
-    message("Erasing genotype: yes")
-    blacklist.genotype <- read_tsv(blacklist.genotype, col_names = TRUE)
-    columns.names.blacklist.genotype <- colnames(blacklist.genotype)
-    if ("CHROM" %in% columns.names.blacklist.genotype) {
-      columns.names.blacklist.genotype$CHROM <- as.character(columns.names.blacklist.genotype$CHROM)
+    if (stri_detect_fixed(str = data, pattern = ".tped")) {
+      data.type <- "plink.file"
+      # message("File type: PLINK")
+      if (!file.exists(stri_replace_all_fixed(str = data, pattern = ".tped", replacement = ".tfam", vectorize_all = FALSE))) {
+        stop("Missing tfam file with the same prefix as your tped")
+      }
+    } 
+    if (stri_detect_fixed(str = data.type, pattern = "POP_ID") | stri_detect_fixed(str = data.type, pattern = "INDIVIDUALS")) {
+      data.type <- "df.file"
+      # message("File type: data frame of genotypes")
     }
-    
-    # control check to keep only individuals in pop.select
-    if (!is.null(pop.select)) {
-      message("Control check to keep only individuals present in pop.select")
-      # updating the blacklist.genotype
-      if (is.null(strata)){
-        blacklist.genotype <- suppressWarnings(
-          blacklist.genotype  %>% 
-            mutate( # Make population ready
-              POP_ID = substr(INDIVIDUALS, pop.id.start, pop.id.end),
-              POP_ID = factor(stri_replace_all_fixed(POP_ID, pop.levels, pop.labels, vectorize_all = F), levels = unique(pop.labels), ordered =T),
-              INDIVIDUALS =  as.character(INDIVIDUALS) 
-            ) %>% 
-            filter(POP_ID %in% pop.select) %>% 
-            select(-POP_ID)
-        )
-      } else {
-        blacklist.genotype <- suppressWarnings(
-          blacklist.genotype %>%
-            mutate(INDIVIDUALS =  as.character(INDIVIDUALS)) %>% 
-            left_join(strata.df, by = "INDIVIDUALS") %>% 
-            filter(POP_ID %in% pop.select) %>% 
-            select(-POP_ID)
-        )
+    if (stri_detect_fixed(str = data.type, pattern = "Catalog")) {
+      # data.type <- "haplo.file"
+      message("File type: haplotypes from stacks")
+      if (is.null(blacklist.genotype)) {
+        stop("blacklist.genotype file missing. 
+             Use stackr's missing_genotypes function to create this blacklist")
       }
     }
+    if (stri_detect_fixed(str = data, pattern = ".gen")) {
+      # data.type <- "genepop.file"
+      message("File type: genepop")
+      message("Multilocus genepop file won't work, only for biallelic markers")
+    } 
     
-    # control check to keep only whitelisted markers from the blacklist of genotypes
-    if (!is.null(whitelist.markers)) {
-      blacklist.genotype <- blacklist.genotype
-      message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
-      # updating the whitelist of markers to have all columns that id markers
-      whitelist.markers.ind <- input %>% select(CHROM, LOCUS, POS, INDIVIDUALS) %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
-      
-      
-      # updating the blacklist.genotype
-      blacklist.genotype <- suppressWarnings(semi_join(whitelist.markers.ind, blacklist.genotype, by = columns.names.blacklist.genotype))
-      columns.names.blacklist.genotype <- colnames(blacklist.genotype)
-    }
-    
-    # control check to remove blacklisted individuals from the blacklist of genotypes
-    if (!is.null(blacklist.id)) {
-      message("Control check to remove blacklisted individuals present in the blacklist of genotypes to erase.")
-      blacklist.genotype <- suppressWarnings(anti_join(blacklist.genotype, blacklist.id, by = "INDIVIDUALS"))
-      columns.names.blacklist.genotype <- colnames(blacklist.genotype)
-    }
-    
-    # Add one column that will allow to include the blacklist in the dataset 
-    # by x column(s) of markers
-    blacklist.genotype <- mutate(.data = blacklist.genotype, ERASE = rep("erase", n()))
-    
-    input <- suppressWarnings(
-      input %>%
-        full_join(blacklist.genotype, by = columns.names.blacklist.genotype) %>%
-        mutate(
-          ERASE = stri_replace_na(str = ERASE, replacement = "ok"),
-          GT = ifelse(ERASE == "erase", "./.", GT)
-        ) %>% 
-        select(-ERASE)
-    )
-  }# End erase genotypes
+  } # end file type detection
   
+  # Strata argument required for VCF and haplotypes files **********************
+  if (data.type == "vcf.file" & is.null(strata)) stop("strata argument is required")
+  if (data.type == "haplo.file") stop("This function is for biallelic dataset only")
   
-  # dump unused object
-  blacklist.id <- NULL
-  whitelist.markers <- NULL
+  # Import input ***************************************************************
+  input <- stackr::tidy_genomic_data(
+    data = data, 
+    vcf.metadata = FALSE,
+    blacklist.id = blacklist.id, 
+    blacklist.genotype = blacklist.genotype, 
+    whitelist.markers = whitelist.markers, 
+    monomorphic.out = monomorphic.out, 
+    max.marker = max.marker,
+    snp.ld = snp.ld, 
+    common.markers = common.markers, 
+    maf.thresholds = maf.thresholds, 
+    maf.pop.num.threshold = maf.pop.num.threshold, 
+    maf.approach = maf.approach, 
+    maf.operator = maf.operator,
+    strata = strata, 
+    pop.levels = pop.levels, 
+    pop.labels = pop.labels, 
+    pop.select = pop.select,
+    filename = NULL
+  )
   
-  # LD control... keep only 1 SNP per haplotypes/reads (optional) ************
-  if (!is.null(snp.ld)) {
-    message("Minimizing LD...")
-    snp.locus <- input %>% select(LOCUS, POS) %>% distinct(POS)
-    # Random selection
-    if (snp.ld == "random") {
-      snp.select <- snp.locus %>%
-        group_by(LOCUS) %>%
-        sample_n(size = 1, replace = FALSE)
-      message(stri_join("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
-    }
-    
-    # Fist SNP on the read
-    if (snp.ld == "first") {
-      snp.select <- snp.locus %>%
-        group_by(LOCUS) %>%
-        summarise(POS = min(POS))
-      message(stri_join("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
-    }
-    
-    # Last SNP on the read
-    if (snp.ld == "last") {
-      snp.select <- snp.locus %>%
-        group_by(LOCUS) %>%
-        summarise(POS = max(POS))
-      message(stri_join("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
-    }
-    
-    # filtering the VCF to minimize LD
-    input <- input %>% semi_join(snp.select, by = c("LOCUS", "POS"))
-    message("Filtering the tidy VCF to minimize LD by keeping only 1 SNP per short read/haplotype")
-  } # End of snp.ld control
+  # create a strata.df
+  strata.df <- input %>% 
+    select(INDIVIDUALS, POP_ID) %>% 
+    distinct(INDIVIDUALS)
+  strata <- strata.df
+  pop.levels <- levels(input$POP_ID)
+  pop.labels <- pop.levels
   
-  # Unique markers id: combine CHROM, LOCUS and POS into MARKERS *************
-  input <- input %>%
-    mutate(
-      POS = stri_pad_left(str = POS, width = 8, pad = "0"),
-      LOCUS = stri_pad_left(str = LOCUS, width = 8, pad = "0")
-    ) %>%
-    arrange(CHROM, LOCUS, POS) %>%
-    tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_")
-  
-  # Markers in common between all populations (optional) *********************
-  if (common.markers == TRUE) { # keep only markers present in all pop
-    message("Using markers common in all populations")
-    pop.number <- n_distinct(input$POP_ID)
-    
-    pop.filter <- input %>%
-      filter(GT != "./.") %>%
+  # Compute count and Minor Allele Frequency -----------------------------------
+  # We split the alleles here to prep for MAF
+  if(data.type != "vcf.file") {
+    get.ref.alt.alleles <- input %>%
+      select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
+      tidyr::separate(data = ., col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
+      tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
+      filter(GT != "000") %>% 
+      group_by(MARKERS, GT) %>%
+      tally %>% 
+      ungroup() %>% 
+      mutate(ALLELE_NUMBER = rep(c("A1", "A2"), each = 1, times = n()/2)) %>% 
       group_by(MARKERS) %>%
-      filter(n_distinct(POP_ID) == pop.number) %>%
-      arrange(MARKERS) %>%
-      select(MARKERS) %>%
-      distinct(MARKERS)
+      mutate(
+        PROBLEM = ifelse(n[ALLELE_NUMBER == "A1"] == n[ALLELE_NUMBER == "A2"], "equal_number", "ok"),
+        GROUP = ifelse(n == max(n), "REF", "ALT")
+      ) %>% 
+      group_by(MARKERS, GT) %>% 
+      mutate(
+        ALLELE = ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A1", "REF", 
+                        ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A2", "ALT", 
+                               GROUP)
+        )
+      ) %>% 
+      select(MARKERS, GT, ALLELE) %>%
+      group_by(MARKERS) %>% 
+      tidyr::spread(data = ., ALLELE, GT) %>% 
+      select(MARKERS, REF, ALT)
     
+    input <- full_join(input, get.ref.alt.alleles, by = "MARKERS")
     
-    message(stri_join("Number of original markers = ", n_distinct(input$MARKERS), 
-                      "\n", "Number of markers present in all the populations = ", 
-                      n_distinct(pop.filter$MARKERS), "\n", 
-                      "Number of markers removed = ", 
-                      n_distinct(input$MARKERS) - n_distinct(pop.filter$MARKERS))
-    )
-    input <- suppressWarnings(input %>% semi_join(pop.filter, by = "MARKERS"))
-    pop.filter <- NULL # ununsed object
-  } # End common markers
+    get.ref.alt.alleles <- NULL # remove unused object
+    
+    input <- input %>% 
+      tidyr::separate(data = ., col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
+      ungroup() %>% 
+      mutate(
+        A1 = ifelse(A1 == REF, "0", 
+                      ifelse(A1 == ALT, "1",
+                             ".")),
+        A2 = ifelse(A2 == REF, "0", 
+                      ifelse(A2 == ALT, "1",
+                             "."))
+      ) %>% 
+      tidyr::unite(data = ., col = GT_VCF, c(A1, A2), sep = "/")
+  }
   
-  # Compute count and Minor Allele Frequency
   # MAF = the ALT allele in the VCF
   message("Computing the Allele Frequency Spectrum")
   
@@ -510,16 +502,23 @@ vcf2dadi <- function(
     group_by(MARKERS, POP_ID, REF, ALT) %>%
     summarise(
       N = as.numeric(n()),
-      PP = as.numeric(length(GT[GT == "0/0"])),
-      PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
-      QQ = as.numeric(length(GT[GT == "1/1"]))
+      PP = as.numeric(length(GT_VCF[GT_VCF == "0/0"])),
+      PQ = as.numeric(length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])),
+      QQ = as.numeric(length(GT_VCF[GT_VCF == "1/1"]))
     ) %>%
-    mutate(MAF = ((QQ*2) + PQ)/(2*N)) 
+    mutate(MAF = ((QQ*2) + PQ)/(2*N)) %>% 
+    ungroup() %>%
+    mutate(
+      REF = stri_replace_all_fixed(str = REF, pattern = c("001", "002", "003", "004"), replacement = c("A", "C", "G", "T"), vectorize_all = FALSE),
+      ALT = stri_replace_all_fixed(str = ALT, pattern = c("001", "002", "003", "004"), replacement = c("A", "C", "G", "T"), vectorize_all = FALSE)
+    )
   
   # Function to make dadi input  data format ***********************************
   message("Preparing \u2202a\u2202i input SNP data format")
   write_dadi <- function(input, write.imputation, ...){
     # input <- input.count.imp # testing
+    # input <- input.count # testing
+    # input.bk <- input # testing
     
     if (is.null(fasta.ingroup)) {
       dadi.input <- suppressWarnings(
@@ -715,10 +714,10 @@ vcf2dadi <- function(
       ingroup <- ref.allele.vcf.ingroup.fasta %>% 
         ungroup() %>% 
         select(CHROM, LOCUS, POS, IN_GROUP) %>% 
-        mutate(
-          POS = stri_pad_left(str = POS, width = 8, pad = "0"),
-          LOCUS = stri_pad_left(str = LOCUS, width = 8, pad = "0")
-        ) %>%
+        # mutate(
+        #   POS = stri_pad_left(str = POS, width = 8, pad = "0"),
+        #   LOCUS = stri_pad_left(str = LOCUS, width = 8, pad = "0")
+        # ) %>%
         arrange(CHROM, LOCUS, POS) %>%
         tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_")
       
@@ -785,10 +784,10 @@ vcf2dadi <- function(
           OUT_GROUP = ifelse(SNP_READ_POS == 1, stri_pad(OUT_GROUP, width = 3, side = "left", pad = "-"), OUT_GROUP)
         ) %>% 
         select(CHROM, LOCUS, POS, OUT_GROUP) %>% 
-        mutate(
-          POS = stri_pad_left(str = POS, width = 8, pad = "0"),
-          LOCUS = stri_pad_left(str = LOCUS, width = 8, pad = "0")
-        ) %>%
+        # mutate(
+        #   POS = stri_pad_left(str = POS, width = 8, pad = "0"),
+        #   LOCUS = stri_pad_left(str = LOCUS, width = 8, pad = "0")
+        # ) %>%
         arrange(CHROM, LOCUS, POS) %>%
         tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_")
       
@@ -811,7 +810,6 @@ vcf2dadi <- function(
       markers.outgroup <- NULL
       
       message(stri_join("Number of markers common between in- and out- group = ", n_distinct(markers.ingroup.outgroup.common$MARKERS)))
-      
       dadi.input <- suppressWarnings(
         input %>%
           group_by(MARKERS, POP_ID, REF, ALT) %>%
@@ -893,255 +891,66 @@ vcf2dadi <- function(
   
   # without imputations (automatic)
   write_dadi(input = input.count, write.imputation = FALSE)
-  
-  input.count <- NULL # remove unused object
-  
   # Imputations **************************************************************
-  if (imputation.method != "FALSE") {
+  if (!is.null(imputation.method)) {
+    get.ref.alt.alleles <- input.count %>% 
+      select(MARKERS, REF, ALT) %>% 
+      distinct(MARKERS, REF, ALT)
     
-    if (imputation.method == "max"){
-      message("Calculating map-independent imputations using the most frequent allele.")
-    } 
-    if (imputation.method == "rf"){
-      message("Calculating map-independent imputations using random forest")
-    }
-    
-    # common part for imputation and vcf2genind
-    if (impute == "genotype") {
-      input.prep <- input %>%
-        mutate(GT = stri_replace_all_fixed(str = GT, pattern = "/", replacement = ":", vectorize_all = FALSE)) %>%
-        mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("0:0", "1:1", "0:1", "1:0", ".:."), replacement = c("2_0", "0_2", "1_1", "1_1", "NA_NA"), vectorize_all = FALSE)) %>%
-        select(-REF, -ALT) %>% 
-        arrange(MARKERS, POP_ID) %>% 
-        mutate(
-          GT = stri_replace_all_fixed(GT, pattern = "NA_NA", replacement = "NA", vectorize_all = FALSE),
-          GT = replace(GT, which(GT == "NA"), NA)
-        ) %>%
-        group_by(INDIVIDUALS, POP_ID) %>% 
-        tidyr::spread(data = ., key = MARKERS, value = GT) %>%
-        ungroup() %>% 
-        arrange(POP_ID, INDIVIDUALS)
-    }
-    if (impute == "allele") {
-      input.prep <- input %>%
-        mutate(GT = stri_replace_all_fixed(str = GT, pattern = "/", replacement = ":", vectorize_all = FALSE)) %>% 
-        mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("0:0", "1:1", "0:1", "1:0", ".:."), replacement = c("REF_REF", "ALT_ALT", "REF_ALT", "ALT_REF", "NA_NA"), vectorize_all = FALSE)) %>% 
-        select(-REF, -ALT) %>% 
-        arrange(MARKERS, POP_ID) %>% 
-        tidyr::separate(col = GT, into = c("A1", "A2"), sep = "_") %>%  # separate the genotypes into alleles
-        tidyr::gather(key = ALLELES, GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% 
-        mutate(GT = replace(GT, which(GT == "NA"), NA)) %>%
-        group_by(INDIVIDUALS, POP_ID, ALLELES) %>% 
-        tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
-        ungroup() %>% 
-        arrange(POP_ID, INDIVIDUALS)
-    }
-    
-    # Imputation with Random Forest
-    if (imputation.method == "rf") {
-      # Parallel computations options
-      options(rf.cores = parallel.core, mc.cores = parallel.core)
+    input.count <- NULL # unused object
       
-      # imputations using Random Forest with the package randomForestSRC
-      impute_genotype_rf <- function(x) {
-        randomForestSRC::impute.rfsrc(data = x,
-                                      ntree = num.tree,
-                                      nodesize = 1,
-                                      nsplit = split.number,
-                                      nimpute = iteration.rf,
-                                      do.trace = verbose)
-      } # End of imputation function
-      
-      # Random Forest by pop
-      if (imputations.group == "populations") {
-        message("Imputations computed by populations, take a break...")
-        df.split.pop <- split(x = input.prep, f = input.prep$POP_ID) # slip data frame by population
-        pop.list <- names(df.split.pop) # list the pop
-        imputed.dataset <-list() # create empty list
-        
-        # Function to go through the populations
-        impute_rf_pop <- function(pop.list, ...){
-          sep.pop <- df.split.pop[[pop.list]]
-          sep.pop <- suppressWarnings(
-            plyr::colwise(factor, exclude = NA)(sep.pop)
-          )
-          # message of progress for imputations by population
-          message(paste("Completed imputations for pop ", pop.list, sep = ""))
-          # imputed.dataset[[i]] <- impute_markers_rf(sep.pop) # test with foreach
-          imputed.dataset <- impute_genotype_rf(sep.pop)
-          return(imputed.dataset)
-        } # End impute_rf_pop
-        
-        input.imp <- list()
-        input.imp <- parallel::mclapply(
-          X = pop.list, 
-          FUN = impute_rf_pop, 
-          mc.preschedule = FALSE, 
-          mc.silent = FALSE, 
-          mc.cores = parallel.core
-        )
-        
-        # Compiling the results
-        message("Compiling imputations results")
-        input.imp <- suppressWarnings(bind_rows(input.imp))
-        
-        # Second round of imputations (globally) to remove introduced NA 
-        # In case that some pop don't have the markers
-        input.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(input.imp)) # Make the columns factor
-        input.imp <- impute_genotype_rf(input.imp) # impute globally
-        
-        # dump unused objects
-        df.split.pop <- NULL
-        pop.list <- NULL
-        sep.pop <- NULL
-        imputed.dataset <- NULL
-        input.prep <- NULL
-        
-      } # End imputation RF populations
-      # Random Forest global
-      if (imputations.group == "global") { # Globally (not by pop_id)
-        message("Imputations computed globally, take a break...")
-        input.prep <- plyr::colwise(factor, exclude = NA)(input.prep)
-        input.imp <- impute_genotype_rf(input.prep)
-        
-        input.prep <- NULL # remove unused object
-      } # End imputation RF global
-    } # End imputation RF
+    input.imp <- stackr::stackr_imputations_module(
+      data = input, 
+      imputation.method = imputation.method, 
+      impute = impute, 
+      imputations.group = imputations.group, 
+      num.tree = num.tree, 
+      iteration.rf = iteration.rf, 
+      split.number = split.number, 
+      verbose = verbose, 
+      parallel.core = parallel.core, 
+      filename = NULL
+    )
     
-    # Imputation using the most common genotype
-    if (imputation.method == "max") { # End imputation max
-      if (imputations.group == "populations") {
-        message("Imputations computed by populations")
-        
-        if (impute == "genotype"){
-          input.imp <- suppressWarnings(
-            input.prep %>%
-              tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
-              group_by(MARKERS, POP_ID) %>%
-              mutate(
-                GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
-                GT = replace(GT, which(GT == "NA"), NA)
-              ) %>%
-              # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
-              # will take the global observed values by markers for those cases.
-              group_by(MARKERS) %>%
-              mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
-              group_by(INDIVIDUALS, POP_ID) %>% 
-              tidyr::spread(data = ., key = MARKERS, value = GT) %>%
-              ungroup()
-          )
-        }
-        
-        if (impute == "allele"){
-          input.imp <- suppressWarnings(
-            input.prep %>%
-              tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
-              group_by(MARKERS, POP_ID) %>%
-              mutate(
-                GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
-                GT = replace(GT, which(GT == "NA"), NA)
-              ) %>%
-              # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
-              # will take the global observed values by markers for those cases.
-              group_by(MARKERS) %>%
-              mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
-              group_by(INDIVIDUALS, POP_ID, ALLELES) %>% 
-              tidyr::spread(data = ., key = MARKERS, value = GT) %>%
-              ungroup()
-          )
-        }
-        input.prep <- NULL # remove unused object
-        
-      } # End imputation max populations 
-      if (imputations.group == "global") {
-        # Globally (not by pop_id)
-        message("Imputations computed globally")
-        
-        if (impute == "genotype"){
-          input.imp <- suppressWarnings(
-            input.prep %>%
-              tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
-              group_by(MARKERS) %>%
-              mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
-              group_by(INDIVIDUALS, POP_ID) %>% 
-              tidyr::spread(data = ., key = MARKERS, value = GT) %>%
-              ungroup()
-          )
-        }
-        
-        if (impute == "allele"){
-          input.imp <- suppressWarnings(
-            input.prep %>%
-              tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
-              group_by(MARKERS) %>%
-              mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
-              group_by(INDIVIDUALS, POP_ID, ALLELES) %>% 
-              tidyr::spread(data = ., key = MARKERS, value = GT) %>%
-              ungroup()
-          )
-        }
-        
-        input.prep <- NULL # remove unused object
-      } # End imputation max global 
-    } # End imputations max
     
-    # transform the imputed dataset  ------------------------
-    if (impute == "genotype") {
-      # Compute count and Minor Allele Frequency
-      message("Computing the Allele Frequency Spectrum for the imputed data")
-      
-      input.count.imp <- input.imp %>%
-        tidyr::gather(key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID)) %>% # make tidy
-        mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("2_0", "0_2", "1_1"), replacement = c("0/0", "1/1", "0/1"), vectorize_all = FALSE)) %>% 
-        group_by(MARKERS, POP_ID) %>%
-        summarise(
-          N = as.numeric(n()),
-          PP = as.numeric(length(GT[GT == "0/0"])),
-          PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
-          QQ = as.numeric(length(GT[GT == "1/1"]))
-        ) %>%
-        mutate(MAF = ((QQ*2) + PQ)/(2*N)) %>% 
-        arrange(MARKERS, POP_ID) %>% 
-        inner_join(
-          input %>% 
-            select(MARKERS, POP_ID, REF, ALT) %>% 
-            distinct(MARKERS, POP_ID, REF, ALT)
-          , by = c("MARKERS", "POP_ID")
-        ) %>% 
-        select(MARKERS, POP_ID, REF, ALT, N, PP, PQ, QQ, MAF)
-    }
+    input.imp <- full_join(input.imp, get.ref.alt.alleles, by = "MARKERS")
+    get.ref.alt.alleles <- NULL # remove unused object
     
-    if (impute == "allele") {
-      # Compute count and Minor Allele Frequency
-      message("Computing the Allele Frequency Spectrum for the imputed data")
-      
-      input.count.imp <- input.imp %>%
-        tidyr::gather(key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
-        tidyr::spread(data = ., key = ALLELES, value = GT) %>%
-        tidyr::unite(GT, A1, A2, sep = "_") %>% 
-        mutate(GT = stri_replace_all_fixed(str = GT, pattern = c("REF_REF", "ALT_ALT", "REF_ALT", "ALT_REF"), replacement = c("0/0", "1/1", "0/1", "1/0"), vectorize_all = FALSE)) %>% 
-        group_by(MARKERS, POP_ID) %>%
-        summarise(
-          N = as.numeric(n()),
-          PP = as.numeric(length(GT[GT == "0/0"])),
-          PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
-          QQ = as.numeric(length(GT[GT == "1/1"]))
-        ) %>%
-        mutate(MAF = ((QQ*2) + PQ)/(2*N)) %>% 
-        arrange(MARKERS, POP_ID) %>% 
-        inner_join(
-          input %>% 
-            select(MARKERS, POP_ID, REF, ALT) %>% 
-            distinct(MARKERS, POP_ID, REF, ALT)
-          , by = c("MARKERS", "POP_ID")
-        ) %>% 
-        select(MARKERS, POP_ID, REF, ALT, N, PP, PQ, QQ, MAF)
-    }
+    input.imp <- input.imp %>% 
+      tidyr::separate(data = ., col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
+      ungroup() %>% 
+      mutate(
+        # here we switch pattern and replacement
+        REF2 = stri_replace_all_fixed(str = REF, replacement = c("001", "002", "003", "004"), pattern = c("A", "C", "G", "T"), vectorize_all = FALSE),
+        ALT2 = stri_replace_all_fixed(str = ALT, replacement = c("001", "002", "003", "004"), pattern = c("A", "C", "G", "T"), vectorize_all = FALSE)
+      ) %>% 
+      mutate(
+        A1 = ifelse(A1 == REF2, "0", 
+                    ifelse(A1 == ALT2, "1",
+                           ".")),
+        A2 = ifelse(A2 == REF2, "0", 
+                    ifelse(A2 == ALT2, "1",
+                           "."))
+      ) %>% 
+      tidyr::unite(data = ., col = GT_VCF, c(A1, A2), sep = "/") %>% 
+      select(-REF2, -ALT2)
+    
+    # transform the imputed dataset  -------------------------------------------
+    message("Computing the Allele Frequency Spectrum for the imputed data")
+    
+    input.count.imp <- input.imp %>% 
+      group_by(MARKERS, POP_ID, REF, ALT) %>%
+      summarise(
+        N = as.numeric(n()),
+        PP = as.numeric(length(GT_VCF[GT_VCF == "0/0"])),
+        PQ = as.numeric(length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])),
+        QQ = as.numeric(length(GT_VCF[GT_VCF == "1/1"]))
+      ) %>%
+      mutate(MAF = ((QQ*2) + PQ)/(2*N))
+    
     input.imp <- NULL # remove unused object
-
+    
     # output in dadi
     write_dadi(input = input.count.imp, write.imputation = TRUE)
-    } # end imputations
+  } # end imputations
 } # End vcf2dadi
-
-
