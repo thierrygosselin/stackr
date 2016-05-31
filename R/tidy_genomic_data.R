@@ -499,6 +499,7 @@ tidy_genomic_data <- function(
     if (vcf.metadata) {
       # Re order columns
       common.colnames <- c("MARKERS", "CHROM", "LOCUS", "POS", "POP_ID", "INDIVIDUALS", "GT_VCF", "REF", "ALT")
+      vcf.headers <- colnames(input)
       metadata.colnames <- purrr::discard(.x = colnames(input), .p = vcf.headers %in% common.colnames)
       input <- input[c(common.colnames, metadata.colnames)]
       
