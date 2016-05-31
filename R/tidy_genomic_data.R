@@ -313,7 +313,6 @@ tidy_genomic_data <- function(
       data.type <- "genepop.file"
       message("File type: genepop")
     } 
-    
   } # end file type detection
   
   # Strata argument required for VCF and haplotypes files **********************
@@ -840,7 +839,7 @@ tidy_genomic_data <- function(
   } # End import haplotypes file
   
   # Import genepop **************************************************************
-  if (data.type == "genepop") {
+  if (data.type == "genepop.file") {
     message("Tidying the genepop file ...")
     
     # data <- "/Users/thierry/Documents/skipjack/skipjack.filtered_imputed.gen"

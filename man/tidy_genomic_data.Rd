@@ -21,7 +21,7 @@ de novo CHROM column with 'un' need to be changed to 1.
 In the VCF, the column ID is the LOCUS identification.
 Default \code{whitelist.markers = NULL} for no whitelist of markers.}
 
-\item{monomorphic.out}{(optional) For PLINK file, should the monomorphic 
+\item{monomorphic.out}{(optional) Should the monomorphic 
 markers present in the dataset be filtered out ? 
 Default: \code{monomorphic.out = TRUE}.}
 
@@ -113,6 +113,10 @@ PLINK files, the \code{tfam} first 2 columns are used.
 If a \code{strata} file is specified, the strata file will have
 precedence. The \code{STRATA} column can be any hierarchical grouping. 
 To create a strata file see \code{\link[stackr]{individuals2strata}}.
+If you have already run 
+\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
+the strata file is similar to a stacks `population map file`, make sure you 
+have the required column names  (\code{INDIVIDUALS} and \code{STRATA}).
 Default: \code{strata = NULL}.}
 
 \item{pop.select}{(string, optional) Selected list of populations for 
