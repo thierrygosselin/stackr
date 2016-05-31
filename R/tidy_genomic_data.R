@@ -122,6 +122,10 @@
 #' If a \code{strata} file is specified, the strata file will have
 #' precedence. The \code{STRATA} column can be any hierarchical grouping. 
 #' To create a strata file see \code{\link[stackr]{individuals2strata}}.
+#' If you have already run 
+#' \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
+#' the strata file is similar to a stacks `population map file`, make sure you 
+#' have the required column names  (\code{INDIVIDUALS} and \code{STRATA}).
 #' Default: \code{strata = NULL}.
 
 #' @param pop.select (string, optional) Selected list of populations for 
@@ -1145,10 +1149,10 @@ tidy_genomic_data <- function(
       message("Calculating global and local MAF, this may take some time on large data set")
       
       # We split the alleles here to prep for MAF
-      maf.data <- input %>% 
+      maf.data <- input %>%
+        select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
         tidyr::separate(data = ., col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
         tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
-        select(MARKERS, GT, POP_ID) %>% 
         filter(GT != "000")
       
       maf.data <- maf.data %>%
