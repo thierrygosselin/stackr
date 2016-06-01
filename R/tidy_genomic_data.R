@@ -433,9 +433,9 @@ tidy_genomic_data <- function(
       as_data_frame()
     
     # population levels and strata  --------------------------------------------
-    if (!is.null(blacklist.id)) {
-      strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
-    }
+    # if (!is.null(blacklist.id)) {
+    #   strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
+    # }
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
     
     # Pop select
@@ -527,6 +527,7 @@ tidy_genomic_data <- function(
     } else {
       input <- input %>% select(MARKERS, CHROM, LOCUS, POS, POP_ID, INDIVIDUALS, GT_VCF, REF, ALT, GT)
     }
+    
   } # End import VCF
   
   # Import PLINK ****************************************************************
@@ -705,11 +706,20 @@ tidy_genomic_data <- function(
     tped.header.integer <- NULL
     tped.header.names <- NULL
     remove.missing.gt <- NULL
+    
   } # End import PLINK
   
   # Import DF ******************************************************************
   if (data.type == "df.file") { # DATA FRAME OF GENOTYPES
     input <- read_long_tidy_wide(data = data)
+    
+    # Change individuals names containing special character
+    input$INDIVIDUALS <- stri_replace_all_fixed(
+          str = input$INDIVIDUALS, 
+          pattern = c("_", ":"), 
+          replacement = c("-", "-"),
+          vectorize_all = FALSE
+        )
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
@@ -720,15 +730,29 @@ tidy_genomic_data <- function(
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       message("Filtering with blacklist of individuals")
+      blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
+        str = blacklist.id$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"),
+        vectorize_all = FALSE
+      )
       input <- suppressWarnings(anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
     
     # population levels and strata  --------------------------------------------
     if (!is.null(strata)) {
-      # blacklist id and strata
-      if (!is.null(blacklist.id)) { # using the blacklist of individuals
-        strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
-      }
+      # # blacklist id and strata
+      # if (!is.null(blacklist.id)) { # using the blacklist of individuals
+      #   strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
+      # }
+      
+      strata.df$INDIVIDUALS <- stri_replace_all_fixed(
+        str = strata.df$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"),
+        vectorize_all = FALSE
+      )
+      
       input <- input %>%
         select(-POP_ID) %>% 
         left_join(strata.df, by = "INDIVIDUALS")
@@ -752,7 +776,7 @@ tidy_genomic_data <- function(
       verbose = FALSE,
       showProgress = TRUE,
       data.table = FALSE, 
-      na.strings = "-",
+      na.strings = "-"
     ) %>% 
       as_data_frame() %>% 
       select(-Cnt) %>% 
@@ -783,9 +807,9 @@ tidy_genomic_data <- function(
     }
     
     # population levels and strata  --------------------------------------------
-    if (!is.null(blacklist.id)) {
-      strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
-    }
+    # if (!is.null(blacklist.id)) {
+    #   strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
+    # }
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
     
     
@@ -854,6 +878,8 @@ tidy_genomic_data <- function(
         select(LOCUS, POP_ID, INDIVIDUALS, GT) %>% 
         arrange(LOCUS, POP_ID, INDIVIDUALS, GT)
     )
+    
+    # change the filename and strata.df here
   } # End import haplotypes file
   
   # Import genepop **************************************************************
@@ -906,9 +932,9 @@ tidy_genomic_data <- function(
     # population levels and strata  --------------------------------------------
     if (!is.null(strata)) {
       # blacklist id and strata
-      if (!is.null(blacklist.id)) { # using the blacklist of individuals
-        strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
-      }
+      # if (!is.null(blacklist.id)) { # using the blacklist of individuals
+      #   strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
+      # }
       input <- input %>%
         select(-POP_ID) %>% 
         mutate(INDIVIDUALS =  as.character(INDIVIDUALS)) %>% 
@@ -937,11 +963,11 @@ tidy_genomic_data <- function(
       )
     )
   
-  # strata.df <- input %>% 
-  #   ungroup() %>% 
-  #   select(POP_ID, INDIVIDUALS) %>% 
-  #   distinct(POP_ID, INDIVIDUALS)
-  
+  strata.df <- input %>%
+    ungroup() %>%
+    select(POP_ID, INDIVIDUALS) %>%
+    distinct(POP_ID, INDIVIDUALS)
+
   # Blacklist genotypes ********************************************************
   if (is.null(blacklist.genotype)) { # no Whitelist
     message("Erasing genotype: no")
