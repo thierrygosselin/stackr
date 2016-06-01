@@ -376,6 +376,11 @@ tidy_genomic_data <- function(
         rename(POP_ID = STRATA)
     } else {
       message("strata object: yes")
+      colnames(strata) <- stri_replace_all_fixed(str = colnames(strata), 
+                                                 pattern = "STRATA", 
+                                                 replacement = "POP_ID", 
+                                                 vectorize_all = FALSE
+      )
       strata.df <- strata
     }
     
@@ -714,11 +719,11 @@ tidy_genomic_data <- function(
     
     # Change individuals names containing special character
     input$INDIVIDUALS <- stri_replace_all_fixed(
-          str = input$INDIVIDUALS, 
-          pattern = c("_", ":"), 
-          replacement = c("-", "-"),
-          vectorize_all = FALSE
-        )
+      str = input$INDIVIDUALS, 
+      pattern = c("_", ":"), 
+      replacement = c("-", "-"),
+      vectorize_all = FALSE
+    )
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
@@ -966,7 +971,7 @@ tidy_genomic_data <- function(
     ungroup() %>%
     select(POP_ID, INDIVIDUALS) %>%
     distinct(POP_ID, INDIVIDUALS)
-
+  
   # Blacklist genotypes ********************************************************
   if (is.null(blacklist.genotype)) { # no Whitelist
     message("Erasing genotype: no")
@@ -1153,7 +1158,7 @@ tidy_genomic_data <- function(
       tally %>% 
       filter(n == 1) %>% 
       select(MARKERS)
-
+    
     
     # Remove the markers from the dataset
     input <- anti_join(input, mono.markers, by = "MARKERS")
