@@ -1142,7 +1142,7 @@ tidy_genomic_data <- function(
     
     mono.markers <- input %>%
       select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
-      tidyr::separate(data = ., col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
+      tidyr::separate(col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
       tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
       filter(GT != "000") %>%
       group_by(MARKERS, GT) %>% 
