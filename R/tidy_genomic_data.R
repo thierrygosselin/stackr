@@ -1225,7 +1225,7 @@ tidy_genomic_data <- function(
     }# end maf calculations with PLINK or data frame of genotypes
     
     if (data.type == "haplo.file") {
-      stop("MAF filtering is only available for haplotype file, use stackr
+      stop("MAF filtering is only available for VCF file, use stackr
              package and update your whitelist")
     }
     
@@ -1284,7 +1284,7 @@ tidy_genomic_data <- function(
     
     if (maf.approach == "SNP") { # SNP approach
       if (maf.operator == "OR") {
-        vcf.maf <- vcf.maf %>%
+        vcf.maf <- maf.data %>%
           group_by(MARKERS, POP_ID) %>%
           summarise(
             MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
@@ -1298,7 +1298,7 @@ tidy_genomic_data <- function(
           left_join(input, by = "MARKERS") %>%
           arrange(MARKERS, POP_ID)
       } else { # AND operator between local and global maf
-        vcf.maf <- vcf.maf %>%
+        vcf.maf <- maf.data %>%
           group_by(MARKERS, POP_ID) %>%
           summarise(
             MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
