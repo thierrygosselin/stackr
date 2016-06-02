@@ -52,7 +52,7 @@ setwd("~/Documents/vcf2dadi_example")
 ```
 
 ## Get the data and create a strata file
-1. Dataset: in this example, we use the data in Ferchaud et al. (2015 and 2016) 
+1. Dataset: in this example, we use the data in Ferchaud and Hansen (2015 and 2016) 
 paper.
 ```r
 # download the file:
@@ -73,9 +73,9 @@ The `STRATA` column can be any hierarchical grouping.
   function `stackr::individuals2strata`. 
   
     ```r
-    # here is one id: 
+    # here is one individual id: 
     Hadsten10_q_75.align
-    # with pop starting at position 1 and to keep only 3 character we stop at... 3
+    # with pop starting at position 1 and to keep only 3 characters (necessary to discriminate populations from each other) we stop at... 3
     ```
   
   * For info on the function use: `?individuals2strata`.
@@ -92,7 +92,7 @@ have the required column names  (`INDIVIDUALS` and `STRATA`).
   make sure the column is named `INDIVIDUALS` and use the file directly 
   in the function `stackr::individuals2strata`.
   
-  * We could put all the lines below in one call, but for clarity I'll break down
+  * We could put all the lines below in one call, but for clarity we'll break down
 the steps:
 ```r
 # Isolate the first line
@@ -136,7 +136,7 @@ strata = "strata.stickleback.tsv"
 # `strata.stickleback`
 ```
 
-    72 sec later, this is what I get in my RStudio console:
+    72 sec later, this is what we get in RStudio console:
     ```r
     #######################################################################
 ########################## stackr::vcf2dadi ###########################
@@ -162,25 +162,27 @@ Preparing ∂a∂i input SNP data format
 Saved here: /Users/thierry/Documents/vcf2dadi_example
 #######################################################################
     ```
-1. Since I didn't redirect the function call in an object 
+1. Since we didn't redirect the function call in an object 
 (next example will show you how) the ∂a∂i input data is not in the global 
 environment, it's only written to the working directory.
 
 
 ## Filtering the dataset before generating the ∂a∂i input file
 
-It make no sense to create a ∂a∂i input file with so many populations. If we
-wanted to keep just 3 populations: Had, Mos and Odd, we could use the `pop.select` 
-argument. This is where the default argument `common.markers = TRUE` and 
-`monomorphic.out = TRUE` becomes useful. Both can be turned off with `FALSE`. 
+It makes no sense to create a ∂a∂i input file with so many populations. If we
+want to keep just 3 populations: Had, Mos and Odd, we use the `pop.select` 
+argument. This is where the default argument `common.markers = TRUE` becomes useful. 
+It can be turned off with `FALSE`, however we don't recommend 
+since you should only use SNPs WITHOUT missing data for demographic inference.
 
-Monomorphic sites are useful to get absolute numbers for the timing event. 
-Laurent Excoffier says that *it allows one to use the mutation rate to calibrate 
-the parameters on an absolute scale* (see this [thread](https://groups.google.com/forum/#!searchin/fastsimcoal/impact$20of$20monomorphic/fastsimcoal/dkJ6P5y1ViY/Jn977V8EAwAJ), for more info on the utility of monomorphic sites and SFS).
-
-However, here the RAD markers were filtered based on 8 populations, 
+In the example below we also use the default argument `monomorphic.out = TRUE` 
+(turn it off with `FALSE`). Monomorphic sites are useful to get absolute 
+numbers for the timing event. Laurent Excoffier says that 
+*it allows one to use the mutation rate to calibrate 
+the parameters on an absolute scale* (see this [thread](https://groups.google.com/forum/#!searchin/fastsimcoal/impact$20of$20monomorphic/fastsimcoal/dkJ6P5y1ViY/Jn977V8EAwAJ), for more info on the utility of monomorphic sites and SFS). However, 
+here the RAD markers were filtered based on 8 populations, 
 consequently, to avoid filtering bias, it's better to remove the 
-monomorphic markers and markers not in common between the 3 populations.
+monomorphic markers.
 
 The best approach is to either simulate the monomorphic markers based on 
 genome-wide estimate of pi or do a new stacks `populations` run with the 3 populations to
@@ -221,11 +223,11 @@ dadi.df <- stackr::vcf2dadi(
   maf.thresholds = c(0.001, 0.001), 
   maf.pop.num.threshold = 1, maf.approach = "SNP", maf.operator = "OR", 
   imputation.method = "rf",
-  #here I specify a custom output filename
+  #here we specify a custom output filename
   dadi.input.filename = "my.first.dadi.input.file.tsv"
 )
 ```
-    60 sec later, this is what I get in my RStudio console:
+    60 sec later, this is what we get in RStudio console:
     ```r
     #######################################################################
 ########################## stackr::vcf2dadi ###########################
@@ -297,9 +299,9 @@ written to the working directory:
 
 ## Using an outgroup and generate the ∂a∂i input file
 
-To generate a  ∂a∂i input file with an outgroup, we currently need stacks output
+To generate a ∂a∂i input file with an outgroup, we currently need stacks output
 files in order to get the fasta and SNP position. 
-Very soon I'll make an update where you can feed the function a file
+Very soon we'll make an update where you can feed the function a file
 containing all this info, making the function truly stacks-free. For those of
 you using stacks you can do this to generate the file:
 ```r
