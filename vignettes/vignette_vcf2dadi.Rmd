@@ -1,0 +1,343 @@
+---
+title: "Generate a ∂a∂i input file `stackr::vcf2dadi`"
+author: "Thierry Gosselin"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+# output: 
+# pdf_document:
+vignette: >
+  %\VignetteIndexEntry{"Generate a dadi input file: `stackr::vcf2dadi`"}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+  
+```{r, echo = FALSE, message = FALSE}
+  knitr::opts_chunk$set(collapse = T, comment = "#>")
+options(tibble.print_min = 4L, tibble.print_max = 4L)
+```
+
+
+# Objectives:
+* learn how to run the function `stackr::vcf2dadi`
+
+# Workflow
+
+## Prepare your R workspace
+1. Clean your desk and remove the clutter in the global environment
+```r
+rm(list=ls())
+```
+
+1. Load the required libraries
+```r
+if (!require("devtools")) install.packages("devtools")
+if (!require("reshape2")) install.packages("reshape2")
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("stringr")) install.packages("stringr")
+if (!require("stringi")) install.packages("stringi")
+if (!require("plyr")) install.packages("plyr")
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("tidyr")) install.packages("tidyr")
+if (!require("readr")) install.packages("readr")
+if (!require("purrr")) install.packages("purrr")
+if (!require("data.table")) install.packages("data.table")
+if (!require("httr")) install.packages("httr")
+library("httr")
+if (!require("stackr")) install_github("thierrygosselin/stackr")
+library("stackr")
+```
+1. Set your working directory
+```
+setwd("~/Documents/vcf2dadi_example")
+```
+
+## Get the data and create a strata file
+1. Dataset: in this example, we use the data in Ferchaud et al. (2015 and 2016) 
+paper.
+```r
+# download the file:
+writeBin(
+  httr::content(
+    httr::GET(
+      "http://datadryad.org/bitstream/handle/10255/dryad.97237/sticklebacks_Danish.vcf?sequence=1"
+    ), "raw"), "example_vcf2dadi_ferchaud_2015.vcf"
+)
+```
+## 
+1. We need to generate a strata file necessary to make the vcf population-wise. 
+The strata file is a tab-delimited file or object, in the global environment,
+with 2 columns: `INDIVIDUALS` and `STRATA`. 
+The `STRATA` column can be any hierarchical grouping.
+  * Because the population id is contained in the name of the individuals and
+  easily extracted with string command, we use the 
+  function `stackr::individuals2strata`. 
+  
+    ```r
+    # here is one id: 
+    Hadsten10_q_75.align
+    # with pop starting at position 1 and to keep only 3 character we stop at... 3
+    ```
+  
+  * For info on the function use: `?individuals2strata`.
+  Don't have this kind of names... you can also make the strata file by hand, 
+  the old fashion way.
+
+  * For your data, you might not need to make a strata file if you have already
+  run \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
+the strata file is similar to a stacks `population map file`, make sure you 
+have the required column names  (`INDIVIDUALS` and `STRATA`). 
+
+  * We will extract the id from the first line of the vcf file. 
+  If the individuals were in a single column in a file (e.g. "individuals.txt"), 
+  make sure the column is named `INDIVIDUALS` and use the file directly 
+  in the function `stackr::individuals2strata`.
+  
+  * We could put all the lines below in one call, but for clarity I'll break down
+the steps:
+```r
+# Isolate the first line
+id.vcf <- data.table::fread(
+  input = "example_vcf2dadi_ferchaud_2015.vcf",
+  sep = "\t",
+  stringsAsFactors = FALSE, 
+  header = TRUE,
+  # Automatically filter with blacklist of id
+  drop = c("POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT"),
+  skip = "CHROM",
+  nrows = 1,
+  showProgress = TRUE,
+  verbose = FALSE
+) %>% 
+  as_data_frame() %>% 
+  select(-`#CHROM`)
+  # to keep only the column name
+  individuals <- data.frame(INDIVIDUALS = colnames(id.vcf)) 
+```
+```r
+# create the strata
+strata.stickleback <- stackr::individuals2strata(
+data = individuals, 
+strata.start = 1,
+strata.end = 3,
+filename = "strata.stickleback.tsv"
+)
+```
+
+## Generate ∂a∂i input file
+1. First run of `stackr::vcf2dadi`, without imputation. 
+The simplest expression, with 2 arguments:
+```r
+stackr::vcf2dadi(
+data = "example_vcf2dadi_ferchaud_2015.vcf", 
+strata = "strata.stickleback.tsv"
+)
+# or strata = strata.stickleback 
+# if the strata argument is an object in the global environment named 
+# `strata.stickleback`
+```
+
+    72 sec later, this is what I get in my RStudio console:
+    ```r
+    #######################################################################
+########################## stackr::vcf2dadi ###########################
+#######################################################################
+vcf2dadi: no imputation...
+File type: VCF
+Whitelist of markers: no
+Blacklisted individuals: no
+strata object: yes
+Importing the VCF...
+Making the VCF population wise
+Tidying the vcf...
+Erasing genotype: no
+Using markers common in all populations:
+Number of original markers = 31802
+Number of markers present in all the populations = 31802
+Number of markers removed = 0
+Removing monomorphic markers...
+Number of monomorphic markers removed: 0
+Computing the Allele Frequency Spectrum
+Preparing ∂a∂i input SNP data format
+∂a∂i input file name is: dadi_input_20160601_224119.tsv
+Saved here: /Users/thierry/Documents/vcf2dadi_example
+#######################################################################
+    ```
+1. Since I didn't redirect the function call in an object 
+(next example will show you how) the ∂a∂i input data is not in the global 
+environment, it's only written to the working directory.
+
+
+## Filtering the dataset before generating the ∂a∂i input file
+
+1. It make no sense to create a ∂a∂i input file with so many populations. If we
+wanted to keep just 3 populations: Had, Mos and Odd, we use the `pop.select` 
+argument.
+This is where the default argument `common.markers = TRUE` and 
+`monomorphic.out` becomes useful. They can be turned off with `FALSE`, 
+however this is not something I recommend. 
+
+    For the second 
+run of `stackr::vcf2dadi`, this time we also ask to generate a ∂a∂i input file with:
+    * short range LD pruning: the small reads of this experiment
+(RADseq < 100 pb read) make the short range linkage disequillibrium pruning easy.
+We will keep the first SNP on every read. 
+    * Minor Allele Frequency filter: for ∂a∂i we want to keep most of the 
+Allele Frequency Spectrum, so we are filtering differently than for population 
+assignment. Here we want to make sure we don't include the SNP with very 
+very low frequency, the uninformative markers. So we ask to remove markers if the 
+MAF is not at least 0.001 local (by pop) OR 0.001 global (overall pops) in a 
+least 1 population (out of 3 the toal selected). For further details on how 
+to remove low polymorphism markers with arguments provided in `vcf2dadi`, 
+see the maf arguments documentation of the function.
+    * imputations using random forest with default settings (see function arguments
+documentation for more details)
+    * the parallel process used by default will be all my CPU - 1.
+```r
+# The function results are redirected in the object `dadi.df`
+dadi.df <- stackr::vcf2dadi(
+  data = "example_vcf2dadi_ferchaud_2015.vcf", 
+  strata = strata.stickleback, 
+  pop.select = c("Had", "Mos", "Odd"),
+  snp.ld = "first", 
+  maf.thresholds = c(0.001, 0.001), 
+  maf.pop.num.threshold = 1, maf.approach = "SNP", maf.operator = "OR", 
+  imputation.method = "rf",
+  #here I specify a custom output filename
+  dadi.input.filename = "my.first.dadi.input.file.tsv"
+)
+```
+    60 sec later, this is what I get in my RStudio console:
+    ```r
+    #######################################################################
+########################## stackr::vcf2dadi ###########################
+#######################################################################
+vcf2dadi: with imputations...
+File type: VCF
+Whitelist of markers: no
+Blacklisted individuals: no
+strata object: yes
+Importing the VCF...
+Making the VCF population wise
+3 population(s) selected
+Tidying the vcf...
+Erasing genotype: no
+Minimizing LD...
+Number of original SNP = 31766
+Number of SNP after keeping the first SNP on the read/haplotype = 17088
+Number of SNP removed = 14678
+Filtering the tidy VCF to minimize LD by keeping only 1 SNP per short read/haplotype
+Using markers common in all populations:
+Number of original markers = 17088
+Number of markers present in all the populations = 17088
+Number of markers removed = 0
+Removing monomorphic markers...
+Number of monomorphic markers removed: 7880
+MAF filter: yes
+The MAF table was written in your folder
+The number of MARKERS removed by the MAF filters = 0
+The number of MARKERS before -> after the MAF filters: 9208 -> 9208 MARKERS
+Computing the Allele Frequency Spectrum
+Preparing ∂a∂i input SNP data format
+∂a∂i input file name is: my.first.dadi.input.file.tsv
+Saved here: /Users/thierry/Documents/vcf2dadi_example
+Preparing the data for imputations
+Imputations computed by populations, take a break...
+Compiling imputations results
+Preparing imputed data set...
+Computing the Allele Frequency Spectrum for the imputed data
+∂a∂i input file name is: my.first.dadi.input.file_imputed.tsv
+Saved here: /Users/thierry/Documents/vcf2dadi_example
+#######################################################################
+    ```
+
+1. To view the content of `dadi.df`:
+```r
+names(dadi.df)
+```
+
+1. To redirect both data frame in separate object, outside the list:
+```r
+dadi.no.imputation.df <- dadi.df$dadi.no.imputation
+dadi.imputed.df <- dadi.df$dadi.imputed
+```
+
+1. The first few line of the ∂a∂i non imputed file,
+written to the working directory:
+
+    `#∂a∂i SNP input file generated with stackr v.0.2.9 2016-06-01 23:20:32`
+
+   | IN_GROUP | OUT_GROUP | Allele1 | Had | Mos | Odd | Allele2 | Had | Mos | Odd |        MARKERS        |
+|:--------:|:---------:|:-------:|:---:|:---:|:---:|:-------:|:---:|:---:|:---:|:---------------------:|
+|   ---    |    ---    |    T    | 38  | 40  | 39  |    G    |  0  |  0  |  1  | groupI_28140_10711516 |
+|   ---    |    ---    |    C    | 36  | 32  | 36  |    T    |  0  |  0  |  2  | groupI_28156_12157165 |
+|   ---    |    ---    |    A    | 38  | 40  | 39  |    G    |  0  |  0  |  1  | groupI_28157_12211985 |
+|   ...    |    ...    |   ...   | ... | ... | ... |   ...   | ... | ... | ... |          ...          |
+
+  We see that the first 2 columns are empty. This is because we didn't specify 
+  the outgroup. With this type of input file, ∂a∂i generates a folded spectrum.
+
+## Using an outgroup and generate the ∂a∂i input file
+
+To generate a  ∂a∂i input file with an outgroup, we currently need stacks output
+files in order to get the fasta and SNP position. 
+Very soon I'll make an update where you can feed the function a file
+containing all this info, making the function truly stacks-free. For those of
+you using stacks you can do this to generate the file:
+```r
+## Do not run ##
+# the dataset doesn't include outgroup info.
+stackr::vcf2dadi(
+  data = "example_vcf2dadi_ferchaud_2015.vcf", 
+  strata = strata.stickleback, 
+  pop.select = c("Had", "Mos", "Odd"),
+  snp.ld = "first", 
+  maf.thresholds = c(0.001, 0.001), 
+  maf.pop.num.threshold = 1, maf.approach = "SNP", maf.operator = "OR", 
+  imputation.method = "rf",
+  fasta.ingroup = "batch_1.ingroup.fa",
+  fasta.outgroup = "batch_1.outgroup.fa", 
+  sumstats.ingroup = "batch_1.sumstats.ingroup.tsv",
+  sumstats.outgroup = "batch_1.sumstats.outgroup.tsv"
+)
+```
+
+
+
+# Conclusion
+Under construction
+
+Please send me suggestions and bug reports through github
+
+
+If you are using **stackr** package please cite my work.
+```r
+citation("stackr")
+```
+
+**References**
+
+Ferchaud A, Hansen MM (2016) The impact of selection, gene flow and 
+demographic history on heterogeneous genomic divergence: threespine sticklebacks
+in divergent environments. 
+Molecular Ecology 25(1): 238–259. 
+http://dx.doi.org/10.1111/mec.13399
+
+Ferchaud A, Hansen MM (2015) Data from: 
+The impact of selection, gene flow and demographic history on heterogeneous 
+genomic divergence: threespine sticklebacks in divergent environments. 
+Dryad Digital Repository.
+http://dx.doi.org/10.5061/dryad.kp11q
+
+Catchen JM, Amores A, Hohenlohe PA et al. (2011) Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. G3, 1, 171-182.
+
+Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) Stacks: an analysis tool set for population genomics. Molecular Ecology, 22, 3124-3140.
+
+Danecek P, Auton A, Abecasis G et al. (2011) The variant call format and VCFtools. Bioinformatics, 27, 2156-2158.
+
+Gutenkunst RN, Hernandez RD, Williamson SH, Bustamante CD (2009) Inferring the Joint Demographic History of Multiple Populations from Multidimensional SNP Frequency Data (G McVean, Ed,). PLoS genetics, 5, e1000695.
+
+Ishwaran H. and Kogalur U.B. (2015). Random Forests for Survival, Regression and Classification (RF-SRC), R package version 1.6.1.
+
+Ishwaran H. and Kogalur U.B. (2007). Random survival forests for R. R News 7(2), 25-31.
+
+Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008). Random survival forests. Ann. Appl. Statist. 2(3), 841-860.
