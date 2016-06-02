@@ -177,9 +177,15 @@ required to use with an outgroup. Leave empty if no outgroup.
 Default: \code{sumstats.ingroup = NULL}.}
 
 \item{dadi.input.filename}{(optional) Name of the \code{dadi} SNP input file 
-written to the working directory. e.g. \code{dadi.file.txt}. 
+written to the working directory. e.g. \code{dadi.file.tsv}. 
 Default use date and time to make the file. If used, the file extension
-need to finish with \code{.txt}.}
+need to finish with \code{.tsv or .txt}.}
+}
+\value{
+The function returns a list with 1 or 2 objects (w/o imputations): 
+`$dadi.no.imputation`
+`$dadi.imputed`
+The data frame are accessed form the list with `$`.
 }
 \description{
 This function will create a \code{dadi} SNP input file using a
@@ -251,8 +257,9 @@ containing 30\% missing data, 5 000 haplotypes loci and 500 individuals
 will require 15 min.
 }
 \examples{
+#See vignette `vignette_vcf2dadi` for more info.
 \dontrun{
-vcf2dadi(
+dadi.no.imputation <- vcf2dadi(
 data = "batch_1.vcf", 
 whitelist.markers = "whitelist.loci.txt",
 strata = "strata.file.tsv",
@@ -265,7 +272,7 @@ sumstats.outgroup = "batch_1.sumstats.outgroup.tsv"
 )
 
 With Imputations:
-vcf2dadi(
+dadi.files <- vcf2dadi(
 data = "batch_1.vcf", 
 whitelist.markers = "whitelist.loci.txt",
 strata = "strata.file.tsv",
@@ -284,6 +291,8 @@ split.number = 100,
 verbose = FALSE, 
 parallel.core = 8
 )
+# to get the imputed data frame:
+dadi.imputed.df <- dadi.files$dadi.imputed
 }
 }
 \author{

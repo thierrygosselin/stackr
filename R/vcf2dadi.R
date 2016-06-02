@@ -180,9 +180,9 @@
 #' Default: \code{sumstats.ingroup = NULL}.
 
 #' @param dadi.input.filename (optional) Name of the \code{dadi} SNP input file 
-#' written to the working directory. e.g. \code{dadi.file.txt}. 
+#' written to the working directory. e.g. \code{dadi.file.tsv}. 
 #' Default use date and time to make the file. If used, the file extension
-#' need to finish with \code{.txt}.
+#' need to finish with \code{.tsv or .txt}.
 
 #' @details 
 #' \strong{Input files:}
@@ -256,10 +256,15 @@
 #' @import stringi
 #' @importFrom data.table fread
 
+#' @return The function returns a list with 1 or 2 objects (w/o imputations): 
+#' `$dadi.no.imputation`
+#' `$dadi.imputed`
+#' The data frame are accessed form the list with `$`.
 
 #' @examples
+#' #See vignette `vignette_vcf2dadi` for more info.
 #' \dontrun{
-#' vcf2dadi(
+#' dadi.no.imputation <- vcf2dadi(
 #' data = "batch_1.vcf", 
 #' whitelist.markers = "whitelist.loci.txt",
 #' strata = "strata.file.tsv",
@@ -272,7 +277,7 @@
 #' )
 #' 
 #' With Imputations:
-#' vcf2dadi(
+#' dadi.files <- vcf2dadi(
 #' data = "batch_1.vcf", 
 #' whitelist.markers = "whitelist.loci.txt",
 #' strata = "strata.file.tsv",
@@ -291,6 +296,8 @@
 #' verbose = FALSE, 
 #' parallel.core = 8
 #' )
+#' # to get the imputed data frame:
+#' dadi.imputed.df <- dadi.files$dadi.imputed
 #' }
 
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
@@ -362,6 +369,9 @@ vcf2dadi <- function(
 ){
   
   # dadi unicode character: \u2202
+  cat("#######################################################################\n")
+  cat("########################## stackr::vcf2dadi ###########################\n")
+  cat("#######################################################################\n")
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file missing")
   if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
@@ -371,7 +381,7 @@ vcf2dadi <- function(
   if (missing(sumstats.outgroup)) sumstats.outgroup <- NULL
   if (missing(sumstats.ingroup)) sumstats.ingroup <- NULL
   if (missing(dadi.input.filename)) dadi.input.filename <- NULL
-  if (imputation.method == "FALSE") {
+  if (is.null(imputation.method)) {
     message("vcf2dadi: no imputation...")
   } else {
     message("vcf2dadi: with imputations...")
@@ -849,11 +859,11 @@ vcf2dadi <- function(
       file.date <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
       file.date <- stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "_", ""), vectorize_all = FALSE)
       if (write.imputation == FALSE) {
-        dadi.input.filename <- stri_paste("dadi.input", file.date, "txt", sep = ".")
+        dadi.input.filename <- stri_paste("dadi_input_", file.date, ".tsv", sep = "")
       }
       
       if (write.imputation == TRUE) {
-        dadi.input.filename.imp <- stri_paste("dadi.input.imputed", file.date, "txt", sep = ".")
+        dadi.input.filename.imp <- stri_paste("dadi_input_imputed_", file.date, ".tsv", sep = "")
       }
     } else {
       if (write.imputation == FALSE) {
@@ -861,12 +871,11 @@ vcf2dadi <- function(
       }
       
       if (write.imputation == TRUE) {
-        dadi.input.filename.imp <- stri_replace_all_fixed(dadi.input.filename,
-                                                          pattern = "txt",
-                                                          replacement = stri_join(
-                                                            i, m, 
-                                                            "imputed.txt", sep = "_"
-                                                          )
+        dadi.input.filename.imp <- stri_replace_all_fixed(
+          dadi.input.filename,
+          pattern = c(".txt", ".tsv"),
+          replacement = c("_imputed.txt", "_imputed.tsv"),
+          vectorize_all = FALSE
         )
       }
     }
@@ -886,11 +895,13 @@ vcf2dadi <- function(
       message(stri_paste("\u2202a\u2202i input file name is: ", dadi.input.filename.imp, "\n", "Saved here: ", getwd()))
     }
     
-    
-  } # End function write dadi
+    return(dadi.input)
+  } # End function write_dadi
   
   # without imputations (automatic)
-  write_dadi(input = input.count, write.imputation = FALSE)
+  dadi.no.imputation <- write_dadi(input = input.count, write.imputation = FALSE)
+  res <- list()
+  res$dadi.no.imputation <- dadi.no.imputation
   # Imputations **************************************************************
   if (!is.null(imputation.method)) {
     get.ref.alt.alleles <- input.count %>% 
@@ -951,6 +962,9 @@ vcf2dadi <- function(
     input.imp <- NULL # remove unused object
     
     # output in dadi
-    write_dadi(input = input.count.imp, write.imputation = TRUE)
+    dadi.imputed <- write_dadi(input = input.count.imp, write.imputation = TRUE)
+    res$dadi.imputed <- dadi.imputed
   } # end imputations
+  cat("#######################################################################\n")
+  return(res)
 } # End vcf2dadi
