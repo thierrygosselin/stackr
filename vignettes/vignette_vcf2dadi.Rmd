@@ -1,6 +1,6 @@
 ---
 title: "Generate a ∂a∂i input file `stackr::vcf2dadi`"
-author: "Thierry Gosselin"
+author: "Thierry Gosselin and Anne-Laure Ferchaud"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 # output: 
@@ -169,29 +169,48 @@ environment, it's only written to the working directory.
 
 ## Filtering the dataset before generating the ∂a∂i input file
 
-1. It make no sense to create a ∂a∂i input file with so many populations. If we
-wanted to keep just 3 populations: Had, Mos and Odd, we use the `pop.select` 
-argument.
-This is where the default argument `common.markers = TRUE` and 
-`monomorphic.out` becomes useful. They can be turned off with `FALSE`, 
-however this is not something I recommend. 
+It make no sense to create a ∂a∂i input file with so many populations. If we
+wanted to keep just 3 populations: Had, Mos and Odd, we could use the `pop.select` 
+argument. This is where the default argument `common.markers = TRUE` and 
+`monomorphic.out = TRUE` becomes useful. Both can be turned off with `FALSE`. 
 
-    For the second 
-run of `stackr::vcf2dadi`, this time we also ask to generate a ∂a∂i input file with:
-    * short range LD pruning: the small reads of this experiment
+Monomorphic sites are useful to get absolute numbers for the timing event. 
+Laurent Excoffier says that *it allows one to use the mutation rate to calibrate 
+the parameters on an absolute scale* (see this [thread](https://groups.google.com/forum/#!searchin/fastsimcoal/impact$20of$20monomorphic/fastsimcoal/dkJ6P5y1ViY/Jn977V8EAwAJ), for more info on the utility of monomorphic sites and SFS).
+
+However, here the RAD markers were filtered based on 8 populations, 
+consequently, to avoid filtering bias, it's better to remove the 
+monomorphic markers and markers not in common between the 3 populations.
+
+The best approach is to either simulate the monomorphic markers based on 
+genome-wide estimate of pi or do a new stacks `populations` run with the 3 populations to
+get the monomorphic sites. If you do this, use `monomorphic.out = FALSE`.
+
+1. For the second run of `stackr::vcf2dadi`, we will also ask to generate a ∂a∂i input file with:
+
+* short range LD pruning: the small reads of this experiment
 (RADseq < 100 pb read) make the short range linkage disequillibrium pruning easy.
-We will keep the first SNP on every read. 
-    * Minor Allele Frequency filter: for ∂a∂i we want to keep most of the 
-Allele Frequency Spectrum, so we are filtering differently than for population 
-assignment. Here we want to make sure we don't include the SNP with very 
-very low frequency, the uninformative markers. So we ask to remove markers if the 
+We will keep the first SNP on every read (`snp.ld = "first"`). Don't want the snp pruning, turn it off with 
+`snp.ld = NULL` or leave the argument missing. 
+
+* Minor Allele Frequency filter: for ∂a∂i we want to keep most of the 
+Allele Frequency Spectrum because they are informative to date a demographic 
+event. The arguments in the function are here to help you test the impact of the MAF.
+Here we are filtering differently than for population 
+assignment. We want to make sure we don't include the SNP with very 
+very low frequency, the uninformative markers (most likely errors). 
+If you have total confidence in your low frequency markers keep them 
+(`maf.thresholds = NULL` or leave the argument missing). 
+In this example we remove markers if the 
 MAF is not at least 0.001 local (by pop) OR 0.001 global (overall pops) in a 
 least 1 population (out of 3 the toal selected). For further details on how 
 to remove low polymorphism markers with arguments provided in `vcf2dadi`, 
 see the maf arguments documentation of the function.
-    * imputations using random forest with default settings (see function arguments
+
+* imputations using random forest with default settings (see function arguments
 documentation for more details)
-    * the parallel process used by default will be all my CPU - 1.
+
+* the parallel process used by default will be all my CPU - 1.
 ```r
 # The function results are redirected in the object `dadi.df`
 dadi.df <- stackr::vcf2dadi(
@@ -250,7 +269,7 @@ Saved here: /Users/thierry/Documents/vcf2dadi_example
 #######################################################################
     ```
 
-1. To view the content of `dadi.df`:
+2. To view the content of `dadi.df`:
 ```r
 names(dadi.df)
 ```
