@@ -52,7 +52,7 @@ setwd("~/Documents/vcf2dadi_example")
 ```
 
 ## Get the data and create a strata file
-1. Dataset: in this example, we use the data in Ferchaud et al. (2015 and 2016) 
+1. Dataset: in this example, we use the data in Ferchaud and Hansen (2015 and 2016) 
 paper.
 ```r
 # download the file:
@@ -73,9 +73,9 @@ The `STRATA` column can be any hierarchical grouping.
   function `stackr::individuals2strata`. 
   
     ```r
-    # here is one id: 
+    # here is one individual id: 
     Hadsten10_q_75.align
-    # with pop starting at position 1 and to keep only 3 character we stop at... 3
+    # with pop starting at position 1 and to keep only 3 characters (necessary to discriminate populations from each other) we stop at... 3
     ```
   
   * For info on the function use: `?individuals2strata`.
@@ -169,12 +169,11 @@ environment, it's only written to the working directory.
 
 ## Filtering the dataset before generating the ∂a∂i input file
 
-1. It make no sense to create a ∂a∂i input file with so many populations. If we
-wanted to keep just 3 populations: Had, Mos and Odd, we use the `pop.select` 
+1. It makes no sense to create a ∂a∂i input file with so many populations. If we
+want to keep just 3 populations: Had, Mos and Odd, we use the `pop.select` 
 argument.
-This is where the default argument `common.markers = TRUE` and 
-`monomorphic.out` becomes useful. They can be turned off with `FALSE`, 
-however this is not something I recommend. 
+This is where the default argument `common.markers = TRUE` becomes useful. It can be turned off with `FALSE`, 
+however this is not something I recommend since you should only use SNPs WITHOUT missing data.
 
     For the second 
 run of `stackr::vcf2dadi`, this time we also ask to generate a ∂a∂i input file with:
@@ -278,7 +277,7 @@ written to the working directory:
 
 ## Using an outgroup and generate the ∂a∂i input file
 
-To generate a  ∂a∂i input file with an outgroup, we currently need stacks output
+To generate a ∂a∂i input file with an outgroup, we currently need stacks output
 files in order to get the fasta and SNP position. 
 Very soon I'll make an update where you can feed the function a file
 containing all this info, making the function truly stacks-free. For those of
