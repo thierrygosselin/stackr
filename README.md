@@ -32,7 +32,8 @@ library(devtools) # to load
 
 Step 2 Install **stackr**:
 ```r
-install_github("thierrygosselin/stackr") # to install
+install_github("thierrygosselin/stackr") # to install without vignettes
+install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to install WITH vignettes
 library(stackr) # to load
 ```
 
