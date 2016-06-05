@@ -87,6 +87,38 @@ sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
 # Changing 'package_name' to the problematic package.
 # Reinstall the package.
 ```
+
+**Dependencies**
+
+Here the list of packages that **stackr** needs:
+
+  * **Imports:** adegenet, data.table, ggplot2, lazyeval, parallel, purrr, randomForestSRC, readr, stringi, stringr, tidyr, utils, plyr, dplyr, stackr (>= 0.2.9)
+
+  * **Suggests:** devtools, knitr, rmarkdown
+
+  * **Remotes:** github::thierrygosselin/stackr
+
+If you don't have them, no worries, it's *usually* intalled automatically during 
+**stackr** installation. 
+If you have them, it's your job to update them, because i'm usually using the 
+latest versions... 
+A quick way to start a script when using my packages:
+```r
+if (!require("pacman")) install.packages("pacman")
+library("pacman")
+pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
+if (!require("stackr")){
+  install_github("thierrygosselin/stackr", build_vignettes = TRUE)
+  library("stackr")
+}
+if (!require("assigner")) {
+  install_github("thierrygosselin/assigner", build_vignettes = TRUE)
+  # if assigner was re-installed, uncomment and run the next line to install gsi_sim:
+  #install_gsi_sim(fromSource = TRUE) 
+  library("assigner")
+}
+```
+
 ## Parallel computing in R and stackr
 
 On Mac OSX using OpenMP greatly reduce the computation time for the imputations. Follow the instructions [here] (http://gbs-cloud-tutorial.readthedocs.org/en/latest/03_computer_setup.html#update-your-computer-s-compiler) to update your computer's compiler (5 min step). 

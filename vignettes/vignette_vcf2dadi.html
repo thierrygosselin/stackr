@@ -10,9 +10,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="author" content="Thierry Gosselin" />
+<meta name="author" content="Thierry Gosselin and Anne-Laure Ferchaud" />
 
-<meta name="date" content="2016-06-01" />
+<meta name="date" content="2016-06-02" />
 
 <title>Generate a ∂a∂i input file stackr::vcf2dadi</title>
 
@@ -69,8 +69,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 <h1 class="title toc-ignore">Generate a ∂a∂i input file <code>stackr::vcf2dadi</code></h1>
-<h4 class="author"><em>Thierry Gosselin</em></h4>
-<h4 class="date"><em>2016-06-01</em></h4>
+<h4 class="author"><em>Thierry Gosselin and Anne-Laure Ferchaud</em></h4>
+<h4 class="date"><em>2016-06-02</em></h4>
 
 
 
@@ -110,7 +110,7 @@ if (!<span class="kw">require</span>(<span class="st">&quot;stackr&quot;</span>)
 <div id="get-the-data-and-create-a-strata-file" class="section level2">
 <h2>Get the data and create a strata file</h2>
 <ol style="list-style-type: decimal">
-<li><p>Dataset: in this example, we use the data in Ferchaud et al. (2015 and 2016) paper.</p>
+<li><p>Dataset: in this example, we use the data in Ferchaud and Hansen (2015 and 2016) paper.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># download the file:</span>
 <span class="kw">writeBin</span>(
   httr::<span class="kw">content</span>(
@@ -123,13 +123,13 @@ httr::<span class="kw">GET</span>(
 </ol>
 <ul>
 <li><p>Because the population id is contained in the name of the individuals and easily extracted with string command, we use the function <code>stackr::individuals2strata</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># here is one id: </span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># here is one individual id: </span>
 Hadsten10_q_75.align
-<span class="co"># with pop starting at position 1 and to keep only 3 character we stop at... 3</span></code></pre></div></li>
+<span class="co"># with pop starting at position 1 and to keep only 3 characters (necessary to discriminate populations from each other) we stop at... 3</span></code></pre></div></li>
 <li><p>For info on the function use: <code>?individuals2strata</code>. Don’t have this kind of names… you can also make the strata file by hand, the old fashion way.</p></li>
 <li><p>For your data, you might not need to make a strata file if you have already run  on your data, the strata file is similar to a stacks <code>population map file</code>, make sure you have the required column names (<code>INDIVIDUALS</code> and <code>STRATA</code>).</p></li>
 <li><p>We will extract the id from the first line of the vcf file. If the individuals were in a single column in a file (e.g. “individuals.txt”), make sure the column is named <code>INDIVIDUALS</code> and use the file directly in the function <code>stackr::individuals2strata</code>.</p></li>
-<li><p>We could put all the lines below in one call, but for clarity I’ll break down the steps:</p>
+<li><p>We could put all the lines below in one call, but for clarity we’ll break down the steps:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Isolate the first line</span>
 id.vcf &lt;-<span class="st"> </span>data.table::<span class="kw">fread</span>(
   <span class="dt">input =</span> <span class="st">&quot;example_vcf2dadi_ferchaud_2015.vcf&quot;</span>,
@@ -167,7 +167,7 @@ strata.stickleback &lt;-<span class="st"> </span>stackr::<span class="kw">indivi
 <span class="co"># or strata = strata.stickleback </span>
 <span class="co"># if the strata argument is an object in the global environment named </span>
 <span class="co"># `strata.stickleback`</span></code></pre></div>
-<p>72 sec later, this is what I get in my RStudio console:</p>
+<p>72 sec later, this is what we get in RStudio console:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">#######################################################################
 ########################## stackr::vcf2dadi ###########################
 #######################################################################
@@ -191,18 +191,21 @@ Preparing ∂a∂i input SNP data format
 ∂a∂i input file name is:<span class="st"> </span>dadi_input_20160601_224119.tsv
 Saved here:<span class="st"> </span><span class="er">/</span>Users/thierry/Documents/vcf2dadi_example
 #######################################################################</code></pre></div></li>
-<li><p>Since I didn’t redirect the function call in an object (next example will show you how) the ∂a∂i input data is not in the global environment, it’s only written to the working directory.</p></li>
+<li><p>Since we didn’t redirect the function call in an object (next example will show you how) the ∂a∂i input data is not in the global environment, it’s only written to the working directory.</p></li>
 </ol>
 </div>
 <div id="filtering-the-dataset-before-generating-the-ai-input-file" class="section level2">
 <h2>Filtering the dataset before generating the ∂a∂i input file</h2>
+<p>It makes no sense to create a ∂a∂i input file with so many populations. If we want to keep just 3 populations: Had, Mos and Odd, we use the <code>pop.select</code> argument. This is where the default argument <code>common.markers = TRUE</code> becomes useful. It can be turned off with <code>FALSE</code>, however we don’t recommend since you should only use SNPs WITHOUT missing data for demographic inference.</p>
+<p>In the example below we also use the default argument <code>monomorphic.out = TRUE</code> (turn it off with <code>FALSE</code>). Monomorphic sites are useful to get absolute numbers for the timing event. Laurent Excoffier says that <em>it allows one to use the mutation rate to calibrate the parameters on an absolute scale</em> (see this <a href="https://groups.google.com/forum/#!searchin/fastsimcoal/impact$20of$20monomorphic/fastsimcoal/dkJ6P5y1ViY/Jn977V8EAwAJ">thread</a>, for more info on the utility of monomorphic sites and SFS). However, here the RAD markers were filtered based on 8 populations, consequently, to avoid filtering bias, it’s better to remove the monomorphic markers.</p>
+<p>The best approach is to either simulate the monomorphic markers based on genome-wide estimate of pi or do a new stacks <code>populations</code> run with the 3 populations to get the monomorphic sites. If you do this, use <code>monomorphic.out = FALSE</code>.</p>
 <ol style="list-style-type: decimal">
-<li><p>It make no sense to create a ∂a∂i input file with so many populations. If we wanted to keep just 3 populations: Had, Mos and Odd, we use the <code>pop.select</code> argument. This is where the default argument <code>common.markers = TRUE</code> and <code>monomorphic.out</code> becomes useful. They can be turned off with <code>FALSE</code>, however this is not something I recommend.</p>
-For the second run of <code>stackr::vcf2dadi</code>, this time we also ask to generate a ∂a∂i input file with:
+<li>For the second run of <code>stackr::vcf2dadi</code>, we will also ask to generate a ∂a∂i input file with:</li>
+</ol>
 <ul>
-<li>short range LD pruning: the small reads of this experiment (RADseq &lt; 100 pb read) make the short range linkage disequillibrium pruning easy. We will keep the first SNP on every read.</li>
-<li>Minor Allele Frequency filter: for ∂a∂i we want to keep most of the Allele Frequency Spectrum, so we are filtering differently than for population assignment. Here we want to make sure we don’t include the SNP with very very low frequency, the uninformative markers. So we ask to remove markers if the MAF is not at least 0.001 local (by pop) OR 0.001 global (overall pops) in a least 1 population (out of 3 the toal selected). For further details on how to remove low polymorphism markers with arguments provided in <code>vcf2dadi</code>, see the maf arguments documentation of the function.</li>
-<li>imputations using random forest with default settings (see function arguments documentation for more details)</li>
+<li><p>short range LD pruning: the small reads of this experiment (RADseq &lt; 100 pb read) make the short range linkage disequillibrium pruning easy. We will keep the first SNP on every read (<code>snp.ld = &quot;first&quot;</code>). Don’t want the snp pruning, turn it off with <code>snp.ld = NULL</code> or leave the argument missing.</p></li>
+<li><p>Minor Allele Frequency filter: for ∂a∂i we want to keep most of the Allele Frequency Spectrum because they are informative to date a demographic event. The arguments in the function are here to help you test the impact of the MAF. Here we are filtering differently than for population assignment. We want to make sure we don’t include the SNP with very very low frequency, the uninformative markers (most likely errors). If you have total confidence in your low frequency markers keep them (<code>maf.thresholds = NULL</code> or leave the argument missing). In this example we remove markers if the MAF is not at least 0.001 local (by pop) OR 0.001 global (overall pops) in a least 1 population (out of 3 the toal selected). For further details on how to remove low polymorphism markers with arguments provided in <code>vcf2dadi</code>, see the maf arguments documentation of the function.</p></li>
+<li><p>imputations using random forest with default settings (see function arguments documentation for more details)</p></li>
 <li><p>the parallel process used by default will be all my CPU - 1.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># The function results are redirected in the object `dadi.df`</span>
 dadi.df &lt;-<span class="st"> </span>stackr::<span class="kw">vcf2dadi</span>(
@@ -213,10 +216,10 @@ dadi.df &lt;-<span class="st"> </span>stackr::<span class="kw">vcf2dadi</span>(
   <span class="dt">maf.thresholds =</span> <span class="kw">c</span>(<span class="fl">0.001</span>, <span class="fl">0.001</span>), 
   <span class="dt">maf.pop.num.threshold =</span> <span class="dv">1</span>, <span class="dt">maf.approach =</span> <span class="st">&quot;SNP&quot;</span>, <span class="dt">maf.operator =</span> <span class="st">&quot;OR&quot;</span>, 
   <span class="dt">imputation.method =</span> <span class="st">&quot;rf&quot;</span>,
-  <span class="co">#here I specify a custom output filename</span>
+  <span class="co">#here we specify a custom output filename</span>
   <span class="dt">dadi.input.filename =</span> <span class="st">&quot;my.first.dadi.input.file.tsv&quot;</span>
 )</code></pre></div>
-<p>60 sec later, this is what I get in my RStudio console:</p>
+<p>60 sec later, this is what we get in RStudio console:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">#######################################################################
 ########################## stackr::vcf2dadi ###########################
 #######################################################################
@@ -257,7 +260,8 @@ Computing the Allele Frequency Spectrum for the imputed data
 ∂a∂i input file name is:<span class="st"> </span>my.first.dadi.input.file_imputed.tsv
 Saved here:<span class="st"> </span><span class="er">/</span>Users/thierry/Documents/vcf2dadi_example
 #######################################################################</code></pre></div></li>
-</ul></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
 <li><p>To view the content of <code>dadi.df</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(dadi.df)</code></pre></div></li>
 <li><p>To redirect both data frame in separate object, outside the list:</p>
@@ -354,7 +358,7 @@ dadi.imputed.df &lt;-<span class="st"> </span>dadi.df$dadi.imputed</code></pre><
 </div>
 <div id="using-an-outgroup-and-generate-the-ai-input-file" class="section level2">
 <h2>Using an outgroup and generate the ∂a∂i input file</h2>
-<p>To generate a ∂a∂i input file with an outgroup, we currently need stacks output files in order to get the fasta and SNP position. Very soon I’ll make an update where you can feed the function a file containing all this info, making the function truly stacks-free. For those of you using stacks you can do this to generate the file:</p>
+<p>To generate a ∂a∂i input file with an outgroup, we currently need stacks output files in order to get the fasta and SNP position. Very soon we’ll make an update where you can feed the function a file containing all this info, making the function truly stacks-free. For those of you using stacks you can do this to generate the file:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Do not run ##
 <span class="co"># the dataset doesn't include outgroup info.</span>
 stackr::<span class="kw">vcf2dadi</span>(

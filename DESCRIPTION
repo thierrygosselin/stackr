@@ -14,6 +14,7 @@ Depends:
     R (>= 3.0.1),
 Imports:
     data.table,
+    plyr,
     dplyr,
     reshape2,
     ggplot2,
@@ -32,7 +33,6 @@ Imports:
 Suggests:
     boot,
     pegas,
-    plyr,
     hierfstat,
     knitr,
     rmarkdown

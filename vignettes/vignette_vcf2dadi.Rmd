@@ -101,7 +101,6 @@ id.vcf <- data.table::fread(
   sep = "\t",
   stringsAsFactors = FALSE, 
   header = TRUE,
-  # Automatically filter with blacklist of id
   drop = c("POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT"),
   skip = "CHROM",
   nrows = 1,
