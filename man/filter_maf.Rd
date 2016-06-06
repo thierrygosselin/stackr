@@ -4,41 +4,209 @@
 \alias{filter_maf}
 \title{MAF filter}
 \usage{
-filter_maf(data, approach = "haplotype", local.maf.threshold,
-  global.maf.threshold, pop.threshold, operator = "OR", filename)
+filter_maf(data, interactive.filter = TRUE, maf.approach = "SNP",
+  maf.thresholds, maf.operator = "OR", maf.pop.num.threshold = 1,
+  filename = NULL, save.feather = NULL, blacklist.id = NULL,
+  blacklist.genotype = NULL, whitelist.markers = NULL,
+  monomorphic.out = TRUE, max.marker = NULL, snp.ld = NULL,
+  common.markers = NULL, strata = NULL, pop.levels = NULL,
+  pop.labels = NULL, pop.select = NULL)
 }
 \arguments{
-\item{data}{A data frame object or file (using ".tsv")
-of class sumstats or a tidy VCF summarised.}
+\item{data}{6 options: vcf, plink, genind, genepop, 
+and a data frame in wide or long/tidy format.
+The function uses 
+\href{https://github.com/thierrygosselin/stackr}{stackr} 
+\code{\link[stackr]{read_long_tidy_wide}} and 
+\code{\link[stackr]{tidy_genomic_data}}.}
 
-\item{approach}{Character. By \code{"SNP"} or by \code{"haplotype"}. 
-The function will consider the SNP or haplotype MAF statistics to filter the marker. 
-Default by \code{"haplotype"}.}
+\item{interactive.filter}{(optional, logical) Do you want the filtering session to 
+be interactive. With default: \code{interactive.filter == TRUE}, the user is 
+asked to see figures of distribution before making decisions for filtering.}
 
-\item{local.maf.threshold}{Number.}
+\item{maf.approach}{(character, optional). 
+\code{maf.approach = "haplotype"} : looks at the minimum MAF found on the 
+read/haplotype. Using this option will discard all the markers/snp on 
+that read based on the thresholds chosen. This method is only available 
+for VCF and haplotype files, or tidy data frame from those file types.
+\code{maf.approach = "SNP"} : treats all the SNP on the same 
+haplotype/read as independent. Doesn't work with haplotype file, 
+but does work for all other file type.
+Default is \code{maf.approach = "SNP"}.}
 
-\item{global.maf.threshold}{Number.}
+\item{maf.thresholds}{(string, double) String with 
+local/populations and global/overall maf thresholds, respectively.
+e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold 
+of 0.05 and a global threshold of 0.1.}
 
-\item{pop.threshold}{Fixed number of pop required to keep the locus.}
-
-\item{operator}{\code{"AND"} or \code{"OR"}. Default = \code{"OR"}. 
-When filtering over LOCUS or SNP, do you want the local \code{"AND"} 
-global MAF to pass the thresholds, or ... you want the local \code{"OR"} 
+\item{maf.operator}{(character, optional) \code{maf.operator = "AND"} or 
+default \code{maf.operator = "OR"}.
+When filtering over LOCUS or SNP, do you want the local \code{"AND"}
+global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
 
-\item{filename}{Name of the file written to the working directory (optional).}
+\item{maf.pop.num.threshold}{(integer, optional) When maf thresholds are used,
+this argument is for the number of pop required to pass the maf thresholds
+to keep the locus. 
+Default: \code{maf.pop.num.threshold = 1}}
+
+\item{filename}{(optional) Name of the filtered tidy data frame file 
+written to the working directory (ending with \code{.tsv})
+Default: \code{filename = NULL}.}
+
+\item{save.feather}{(optional) Use the package 
+\href{https://github.com/wesm/feather}{feather} to save the data frame (very fast).
+Default: \code{save.feather = NULL}.}
+
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
+
+\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
+average quality, e.g. genotype with more than 2 alleles in diploid likely 
+sequencing errors or genotypes with poor genotype likelihood or coverage. 
+The blacklist as a minimum of 2 column headers (markers and individuals). 
+Markers can be 1 column (CHROM or LOCUS or POS), 
+a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
+all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
+or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
+INDIVIDUALS (character) columns header. The blacklist must be in the working 
+directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
+with 'un' need to be changed to 1. 
+Default: \code{blacklist.genotype = NULL} for no blacklist of 
+genotypes to erase.}
+
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
+The whitelist is in the working directory (e.g. "whitelist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+In the VCF, the column ID is the LOCUS identification.
+Default \code{whitelist.markers = NULL} for no whitelist of markers.}
+
+\item{monomorphic.out}{(optional) Should the monomorphic 
+markers present in the dataset be filtered out ? 
+Default: \code{monomorphic.out = TRUE}.}
+
+\item{max.marker}{An optional integer useful to subsample marker number in 
+large PLINK file. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
+subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
+keep specific markers.
+Default: \code{max.marker = NULL}.}
+
+\item{snp.ld}{(optional) \strong{For VCF file only}. 
+SNP short distance linkage disequilibrium pruning. With anonymous markers from
+RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
+choosing among these 3 options: \code{"random"} selection, \code{"first"} or
+\code{"last"} SNP on the same short read/haplotype. For long distance linkage
+disequilibrium pruning, see details below.
+Default: \code{snp.ld = NULL}.}
+
+\item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE}, 
+will only keep markers in common (genotyped) between all the populations.}
+
+\item{strata}{(optional for data frame and PLINK files, 
+required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. With a 
+data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+PLINK files, the \code{tfam} first 2 columns are used. 
+If a \code{strata} file is specified, the strata file will have
+precedence. The \code{STRATA} column can be any hierarchical grouping. 
+To create a strata file see \code{\link[stackr]{individuals2strata}}.
+Default: \code{strata = NULL}.}
+
+\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
+case, the id of the pop.
+Use this argument to have the pop ordered your way instead of the default 
+alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
+instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+Default: \code{pop.levels = NULL}.}
+
+\item{pop.labels}{(optional, string) Use this argument to rename/relabel
+your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
+into a new pop called \code{"NEW"}:
+(1) First, define the levels for your pop with \code{pop.levels} argument: 
+\code{pop.levels = c("QUE", "ONT", "ALB")}. 
+(2) then, use \code{pop.labels} argument: 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+To rename \code{"QUE"} to \code{"TAS"}:
+\code{pop.labels = c("TAS", "ONT", "ALB")}.
+Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
+\code{strata} argument that can do the same thing, see below.}
+
+\item{pop.select}{(string, optional) Selected list of populations for 
+the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
+and \code{ONT} population samples (out of 20 pops).}
+}
+\value{
+With \code{interactive.filter = FALSE}, a list in the global environment,
+with 7 objects:
+\enumerate{
+\item $tidy.filtered.maf
+\item $whitelist.markers
+\item $blacklist.markers
+\item $blacklist.markers
+\item $maf.data.thresholds
+\item $strata
+\item $filters.parameters
+}
+
+With \code{interactive.filter = TRUE}, a list with 5 additionnal objects is created.
+\enumerate{
+\item $violinplot.maf.global <- violinplot.maf.global
+\item $violinplot.maf.local
+\item $plot.distribution.maf.locall
+\item $maf.global.summary
+\item $maf.helper.table
+}
+
+The object can be isolated in separate object outside the list by 
+following the example below.
 }
 \description{
-Minor Allele Frequency filter from a sumstats prepared file
-or a tidy VCF file.
+Minor Allele Frequency filter from a tidy data set (long format)
+of any of these file format: 
+vcf, plink (tped/tfam), stacks haplotype file, genind, 
+genepop, data frame in wide format. The function uses 
+\code{\link[stackr]{tidy_genomic_data}} and 
+\code{\link[stackr]{read_long_tidy_wide}} to load the file.
 }
 \details{
 To help choose a threshold for the local and global MAF, look
-at the function \link{diagnostic_maf}.
-}
-\seealso{
-\link{sumstats_prep}
+at the function \link{diagnostic_maf}, or use the interactive version.
 
-\link{summary_stats_vcf_tidy}
+There is 3 steps in the interactive version:
+
+Step 1. Global MAF: Inspecting the MAF globally
+
+Step 2. Local MAF: Inspecting the MAF at the populations level
+
+Step 3. Filtering markers based on the different MAF arguments
+}
+\examples{
+\dontrun{
+# The minumum
+turtle.maf <- filter_maf(
+data = "turtle.vcf",
+strata = "turtle.strata.tsv",
+maf.thresholds = c(0.04, 0.02)
+) 
+#This will use the default: interactive version, 
+maf.approach = "SNP", 
+maf.operator = "OR",
+maf.pop.num.threshold = 1
+
+
+#If interactive.filter = TRUE, a list is created and to view the filtered tidy data:
+tidy.data <- turtle.maf$tidy.filtered.maf
+
+#Inside the same list, to isolate the blacklist.genotypes:
+bg <- turtle.maf$blacklist.genotypes
+
+# The remaining argument are used in tidy_genomic_data during import and allow
+# the user to apply some filtering or selection before doing the MAF filtering.
+}
 }
 
