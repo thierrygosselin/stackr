@@ -12,7 +12,7 @@
 
 <meta name="author" content="Thierry Gosselin and Anne-Laure Ferchaud" />
 
-<meta name="date" content="2016-06-02" />
+<meta name="date" content="2016-06-05" />
 
 <title>Generate a ∂a∂i input file stackr::vcf2dadi</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Generate a ∂a∂i input file <code>stackr::vcf2dadi</code></h1>
 <h4 class="author"><em>Thierry Gosselin and Anne-Laure Ferchaud</em></h4>
-<h4 class="date"><em>2016-06-02</em></h4>
+<h4 class="date"><em>2016-06-05</em></h4>
 
 
 
@@ -136,7 +136,6 @@ id.vcf &lt;-<span class="st"> </span>data.table::<span class="kw">fread</span>(
   <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>,
   <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>, 
   <span class="dt">header =</span> <span class="ot">TRUE</span>,
-  <span class="co"># Automatically filter with blacklist of id</span>
   <span class="dt">drop =</span> <span class="kw">c</span>(<span class="st">&quot;POS&quot;</span>, <span class="st">&quot;ID&quot;</span>, <span class="st">&quot;REF&quot;</span>, <span class="st">&quot;ALT&quot;</span>, <span class="st">&quot;QUAL&quot;</span>, <span class="st">&quot;FILTER&quot;</span>, <span class="st">&quot;INFO&quot;</span>, <span class="st">&quot;FORMAT&quot;</span>),
   <span class="dt">skip =</span> <span class="st">&quot;CHROM&quot;</span>,
   <span class="dt">nrows =</span> <span class="dv">1</span>,
