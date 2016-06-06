@@ -45,11 +45,11 @@ library(stackr) # to load
 
 **Dependencies**
 
-  * **Imports:** adegenet, data.table, ggplot2, lazyeval, parallel, purrr, randomForestSRC, readr, stringi, stringr, tidyr, utils, plyr, dplyr, stackr (>= 0.2.9)
+  * **Imports:** adegenet, data.table, ggplot2, lazyeval, parallel, purrr, randomForestSRC, readr, stringi, stringr, tidyr, utils, plyr, dplyr
 
   * **Suggests:** devtools, knitr, rmarkdown
 
-  * **Remotes:** github::thierrygosselin/stackr
+  * **Remotes:** github::thierrygosselin/assigner
 
 A quick way to install/load required packages and start using my packages (copy/paste the whole block):
 ```r

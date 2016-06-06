@@ -49,9 +49,9 @@
 #' written to the working directory (ending with \code{.tsv})
 #' Default: \code{filename = NULL}.
 
-#' @param save.feather (optional) Use the package 
-#' \href{https://github.com/wesm/feather}{feather} to save the data frame (very fast).
-#' Default: \code{save.feather = NULL}.
+# @param save.feather (optional) Use the package
+# \href{https://github.com/wesm/feather}{feather} to save the data frame (very fast).
+# Default: \code{save.feather = NULL}.
 
 #' @param strata (optional for data frame and PLINK files, 
 #' required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
@@ -213,7 +213,7 @@ filter_maf <- function(
   maf.operator = "OR",
   maf.pop.num.threshold = 1,
   filename = NULL,
-  save.feather = NULL,
+  #save.feather = NULL,
   blacklist.id = NULL, 
   blacklist.genotype = NULL, 
   whitelist.markers = NULL, 
@@ -795,11 +795,11 @@ thresholds entered.")
   # saving tidy data 
   if (!is.null(filename)) {
     message("Writing the filtered tidy data set in your working directory...")
-    if (!is.null(save.feather)) {
-      feather::write_feather(filter, stri_replace_all_fixed(filename, pattern = ".tsv", replacement = "_feather.tsv", vectorize_all = TRUE))
-    } else {
+    # if (!is.null(save.feather)) {
+      # feather::write_feather(filter, stri_replace_all_fixed(filename, pattern = ".tsv", replacement = "_feather.tsv", vectorize_all = TRUE))
+    # } else {
       write_tsv(filter, filename, append = FALSE, col_names = TRUE)
-    }
+    # }
   }
   
   # saving whitelist
