@@ -29,7 +29,8 @@ Imports:
     foreach,
     parallel,
     doParallel,
-    purrr
+    purrr,
+    feather
 Suggests:
     boot,
     pegas,
