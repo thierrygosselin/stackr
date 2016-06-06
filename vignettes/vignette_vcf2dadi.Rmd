@@ -191,7 +191,7 @@ get the monomorphic sites. If you do this, use `monomorphic.out = FALSE`.
 
 * short range LD pruning: the small reads of this experiment
 (RADseq < 100 pb read) make the short range linkage disequillibrium pruning easy.
-We will keep the first SNP on every read (`snp.ld = "first"`). Don't want the snp pruning, turn it off with 
+We will keep the first SNP on every read (`snp.ld = "first"`). Don't want the SNP pruning, turn it off with 
 `snp.ld = NULL` or leave the argument missing. 
 
 * Minor Allele Frequency filter: for ∂a∂i we want to keep most of the 
@@ -204,7 +204,7 @@ If you have total confidence in your low frequency markers keep them
 (`maf.thresholds = NULL` or leave the argument missing). 
 In this example we remove markers if the 
 MAF is not at least 0.001 local (by pop) OR 0.001 global (overall pops) in a 
-least 1 population (out of 3 the toal selected). For further details on how 
+least 1 population (out of 3 the total selected). For further details on how 
 to remove low polymorphism markers with arguments provided in `vcf2dadi`, 
 see the maf arguments documentation of the function.
 
