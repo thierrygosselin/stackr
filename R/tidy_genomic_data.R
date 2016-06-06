@@ -62,24 +62,28 @@
 #' local/populations and global/overall maf thresholds, respectively.
 #' e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold 
 #' of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame 
-#' files. Use stackr for haplotypes files and use the whitelist of markers.
+#' files.
 #' Default: \code{maf.thresholds = NULL}. 
 
+#' @param maf.approach (character, optional). 
+#' \code{maf.approach = "haplotype"} : looks at the minimum MAF found on the 
+#' read/haplotype. Using this option will discard all the markers/snp on 
+#' that read based on the thresholds chosen. This method is only available 
+#' for VCF and haplotype files, or tidy data frame from those file types.
+#' \code{maf.approach = "SNP"} : treats all the SNP on the same 
+#' haplotype/read as independent. Doesn't work with haplotype file, 
+#' but does work for all other file type.
+#' Default is \code{maf.approach = "SNP"}.
 
-#' @param maf.pop.num.threshold (integer, optional) When maf thresholds are used,
-#' this argument is for the number of pop required to pass the maf thresholds
-#' to keep the locus. Default: \code{maf.pop.num.threshold = 1}
-#' @param maf.approach (character, optional). By \code{maf.approach = "SNP"} or 
-#' by \code{maf.approach = "haplotype"}.
-#' The function will consider the SNP or ID/LOCUS/haplotype/read MAF statistics 
-#' to filter the markers.
-#' Default is \code{maf.approach = "SNP"}. The \code{haplotype} approach is 
-#' restricted to VCF file.
 #' @param maf.operator (character, optional) \code{maf.operator = "AND"} or 
 #' default \code{maf.operator = "OR"}.
 #' When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 #' global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 #' global MAF to pass the thresholds, to keep the marker?
+
+#' @param maf.pop.num.threshold (integer, optional) When maf thresholds are used,
+#' this argument is for the number of pop required to pass the maf thresholds
+#' to keep the locus. Default: \code{maf.pop.num.threshold = 1}
 
 #' @param max.marker An optional integer useful to subsample marker number in 
 #' large PLINK file. e.g. if the data set 
@@ -218,6 +222,7 @@
 #' @importFrom data.table melt.data.table
 #' @importFrom data.table as.data.table
 
+
 #' @examples
 #' \dontrun{
 #' tidy.vcf <- tidy_genomic_data(
@@ -293,6 +298,7 @@ tidy_genomic_data <- function(
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file missing")
   if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
+  if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
   
   
   # File type detection ********************************************************
@@ -321,16 +327,31 @@ tidy_genomic_data <- function(
     if (stri_detect_fixed(str = data.type, pattern = "Catalog")) {
       data.type <- "haplo.file"
       message("File type: haplotypes from stacks")
-      if (is.null(blacklist.genotype)) {
-        stop("blacklist.genotype file missing. 
-             Use stackr's missing_genotypes function to create this blacklist")
-      }
+      # if (is.null(blacklist.genotype)) {
+      #   stop("blacklist.genotype file missing. 
+      #        Use stackr's missing_genotypes function to create this blacklist")
+      # }
     }
     if (stri_detect_fixed(str = data, pattern = ".gen")) {
       data.type <- "genepop.file"
       message("File type: genepop")
     } 
   } # end file type detection
+  
+  if(data.type == "haplo.file") {
+    message("With stacks haplotype file the maf.approach is automatically set to: haplotype")
+    maf.approach <- "SNP"
+    # confusing, but because the haplotpe file doesn't have snp info, only locus info
+    # it's treated as markers/snp info and filtered the same way as the approach by SNP.
+    # but it's really by haplotype
+  }
+  
+  if (maf.approach == "haplotype") {
+    if (data.type != "vcf.file" | data.type != "haplo.file") {
+      stop("The haplotype approach during MAF filtering is for VCF and
+           stacks haplotypes file, only. Use the snp approach for the other file types")
+    }
+    }
   
   # Strata argument required for VCF and haplotypes files **********************
   if (data.type == "haplo.file" | data.type == "vcf.file") {
@@ -353,11 +374,10 @@ tidy_genomic_data <- function(
     if ("POS" %in% columns.names.whitelist) {
       whitelist.markers$POS <- as.character(whitelist.markers$POS)
     }
-  }
-  
-  if (data.type == "haplo.file") {
-    whitelist.markers <- select(.data = whitelist.markers, LOCUS)
-    columns.names.whitelist <- colnames(whitelist.markers)
+    if (data.type == "haplo.file") {
+      whitelist.markers <- select(.data = whitelist.markers, LOCUS)
+      columns.names.whitelist <- colnames(whitelist.markers)
+    }
   }
   
   # Import blacklist id ********************************************************
@@ -772,11 +792,14 @@ tidy_genomic_data <- function(
   # Import haplo ***************************************************************
   if (data.type == "haplo.file") { # Haplotype file
     message("Importing the stacks haplotype file")
+    number.columns <- max(count.fields(data, sep = "\t"))
+    
     input <- data.table::fread(
       input = data, 
       sep = "\t", 
       header = TRUE, 
-      stringsAsFactors = FALSE, 
+      stringsAsFactors = FALSE,
+      colClasses=list(character=1:number.columns),
       verbose = FALSE,
       showProgress = TRUE,
       data.table = FALSE, 
@@ -784,9 +807,18 @@ tidy_genomic_data <- function(
     ) %>% 
       as_data_frame() %>% 
       select(-Cnt) %>% 
-      rename(LOCUS = `Catalog ID`) %>%
-      tidyr::gather(INDIVIDUALS, GT, -LOCUS) %>% 
-      mutate(LOCUS = as.character(LOCUS))
+      rename(LOCUS = `Catalog ID`)
+    
+    input <- data.table::melt.data.table(
+      data = as.data.table(input), 
+      id.vars = "LOCUS", 
+      variable.name = "INDIVIDUALS",
+      variable.factor = FALSE,
+      value.name = "GT"
+    ) %>% 
+      as_data_frame()
+    
+    number.columns <- NULL
     
     # remove consensus markers -------------------------------------------------
     message("Scanning for consensus markers")
@@ -1239,9 +1271,7 @@ tidy_genomic_data <- function(
     # # update the vcf with the maf info
     # input <- full_join(input, maf.data, by = c("MARKERS", "POP_ID"))
     if (maf.approach == "haplotype") {
-      if (data.type != "vcf.file") {
-        stop("The haplotype approach during MAF filtering is for VCF files only")
-      }
+      
       vcf.maf <- tidyr::separate(data = maf.data, 
                                  col = MARKERS, 
                                  into = c("CHROM", "LOCUS", "POS"), 
