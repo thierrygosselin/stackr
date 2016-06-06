@@ -9,7 +9,8 @@ The goal of **stackr** is to make GBS/RAD data produced by [STACKS] (http://catc
 
 This is the development page of the **stackr** package for the R software, optimized for *de novo* and population genetics.
 
-**Use stackr to:**
+## Use stackr to:
+
 * Read and modify several output files: VCF, PLINK (tped/tfam), haplotype file produced by [STACKS] (http://catchenlab.life.illinois.edu/stacks/), genepop, genind and dataframes in wide or long/tidy formats
 * Transform genomic file format into a tidy format useful to quickly visualise and filter summary statistics within R
 * Filters genetic markers based on: alleles and genotype coverage (read depth), genotype likelihood, proportion/percentage/number of genotyped individuals and populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis)
@@ -17,7 +18,7 @@ This is the development page of the **stackr** package for the R software, optim
 * Convert data into *genepop*, *genind*, *fstat*, *gtypes*, *betadiv* and *dadi* files or objects for easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
 * Map-Independent Imputation of missing genotype or allele using Random Forest within several functions: *haplo2genepop*, *haplo2genind*, *haplo2hierfstat*, *haplo2gtypes*, *haplo2colony*, *vcf2genind*, *vcf2hierfstat*, *vcf2betadiv*, *vcf2dadi* and *vcf_imputation*. 
 
-## Installation
+### Installation
 You can try out the dev version of **stackr**. Follow the 3 steps below:
 
 **Step 1:** Install or load the package **devtools**
