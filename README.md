@@ -196,10 +196,18 @@ dapc.optim.a.score$best
 ```
 
 ## Vignettes
+From a browser:
+* [installation problems](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
+* [parallel computing during imputations](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) 
+* [vcf2dadi](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_vcf2dadi.Rmd)
+
+Inside R:
+```r
+browse(Vignettes("stackr")) # To browse vignettes
+vignette("vignette_vcf2dadi") # To open specific vignette
+```
+
 Vignettes are in development, check periodically for updates.
-*
-*
-*
 
 
 ## Citation:
