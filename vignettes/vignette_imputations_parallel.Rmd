@@ -1,0 +1,77 @@
+---
+title: "Imputations in Parallel"
+author: "Thierry Gosselin"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+# output: 
+# pdf_document:
+vignette: >
+  %\VignetteIndexEntry{"Imputations in Parallel"}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+  
+```{r, echo = FALSE, message = FALSE}
+  knitr::opts_chunk$set(collapse = T, comment = "#>")
+options(tibble.print_min = 4L, tibble.print_max = 4L)
+```
+
+
+## Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputations in parallel (time: max 10 minutes)
+
+### Option 1: From source (Linux & Mac OSX) [details here](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
+
+1. Make sure you have gcc with openmp enabled. 
+To check the version of your compiler, in the Terminal:
+```r
+gcc --version # should be higher than 4.8
+```
+
+1. To update your computer's compiler follow this [simple tutorial](http://gbs-cloud-tutorial.readthedocs.io/en/latest/03_computer_setup.html#update-your-computer-s-compiler) (2-5 min)
+
+
+1. Update your `~/.R/Makevars` file, it should include these lines:
+```r
+# MACOS use TextWrangler to open the file with `Show hidden items` turn ON
+# Don't have the file ? Use sudo nano in the Terminal to create one.
+CC=/usr/local/bin/gcc
+CXX=/usr/local/bin/g++
+FC=/usr/local/bin/gfortran
+F77=/usr/local/bin/gfortran
+PKG_LIBS = -fopenmp -lgomp
+PKG_CFLAGS= -O3 -Wall -pipe -pedantic -std=gnu99 -fopenmp
+PKG_CXXFLAGS=-fopenmp -std=c++11
+CFLAGS= -O3 -Wall -pipe -pedantic -std=gnu99 -fopenmp
+SHLIB_OPENMP_CFLAGS = -fopenmp
+SHLIB_OPENMP_CXXFLAGS = -fopenmp
+SHLIB_OPENMP_FCFLAGS = -fopenmp
+SHLIB_OPENMP_FFLAGS = -fopenmp
+FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15.0.0/6.1.0/finclude # change according to your computer compiler version
+CFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
+CXXFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
+```
+
+1. Download and compile randomForestSRC, from the Terminal:
+```r
+cd ~/Downloads
+curl -O https://cran.r-project.org/src/contrib/randomForestSRC_2.2.0.tar.gz
+tar -zxvf randomForestSRC_2.2.0.tar.gz
+cd randomForestSRC
+autoconf
+```
+
+1. Install and load randomForestSRC, from R console:
+```r
+devtools::install_local(path = "~/Downloads/randomForestSRC")
+```
+
+### Option 2 (Mac OSX & Windows): Use the pre-compiled binary [instructions here](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
+```r
+# NOTES: their is currently a bug with pre-compiled binaries below. Use option 1 until further notice
+# Mac OSX
+devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.2.0.tgz")
+# Windows
+devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.2.0.zip")
+```
+
+

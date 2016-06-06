@@ -5,65 +5,85 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr)
 [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-The goal of **stackr** is to make GBS/RAD data produced by [STACKS] (http://catchenlab.life.illinois.edu/stacks/) easy to analyse in R.
+The goal of **stackr** is to make GBS/RAD data produced by [STACKS] (http://catchenlab.life.illinois.edu/stacks/) and other pipelines easy to analyse in R.
 
 This is the development page of the **stackr** package for the R software, optimized for *de novo* and population genetics.
 
 **Use stackr to:**
-* Read and modify several output files produced by [STACKS] (http://catchenlab.life.illinois.edu/stacks/)
-* Transform the **VCF file**, into a tidy format to visualise and filter summary statistics within R
-* Filters genetic markers based on: coverage (read depth, REF and ALT allele depth), genotype likelihood, number of individuals, number of populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis)
+* Read and modify several output files: VCF, PLINK (tped/tfam), haplotype file produced by [STACKS] (http://catchenlab.life.illinois.edu/stacks/), genepop, genind and dataframes in wide or long/tidy formats
+* Transform genomic file format into a tidy format useful to quickly visualise and filter summary statistics within R
+* Filters genetic markers based on: alleles and genotype coverage (read depth), genotype likelihood, proportion/percentage/number of genotyped individuals and populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis)
 * `ggplot2`-based plotting to view distributions of summary statistics and create publication-ready figures
 * Convert data into *genepop*, *genind*, *fstat*, *gtypes*, *betadiv* and *dadi* files or objects for easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
-* Impute GBS markers without a genetic map using Random Forest within the *haplo2genepop*, *haplo2genind*, *haplo2hierfstat*, *haplo2gtypes*, *haplo2colony*, *vcf2genind*, *vcf2hierfstat*, *vcf2betadiv*, *vcf2dadi* and *vcf_imputation* functions 
-
-**Requirement:**
-Because STACKS is always under development (more than 100 versions so far!), 
-**stackr** will work best with Stacks version >= 1.19. 
-Send me an e-mail if you desperately need to use prior versions.
+* Map-Independent Imputation of missing genotype or allele using Random Forest within several functions: *haplo2genepop*, *haplo2genind*, *haplo2hierfstat*, *haplo2gtypes*, *haplo2colony*, *vcf2genind*, *vcf2hierfstat*, *vcf2betadiv*, *vcf2dadi* and *vcf_imputation*. 
 
 ## Installation
 You can try out the dev version of **stackr**. Follow the 3 steps below:
 
-Step 1 You will need the package *devtools*
+**Step 1:** Install or load the package **devtools**
 ```r
 if (!require("devtools")) install.packages("devtools") # to install
 library(devtools) # to load
 ```
 
-Step 2 Install **stackr**:
+**Step 2:** Install **stackr**
 ```r
-install_github("thierrygosselin/stackr") # to install without vignettes
-install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to install WITH vignettes
+devtools::install_github("thierrygosselin/stackr") # to install without vignettes
+devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to install WITH vignettes
 library(stackr) # to load
 ```
 
-Step 3 For faster imputations, you need to install an OpenMP enabled **randomForestSRC package** [website](http://www.ccs.miami.edu/~hishwaran/rfsrc.html).
+**Step 3:** Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputation in parallel (2 options)
 
-Option 1: From source (Linux & Mac OSX)
+Option 1 (Mac OSX & Windows): Use the pre-compiled binary [instructions here](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
+```r
+# NOTES: their is currently a bug with pre-compiled binaries below. Use option 2 until further notice
+# Mac OSX
+devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.2.0.tgz")
+# Windows
+devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.2.0.zip")
+```
 
+Option 2: From source (Linux & Mac OSX) [details here](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
+
+There is a few things to check before compiling the package. 
+Make sure you have gcc with openmp enabled. To update your computer's 
+compiler follow this [simple tutorial](http://gbs-cloud-tutorial.readthedocs.io/en/latest/03_computer_setup.html#update-your-computer-s-compiler). To check the version of your compiler, in the Terminal:
+```r
+gcc --version # should be higher than 4.8
+```
+
+Your `~/.R/Makevars` file should include these:
+```r
+# MACOS use TextWrangler to open the file
+CC=/usr/local/bin/gcc
+CXX=/usr/local/bin/g++
+FC=/usr/local/bin/gfortran
+F77=/usr/local/bin/gfortran
+PKG_LIBS = -fopenmp -lgomp
+PKG_CFLAGS= -O3 -Wall -pipe -pedantic -std=gnu99 -fopenmp
+PKG_CXXFLAGS=-fopenmp -std=c++11
+CFLAGS= -O3 -Wall -pipe -pedantic -std=gnu99 -fopenmp
+SHLIB_OPENMP_CFLAGS = -fopenmp
+SHLIB_OPENMP_CXXFLAGS = -fopenmp
+SHLIB_OPENMP_FCFLAGS = -fopenmp
+SHLIB_OPENMP_FFLAGS = -fopenmp
+FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15.0.0/6.1.0/finclude # change according to your computer compiler version
+CFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
+CXXFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
+```
+
+Download and install randomForestSRC
 ```r
 # Terminal
 cd ~/Downloads
-curl -O https://cran.r-project.org/src/contrib/randomForestSRC_2.0.7.tar.gz
-tar -zxvf randomForestSRC_2.0.7.tar.gz
+curl -O https://cran.r-project.org/src/contrib/randomForestSRC_2.2.0.tar.gz
+tar -zxvf randomForestSRC_2.2.0.tar.gz
 cd randomForestSRC
 autoconf
+
 # Back in R:
-install.packages(pkgs = "~/Downloads/randomForestSRC", repos = NULL, type = "source")
-```
-Option 2: Use a pre-compiled binary (Mac OSX & Windows) [instructions here] (http://www.ccs.miami.edu/~hishwaran/rfsrc.html) or quick copy/paste solution below:
-
-```r
-# Mac OSX
-library("devtools")
-install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.0.7.tgz")
-```
-
-```r
-# Windows
-library("devtools")
-install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.0.7.zip")
+devtools::install_local(path = "~/Downloads/randomForestSRC")
 ```
 
 **Problems during installation:**
@@ -73,15 +93,7 @@ Sometimes you'll get warnings while installing dependencies required for **stack
 Warning: cannot remove prior installation of package ‘stringi’
 ```
 
-To solve this problem: 
-
-Option 1. Delete the problematic packages manually and reinstall. On MAC computers, in the **Finder**, use the shortcut **cmd+shift+g**, or in the menu bar : **GO -> Go to Folder**, copy/paste the text below:
-```r
-/Library/Frameworks/R.framework/Resources/library
-#Delete the problematic packages.
-```
-
-Option 2. If you know your way around the terminal and understand the consequences of using **sudo rm -R** command, here something faster to remove problematic packages:
+To solve this problem, delete manually the problematic package in the installation folder (on mac: `/Library/Frameworks/R.framework/Resources/library`) or in the `Terminal`:
 ```r
 sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
 # Changing 'package_name' to the problematic package.
@@ -102,7 +114,7 @@ If you don't have them, no worries, it's *usually* intalled automatically during
 **stackr** installation. 
 If you have them, it's your job to update them, because i'm usually using the 
 latest versions... 
-A quick way to start a script when using my packages:
+A quick way to start a script when using my packages (copy/paste the whole block):
 ```r
 if (!require("pacman")) install.packages("pacman")
 library("pacman")
@@ -189,9 +201,28 @@ New to pull request on github ? The process is very easy:
 
 ## GBS workflow
 The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://catchenlab.life.illinois.edu/stacks/) and other software. You can use the [STACKS] (http://catchenlab.life.illinois.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
+
 ## stackr workflow 
-Look at step 1 as a quality insurance step. We need to modify the data to play with it efficiently in R. To have reliable summary statistics, you first need good coverage of your alleles to call your genotypes, good genotype likelihood, enough individuals in each sampling sites and enough putative populations with your markers... Step 2 is where the actual work is done to remove artifactual and uninformative markers based on summary statistics of your markers.
-![](vignettes/stackr_workflow.png)
+Currently under construction. Come back soon!
+
+**Table 1: Quality control and filtering RAD/GBS data**
+
+| Parameter | Libraries/Seq.Lanes | Allele | Genotype | Individual | Sampling sites | Populations | Globally |
+|:----|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+| Quality | x | | | | | | |
+| Coverage | | x | x | | | | |
+| Genotype Likelihood | | | x | | | | |
+| Prop. Genotyped | | | | x | x | x | x |
+| MAF | | | | | x | x | x |
+| HET | | | | | | x | |
+| FIS | | | | | | x | |
+| SNP number/reads | | | | | | | x |
+
+
+Step 1 as a quality insurance step. We need to modify the data to play with it efficiently in R. To have reliable summary statistics, you first need good coverage of your alleles to call your genotypes, good genotype likelihood, enough individuals in each sampling sites and enough putative populations with your markers... 
+
+Step 2 is where the actual work is done to remove artifactual and uninformative markers based on summary statistics of your markers.
+
 
 ## Example 
 
@@ -199,59 +230,28 @@ Look at step 1 as a quality insurance step. We need to modify the data to play w
 
 Step 1. Load the necessary librairies, here is an example of how to do this:
 ```r
-library(adegenet)
-library(stackr)
+if (!require("pacman")) install.packages("pacman")
+library("pacman")
+pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
+if (!require("stackr")){
+  install_github("thierrygosselin/stackr", build_vignettes = TRUE)
+  library("stackr")
+}
+if (!require("assigner")) {
+  install_github("thierrygosselin/assigner", build_vignettes = TRUE)
+  # if assigner was re-installed, uncomment and run the next line to install gsi_sim:
+  #install_gsi_sim(fromSource = TRUE) 
+  library("assigner")
+}
 ```
 
-
-*Dependencies*: here the list of packages that **stackr** is depending on.
-```r
-if (!require("reshape2")) install.packages("reshape2")
-if (!require("ggplot2")) install.packages("ggplot2")
-if (!require("stringr")) install.packages("stringr")
-if (!require("stringi")) install.packages("stringi")
-if (!require("plyr")) install.packages("plyr")
-if (!require("dplyr")) install.packages("dplyr")
-if (!require("tidyr")) install.packages("tidyr")
-if (!require("readr")) install.packages("readr")
-if (!require("purrr")) install.packages("purrr")
-if (!require("data.table")) install.packages("data.table")
-if (!require("lazyeval")) install.packages("lazyeval")
-if (!require("adegenet")) install.packages("adegenet")
-if (!require("parallel")) install.packages("parallel")
-if (!require("stringdist")) install.packages("stringdist")
-if (!require("foreach")) install.packages("foreach")
-if (!require("doParallel")) install.packages("doParallel")
-```
-If you don't have them, no worries, it's intalled automatically during **stackr** installation. If you have them, it's your job to update them, because i'm using the latest versions...
-
-*When working in R I usually do this:*
-```r
-# Clean my desk
-rm(list=ls())
-
-# load the required libraries
-library(reshape2)
-library(ggplot2)
-library(stringr)
-library(stringi)
-library(plyr)
-library(dplyr) # load this package after plyr to work properly
-library(tidyr)
-library(readr)
-library(randomForestSRC)
-library(doParallel)
-library(stackr)
-library(purrr)
-```
-
-
-Step 2. Set your working directory (e.g. the path to your **stacks** output files and 
-where you want the output to be saved):
+Step 2. Set your working directory:
 
 ```r
+rm(list=ls()) # Clean your desk
 setwd("/Users/thierry/Dropbox/brook_charr_pop/01_stacks_populations")
 ```
+
 Step 3. Missing genotypes: 
 
 
