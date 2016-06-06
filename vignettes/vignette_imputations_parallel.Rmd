@@ -20,8 +20,10 @@ To check the version of your compiler, in the Terminal:
 ```r
 gcc --version # should be higher than 4.8
 ```
-1. To update your computer's compiler follow this [simple tutorial](http://gbs-cloud-tutorial.readthedocs.io/en/latest/03_computer_setup.html#update-your-computer-s-compiler) (2-5 min)
-1. Update your `~/.R/Makevars` file, it should include these lines:
+
+2. To update your computer's compiler follow this [simple tutorial](http://gbs-cloud-tutorial.readthedocs.io/en/latest/03_computer_setup.html#update-your-computer-s-compiler) (2-5 min)
+
+3. Update your `~/.R/Makevars` file, it should include these lines:
 ```r
 # MACOS use TextWrangler to open the file with `Show hidden items` turn ON
 # Don't have the file ? Use sudo nano in the Terminal to create one.
@@ -41,7 +43,8 @@ FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15.0.0/6.1.0/finclude # change acc
 CFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 CXXFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 ```
-1. Download and compile randomForestSRC, from the Terminal:
+
+4. Download and compile randomForestSRC, from the Terminal:
 ```r
 cd ~/Downloads
 curl -O https://cran.r-project.org/src/contrib/randomForestSRC_2.2.0.tar.gz
@@ -49,7 +52,8 @@ tar -zxvf randomForestSRC_2.2.0.tar.gz
 cd randomForestSRC
 autoconf
 ```
-1. Install and load randomForestSRC, from R console:
+
+5. Install and load randomForestSRC, from R console:
 ```r
 devtools::install_local(path = "~/Downloads/randomForestSRC")
 ```
