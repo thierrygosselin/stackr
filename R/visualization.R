@@ -258,7 +258,7 @@ plot_density_distribution_maf <- function(data, maf.group, aes.colour = aes(y = 
   
   ..scaled.. <- NULL #get rid of R CMD check note
   
-  if (is.vector(data) == "TRUE") {
+  if (is.vector(data)) {
     data <- read_tsv(data, col_names = T)
   } else {
     data <- data
