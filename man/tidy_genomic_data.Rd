@@ -54,25 +54,28 @@ will only keep markers in common (genotyped) between all the populations.}
 local/populations and global/overall maf thresholds, respectively.
 e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold 
 of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame 
-files. Use stackr for haplotypes files and use the whitelist of markers.
+files.
 Default: \code{maf.thresholds = NULL}.}
 
-\item{maf.pop.num.threshold}{(integer, optional) When maf thresholds are used,
-this argument is for the number of pop required to pass the maf thresholds
-to keep the locus. Default: \code{maf.pop.num.threshold = 1}}
-
-\item{maf.approach}{(character, optional). By \code{maf.approach = "SNP"} or 
-by \code{maf.approach = "haplotype"}.
-The function will consider the SNP or ID/LOCUS/haplotype/read MAF statistics 
-to filter the markers.
-Default is \code{maf.approach = "SNP"}. The \code{haplotype} approach is 
-restricted to VCF file.}
+\item{maf.approach}{(character, optional). 
+\code{maf.approach = "haplotype"} : looks at the minimum MAF found on the 
+read/haplotype. Using this option will discard all the markers/snp on 
+that read based on the thresholds chosen. This method is only available 
+for VCF and haplotype files, or tidy data frame from those file types.
+\code{maf.approach = "SNP"} : treats all the SNP on the same 
+haplotype/read as independent. Doesn't work with haplotype file, 
+but does work for all other file type.
+Default is \code{maf.approach = "SNP"}.}
 
 \item{maf.operator}{(character, optional) \code{maf.operator = "AND"} or 
 default \code{maf.operator = "OR"}.
 When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
+
+\item{maf.pop.num.threshold}{(integer, optional) When maf thresholds are used,
+this argument is for the number of pop required to pass the maf thresholds
+to keep the locus. Default: \code{maf.pop.num.threshold = 1}}
 
 \item{max.marker}{An optional integer useful to subsample marker number in 
 large PLINK file. e.g. if the data set 
