@@ -18,7 +18,7 @@ This is the development page of the **stackr** package for the R software, optim
 * Convert data into *genepop*, *genind*, *fstat*, *gtypes*, *betadiv* and *dadi* files or objects for easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
 * Map-Independent Imputation of missing genotype or allele using Random Forest within several functions: *haplo2genepop*, *haplo2genind*, *haplo2hierfstat*, *haplo2gtypes*, *haplo2colony*, *vcf2genind*, *vcf2hierfstat*, *vcf2betadiv*, *vcf2dadi* and *vcf_imputation*. 
 
-### Installation
+## Installation
 You can try out the dev version of **stackr**. Follow the 3 steps below:
 
 **Step 1:** Install or load the package **devtools**
@@ -34,22 +34,10 @@ devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to
 library(stackr) # to load
 ```
 
-**Step 3 (optional):** Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputation in parallel. Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd). You don't need to do this when updating **stackr**.
+**Step 3 (optional): Parallel computing** Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputation in parallel. Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd). You don't need to do this when updating **stackr**.
 
 
-**Problems during installation:**
-
-Sometimes you'll get warnings while installing dependencies required for **stackr** or other R packages.
-```r
-Warning: cannot remove prior installation of package ‘stringi’
-```
-
-To solve this problem, delete manually the problematic package in the installation folder (on mac: `/Library/Frameworks/R.framework/Resources/library`) or in the `Terminal`:
-```r
-sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
-# Changing 'package_name' to the problematic package.
-# Reinstall the package.
-```
+**Problems during installation: see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)**
 
 **Dependencies**
 

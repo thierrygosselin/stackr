@@ -1,0 +1,26 @@
+---
+  title: "Imputations in Parallel"
+  author: "Thierry Gosselin"
+  date: "`r Sys.Date()`"
+  output: rmarkdown::html_vignette
+# output: 
+# pdf_document:
+  vignette: >
+    %\VignetteIndexEntry{"Imputations in Parallel"}
+    %\VignetteEngine{knitr::rmarkdown}
+    \usepackage[utf8]{inputenc}
+---
+
+## Problems during installation
+  
+Sometimes you'll get warnings while installing dependencies required for **stackr** or other R packages.
+```r
+Warning: cannot remove prior installation of package ‘stringi’
+```
+
+To solve this problem, delete manually the problematic package in the installation folder (on mac: `/Library/Frameworks/R.framework/Resources/library`) or in the `Terminal`:
+```r
+sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
+# Changing 'package_name' to the problematic package.
+# Reinstall the package.
+```
