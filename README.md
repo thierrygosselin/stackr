@@ -33,58 +33,8 @@ devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to
 library(stackr) # to load
 ```
 
-**Step 3:** Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputation in parallel (2 options)
+**Step 3 (optional):** Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputation in parallel. Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd). You don't need to do this when updating **stackr**.
 
-Option 1 (Mac OSX & Windows): Use the pre-compiled binary [instructions here](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
-```r
-# NOTES: their is currently a bug with pre-compiled binaries below. Use option 2 until further notice
-# Mac OSX
-devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.2.0.tgz")
-# Windows
-devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.2.0.zip")
-```
-
-Option 2: From source (Linux & Mac OSX) [details here](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
-
-There is a few things to check before compiling the package. 
-Make sure you have gcc with openmp enabled. To update your computer's 
-compiler follow this [simple tutorial](http://gbs-cloud-tutorial.readthedocs.io/en/latest/03_computer_setup.html#update-your-computer-s-compiler). To check the version of your compiler, in the Terminal:
-```r
-gcc --version # should be higher than 4.8
-```
-
-Your `~/.R/Makevars` file should include these:
-```r
-# MACOS use TextWrangler to open the file
-CC=/usr/local/bin/gcc
-CXX=/usr/local/bin/g++
-FC=/usr/local/bin/gfortran
-F77=/usr/local/bin/gfortran
-PKG_LIBS = -fopenmp -lgomp
-PKG_CFLAGS= -O3 -Wall -pipe -pedantic -std=gnu99 -fopenmp
-PKG_CXXFLAGS=-fopenmp -std=c++11
-CFLAGS= -O3 -Wall -pipe -pedantic -std=gnu99 -fopenmp
-SHLIB_OPENMP_CFLAGS = -fopenmp
-SHLIB_OPENMP_CXXFLAGS = -fopenmp
-SHLIB_OPENMP_FCFLAGS = -fopenmp
-SHLIB_OPENMP_FFLAGS = -fopenmp
-FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15.0.0/6.1.0/finclude # change according to your computer compiler version
-CFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
-CXXFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
-```
-
-Download and install randomForestSRC
-```r
-# Terminal
-cd ~/Downloads
-curl -O https://cran.r-project.org/src/contrib/randomForestSRC_2.2.0.tar.gz
-tar -zxvf randomForestSRC_2.2.0.tar.gz
-cd randomForestSRC
-autoconf
-
-# Back in R:
-devtools::install_local(path = "~/Downloads/randomForestSRC")
-```
 
 **Problems during installation:**
 
