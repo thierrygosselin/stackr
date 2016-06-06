@@ -10,12 +10,6 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
-  
-```{r, echo = FALSE, message = FALSE}
-  knitr::opts_chunk$set(collapse = T, comment = "#>")
-  options(tibble.print_min = 4L, tibble.print_max = 4L)
-```
-
 
 ## Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputations in parallel (time: max 10 minutes)
 

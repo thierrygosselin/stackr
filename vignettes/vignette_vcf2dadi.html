@@ -88,21 +88,19 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><p>Clean your desk and remove the clutter in the global environment</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())</code></pre></div></li>
 <li><p>Load the required libraries</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">if (!<span class="kw">require</span>(<span class="st">&quot;devtools&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;devtools&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;reshape2&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;reshape2&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;ggplot2&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;ggplot2&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;stringr&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;stringr&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;stringi&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;stringi&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;plyr&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;plyr&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;dplyr&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;tidyr&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;tidyr&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;readr&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;readr&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;purrr&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;purrr&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;data.table&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;data.table&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;httr&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;httr&quot;</span>)
-<span class="kw">library</span>(<span class="st">&quot;httr&quot;</span>)
-if (!<span class="kw">require</span>(<span class="st">&quot;stackr&quot;</span>)) <span class="kw">install_github</span>(<span class="st">&quot;thierrygosselin/stackr&quot;</span>)
-<span class="kw">library</span>(<span class="st">&quot;stackr&quot;</span>)</code></pre></div></li>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">if (!<span class="kw">require</span>(<span class="st">&quot;pacman&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;pacman&quot;</span>)
+<span class="kw">library</span>(<span class="st">&quot;pacman&quot;</span>)
+pacman::<span class="kw">p_load</span>(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
+if (!<span class="kw">require</span>(<span class="st">&quot;stackr&quot;</span>)){
+  <span class="kw">install_github</span>(<span class="st">&quot;thierrygosselin/stackr&quot;</span>, <span class="dt">build_vignettes =</span> <span class="ot">TRUE</span>)
+  <span class="kw">library</span>(<span class="st">&quot;stackr&quot;</span>)
+}
+if (!<span class="kw">require</span>(<span class="st">&quot;assigner&quot;</span>)) {
+  <span class="kw">install_github</span>(<span class="st">&quot;thierrygosselin/assigner&quot;</span>, <span class="dt">build_vignettes =</span> <span class="ot">TRUE</span>)
+  <span class="co"># if assigner was re-installed, uncomment and run the next line to install gsi_sim:</span>
+  <span class="co">#install_gsi_sim(fromSource = TRUE) </span>
+  <span class="kw">library</span>(<span class="st">&quot;assigner&quot;</span>)
+}</code></pre></div></li>
 <li><p>Set your working directory</p>
 <pre><code>setwd(&quot;~/Documents/vcf2dadi_example&quot;)</code></pre></li>
 </ol>

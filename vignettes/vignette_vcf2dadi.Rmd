@@ -10,11 +10,6 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
-  
-```{r, echo = FALSE, message = FALSE}
-  knitr::opts_chunk$set(collapse = T, comment = "#>")
-options(tibble.print_min = 4L, tibble.print_max = 4L)
-```
 
 
 # Objectives:
@@ -30,22 +25,21 @@ rm(list=ls())
 
 1. Load the required libraries
 ```r
-if (!require("devtools")) install.packages("devtools")
-if (!require("reshape2")) install.packages("reshape2")
-if (!require("ggplot2")) install.packages("ggplot2")
-if (!require("stringr")) install.packages("stringr")
-if (!require("stringi")) install.packages("stringi")
-if (!require("plyr")) install.packages("plyr")
-if (!require("dplyr")) install.packages("dplyr")
-if (!require("tidyr")) install.packages("tidyr")
-if (!require("readr")) install.packages("readr")
-if (!require("purrr")) install.packages("purrr")
-if (!require("data.table")) install.packages("data.table")
-if (!require("httr")) install.packages("httr")
-library("httr")
-if (!require("stackr")) install_github("thierrygosselin/stackr")
-library("stackr")
+if (!require("pacman")) install.packages("pacman")
+library("pacman")
+pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
+if (!require("stackr")){
+  install_github("thierrygosselin/stackr", build_vignettes = TRUE)
+  library("stackr")
+}
+if (!require("assigner")) {
+  install_github("thierrygosselin/assigner", build_vignettes = TRUE)
+  # if assigner was re-installed, uncomment and run the next line to install gsi_sim:
+  #install_gsi_sim(fromSource = TRUE) 
+  library("assigner")
+}
 ```
+
 1. Set your working directory
 ```
 setwd("~/Documents/vcf2dadi_example")
