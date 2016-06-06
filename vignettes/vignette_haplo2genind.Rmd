@@ -1,0 +1,98 @@
+---
+  title: "haplo2genind"
+  author: "Thierry Gosselin"
+  date: "`r Sys.Date()`"
+  output: rmarkdown::html_vignette
+# output: 
+# pdf_document:
+  vignette: >
+    %\VignetteIndexEntry{"haplo2genind"}
+    %\VignetteEngine{knitr::rmarkdown}
+    \usepackage[utf8]{inputenc}
+---
+    
+# Objectives:
+
+* learn how to run the function `stackr::haplo2genind`
+* conduct a DAPC analysis of your data 
+* 5 steps
+    
+# Workflow
+    
+1. Clean your desk and remove the clutter in the global environment
+```r
+rm(list=ls())
+```
+    
+1. Load the required libraries
+```r
+if (!require("pacman")) install.packages("pacman")
+library("pacman")
+pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
+if (!require("stackr")){
+  install_github("thierrygosselin/stackr", build_vignettes = TRUE)
+  library("stackr")
+}
+if (!require("assigner")) {
+  install_github("thierrygosselin/assigner", build_vignettes = TRUE)
+  # if assigner was re-installed, uncomment and run the next line to install gsi_sim:
+  #install_gsi_sim(fromSource = TRUE) 
+  library("assigner")
+}
+```
+
+1. Set your working directory
+```
+setwd("~/Documents/haplo2genind_example")
+```
+
+1. Manage missing genotypes
+  
+    First remove individuals with more than 30% missing genotypes 
+from the *batch_1.haplotypes.tsv* file. Explore this parameter with different values. 
+
+    You can also provide the function with a whitelist of loci to keep (after filtering).
+We are interested in the the blacklisted id output ("blacklisted.id.30.txt"),
+but the function also outputs many things, see the function documentation.
+    ```r
+blacklisted.id <- missing_genotypes(
+haplotypes.file = "batch_1.haplotypes.tsv", 
+whitelist.loci = "new.whitelist.txt", pop.id.start = 5, pop.id.end = 7, 
+missing.geno.threshold = 30)
+    ```
+
+1. Use the *haplo2genind* function to convert the haplotype file created by 
+**stacks** into a genind object ready to use in **adegenet**. 
+
+    I use the whitelist of loci created after filtering the data and filter out the individuals with more than 30% of missing genotypes (with the blacklisted individuals, created above). 
+
+    I also ask for imputation of the data using Random Forest.
+
+    ```r
+genind.sturgeon <- haplo2genind(
+haplotypes.file = "batch_1.haplotypes.tsv", 
+whitelist.loci = "my.whitelist.txt", 
+blacklist.id = "blacklisted.id.30.txt", 
+pop.levels = c("LSL", "DRM", "JEN", "LAN", "GRA", "BUR", "GUL", "LLI", "ANG", "WEI", "FOX", "HAY", "GOD", "CHU"), 
+pop.id.start = 5, pop.id.end = 7, 
+imputations = "rf", 
+imputations.group = "populations", 
+num.tree = 100, 
+split.number = 100, 
+iteration.rf = 10, 
+verbose = FALSE
+)
+```
+
+    You can see that the object created is not yet a genind object because it contains 2 things: the imputed data and the data without imputation. To access both genind dataset:
+    ```r
+names(genind.sturgeon)
+genind.sturgeon.noimputation <- genind.sturgeon$no.imputation
+genind.sturgeon.imputed <- genind.sturgeon$imputed
+```
+
+    These 2 genind objects can be use directly in **adegenet**:
+    ```r
+dapc.optim.a.score <- optim.a.score(dapc(genind.sturgeon.imputed, n.da = 100, n.pca = 50))
+dapc.optim.a.score$best
+```

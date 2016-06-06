@@ -11,9 +11,13 @@ This is the development page of the **stackr** package for the R software, optim
 
 ## Use stackr to:
 
+* Avoid bad data exploration. Use different filters and convert to the appropriate data file format.
+* Filter genetic markers based on: alleles and 
+genotype coverage (read depth), genotype likelihood, proportion/percentage/number 
+of genotyped individuals and populations, minor allele frequency (local and global),
+observed heterozygosity and inbreeding coefficient (Fis)
 * Read and modify several output files: VCF, PLINK (tped/tfam), haplotype file produced by [STACKS] (http://catchenlab.life.illinois.edu/stacks/), genepop, genind and dataframes in wide or long/tidy formats
 * Transform genomic file format into a tidy format useful to quickly visualise and filter summary statistics within R
-* Filters genetic markers based on: alleles and genotype coverage (read depth), genotype likelihood, proportion/percentage/number of genotyped individuals and populations, minor allele frequency (local and global), observed heterozygosity and inbreeding coefficient (Fis)
 * `ggplot2`-based plotting to view distributions of summary statistics and create publication-ready figures
 * Convert data into *genepop*, *genind*, *fstat*, *gtypes*, *betadiv* and *dadi* files or objects for easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
 * Map-Independent Imputation of missing genotype or allele using Random Forest within several functions: *haplo2genepop*, *haplo2genind*, *haplo2hierfstat*, *haplo2gtypes*, *haplo2colony*, *vcf2genind*, *vcf2hierfstat*, *vcf2betadiv*, *vcf2dadi* and *vcf_imputation*. 
@@ -127,79 +131,13 @@ Step 1 as a quality insurance step. We need to modify the data to play with it e
 Step 2 is where the actual work is done to remove artifactual and uninformative markers based on summary statistics of your markers.
 
 
-## Example 
+## Vignettes and examples
 
-**Using *haplo2genind* function to do a DAPC analysis of your data (5 steps).**
-
-Step 1. Load the necessary librairies, here is an example of how to do this:
-```r
-if (!require("pacman")) install.packages("pacman")
-library("pacman")
-pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
-if (!require("stackr")){
-  install_github("thierrygosselin/stackr", build_vignettes = TRUE)
-  library("stackr")
-}
-if (!require("assigner")) {
-  install_github("thierrygosselin/assigner", build_vignettes = TRUE)
-  # if assigner was re-installed, uncomment and run the next line to install gsi_sim:
-  #install_gsi_sim(fromSource = TRUE) 
-  library("assigner")
-}
-```
-
-Step 2. Set your working directory:
-
-```r
-rm(list=ls()) # Clean your desk
-setwd("/Users/thierry/Dropbox/brook_charr_pop/01_stacks_populations")
-```
-
-Step 3. Missing genotypes: 
-
-
-First remove individuals with more than 30% missing genotypes 
-from the *batch_1.haplotypes.tsv* file. Explore this parameter with different values. 
-
-
-You can also provide the function with a whitelist of loci to keep (after filtering).
-We are interested in the the blacklisted id output ("blacklisted.id.30.txt"),
-but the function also outputs many things, see the function documentation.
-```r
-blacklisted.id <- missing_genotypes(haplotypes.file = "batch_1.haplotypes.tsv", 
-whitelist.loci = "new.whitelist.txt", pop.id.start = 5, pop.id.end = 7, 
-missing.geno.threshold = 30)
-```
-
-Step 4. Use the *haplo2genind* function to convert the haplotype file created by 
-**stacks** into a genind object ready to use in **adegenet**. 
-
-I use the whitelist of loci created after filtering the data and filter out the individuals with more than 30% of missing genotypes (with the blacklisted individuals, created above). 
-
-I also ask for imputation of the data using Random Forest.
-
-```r
-genind.sturgeon <- haplo2genind(haplotypes.file = "batch_1.haplotypes.tsv", whitelist.loci = "my.whitelist.txt", blacklist.id = "blacklisted.id.30.txt", pop.levels = c("LSL", "DRM", "JEN", "LAN", "GRA", "BUR", "GUL", "LLI", "ANG", "WEI", "FOX", "HAY", "GOD", "CHU"), pop.id.start = 5, pop.id.end = 7, imputations = "rf", imputations.group = "populations", num.tree = 100, split.number = 100, iteration.rf = 10, verbose = FALSE)
-```
-
-You can see that the object created is not yet a genind object because it contains 2 things: the imputed data and the data without imputation. To access both genind dataset:
-```r
-names(genind.sturgeon)
-genind.sturgeon.noimputation <- genind.sturgeon$no.imputation
-genind.sturgeon.imputed <- genind.sturgeon$imputed
-```
-
-Step 5. These 2 genind objects can be use directly in **adegenet**:
-```r
-dapc.optim.a.score <- optim.a.score(dapc(genind.sturgeon.imputed, n.da = 100, n.pca = 50))
-dapc.optim.a.score$best
-```
-
-## Vignettes
 From a browser:
 * [installation problems](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
 * [parallel computing during imputations](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) 
 * [vcf2dadi](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_vcf2dadi.Rmd)
+* [haplo2genind](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_haplo2genind.Rmd)
 
 Inside R:
 ```r
