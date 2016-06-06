@@ -37,11 +37,9 @@ library(stackr) # to load
 **Step 3 (optional): Parallel computing** Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputation in parallel. Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd). You don't need to do this when updating **stackr**.
 
 
-**Problems during installation: see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)**
+**Problems during installation:** see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
 
 **Dependencies**
-
-Here the list of packages that **stackr** needs:
 
   * **Imports:** adegenet, data.table, ggplot2, lazyeval, parallel, purrr, randomForestSRC, readr, stringi, stringr, tidyr, utils, plyr, dplyr, stackr (>= 0.2.9)
 
@@ -49,11 +47,7 @@ Here the list of packages that **stackr** needs:
 
   * **Remotes:** github::thierrygosselin/stackr
 
-If you don't have them, no worries, it's *usually* intalled automatically during 
-**stackr** installation. 
-If you have them, it's your job to update them, because i'm usually using the 
-latest versions... 
-A quick way to start a script when using my packages (copy/paste the whole block):
+A quick way to install/load required packages and start using my packages (copy/paste the whole block):
 ```r
 if (!require("pacman")) install.packages("pacman")
 library("pacman")
@@ -70,36 +64,6 @@ if (!require("assigner")) {
 }
 ```
 
-## Parallel computing in R and stackr
-
-On Mac OSX using OpenMP greatly reduce the computation time for the imputations. Follow the instructions [here] (http://gbs-cloud-tutorial.readthedocs.org/en/latest/03_computer_setup.html#update-your-computer-s-compiler) to update your computer's compiler (5 min step). 
-
-You need to tell R which compilers to use. Use TextWrangler or follow the lines below:
-```r
-cd ~
-nano .R/Makevars
-```
-
-Enter the text below:
-```r
-CC=/usr/local/bin/gcc
-CXX=/usr/local/bin/g++
-FC=/usr/local/bin/gfortran
-F77=/usr/local/bin/gfortran
-PKG_LIBS = -fopenmp -lgomp
-PKG_CFLAGS= -O3 -Wall -pipe -pedantic -std=gnu99 -fopenmp
-CFLAGS= -O3 -Wall -pipe -pedantic -std=gnu99 -fopenmp
-SHLIB_OPENMP_CFLAGS = -fopenmp
-SHLIB_OPENMP_CXXFLAGS = -fopenmp
-SHLIB_OPENMP_FCFLAGS = -fopenmp
-SHLIB_OPENMP_FFLAGS = -fopenmp
-```
-Save and Exit with: crt-o, enter, crt-x. Preferably, re-install all packages depending on OpenMP or Rcpp:
-
-```r
-install.packages("Rcpp", type = "source")
-install.packages("dplyr", type = "source")
-```
 ## New features
 Version, new feature and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
@@ -230,10 +194,13 @@ Step 5. These 2 genind objects can be use directly in **adegenet**:
 dapc.optim.a.score <- optim.a.score(dapc(genind.sturgeon.imputed, n.da = 100, n.pca = 50))
 dapc.optim.a.score$best
 ```
-## All-in-one filter ![](vignettes/stackr_all-in-one_filters.png)
-## Functions found in **stackr** ![](vignettes/stackr_functions.png)
 
+## Vignettes
 Vignettes are in development, check periodically for updates.
+*
+*
+*
+
 
 ## Citation:
 To get the citation, inside R:

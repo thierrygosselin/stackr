@@ -74,18 +74,17 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 
-<div id="install-an-openmp-enabled-randomforestsrc-package-to-do-imputations-in-parallel-time-max-10-minutes" class="section level2">
-<h2>Install an OpenMP enabled <a href="http://www.ccs.miami.edu/~hishwaran/rfsrc.html">randomForestSRC</a> package to do imputations in parallel (time: max 10 minutes)</h2>
+<div id="parallel-computing-in-r-and-stackr" class="section level2">
+<h2>Parallel computing in R and stackr</h2>
+<p>On Mac OSX using OpenMP greatly reduce the computation time for the imputations. To do the imputations in parallel, you need to install an OpenMP enabled <a href="http://www.ccs.miami.edu/~hishwaran/rfsrc.html">randomForestSRC</a> (time: max 10 minutes).</p>
 <div id="option-1-from-source-linux-mac-osx-details-here" class="section level3">
 <h3>Option 1: From source (Linux &amp; Mac OSX) <a href="http://www.ccs.miami.edu/~hishwaran/rfsrc.html">details here</a></h3>
 <ol style="list-style-type: decimal">
 <li><p>Make sure you have gcc with openmp enabled. To check the version of your compiler, in the Terminal:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">gcc --version <span class="co"># should be higher than 4.8</span></code></pre></div></li>
 <li><p>To update your computer’s compiler follow this <a href="http://gbs-cloud-tutorial.readthedocs.io/en/latest/03_computer_setup.html#update-your-computer-s-compiler">simple tutorial</a> (2-5 min)</p></li>
-<li><p>Update your <code>~/.R/Makevars</code> file, it should include these lines:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># MACOS use TextWrangler to open the file with `Show hidden items` turn ON</span>
-<span class="co"># Don't have the file ? Use sudo nano in the Terminal to create one.</span>
-CC=<span class="er">/</span>usr/local/bin/gcc
+<li><p>Update your <code>~/.R/Makevars</code> file. With MAC OSX use <a href="http://www.barebones.com/products/textwrangler/">TextWrangler</a> to open the file with <code>Show hidden items</code> turned <code>ON</code>. You should have these lines:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">CC=<span class="er">/</span>usr/local/bin/gcc
 CXX=<span class="er">/</span>usr/local/bin/g++
 FC=<span class="er">/</span>usr/local/bin/gfortran
 F77=<span class="er">/</span>usr/local/bin/gfortran
@@ -100,6 +99,10 @@ SHLIB_OPENMP_FFLAGS =<span class="st"> </span>-fopenmp
 FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15<span class="fl">.0.0</span>/<span class="fl">6.1.0</span>/finclude <span class="co"># change according to your computer compiler version</span>
 CFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 CXXFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion</code></pre></div></li>
+<li><p>You don’t have the file ? Use sudo nano in the Terminal to create one:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cd ~
+nano .R/Makevars</code></pre></div>
+<p>Copy/paste the section in step 3. Save and Exit with: <code>crt-o</code>, <code>enter</code>, <code>crt-x</code>.</p></li>
 <li><p>Download and compile randomForestSRC, from the Terminal:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cd ~<span class="er">/</span>Downloads
 curl -O https:<span class="er">//</span>cran.r-project.org/src/contrib/randomForestSRC_2<span class="fl">.2.0</span>.tar.gz

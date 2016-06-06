@@ -11,7 +11,10 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-## Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputations in parallel (time: max 10 minutes)
+## Parallel computing in R and stackr
+
+On Mac OSX using OpenMP greatly reduce the computation time for the imputations.
+To do the imputations in parallel, you need to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) (time: max 10 minutes).
 
 ### Option 1: From source (Linux & Mac OSX) [details here](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
 
@@ -23,10 +26,8 @@ gcc --version # should be higher than 4.8
 
 2. To update your computer's compiler follow this [simple tutorial](http://gbs-cloud-tutorial.readthedocs.io/en/latest/03_computer_setup.html#update-your-computer-s-compiler) (2-5 min)
 
-3. Update your `~/.R/Makevars` file, it should include these lines:
+3. Update your `~/.R/Makevars` file. With MAC OSX use [TextWrangler](http://www.barebones.com/products/textwrangler/) to open the file with `Show hidden items` turned `ON`. You should have these lines:
 ```r
-# MACOS use TextWrangler to open the file with `Show hidden items` turn ON
-# Don't have the file ? Use sudo nano in the Terminal to create one.
 CC=/usr/local/bin/gcc
 CXX=/usr/local/bin/g++
 FC=/usr/local/bin/gfortran
@@ -44,7 +45,15 @@ CFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 CXXFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 ```
 
-4. Download and compile randomForestSRC, from the Terminal:
+4. You don't have the file ? Use sudo nano in the Terminal to create one:
+```r
+cd ~
+nano .R/Makevars
+```
+Copy/paste the section in step 3. Save and Exit with: `crt-o`, `enter`, `crt-x`.
+
+
+5. Download and compile randomForestSRC, from the Terminal:
 ```r
 cd ~/Downloads
 curl -O https://cran.r-project.org/src/contrib/randomForestSRC_2.2.0.tar.gz
@@ -53,7 +62,7 @@ cd randomForestSRC
 autoconf
 ```
 
-5. Install and load randomForestSRC, from R console:
+6. Install and load randomForestSRC, from R console:
 ```r
 devtools::install_local(path = "~/Downloads/randomForestSRC")
 ```
@@ -66,5 +75,3 @@ devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomFor
 # Windows
 devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.2.0.zip")
 ```
-
-
