@@ -125,6 +125,10 @@ Default: \code{genind = FALSE}}
 a genepop file, use \code{genepop = TRUE}. 
 Default: \code{genepop = FALSE}.}
 
+\item{structure}{(optional, logical). To have the filtered data set output as 
+a structure file, use \code{structure = TRUE}. 
+Default: \code{structure = FALSE}.}
+
 \item{filename}{(optional) The name of the file written to the directory.
 No file extension at the end. Default: \code{filename = NULL}}
 

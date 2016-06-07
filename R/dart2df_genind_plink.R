@@ -130,6 +130,10 @@
 #' a genepop file, use \code{genepop = TRUE}. 
 #' Default: \code{genepop = FALSE}.
 
+#' @param structure (optional, logical). To have the filtered data set output as 
+#' a structure file, use \code{structure = TRUE}. 
+#' Default: \code{structure = FALSE}.
+
 #' @param filename (optional) The name of the file written to the directory.
 #' No file extension at the end. Default: \code{filename = NULL}
 
@@ -399,8 +403,8 @@ dart2df_genind_plink <- function(data,
   if (is.null(blacklist.id)) { # No blacklist of ID
     message("Blacklisted individuals: no")
   } else { # With blacklist of ID
-    message(stri_paste("Blacklisted individuals: yes (", length(blacklist.id$INDIVIDUALS), " ind.)"))
     blacklist.id <- read_tsv(blacklist.id, col_names = TRUE)
+    message(stri_paste("Blacklisted individuals: yes (", length(blacklist.id$INDIVIDUALS), " ind.)"))
     message("Filtering with blacklist of individuals")
     input <- suppressWarnings(anti_join(input, blacklist.id, by = "INDIVIDUALS"))
   }
@@ -1112,7 +1116,7 @@ dart2df_genind_plink <- function(data,
     arrange(MARKERS, POP_ID, INDIVIDUALS) 
   
   # Imputations **************************************************************
-  if (imputation.method != "FALSE") {
+  if (!is.null(imputation.method)) {
     message("Preparing the data for imputations")
     
     if (impute == "genotype") {
@@ -1365,14 +1369,14 @@ dart2df_genind_plink <- function(data,
     
   } # End imputations
   
-  if (imputation.method == FALSE) {
+  if (is.null(imputation.method)) {
     genind.data.imp <- "not selected"
     input.imp.df <- "not selected"
   }
   
   
   # PLINK ------------------------------------------------------------------------
-  if (plink == TRUE) {
+  if (plink) {
     message("Generating the PLINK tped and tfam files")
     tped <- input %>% 
       arrange(INDIVIDUALS) %>% 
@@ -1410,7 +1414,7 @@ dart2df_genind_plink <- function(data,
     write_delim(x = tped, path = stri_paste(filename, ".tped", sep = ""), col_names = FALSE, delim = " ")
     write_delim(x = tfam, path = stri_paste(filename, ".tfam", sep = ""), col_names = FALSE, delim = " ")
     
-    if (imputation.method != "FALSE") {
+    if (!is.null(imputation.method)) {
       message("Generating the PLINK tped and tfam files: with imputations")
       tped <- input.imp %>% 
         arrange(INDIVIDUALS) %>% 
@@ -1450,14 +1454,13 @@ dart2df_genind_plink <- function(data,
     } # end plink imputed
     
     
+  } else {
+    message("PLINK output not selected")
   } # end plink
   
-  if (is.null(plink)) {
-    message("PLINK output not selected")
-  }
   
-  # genind object for adegenet ---------------------------------------------------
-  if (genind == TRUE) {
+  # genind object for adegenet -------------------------------------------------
+  if (genind) {
     message("Generating the adegenet genind object")
     genind.prep <- input %>%
       select(MARKERS, INDIVIDUALS, POP_ID, GT, REF, ALT) %>% 
@@ -1504,7 +1507,7 @@ dart2df_genind_plink <- function(data,
     prevcall <- match.call()
     genind.data <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = ~POP_ID/INDIVIDUALS)
     
-    if (imputation.method != FALSE) {
+    if (!is.null(imputation.method)) {
       message("Generating the adegenet genind object: with imputations")
       genind.prep.imp <- input.imp %>%
         select(MARKERS, INDIVIDUALS, POP_ID, GT, REF, ALT) %>% 
@@ -1552,14 +1555,15 @@ dart2df_genind_plink <- function(data,
       genind.data.imp <- adegenet::genind(tab = genind.df.imp, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = ~POP_ID/INDIVIDUALS)
     } # end genind imp
     
-  } # end genind
-  
-  if (is.null(genind)) {
+  } else {
     genind.data <- "not selected"
     genind.data.imp <- "not selected"
-  }
+    
+  } # end genind
   
-  if (genepop == TRUE) {
+  # genepop --------------------------------------------------------------------
+  
+  if (genepop) {
     message("Generating the genepop file")
     genepop.prep <- input %>% 
       select(POP_ID, INDIVIDUALS, MARKERS, GT, REF, ALT) %>% 
@@ -1573,7 +1577,8 @@ dart2df_genind_plink <- function(data,
       select(-c(GT, REF, ALT))
     stackr::write_genepop(data = genepop.prep, genepop.header = "stackr::dart2df_genind_plink: no imputations", markers.line.format = "line", filename = stri_paste(filename, ".gen", sep = ""))
     genepop.prep <- NULL
-    if (imputation.method != FALSE) {
+    
+    if (!is.null(imputation.method)) {
       message("Generating the genepop file: with imputations")
       genepop.prep.imp <- input.imp %>% 
         select(POP_ID, INDIVIDUALS, MARKERS, GT, REF, ALT) %>% 
@@ -1585,11 +1590,52 @@ dart2df_genind_plink <- function(data,
                                    ifelse(GT == "REF_ALT",  stri_join(REF, ALT, sep = ""), "000000")))
         ) %>% 
         select(-c(GT, REF, ALT))
+      
       stackr::write_genepop(data = genepop.prep.imp, genepop.header = "stackr::dart2df_genind_plink: imputed data", markers.line.format = "line", filename = stri_paste(filename, "_imputed.gen", sep = ""))
+      
       genepop.prep.imp <- NULL
     }
   } else {
     message("genepop output not selected")
+  }
+  
+  # STRUCTURE --------------------------------------------------------------------
+  
+  if (structure) {
+    message("Generating the structure file")
+    structure.prep <- input %>% 
+      select(POP_ID, INDIVIDUALS, MARKERS, GT, REF, ALT) %>% 
+      mutate(
+        REF = stri_pad_left(REF, width = 3, pad = "0"),
+        ALT = stri_pad_left(ALT, width = 3, pad = "0"),
+        GENOTYPE = ifelse(GT == "REF_REF", stri_join(REF, REF, sep = ""),
+                          ifelse(GT == "ALT_ALT",  stri_join(ALT, ALT, sep = ""), 
+                                 ifelse(GT == "REF_ALT",  stri_join(REF, ALT, sep = ""), "000000")))
+      ) %>% 
+      select(-c(GT, REF, ALT))
+    
+    stackr::write_structure(data = structure.prep, markers.line = TRUE, filename = stri_paste(filename, ".str", sep = ""))
+    
+    structure.prep <- NULL
+    
+    if (!is.null(imputation.method)) {
+      message("Generating the genepop file: with imputations")
+      structure.prep.imp <- input.imp %>% 
+        select(POP_ID, INDIVIDUALS, MARKERS, GT, REF, ALT) %>% 
+        mutate(
+          REF = stri_pad_left(REF, width = 3, pad = "0"),
+          ALT = stri_pad_left(ALT, width = 3, pad = "0"),
+          GENOTYPE = ifelse(GT == "REF_REF", stri_join(REF, REF, sep = ""),
+                            ifelse(GT == "ALT_ALT",  stri_join(ALT, ALT, sep = ""), 
+                                   ifelse(GT == "REF_ALT",  stri_join(REF, ALT, sep = ""), "000000")))
+        ) %>% 
+        select(-c(GT, REF, ALT))
+      
+      stackr::write_structure(data = structure.prep.imp, markers.line = TRUE, filename = stri_paste(filename, "_imputed.str", sep = ""))
+      structure.prep.imp <- NULL
+    }
+  } else {
+    message("structure output not selected")
   }
   
   # Results ----------------------------------------------------------------------
@@ -1604,6 +1650,8 @@ dart2df_genind_plink <- function(data,
   res$plot.reproducibility <- reproducibility.plot
   res$plot.coverage <- coverage.plot
   res$plot.call.rate <- call.rate.plot
+  res$plot.ind.missing.geno <- plot.ind.missing.geno
+  res$plot.markers.missing.ind <- plot.markers.missing.ind
   res$plot.number.snp.reads <- number.snp.reads.plot
   res$maf.data <- maf.data
   res$whitelist.markers <- whitelist.markers
