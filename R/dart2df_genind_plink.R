@@ -62,6 +62,24 @@
 #' @param plot.call.rate (optional, logical) Plot the distribution 
 #' (violin plot) of call rate. Default: \code{plot.call.rate = FALSE}.
 
+#' @param filter.ind.missing.geno (optional, numerical) Filter with the individual's
+#' proportion of missing genotype. Similar to call rate.
+#' e.g to keep individuals genotyped at >= 0.90 of the markers, use:
+#' \code{filter.ind.missing.geno = 0.90}.
+#' Default: \code{filter.ind.missing.geno = NULL}.
+#' @param plot.ind.missing.geno (optional, logical) Plot the distribution 
+#' (violin plot) of an individual's genotype proportion. 
+#' Default: \code{plot.ind.missing.geno = FALSE}.
+
+#' @param filter.markers.missing.ind (optional, numerical) Filter markers based 
+#' on the proportion of individuals genotyped.
+#' e.g to keep markers with >= 0.95 of the genotyped individuals, use:
+#' \code{filter.markers.missing.ind = 0.95}.
+#' Default: \code{filter.markers.missing.ind = NULL}.
+#' @param plot.markers.missing.ind (optional, logical) Plot the distribution 
+#' (violin plot) of markers genotype individuals proportion. 
+#' Default: \code{plot.markers.missing.ind = FALSE}.
+
 #' @param filter.snp.ld (optional, character) With anonymous markers from
 #' reduce representation library like RADseq/GBS/DArT de novo discovery, 
 #' you can explore the impact of the number of snp on the read (haplotype/locus).
@@ -76,6 +94,13 @@
 #' Default: \code{snp.ld = NULL}.
 #' Note: for long linkage detection use PLINK linkage disequilibrium based SNP 
 #' pruning.
+
+#' @param plot.number.snp.reads (optional, logical) Plot the distribution of SNP
+#' per reads. 
+#' Default: \code{plot.number.snp.reads = FALSE}.
+
+
+
 
 #' @param maf.thresholds (string, double, optional) String with 
 #' local/populations and global/overall maf thresholds, respectively.
@@ -177,7 +202,7 @@ if (getRversion() >= "2.15.1") {
     c("ID", "CloneID", "SnpPosition", "CallRate", "AvgCountRef", "AvgCountSnp", 
       "RepAvg", "NOT_USEFUL", "SNP", "CALL_RATE", "AVG_COUNT_REF", 
       "AVG_COUNT_SNP", "REP_AVG", "NEW_ID", "SNP_N", "ALLELE_NAME", "ALLELE_NUMBER",
-      "ALLELES_COUNT", "GENOTYPED_PROP"
+      "ALLELES_COUNT", "GENOTYPED_PROP", "MISSING_IND_PROP"
     )
   )
 }
@@ -208,6 +233,7 @@ dart2df_genind_plink <- function(data,
                                  plink = FALSE,
                                  genind = FALSE,
                                  genepop = FALSE,
+                                 structure = FALSE,
                                  filename = NULL,
                                  imputation.method = NULL,
                                  impute = "genotypes",
@@ -226,43 +252,6 @@ dart2df_genind_plink <- function(data,
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file missing")
   if (missing(strata)) stop("strata file missing")
-  # if (missing(pop.levels)) pop.levels <- NULL
-  # if (missing(pop.select)) pop.select <- NULL
-  # if (missing(filter.monomorphic)) filter.monomorphic <- TRUE
-  # if (missing(common.markers)) common.markers <- TRUE
-  # if (missing(filter.reproducibility)) filter.reproducibility <- NULL
-  # if (missing(plot.reproducibility)) plot.reproducibility <- NULL
-  # if (missing(filter.coverage.high)) filter.coverage.high <- NULL
-  # if (missing(filter.coverage.low)) filter.coverage.low <- NULL
-  # if (missing(plot.coverage)) plot.coverage <- NULL
-  # if (missing(filter.call.rate)) filter.call.rate <- NULL
-  # if (missing(plot.call.rate)) plot.call.rate <- NULL
-  # if (missing(filter.snp.ld)) filter.snp.ld <- NULL
-  # if (missing(plot.number.snp.reads)) plot.number.snp.reads <- NULL
-  # if (missing(maf.thresholds)) maf.thresholds <- NULL
-  # if (missing(maf.pop.num.threshold)) maf.pop.num.threshold <- 1
-  # if (missing(maf.operator)) maf.operator <- "OR"
-  # if (missing(plink)) plink <- NULL
-  # if (missing(genind)) genind <- NULL
-  # if (missing(genepop)) genepop <- NULL
-  # if (missing(filename)) filename <- NULL
-  # if (missing(imputation.method)) imputation.method <- FALSE
-  # if (missing(imputations.group)) imputations.group <- "populations"
-  # if (imputation.method != FALSE & missing(impute)) stop("impute argument is necessary")
-  # if (imputation.method == FALSE & missing(impute)) impute <- NULL
-  # if (missing(num.tree)) num.tree <- 100
-  # if (missing(iteration.rf)) iteration.rf <- 10
-  # if (missing(split.number)) split.number <- 100
-  # if (missing(verbose)) verbose <- FALSE
-  # if (missing(parallel.core) | is.null(parallel.core)) parallel.core <- detectCores()-1
-  # if (filter.monomorphic == FALSE) filter.monomorphic <- NULL
-  # if (common.markers == FALSE) common.markers <- NULL
-  # if (plink == FALSE) plink <- NULL
-  # if (genind == FALSE) genind <- NULL
-  # if (plot.reproducibility == FALSE) plot.reproducibility <- NULL
-  # if (plot.coverage == FALSE) plot.coverage <- NULL
-  # if (plot.call.rate == FALSE) plot.call.rate <- NULL
-  # if (plot.number.snp.reads == FALSE) plot.number.snp.reads <- NULL
   
   # Filename ------------------------------------------------------------------
   # Create a folder based on filename to save the output files *****************
@@ -410,12 +399,12 @@ dart2df_genind_plink <- function(data,
   if (is.null(blacklist.id)) { # No blacklist of ID
     message("Blacklisted individuals: no")
   } else { # With blacklist of ID
-    message("Blacklisted individuals: yes")
+    message(stri_paste("Blacklisted individuals: yes (", length(blacklist.id$INDIVIDUALS), " ind.)"))
     blacklist.id <- read_tsv(blacklist.id, col_names = TRUE)
     message("Filtering with blacklist of individuals")
     input <- suppressWarnings(anti_join(input, blacklist.id, by = "INDIVIDUALS"))
   }
-
+  
   # pop.select ------------------------------------------------------------------
   if (!is.null(pop.select)) {
     message(stri_join(length(pop.select), "population(s) selected", sep = " "))
@@ -717,48 +706,58 @@ dart2df_genind_plink <- function(data,
       facet_grid(~GROUP)
   }
   
-  # Filtering for missing genotype per individuals -----------------------------
+  # Filtering genotyped individuals --------------------------------------------
   # filter.ind.missing.geno = NULL,
   # plot.ind.missing.geno = FALSE,
   
-  # if (!is.null(filter.ind.missing.geno)) {
-    filter.ind.missing.geno <- 0.8
-    filter <- input %>% 
+  if (!is.null(filter.ind.missing.geno)) {
+    # filter.ind.missing.geno <- 0.90 # test
+    
+    # Create a new df with genotyped prop.
+    ind.geno.prop <- input %>% 
       group_by(INDIVIDUALS) %>% 
       summarise(
         GENOTYPED_PROP = length(GT[GT != "0_0"])/length(GT)
-      ) %>% 
+      )
+    
+    # merge with dataset
+    input <- input %>% 
+      full_join(ind.geno.prop, by = "INDIVIDUALS")
+    
+    # filter
+    filter <- input %>% 
       filter(GENOTYPED_PROP >= filter.ind.missing.geno)
     
-
-    whitelist.filter <- filter %>% select(MARKERS, LOCUS, POS) %>% distinct(MARKERS, LOCUS, POS)
     
-    blacklist.call.rate <- input %>% 
-      select(MARKERS, LOCUS, POS) %>% 
-      distinct(MARKERS, LOCUS, POS) %>%
-      filter(!MARKERS %in% whitelist.filter$MARKERS)
+    whitelist.filter <- filter %>% select(INDIVIDUALS) %>% distinct(INDIVIDUALS)
     
-    message(stri_paste("Filter call rate: ", n_distinct(input$MARKERS) - n_distinct(filter$MARKERS), " markers deleted"))
-    if (length(blacklist.call.rate$MARKERS > 0)) {
-      write_tsv(x = blacklist.call.rate, path = "blacklist.call.rate.tsv", col_names = TRUE)
+    blacklist.ind.missing.geno <- input %>% 
+      select(INDIVIDUALS) %>% 
+      distinct(INDIVIDUALS) %>% 
+      filter(!INDIVIDUALS %in% whitelist.filter$INDIVIDUALS)
+    
+    message(stri_paste("Filter individuals with less than ", filter.ind.missing.geno, " missing genotype prop: ", n_distinct(input$INDIVIDUALS) - n_distinct(filter$INDIVIDUALS), " individuals removed"))
+    if (length(blacklist.ind.missing.geno$INDIVIDUALS > 0)) {
+      write_tsv(x = blacklist.ind.missing.geno, path = "blacklist.ind.missing.geno.tsv", col_names = TRUE)
     }
-    if (!is.null(plot.call.rate)) {
+    
+    if (!is.null(plot.ind.missing.geno)) {
       data.combined <- bind_rows(
         data.before <- input %>% 
-          select(POP_ID, INDIVIDUALS, CALL_RATE) %>% 
+          select(POP_ID, INDIVIDUALS, GENOTYPED_PROP) %>% 
           mutate(GROUP = rep("before", n())),
         data.after <- filter %>% 
-          select(POP_ID, INDIVIDUALS, CALL_RATE) %>% 
+          select(POP_ID, INDIVIDUALS, GENOTYPED_PROP) %>% 
           mutate(GROUP = rep("after", n()))
       ) %>% 
         mutate(GROUP = factor(GROUP, levels = c("before", "after"), ordered = TRUE))
       
-      call.rate.plot <- ggplot(data.combined, aes(x = factor(POP_ID), y = CALL_RATE, na.rm = TRUE))+
+      ind.missing.geno.plot <- ggplot(data.combined, aes(x = factor(POP_ID), y = GENOTYPED_PROP, na.rm = TRUE))+
         geom_violin(trim = TRUE)+
         geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
         stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
         labs(x = "Sampling sites")+
-        labs(y = "Markers call rate")+
+        labs(y = "Individual's genotyped proportion")+
         theme(
           legend.position = "none",
           axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
@@ -769,21 +768,116 @@ dart2df_genind_plink <- function(data,
           strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
         )+
         facet_grid(~GROUP)
-      
-      
+    }
+    
+    if(is.null(plot.ind.missing.geno)) {
+      plot.ind.missing.geno <- "not selected"
+    }
+    input <- filter
   }
   
   if (is.null(filter.call.rate) & !is.null(plot.call.rate)) {
     data.combined <- input %>% 
-      select(POP_ID, INDIVIDUALS, CALL_RATE) %>% 
+      select(POP_ID, INDIVIDUALS, GENOTYPED_PROP) %>% 
       mutate(GROUP = rep("before filter", n()))
     
-    call.rate.plot <- ggplot(data.combined, aes(x = factor(POP_ID), y = CALL_RATE, na.rm = TRUE))+
+    call.rate.plot <- ggplot(data.combined, aes(x = factor(POP_ID), y = GENOTYPED_PROP, na.rm = TRUE))+
       geom_violin(trim = TRUE)+
       geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
       stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
       labs(x = "Sampling sites")+
-      labs(y = "Markers call rate before filter")+
+      labs(y = "Individual's genotyped proportion")+
+      theme(
+        legend.position = "none",
+        axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
+        axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
+        axis.text.x = element_text(size = 8, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5), 
+        legend.title = element_text(size = 10, family = "Helvetica", face = "bold"),
+        legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
+        strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+      )+
+      facet_grid(~GROUP)
+  }
+  
+  # Filtering filter.markers.missing.ind  -------------------------------------------
+  # filter.markers.missing.ind = NULL,
+  # plot.markers.missing.ind = FALSE,
+  if (!is.null(filter.markers.missing.ind)) {
+    # filter.markers.missing.ind <- 0.95 # test
+    
+    # Create a new df with marker.missing.ind prop.
+    marker.missing.ind.prop <- input %>% 
+      group_by(MARKERS) %>% 
+      summarise(
+        MISSING_IND_PROP = length(GT[GT != "0_0"])/length(GT)
+      )
+    
+    # merge with dataset
+    input <- input %>% 
+      full_join(marker.missing.ind.prop, by = "MARKERS")
+    
+    # filter
+    filter <- input %>% 
+      filter(MISSING_IND_PROP >= filter.markers.missing.ind)
+    
+    whitelist.filter <- filter %>% select(MARKERS) %>% distinct(MARKERS)
+    
+    blacklist.marker.missing.ind.prop <- input %>% 
+      select(MARKERS) %>% 
+      distinct(MARKERS) %>% 
+      filter(!MARKERS %in% whitelist.filter$MARKERS)
+    
+    message(stri_paste("Filter markers with less than ", filter.markers.missing.ind, " missing genotype ind: ", n_distinct(input$MARKERS) - n_distinct(filter$MARKERS), " markers removed"))
+    if (length(blacklist.marker.missing.ind.prop$MARKERS > 0)) {
+      write_tsv(x = blacklist.marker.missing.ind.prop, path = "blacklist.marker.missing.ind.tsv", col_names = TRUE)
+    }
+    
+    if (!is.null(plot.markers.missing.ind)) {
+      data.combined <- bind_rows(
+        data.before <- input %>% 
+          select(POP_ID, MARKERS, MISSING_IND_PROP) %>% 
+          mutate(GROUP = rep("before", n())),
+        data.after <- filter %>% 
+          select(POP_ID, MARKERS, MISSING_IND_PROP) %>% 
+          mutate(GROUP = rep("after", n()))
+      ) %>% 
+        mutate(GROUP = factor(GROUP, levels = c("before", "after"), ordered = TRUE))
+      
+      markers.missing.ind.plot <- ggplot(data.combined, aes(x = factor(POP_ID), y = MISSING_IND_PROP, na.rm = TRUE))+
+        geom_violin(trim = TRUE)+
+        geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
+        stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
+        labs(x = "Sampling sites")+
+        labs(y = "Marker's genotyped proportion")+
+        theme(
+          legend.position = "none",
+          axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
+          axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
+          axis.text.x = element_text(size = 8, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5), 
+          legend.title = element_text(size = 10, family = "Helvetica", face = "bold"),
+          legend.text = element_text(size = 10, family = "Helvetica", face = "bold"),
+          strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+        )+
+        facet_grid(~GROUP)
+    }
+    
+    if(is.null(plot.markers.missing.ind)) {
+      plot.markers.missing.ind <- "not selected"
+    }
+    input <- filter
+  }
+  
+  if (is.null(filter.markers.missing.ind) & !is.null(plot.markers.missing.ind)) {
+    data.combined <- input %>% 
+      select(POP_ID, MARKERS, MISSING_IND_PROP) %>% 
+      mutate(GROUP = rep("before filter", n()))
+    
+    markers.missing.ind.plot <- ggplot(data.combined, aes(x = factor(POP_ID), y = MISSING_IND_PROP, na.rm = TRUE))+
+      geom_violin(trim = TRUE)+
+      geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
+      stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
+      labs(x = "Sampling sites")+
+      labs(y = "Marker's genotyped proportion")+
       theme(
         legend.position = "none",
         axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
@@ -1392,7 +1486,7 @@ dart2df_genind_plink <- function(data,
         POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
       ) %>% 
       arrange(POP_ID, INDIVIDUALS)
-      
+    
     # genind arguments common to all data.type
     ind <- genind.prep$INDIVIDUALS
     pop <- genind.prep$POP_ID
