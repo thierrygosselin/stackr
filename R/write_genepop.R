@@ -2,7 +2,11 @@
 
 #' @name write_genepop
 #' @title Used internally in stackr to write a genepop file from a tidy data frame
-#' @description Write a genepop file from a tidy data frame
+#' @description Write a genepop file from a tidy data frame.
+#' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
+#' and \href{https://github.com/thierrygosselin/assigner}{assigner}
+#' and might be of interest for users.
+#' 
 #' @param data A file or object in the global environment containing at least 
 #' these 4 columns: 
 #' \code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals.), 
@@ -22,7 +26,7 @@
 #' Default: \code{markers.line.format = "line"}.
 #' @param filename The name of the file written to the working directory.
 #' Use the extension ".gen" at the end. 
-#' Default: \code{filename = "genepop.gen"}.
+#' Default: \code{filename = "stackr_genepop.gen"}.
 #' @param ... other parameters passed to the function.
 #' @return A genepop file is saved to the working directory. 
 #' @details Details for the sep argument
@@ -52,18 +56,21 @@
 # }
 
 
-write_genepop <- function(data, sep, pop.levels, genepop.header, markers.line.format, filename, ...) {
+write_genepop <- function(
+  data,
+  sep = NULL, 
+  pop.levels = NULL, 
+  genepop.header = "my firt genepop", 
+  markers.line.format = "line", 
+  filename = "stackr_genepop.gen",
+  ...
+  ) {
   
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file necessary to write the genepop file is missing")
-  if (missing(sep)) sep <- NULL
-  if (missing(pop.levels)) pop.levels <- NULL
-  if (missing(genepop.header)) genepop.header <- "my firt genepop"
-  if (missing(markers.line.format)) markers.line.format <- "line"
-  if (missing(filename)) filename <- "genepop.gen"
-  
+
   # Import data ---------------------------------------------------------------
-  if (is.vector(data) == TRUE) {
+  if (is.vector(data)) {
     input <- data.table::fread(
       input = data,
       sep = "\t",
@@ -119,4 +126,4 @@ write_genepop <- function(data, sep, pop.levels, genepop.header, markers.line.fo
     write_delim(x = as.data.frame("pop"), path = filename, delim = "\n", append = TRUE, col_names = FALSE)
     write_delim(x = input[[i]], path = filename, delim = " ", append = TRUE, col_names = FALSE)
   }
-}
+}# End write_genepop
