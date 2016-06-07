@@ -189,7 +189,9 @@ The data frame are accessed form the list with `$`.
 }
 \description{
 This function will create a \code{dadi} SNP input file using a
-VCF file (Danecek et al. 2011) or an imputed vcf file see \code{\link[stackr]{vcf_imputation}}. 
+VCF file (Danecek et al. 2011). Missing data can bias demographic inference, 
+`vcf2dadi` was created to address this problem, providing a customizable 
+imputation framework specifically designed to work with GBS/RAD data.
 If your VCF is not filtered, you can supply the function a whitelist of loci and a 
 blacklist of individuals.
 }

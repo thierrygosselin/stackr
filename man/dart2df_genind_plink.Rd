@@ -59,6 +59,26 @@ markers genotyped in more than 95% of the individuals use :
 \item{plot.call.rate}{(optional, logical) Plot the distribution 
 (violin plot) of call rate. Default: \code{plot.call.rate = FALSE}.}
 
+\item{filter.ind.missing.geno}{(optional, numerical) Filter with the individual's
+proportion of missing genotype. Similar to call rate.
+e.g to keep individuals genotyped at >= 0.90 of the markers, use:
+\code{filter.ind.missing.geno = 0.90}.
+Default: \code{filter.ind.missing.geno = NULL}.}
+
+\item{plot.ind.missing.geno}{(optional, logical) Plot the distribution 
+(violin plot) of an individual's genotype proportion. 
+Default: \code{plot.ind.missing.geno = FALSE}.}
+
+\item{filter.markers.missing.ind}{(optional, numerical) Filter markers based 
+on the proportion of individuals genotyped.
+e.g to keep markers with >= 0.95 of the genotyped individuals, use:
+\code{filter.markers.missing.ind = 0.95}.
+Default: \code{filter.markers.missing.ind = NULL}.}
+
+\item{plot.markers.missing.ind}{(optional, logical) Plot the distribution 
+(violin plot) of markers genotype individuals proportion. 
+Default: \code{plot.markers.missing.ind = FALSE}.}
+
 \item{filter.snp.ld}{(optional, character) With anonymous markers from
 reduce representation library like RADseq/GBS/DArT de novo discovery, 
 you can explore the impact of the number of snp on the read (haplotype/locus).
@@ -73,6 +93,10 @@ by choosing among these options:
 Default: \code{snp.ld = NULL}.
 Note: for long linkage detection use PLINK linkage disequilibrium based SNP 
 pruning.}
+
+\item{plot.number.snp.reads}{(optional, logical) Plot the distribution of SNP
+per reads. 
+Default: \code{plot.number.snp.reads = FALSE}.}
 
 \item{maf.thresholds}{(string, double, optional) String with 
 local/populations and global/overall maf thresholds, respectively.

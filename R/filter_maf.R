@@ -143,7 +143,7 @@
 #' @import stringi
 #' @import dplyr
 #' @import readr
-#' @importFrom feather write_feather
+# @importFrom feather write_feather
 
 #' @details To help choose a threshold for the local and global MAF, look
 #' at the function \link{diagnostic_maf}, or use the interactive version.

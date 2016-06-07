@@ -6,11 +6,10 @@
 \usage{
 filter_maf(data, interactive.filter = TRUE, maf.approach = "SNP",
   maf.thresholds, maf.operator = "OR", maf.pop.num.threshold = 1,
-  filename = NULL, save.feather = NULL, blacklist.id = NULL,
-  blacklist.genotype = NULL, whitelist.markers = NULL,
-  monomorphic.out = TRUE, max.marker = NULL, snp.ld = NULL,
-  common.markers = NULL, strata = NULL, pop.levels = NULL,
-  pop.labels = NULL, pop.select = NULL)
+  filename = NULL, blacklist.id = NULL, blacklist.genotype = NULL,
+  whitelist.markers = NULL, monomorphic.out = TRUE, max.marker = NULL,
+  snp.ld = NULL, common.markers = NULL, strata = NULL,
+  pop.levels = NULL, pop.labels = NULL, pop.select = NULL)
 }
 \arguments{
 \item{data}{6 options: vcf, plink, genind, genepop, 
@@ -53,10 +52,6 @@ Default: \code{maf.pop.num.threshold = 1}}
 \item{filename}{(optional) Name of the filtered tidy data frame file 
 written to the working directory (ending with \code{.tsv})
 Default: \code{filename = NULL}.}
-
-\item{save.feather}{(optional) Use the package 
-\href{https://github.com/wesm/feather}{feather} to save the data frame (very fast).
-Default: \code{save.feather = NULL}.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
 a column header 'INDIVIDUALS'. The blacklist is in the working directory
