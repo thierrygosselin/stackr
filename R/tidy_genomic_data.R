@@ -268,8 +268,8 @@
 # required to pass the R CMD check and have 'no visible binding for global variable'
 if (getRversion() >= "2.15.1") {
   utils::globalVariables(
-    c("DP", "AD", "vcf.headers", "GT_VCF", "INDIVIDUALS2", ""
-    )
+    c("DP", "AD", "vcf.headers", "GT_VCF", "INDIVIDUALS2", "ALLELE_REF_DEPTH",
+      "ALLELE_ALT_DEPTH")
   )
 }
 
