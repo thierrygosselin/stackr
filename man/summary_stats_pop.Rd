@@ -7,7 +7,7 @@
 summary_stats_pop(data, filename)
 }
 \arguments{
-\item{data}{The tidy VCF file created with read_stacks_vcf.}
+\item{data}{The tidy VCF file created with tidy_genomic_data.}
 
 \item{filename}{(optional) Name of the file written to the working directory.}
 }

@@ -32,6 +32,6 @@ Save the figure with : \code{ggsave("figure name.pdf", width = 40, height = 20, 
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
 \seealso{
-\link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+\link{tidy_genomic_data} and  \link{summary_stats_vcf_tidy}
 }
 

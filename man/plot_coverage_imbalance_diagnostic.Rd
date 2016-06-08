@@ -8,7 +8,7 @@ plot_coverage_imbalance_diagnostic(tidy.vcf.file, pop.levels,
   read.depth.threshold, aes.colour, adjust.bin)
 }
 \arguments{
-\item{tidy.vcf.file}{The tidy VCF file created with read_stacks_vcf.}
+\item{tidy.vcf.file}{The tidy VCF file created with tidy_genomic_data.}
 
 \item{pop.levels}{Character string defining your ordered populations.}
 

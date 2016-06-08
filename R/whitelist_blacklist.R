@@ -20,7 +20,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("LOCUS","POS", "CHROM"))
 #' @import dplyr
 #' @import readr
 #' @importFrom utils write.table
-#' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+#' @seealso \link{tidy_genomic_data} and  \link{summary_stats_vcf_tidy}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 whitelist_loci <- function(data, filename, col.header) {
@@ -62,7 +62,7 @@ filename, getwd()
 #' @import dplyr
 #' @import readr
 #' @importFrom utils write.table
-#' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+#' @seealso \link{tidy_genomic_data} and  \link{summary_stats_vcf_tidy}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 whitelist_loci_snp <- function(data, filename, col.header) {
@@ -106,7 +106,7 @@ filename, getwd()
 #' @import dplyr
 #' @import readr
 #' @importFrom utils write.table
-#' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+#' @seealso \link{tidy_genomic_data} and  \link{summary_stats_vcf_tidy}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 whitelist_snp_vcf <- function(data, filename) {

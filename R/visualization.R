@@ -77,7 +77,7 @@ plot_boxplot_coverage <- function(data) {
 #' and skewed towards the REF or ALT alleles. 
 #' Thw density distribution figure of coverage imbalance between REF and ALT
 #' alleles will highlight the problem in you data.
-#' @param tidy.vcf.file The tidy VCF file created with read_stacks_vcf.
+#' @param tidy.vcf.file The tidy VCF file created with tidy_genomic_data.
 #' @param pop.levels Character string defining your ordered populations.
 #' @param read.depth.threshold Define the threshold you wish to analyse.
 #' @param aes.colour GGPLOT2 aesthetics, 
@@ -251,7 +251,7 @@ plot_boxplot_genotype_likelihood <- function(data) {
 #' @details turn off the legend using \code{fig + theme(legend.position = "none")} or
 #' zoom in a section with 'fig + coord_cartesian(xlim = c(0, 0.1), ylim = c(0, 1))'.
 #' Save the figure with : \code{ggsave("figure name.pdf", width = 40, height = 20, dpi = 600, units = "cm", useDingbats = F)}.
-#' @seealso \link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+#' @seealso \link{tidy_genomic_data} and  \link{summary_stats_vcf_tidy}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 plot_density_distribution_maf <- function(data, maf.group, aes.colour = aes(y = ..scaled.., color = POP_ID), adjust.bin = 1, x.title) {

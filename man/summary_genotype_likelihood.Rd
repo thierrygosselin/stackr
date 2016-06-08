@@ -8,7 +8,7 @@ summary_genotype_likelihood(tidy.vcf, pop.levels, approach, folder)
 }
 \arguments{
 \item{tidy.vcf}{A tidy vcf object or file (using ".tsv"), 
-created with read_stacks_vcf.}
+created with tidy_genomic_data.}
 
 \item{pop.levels}{(optional) Character string defining your ordered populations.}
 
@@ -31,7 +31,7 @@ working directory.
 This function create 3 summary tables with 
 genotype likelihood statistics. Individuals, populations and markers information is provided.
 The input data is a tidy vcf created.
-with \link{read_stacks_vcf}.
+with \link{tidy_genomic_data}.
 }
 \details{
 The table contains summary statistics: mean, median, min, max and 

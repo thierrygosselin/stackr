@@ -8,7 +8,7 @@ summary_coverage(tidy.vcf, pop.levels, filename)
 }
 \arguments{
 \item{tidy.vcf}{A tidy vcf object or file (using ".tsv"), 
-created with read_stacks_vcf.}
+created with tidy_genomic_data.}
 
 \item{pop.levels}{Character string defining your ordered populations.}
 
@@ -22,7 +22,7 @@ is written to the working directory.
 }
 \description{
 This function create a table summary of the important
-coverage statistics from the tidy vcf created with read_stacks_vcf.
+coverage statistics from the tidy vcf created with tidy_genomic_data.
 }
 \details{
 The tables contains summary statistics (mean, median, min, max)

@@ -20,6 +20,6 @@ With 2 columns (CHROM and POS).
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
 \seealso{
-\link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+\link{tidy_genomic_data} and  \link{summary_stats_vcf_tidy}
 }
 

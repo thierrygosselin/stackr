@@ -22,6 +22,6 @@ to keep track of the loci kept by a filter.
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
 \seealso{
-\link{read_stacks_vcf} and  \link{summary_stats_vcf_tidy}
+\link{tidy_genomic_data} and  \link{summary_stats_vcf_tidy}
 }
 

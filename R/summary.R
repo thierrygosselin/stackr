@@ -734,7 +734,7 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 #' with STACKS GBS/RAD loci = read or de novo haplotypes, 
 #' is included and repeated over SNP.
 #' @param filename (optional) Name of the file written to the working directory.
-#' @param data The tidy VCF file created with \link{read_stacks_vcf}.
+#' @param data The tidy VCF file created with \link{tidy_genomic_data}.
 #' @rdname summary_stats_vcf_tidy
 #' @export
 
@@ -807,7 +807,7 @@ summary_stats_vcf_tidy <- function(data, filename) {
 #' with STACKS GBS/RAD loci = read or de novo haplotypes, 
 #' is included and repeated over SNP.
 #' @param filename (optional) Name of the file written to the working directory.
-#' @param data The tidy VCF file created with read_stacks_vcf.
+#' @param data The tidy VCF file created with tidy_genomic_data.
 #' @rdname summary_stats_pop
 #' @export
 
@@ -854,9 +854,9 @@ summary_stats_pop <- function(data, filename) {
 ## Coverage
 #' @title Coverage summary
 #' @description This function create a table summary of the important
-#' coverage statistics from the tidy vcf created with read_stacks_vcf.
+#' coverage statistics from the tidy vcf created with tidy_genomic_data.
 #' @param tidy.vcf A tidy vcf object or file (using ".tsv"), 
-#' created with read_stacks_vcf.
+#' created with tidy_genomic_data.
 #' @param pop.levels Character string defining your ordered populations.
 #' @param filename Name of the file saved to the working directory.
 #' @details The tables contains summary statistics (mean, median, min, max)
@@ -988,7 +988,7 @@ summary_coverage <- function (tidy.vcf, pop.levels, filename) {
 #' below a user-define threshold.
 #' coverage statistics by populations.
 #' @param tidy.vcf A tidy vcf object or file (using ".tsv"), 
-#' created with read_stacks_vcf.
+#' created with tidy_genomic_data.
 #' @param pop.levels Character string defining your ordered populations.
 #' @param read.depth.threshold The read depth threshold to evaluate.
 #' @param filename.low.coverage Filename of the low coverage table written
@@ -1113,9 +1113,9 @@ Written in the directory:
 #' @description This function create 3 summary tables with 
 #' genotype likelihood statistics. Individuals, populations and markers information is provided.
 #' The input data is a tidy vcf created.
-#' with \link{read_stacks_vcf}.
+#' with \link{tidy_genomic_data}.
 #' @param tidy.vcf A tidy vcf object or file (using ".tsv"), 
-#' created with read_stacks_vcf.
+#' created with tidy_genomic_data.
 #' @param pop.levels (optional) Character string defining your ordered populations.
 #' @param approach Character. By \code{"SNP"} or by \code{"haplotype"}. 
 #' The function will consider the SNP or haplotype GL statistics to filter the marker. 
