@@ -9,11 +9,8 @@ write_genepop(data, sep = NULL, pop.levels = NULL,
   filename = "stackr_genepop.gen", ...)
 }
 \arguments{
-\item{data}{A file or object in the global environment containing at least 
-these 4 columns: 
-\code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals.), 
-\code{MARKERS} and \code{GENOTYPES} in a tidy format. During import, 
-only those columns names will be kept.}
+\item{data}{A file in the working directory or object in the global environment 
+in wide or long (tidy) formats. See details for more info.}
 
 \item{sep}{(optional) A character string separating alleles. 
 Default: \code{sep = NULL}.}
@@ -47,10 +44,38 @@ and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.
 }
 \details{
-Details for the sep argument
+\strong{Details for the sep argument}
 This character is directly used in regular expressions using strigi. 
 Some characters need to be preceeded by double backslashes \code{\\}. 
 For instance, "/" works but "|" must be coded as "\\|".
+
+
+\strong{Details for Input data:}
+ 
+To discriminate the long from the wide format, 
+the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
+for "MARKERS" in column names (TRUE = long format).
+The data frame is tab delimitted.
+\strong{Wide format:}
+The wide format cannot store metadata info.
+The wide format starts with these 2 id columns: 
+\code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
+the remaining columns are the markers in separate columns storing genotypes.
+
+\strong{Long/Tidy format:}
+The long format is considered to be a tidy data frame and can store metadata info. 
+(e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
+are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
+\code{MARKERS} and \code{GENOTYPE or GT}. The rest are considered metata info.
+
+\strong{2 genotypes formats are available:}
+6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
+6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
+The separator can be any of these: \code{"/", ":", "_", "-", "."}.
+
+\emph{How to get a tidy data frame ?}
+\pkg{stackr} \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
+in a tidy data frame.
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}

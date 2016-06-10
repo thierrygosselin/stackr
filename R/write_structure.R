@@ -91,11 +91,21 @@ write_structure <- function(
   if (is.vector(data)) {
     # input <- structure.prep # test
     input <- stackr::read_long_tidy_wide(data = data)
+    colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
+                                              pattern = "GENOTYPE", 
+                                              replacement = "GT", 
+                                              vectorize_all = FALSE)
   } else {
     # data <- structure.prep # test
-    input <- data %>% 
-      select(POP_ID, INDIVIDUALS, MARKERS, GENOTYPE)
+    input <- data
+    colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
+                                              pattern = "GENOTYPE", 
+                                              replacement = "GT", 
+                                              vectorize_all = FALSE)
+    
   }
+  input <- input %>% 
+    select(POP_ID, INDIVIDUALS, MARKERS, GT)
   
   # pop.levels -----------------------------------------------------------------
   if (!is.null(pop.levels)) {
@@ -110,14 +120,14 @@ write_structure <- function(
   
   # Structure format ----------------------------------------------------------------
   input <- input %>%
-    tidyr::separate(col = GENOTYPE, into = c("A1", "A2"), sep = 3, extra = "drop", remove = TRUE) %>%
-    tidyr::gather(data = ., key = ALLELES, value = GENOTYPE, -c(POP_ID, INDIVIDUALS, MARKERS)) %>% 
+    tidyr::separate(col = GT, into = c("A1", "A2"), sep = 3, extra = "drop", remove = TRUE) %>%
+    tidyr::gather(data = ., key = ALLELES, value = GT, -c(POP_ID, INDIVIDUALS, MARKERS)) %>% 
     mutate(
-      GENOTYPE = stri_replace_all_fixed(str = GENOTYPE, pattern = "000", replacement = "-9", vectorize_all = FALSE),
-      GENOTYPE = as.numeric(GENOTYPE)
+      GT = stri_replace_all_fixed(str = GT, pattern = "000", replacement = "-9", vectorize_all = FALSE),
+      GT = as.numeric(GT)
     ) %>%
-    select(INDIVIDUALS, POP_ID, MARKERS, ALLELES, GENOTYPE) %>% 
-    tidyr::spread(data = ., key = MARKERS, value = GENOTYPE) %>% 
+    select(INDIVIDUALS, POP_ID, MARKERS, ALLELES, GT) %>% 
+    tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
     mutate(
       POP_ID = droplevels(POP_ID),
       POP_ID = as.numeric(POP_ID)

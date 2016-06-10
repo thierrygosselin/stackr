@@ -17,6 +17,10 @@
 #' \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
 #' in a tidy data frame.
 
+#' @param import.metadata (optional, logical) With \code{import.metadata = TRUE}
+#' the metadata (anything else than the genotype) will be imported for the long
+#' format exclusively. Default: \code{import.metadata = FALSE}, no metadata.
+
 #' @param ... other parameters passed to the function.
 
 #' @return A tidy data frame in the global environment.
@@ -60,7 +64,7 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-read_long_tidy_wide <- function (data, ...) {
+read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
   
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file argument is missing")
@@ -88,9 +92,11 @@ read_long_tidy_wide <- function (data, ...) {
     
     if (long.format) { # long (tidy) format
       # to select columns while importing the file
+      
+      if (import.metadata) {
       import.colnames <- purrr::keep(
         .x = colnames(scan.colnames), 
-        .p = colnames(scan.colnames) %in% c("MARKERS", "POP_ID", "INDIVIDUALS", "GT", "GENOTYPE")
+        # .p = colnames(scan.colnames) %in% c("MARKERS", "POP_ID", "INDIVIDUALS", "GT", "GENOTYPE")
       )
       
       input <- data.table::fread(
@@ -104,6 +110,17 @@ read_long_tidy_wide <- function (data, ...) {
         verbose = FALSE
       ) %>% 
         as_data_frame()
+      } else {
+        input <- data.table::fread(
+          input = data,
+          sep = "\t",
+          stringsAsFactors = FALSE, 
+          header = TRUE,
+          showProgress = FALSE,
+          verbose = FALSE
+        ) %>% 
+          as_data_frame()
+      }
       
       # switch GENOTYPE for GT in colnames if found
       colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
@@ -147,7 +164,9 @@ read_long_tidy_wide <- function (data, ...) {
                                                 replacement = "GT", 
                                                 vectorize_all = FALSE)
       
-      input <- input %>% select(POP_ID, INDIVIDUALS, MARKERS, GT)
+      if (!import.metadata) {
+        input <- input %>% select(POP_ID, INDIVIDUALS, MARKERS, GT)
+      }
       
     } else { # wide format
       input <- data.table::melt.data.table(

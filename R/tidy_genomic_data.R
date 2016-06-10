@@ -410,7 +410,7 @@ tidy_genomic_data <- function(
     }
   }
   
-  # Import VCF ****************************************************************
+  # Import VCF-------------------------------------------------------------------
   if (data.type == "vcf.file") { # VCF
     message("Importing the VCF...")
     
@@ -554,7 +554,7 @@ tidy_genomic_data <- function(
     
   } # End import VCF
   
-  # Import PLINK ****************************************************************
+  # Import PLINK ---------------------------------------------------------------
   if (data.type == "plink.file") { # PLINK
     message("Importing the PLINK files...")
     tfam <- data.table::fread(
@@ -733,7 +733,7 @@ tidy_genomic_data <- function(
     
   } # End import PLINK
   
-  # Import DF ******************************************************************
+  # Import DF-------------------------------------------------------------------
   if (data.type == "df.file") { # DATA FRAME OF GENOTYPES
     input <- read_long_tidy_wide(data = data)
     
@@ -789,7 +789,7 @@ tidy_genomic_data <- function(
     }
   } # End import data frame of genotypes
   
-  # Import haplo ***************************************************************
+  # Import haplo---------------------------------------------------------------
   if (data.type == "haplo.file") { # Haplotype file
     message("Importing the stacks haplotype file")
     number.columns <- max(count.fields(data, sep = "\t"))

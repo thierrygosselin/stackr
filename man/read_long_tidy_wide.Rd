@@ -4,7 +4,7 @@
 \alias{read_long_tidy_wide}
 \title{Read genomic data frames in long/tidy and wide format}
 \usage{
-read_long_tidy_wide(data, ...)
+read_long_tidy_wide(data, import.metadata = FALSE, ...)
 }
 \arguments{
 \item{data}{A file in the working directory or object in the global environment 
@@ -14,6 +14,10 @@ in wide or long (tidy) formats. See details for more info.
 \href{https://github.com/thierrygosselin/stackr}{stackr} 
 \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
 in a tidy data frame.}
+
+\item{import.metadata}{(optional, logical) With \code{import.metadata = TRUE}
+the metadata (anything else than the genotype) will be imported for the long
+format exclusively. Default: \code{import.metadata = FALSE}, no metadata.}
 
 \item{...}{other parameters passed to the function.}
 }
