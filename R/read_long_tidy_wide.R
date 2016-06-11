@@ -157,8 +157,8 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
                                                 vectorize_all = FALSE)
       
       if (!import.metadata) {
-        if ("MARKERS" %in% colnames(scan.colnames) & "LOCUS" %in% colnames(scan.colnames)) {
-          input <- select(.data = input, POP_ID, INDIVIDUALS, MARKERS = LOCUS, GT)
+        if ("MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
+          input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS = MARKERS, GT)
         } else {
           input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS, GT)
         }
