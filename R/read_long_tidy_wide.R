@@ -111,7 +111,11 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
                                                 replacement = "GT", 
                                                 vectorize_all = FALSE)
       if (!import.metadata) {
-        input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS, GT)
+        if ("MARKERS" %in% colnames(scan.colnames) & "LOCUS" %in% colnames(scan.colnames)) {
+          input <- select(.data = input, POP_ID, INDIVIDUALS, MARKERS = LOCUS, GT)
+        } else {
+          input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS, GT)
+        }
       }
       
     } else { # wide format
@@ -153,7 +157,11 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
                                                 vectorize_all = FALSE)
       
       if (!import.metadata) {
-        input <- input %>% select(POP_ID, INDIVIDUALS, LOCUS, GT)
+        if ("MARKERS" %in% colnames(scan.colnames) & "LOCUS" %in% colnames(scan.colnames)) {
+          input <- select(.data = input, POP_ID, INDIVIDUALS, MARKERS = LOCUS, GT)
+        } else {
+          input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS, GT)
+        }
       }
       
     } else { # wide format
