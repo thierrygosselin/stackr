@@ -106,10 +106,13 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
         as_data_frame()
       
       # switch GENOTYPE for GT in colnames if found
-      colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
-                                                pattern = "GENOTYPE", 
-                                                replacement = "GT", 
-                                                vectorize_all = FALSE)
+      if ("GENOTYPE" %in% colnames(input)) {
+        colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
+                                                  pattern = "GENOTYPE", 
+                                                  replacement = "GT", 
+                                                  vectorize_all = FALSE)
+      }
+      
       if (!import.metadata) {
         if ("MARKERS" %in% colnames(scan.colnames) & "LOCUS" %in% colnames(scan.colnames)) {
           input <- select(.data = input, POP_ID, INDIVIDUALS, MARKERS = LOCUS, GT)
