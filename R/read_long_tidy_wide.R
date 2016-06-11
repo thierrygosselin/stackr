@@ -36,7 +36,7 @@
 #'  
 #' To discriminate the long from the wide format, 
 #' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-#' for "MARKERS" in column names (TRUE = long format).
+#' for \code{MARKERS or LOCUS} in column names (TRUE = long format).
 #' The data frame is tab delimitted.
 
 #' \strong{Wide format:}
@@ -49,7 +49,7 @@
 #' The long format is considered to be a tidy data frame and can store metadata info. 
 #' (e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
 #' are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
-#' \code{MARKERS} and \code{GENOTYPE or GT}. The rest are considered metata info.
+#' \code{MARKERS or LOCUS} and \code{GENOTYPE or GT}. The rest are considered metata info.
 #' 
 #' \strong{2 genotypes formats are available:}
 #' 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
@@ -83,7 +83,7 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
     )
     
     # Determine long (tidy) or wide dataset
-    if ("MARKERS" %in% colnames(scan.colnames)) {
+    if ("MARKERS" %in% colnames(scan.colnames) | "LOCUS" %in% colnames(scan.colnames) ) {
       long.format <- TRUE
     } else {
       long.format <- FALSE
@@ -93,40 +93,27 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
     if (long.format) { # long (tidy) format
       # to select columns while importing the file
       
-      if (import.metadata) {
-      import.colnames <- purrr::keep(
-        .x = colnames(scan.colnames), 
-        # .p = colnames(scan.colnames) %in% c("MARKERS", "POP_ID", "INDIVIDUALS", "GT", "GENOTYPE")
-      )
-      
       input <- data.table::fread(
         input = data,
         sep = "\t",
         stringsAsFactors = FALSE, 
         header = TRUE,
-        col.names = import.colnames, 
-        select = import.colnames,
+        # col.names = import.colnames, 
+        # select = import.colnames,
         showProgress = FALSE,
         verbose = FALSE
       ) %>% 
         as_data_frame()
-      } else {
-        input <- data.table::fread(
-          input = data,
-          sep = "\t",
-          stringsAsFactors = FALSE, 
-          header = TRUE,
-          showProgress = FALSE,
-          verbose = FALSE
-        ) %>% 
-          as_data_frame()
-      }
       
       # switch GENOTYPE for GT in colnames if found
       colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
                                                 pattern = "GENOTYPE", 
                                                 replacement = "GT", 
                                                 vectorize_all = FALSE)
+      if (!import.metadata) {
+        input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS, GT)
+      }
+      
     } else { # wide format
       input <- data.table::fread(
         input = data,
@@ -140,7 +127,7 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
         data.table::melt.data.table(
           data = ., 
           id.vars = c("POP_ID", "INDIVIDUALS"), 
-          variable.name = "MARKERS", 
+          variable.name = "LOCUS", 
           value.name = as.character("GT"), 
           variable.factor = FALSE, 
           value.factor = FALSE
@@ -151,11 +138,12 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
     input <- data
     
     # Determine long (tidy) or wide dataset
-    if ("MARKERS" %in% colnames(input)) {
+    if ("MARKERS" %in% colnames(input) | "LOCUS" %in% colnames(input) ) {
       long.format <- TRUE
     } else {
       long.format <- FALSE
     }
+    
     
     if (long.format) { # long (tidy) format
       # switch GENOTYPE for GT in colnames if found
@@ -165,14 +153,14 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
                                                 vectorize_all = FALSE)
       
       if (!import.metadata) {
-        input <- input %>% select(POP_ID, INDIVIDUALS, MARKERS, GT)
+        input <- input %>% select(POP_ID, INDIVIDUALS, LOCUS, GT)
       }
       
     } else { # wide format
       input <- data.table::melt.data.table(
         data = data.table::as.data.table(input), 
         id.vars = c("POP_ID", "INDIVIDUALS"), 
-        variable.name = "MARKERS", 
+        variable.name = "LOCUS", 
         value.name = as.character("GT"), 
         variable.factor = FALSE, 
         value.factor = FALSE) %>% 

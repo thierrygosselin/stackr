@@ -160,7 +160,7 @@
 #' \item Data frame
 #' To discriminate the long from the wide format, 
 #' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-#' for "MARKERS" in column names (TRUE = long format).
+#' for \code{MARKERS or LOCUS} in column names (TRUE = long format).
 #' The data frame is tab delimitted.
 
 #' \strong{Wide format:}
@@ -173,7 +173,7 @@
 #' The long format is considered to be a tidy data frame and can store metadata info. 
 #' (e.g. from a VCF see \pkg{stackr} \code{\link[stackr]{tidy_genomic_data}}). A minimum of 4 columns
 #' are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
-#' \code{MARKERS} and \code{GENOTYPE or GT}. The rest are considered metata info.
+#' \code{MARKERS or LOCUS} and \code{GENOTYPE or GT}. The rest are considered metata info.
 #' 
 #' \strong{2 genotypes formats are available:}
 #' 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
@@ -374,10 +374,16 @@ tidy_genomic_data <- function(
     if ("POS" %in% columns.names.whitelist) {
       whitelist.markers$POS <- as.character(whitelist.markers$POS)
     }
+    # haplo.file
     if (data.type == "haplo.file") {
       whitelist.markers <- select(.data = whitelist.markers, LOCUS)
       columns.names.whitelist <- colnames(whitelist.markers)
     }
+    # # for df.file, plink.file, genepop.file and genind objct
+    # if (data.type %in% c("genind.file", "plink.file", "df.file", "genepop.file") {
+    #   whitelist.markers <- whitelist.markers %>% select(MARKERS = LOCUS)
+    #   columns.names.whitelist <- colnames(whitelist.markers)
+    # }
   }
   
   # Import blacklist id ********************************************************
@@ -737,6 +743,11 @@ tidy_genomic_data <- function(
   if (data.type == "df.file") { # DATA FRAME OF GENOTYPES
     input <- read_long_tidy_wide(data = data)
     
+    if ("MARKERS" %in% colnames(input)) {
+      input <- rename(.data = input, LOCUS = MARKERS)
+    }
+    
+    
     # Change individuals names containing special character
     input$INDIVIDUALS <- stri_replace_all_fixed(
       str = input$INDIVIDUALS, 
@@ -787,6 +798,7 @@ tidy_genomic_data <- function(
       message(stri_join(length(pop.select), "population(s) selected", sep = " "))
       input <- suppressWarnings(input %>% filter(POP_ID %in% pop.select))
     }
+    
   } # End import data frame of genotypes
   
   # Import haplo---------------------------------------------------------------
@@ -911,7 +923,7 @@ tidy_genomic_data <- function(
         ) %>% 
         tidyr::spread(data = ., key = ALLELES, value = GT) %>% 
         tidyr::unite(GT, A1, A2, sep = "") %>%
-        select(LOCUS, POP_ID, INDIVIDUALS, GT) %>% 
+        select(LOCUS, POP_ID, INDIVIDUALS, GT) %>%
         arrange(LOCUS, POP_ID, INDIVIDUALS, GT)
     )
     
