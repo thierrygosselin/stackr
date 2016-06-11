@@ -35,7 +35,7 @@ and might be of interest for users.
  
 To discriminate the long from the wide format, 
 the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-for "MARKERS" in column names (TRUE = long format).
+for \code{MARKERS or LOCUS} in column names (TRUE = long format).
 The data frame is tab delimitted.
 \strong{Wide format:}
 The wide format cannot store metadata info.
@@ -47,7 +47,7 @@ the remaining columns are the markers in separate columns storing genotypes.
 The long format is considered to be a tidy data frame and can store metadata info. 
 (e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
 are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
-\code{MARKERS} and \code{GENOTYPE or GT}. The rest are considered metata info.
+\code{MARKERS or LOCUS} and \code{GENOTYPE or GT}. The rest are considered metata info.
 
 \strong{2 genotypes formats are available:}
 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
