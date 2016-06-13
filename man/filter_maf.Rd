@@ -8,7 +8,7 @@ filter_maf(data, interactive.filter = TRUE, maf.approach = "SNP",
   maf.thresholds, maf.operator = "OR", maf.pop.num.threshold = 1,
   filename = NULL, blacklist.id = NULL, blacklist.genotype = NULL,
   whitelist.markers = NULL, monomorphic.out = TRUE, max.marker = NULL,
-  snp.ld = NULL, common.markers = NULL, strata = NULL,
+  snp.ld = NULL, common.markers = FALSE, strata = NULL,
   pop.levels = NULL, pop.labels = NULL, pop.select = NULL)
 }
 \arguments{
@@ -46,7 +46,7 @@ global MAF to pass the thresholds, to keep the marker?}
 
 \item{maf.pop.num.threshold}{(integer, optional) When maf thresholds are used,
 this argument is for the number of pop required to pass the maf thresholds
-to keep the locus. 
+to keep the marker. 
 Default: \code{maf.pop.num.threshold = 1}}
 
 \item{filename}{(optional) Name of the filtered tidy data frame file 
@@ -99,8 +99,9 @@ choosing among these 3 options: \code{"random"} selection, \code{"first"} or
 disequilibrium pruning, see details below.
 Default: \code{snp.ld = NULL}.}
 
-\item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE}, 
-will only keep markers in common (genotyped) between all the populations.}
+\item{common.markers}{(optional) Logical. \code{common.markers = TRUE}, 
+will only keep markers in common (genotyped) between all the populations. 
+Default: \code{common.markers = FALSE}}
 
 \item{strata}{(optional for data frame and PLINK files, 
 required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
