@@ -14,13 +14,6 @@
 #' \code{\link[stackr]{read_long_tidy_wide}} and 
 #' \code{\link[stackr]{tidy_genomic_data}}.
 
-#' @param marker.number (Integer or string of number or "all") Calculations with
-#' fixed or subsample of your markers. Default= \code{"all"}.
-#' e.g. To test 500, 1000, 2000 and all  the markers:
-#' \code{marker.number = c(500, 1000, 2000, "all")}.
-#' To use only 500 makers \code{marker.number = 500}.
-
-
 #' @param blacklist.id (optional) A blacklist with individual ID and
 #' a column header 'INDIVIDUALS'. The blacklist is in the working directory
 #' (e.g. "blacklist.txt").
@@ -243,12 +236,13 @@
 #' \item genepop data file (e.g. \code{data = kiwi_data.gen}). Here, the function can only use
 #' alleles encoded with 3 digits.
 #' }
-
-#' The imputations using Random Forest requires more time to compute
-#' and can take several
+#' 
+#' 
+#' \strong{Imputations details:}
+#' The imputations using Random Forest requires more time to compute and can take several
 #' minutes and hours depending on the size of the dataset and polymorphism of
-#' the species used. e.g. with a low polymorphic taxa, and a data set
-#' containing 30\% missing data, 5 000 haplotypes loci and 500 individuals
+#' the species used. e.g. with a low polymorphic taxa, and a data set 
+#' containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
 #' will require 15 min.
 
 #' @export

@@ -4,11 +4,17 @@
 \alias{vcf2genind}
 \title{Create a \code{adegenet} \code{\link[adegenet]{genind}} object from a \code{STACKS} vcf file}
 \arguments{
-\item{data}{The VCF file created by STACKS.}
+\item{data}{(biallelic data) 6 options: vcf, plink, genind, genepop, 
+and a data frame in wide or long/tidy format. \emph{See details}.
+The function uses 
+\href{https://github.com/thierrygosselin/stackr}{stackr} 
+\code{\link[stackr]{read_long_tidy_wide}} and 
+\code{\link[stackr]{tidy_genomic_data}}.}
 
-\item{whitelist.markers}{(optional) A whitelist containing CHROM (character or integer) and/or LOCUS (integer) and/or 
-POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
-The whitelist is in the directory (e.g. "whitelist.txt"). de novo CHROM column with 'un' need to be changed to 1.}
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
 
 \item{blacklist.genotype}{(optional) Useful to erase genotype with below 
 average quality, e.g. genotype with more than 2 alleles in diploid likely 
@@ -20,69 +26,131 @@ all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (charact
 or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
 INDIVIDUALS (character) columns header. The blacklist must be in the working 
 directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
-with 'un' need to be changed to 1. Default \code{NULL} for no blacklist of 
+with 'un' need to be changed to 1. 
+Default: \code{blacklist.genotype = NULL} for no blacklist of 
 genotypes to erase.}
 
-\item{snp.ld}{(optional) Minimize linkage disequilibrium (LD) by choosing 
-among these 3 options: \code{"random"} selection, \code{"first"} or 
-\code{"last"} SNP on the same read/haplotype. Default = \code{NULL}.}
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
+The whitelist is in the working directory (e.g. "whitelist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+In the VCF, the column ID is the LOCUS identification.
+Default \code{whitelist.markers = NULL} for no whitelist of markers.}
 
-\item{common.markers}{(optional) Logical. Default = \code{FALSE}. 
-With \code{TRUE}, will keep markers present in all the populations.}
+\item{monomorphic.out}{(optional) Should the monomorphic 
+markers present in the dataset be filtered out ? 
+Default: \code{monomorphic.out = TRUE}.}
 
-\item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the directory
- (e.g. "blacklist.txt").}
+\item{snp.ld}{(optional) \strong{For VCF file only}. 
+SNP short distance linkage disequilibrium pruning. With anonymous markers from
+RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
+choosing among these 3 options: \code{"random"} selection, \code{"first"} or
+\code{"last"} SNP on the same short read/haplotype. For long distance linkage
+disequilibrium pruning, see details below.
+Default: \code{snp.ld = NULL}.}
 
-\item{pop.levels}{(required) A character string with your populations ordered.}
+\item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE}, 
+will only keep markers in common (genotyped) between all the populations.}
 
-\item{pop.labels}{(optional) A character string of your populations labels.
-If you need to rename sampling sites in \code{pop.levels} or combined sites/pop
-into a different names, here is the place.}
+\item{maf.thresholds}{(string, double, optional) String with 
+local/populations and global/overall maf thresholds, respectively.
+e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold 
+of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame 
+files. Use stackr for haplotypes files and use the whitelist of markers.
+Default: \code{maf.thresholds = NULL}.}
 
-\item{pop.id.start}{The start of your population id 
-in the name of your individual sample.}
+\item{maf.pop.num.threshold}{(integer, optional) When maf thresholds are used,
+this argument is for the number of pop required to pass the maf thresholds
+to keep the locus. Default: \code{maf.pop.num.threshold = 1}}
 
-\item{pop.id.end}{The end of your population id 
-in the name of your individual sample.}
+\item{maf.approach}{(character, optional). By \code{maf.approach = "SNP"} or 
+by \code{maf.approach = "haplotype"}.
+The function will consider the SNP or ID/LOCUS/haplotype/read MAF statistics 
+to filter the markers.
+Default is \code{maf.approach = "SNP"}. The \code{haplotype} approach is 
+restricted to VCF file.}
 
-\item{strata}{(optional) A tab delimited file with 2 columns with header:
-\code{INDIVIDUALS} and \code{STRATA}. Default: \code{strata = NULL}. 
-This is especially useful if you have a hierarchical or factorial sampling 
-design. See also \code{\link[adegenet]{genind}} for details.}
+\item{maf.operator}{(character, optional) \code{maf.operator = "AND"} or 
+default \code{maf.operator = "OR"}.
+When filtering over LOCUS or SNP, do you want the local \code{"AND"}
+global MAF to pass the thresholds, or ... you want the local \code{"OR"}
+global MAF to pass the thresholds, to keep the marker?}
 
-\item{pop.select}{(string) Conduct the assignment analysis on a
-selected list of populations. Default = \code{NULL} for no selection and keep
-all population.
-e.g. \code{pop.select = "QUE"} to select QUE population samples.
-\code{pop.select = c("QUE", "ONT")} to select QUE and ONT population samples.}
+\item{max.marker}{An optional integer useful to subsample marker number in 
+large PLINK file. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
+subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
+keep specific markers.
+Default: \code{max.marker = NULL}.}
+
+\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
+case, the id of the pop.
+Use this argument to have the pop ordered your way instead of the default 
+alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
+instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+Default: \code{pop.levels = NULL}.}
+
+\item{pop.labels}{(optional, string) Use this argument to rename/relabel
+your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
+into a new pop called \code{"NEW"}:
+(1) First, define the levels for your pop with \code{pop.levels} argument: 
+\code{pop.levels = c("QUE", "ONT", "ALB")}. 
+(2) then, use \code{pop.labels} argument: 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+To rename \code{"QUE"} to \code{"TAS"}:
+\code{pop.labels = c("TAS", "ONT", "ALB")}.
+Default: \code{pop.labels = NULL}. When pop.levels is not null and pop.labels
+is not specified. pop.labels = pop.levels.
+If you find this too complicated, there is also the
+\code{strata} argument that can do the same thing, see below.}
+
+\item{strata}{(optional for data frame and PLINK files, 
+required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. With a 
+data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+PLINK files, the \code{tfam} first 2 columns are used. 
+If a \code{strata} file is specified, the strata file will have
+precedence. The \code{STRATA} column can be any hierarchical grouping. 
+To create a strata file see \code{\link[stackr]{individuals2strata}}.
+Default: \code{strata = NULL}.}
+
+\item{pop.select}{(string, optional) Selected list of populations for 
+the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
+and \code{ONT} population samples (out of 20 pops).}
 
 \item{hierarchy}{(optional) A formula that explicitely defines hierarchical levels 
 in your strata. See \code{\link[adegenet]{genind}} for details.}
 
-\item{imputation.method}{Should a map-independent imputations of markers be
-computed. Available choices are: (1) \code{FALSE} for no imputation.
-(2) \code{"max"} to use the most frequent category for imputations.
-(3) \code{"rf"} using Random Forest algorithm. Default = \code{FALSE}.}
+\item{imputation.method}{(character, optional) 
+Methods available for map-independent imputations of missing genotype: 
+(1) \code{"max"} to use the most frequent category for imputations.
+(2) \code{"rf"} using Random Forest algorithm. 
+Default: no imputation \code{imputation.method = NULL}.}
 
-\item{impute}{(character) Imputation on missing genotype 
-\code{impute = "genotype"} or alleles \code{impute = "allele"}.}
+\item{impute}{(character, optional) Imputation on missing genotype 
+\code{impute = "genotype"} or alleles \code{impute = "allele"}.
+Default: \code{"genotype"}.}
 
-\item{imputations.group}{\code{"global"} or \code{"populations"}.
+\item{imputations.group}{(character, optional) \code{"global"} or \code{"populations"}.
 Should the imputations be computed globally or by populations. If you choose
 global, turn the verbose to \code{TRUE}, to see progress.
 Default = \code{"populations"}.}
 
-\item{num.tree}{The number of trees to grow in Random Forest. Default is 100.}
+\item{num.tree}{(integer, optional) The number of trees to grow in Random Forest. 
+Default: \code{num.tree = 100}.}
 
-\item{iteration.rf}{The number of iterations of missing data algorithm 
-in Random Forest. Default is 10.}
+\item{iteration.rf}{(integer, optional) The number of iterations of missing data algorithm
+in Random Forest. 
+Default: \code{iteration.rf = 10}.}
 
-\item{split.number}{Non-negative integer value used to specify 
-random splitting in Random Forest. Default is 100.}
+\item{split.number}{(integer, optional) Non-negative integer value used to specify
+random splitting in Random Forest. 
+Default: \code{split.number = 100}.}
 
-\item{verbose}{Logical. Should trace output be enabled on each iteration 
-in Random Forest ? Default is \code{FALSE}.}
+\item{verbose}{(logical, optional) Should trace output be enabled on each iteration
+in Random Forest ? 
+Default: \code{verbose = FALSE}.}
 
 \item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
 programming of Random Forest imputations. For more info on how to install the
@@ -104,6 +172,63 @@ Map-independent imputation using Random Forest or the most frequent category
 is also available as an option.
 }
 \details{
+\strong{Input files:}
+\enumerate{
+\item VCF file (e.g. \code{data = "batch_1.vcf"}). 
+To make the VCF population ready, you need the \code{strata} argument.
+
+\item haplotype file created in STACKS (e.g. \code{data = "batch_1.haplotypes.tsv"}).
+To make the haplotype file population ready, you need the \code{strata} argument.
+
+\item Data frame
+Tab delimitted.
+\strong{2 genotypes formats are available, both use 3 character per allele:}
+6 characters no allele separator: e.g. \code{001002 of 111333} (for heterozygote individual).
+6 characters WITH an allele separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
+The separator can be any of these: \code{"/", ":", "_", "-", "."}.
+Missing alleles are coded \code{000}.
+To discriminate the long from the wide format, 
+the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
+for columns number, > 20 for wide 
+(i.e. don't use less than 10 markers in wide format, the function was not designed for that).
+
+Data Frame wide format:
+The wide format cannot store metadata info.
+The wide format contains starts with these 2 id columns: 
+\code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
+the remaining columns are the markers in separate columns storing genotypes.
+This format requires column numbers to be larger than 20.
+Data frame long/tidy format:
+This format requires column numbers to be within the range: 4 min - 20 max.
+The long format is considered to be a tidy data frame and can store metadata info. 
+(e.g. from a VCF see \pkg{stackr} \code{\link[stackr]{tidy_genomic_data}}). The 4 columns
+required in the long format are: \code{INDIVIDUALS}, \code{POP_ID}, 
+\code{MARKERS} and \code{GENOTYPE or GT}.
+
+Note that the \code{POP_ID} column can be any hierarchical grouping. 
+See the argument \code{strata} for other means of controlling grouping used 
+in the assignment.
+
+\item PLINK file in 
+\code{tped/tfam} format (e.g. \code{data =  "data.assignment.tped"}). 
+The first 2 columns of the \code{tfam} file will be used for the 
+\code{strata} argument below, unless a new one is provided. 
+Columns 1, 3 and 4 of the \code{tped} are discarded. The remaining columns 
+correspond to the genotype in the format \code{01/04} 
+where \code{A = 01, C = 02, G = 03 and T = 04}. For \code{A/T} format, use 
+PLINK or bash to convert.
+Use \href{http://vcftools.sourceforge.net/}{VCFTOOLS} with \code{--plink-tped} 
+to convert very large VCF file. For \code{.ped} file conversion to 
+\code{.tped} use \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK} 
+with \code{--recode transpose},
+
+\item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
+
+\item genepop data file (e.g. \code{data = kiwi_data.gen}). Here, the function can only use
+alleles encoded with 3 digits.
+}
+
+\strong{Imputations details:}
 The imputations using Random Forest requires more time to compute and can take several
 minutes and hours depending on the size of the dataset and polymorphism of
 the species used. e.g. with a low polymorphic taxa, and a data set 
@@ -114,11 +239,11 @@ will require 15 min.
 \dontrun{
 snowcrab <- vcf2genind(
 data = "batch_1.vcf",
+strata = "snowcrab.strata.tsv",
 whitelist.markers = "whitelist.txt",
 common.markers = TRUE,
 blacklist.id = "blacklist.id.lobster.tsv",
 pop.levels = c("PAN", "COS")
-pop.id.start = 5, pop.id.end = 7,
 imputation.method = "rf",
 impute = "genotype",
 imputations.group <- "populations", 
