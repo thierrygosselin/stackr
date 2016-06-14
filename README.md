@@ -43,9 +43,11 @@ library(stackr) # to load
 
 **Problems during installation:** see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
 
-**Note on running stackr**
+**Note:**
+
 The R GUI seems to be prone to crashing in parallel mode. 
-I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/).
+I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/) 
+to run **stackr**. The R GUI is unstable with functions using parallel.
 
 **Dependencies**
 
