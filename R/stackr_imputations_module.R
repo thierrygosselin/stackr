@@ -136,7 +136,7 @@ stackr_imputations_module <- function(
   }
   if (impute == "allele") {
     input.prep <- input %>%
-      tidyr::separate(data = ., col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
+      tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
       tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%  
       mutate(
         GT = stri_replace_all_fixed(GT, pattern = "000", replacement = "NA", vectorize_all = FALSE),
