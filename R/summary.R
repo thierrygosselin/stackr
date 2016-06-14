@@ -855,7 +855,7 @@ summary_stats_pop <- function(data, filename) {
 #' @title Coverage summary
 #' @description This function create a table summary of the important
 #' coverage statistics from the tidy vcf created with tidy_genomic_data.
-#' @param tidy.vcf A tidy vcf object or file (using ".tsv"), 
+#' @param data A tidy vcf object or file (using ".tsv"), 
 #' created with tidy_genomic_data.
 #' @param pop.levels Character string defining your ordered populations.
 #' @param filename Name of the file saved to the working directory.
@@ -872,7 +872,7 @@ summary_stats_pop <- function(data, filename) {
 #' @importFrom stats median
 #' @export
 
-summary_coverage <- function (tidy.vcf, pop.levels, filename) {
+summary_coverage <- function (data, pop.levels, filename) {
   
   POP_ID <- NULL
   READ_DEPTH <- NULL
@@ -882,12 +882,12 @@ summary_coverage <- function (tidy.vcf, pop.levels, filename) {
   
   
   
-  if (is.vector(tidy.vcf) == "TRUE") {
-    data <- read_tsv(tidy.vcf, col_names = T, col_types = "iiiiccddcdccddddc")
+  if (is.vector(data) == "TRUE") {
+    data <- read_tsv(data, col_names = T, col_types = "iiiiccddcdccddddc")
     message("Using the file in your directory")
     
   } else {
-    data = tidy.vcf
+    data = data
     message("Using the file from your global environment")
     
   }
@@ -895,18 +895,18 @@ summary_coverage <- function (tidy.vcf, pop.levels, filename) {
   coverage.sum.loci <- data %>%
     group_by(LOCUS, POP_ID) %>%
     summarise(
-      READ_MEAN = mean(READ_DEPTH, na.rm = T),
-      READ_MEDIAN = stats::median(READ_DEPTH, na.rm = T),
-      READ_MIN = min(READ_DEPTH, na.rm = T),
-      READ_MAX = max(READ_DEPTH, na.rm = T),
-      REF_MEAN = mean(ALLELE_REF_DEPTH, na.rm = T),
-      REF_MEDIAN = stats::median(ALLELE_REF_DEPTH, na.rm = T),
-      REF_MIN = min(ALLELE_REF_DEPTH, na.rm = T),
-      REF_MAX = max(ALLELE_REF_DEPTH, na.rm = T),
-      ALT_MEAN = mean(ALLELE_ALT_DEPTH, na.rm = T),
-      ALT_MEDIAN = stats::median(ALLELE_ALT_DEPTH, na.rm = T),
-      ALT_MIN = min(ALLELE_ALT_DEPTH, na.rm = T),
-      ALT_MAX = max(ALLELE_ALT_DEPTH, na.rm = T)
+      READ_MEAN = mean(READ_DEPTH, na.rm = TRUE),
+      READ_MEDIAN = stats::median(READ_DEPTH, na.rm = TRUE),
+      READ_MIN = min(READ_DEPTH, na.rm = TRUE),
+      READ_MAX = max(READ_DEPTH, na.rm = TRUE),
+      REF_MEAN = mean(ALLELE_REF_DEPTH, na.rm = TRUE),
+      REF_MEDIAN = stats::median(ALLELE_REF_DEPTH, na.rm = TRUE),
+      REF_MIN = min(ALLELE_REF_DEPTH, na.rm = TRUE),
+      REF_MAX = max(ALLELE_REF_DEPTH, na.rm = TRUE),
+      ALT_MEAN = mean(ALLELE_ALT_DEPTH, na.rm = TRUE),
+      ALT_MEDIAN = stats::median(ALLELE_ALT_DEPTH, na.rm = TRUE),
+      ALT_MIN = min(ALLELE_ALT_DEPTH, na.rm = TRUE),
+      ALT_MAX = max(ALLELE_ALT_DEPTH, na.rm = TRUE)
     ) %>%
     melt(
       id.vars = c("LOCUS", "POP_ID"),
@@ -925,18 +925,18 @@ summary_coverage <- function (tidy.vcf, pop.levels, filename) {
   coverage.sum.pop <- data %>%
     group_by(POP_ID, INDIVIDUALS) %>%
     summarise(
-      READ_DEPTH_MEAN = mean(READ_DEPTH, na.rm = T),
-      READ_DEPTH_MEDIAN = stats::median(READ_DEPTH, na.rm = T),
-      READ_DEPTH_MIN = min(READ_DEPTH, na.rm = T),
-      READ_DEPTH_MAX = max(READ_DEPTH, na.rm = T),
-      ALLELE_REF_DEPTH_MEAN = mean(ALLELE_REF_DEPTH, na.rm = T),
-      ALLELE_REF_DEPTH_MEDIAN = stats::median(ALLELE_REF_DEPTH, na.rm = T),
-      ALLELE_REF_DEPTH_MIN = min(ALLELE_REF_DEPTH, na.rm = T),
-      ALLELE_REF_DEPTH_MAX = max(ALLELE_REF_DEPTH, na.rm = T),
-      ALLELE_ALT_DEPTH_MEAN = mean(ALLELE_ALT_DEPTH, na.rm = T),
-      ALLELE_ALT_DEPTH_MEDIAN = stats::median(ALLELE_ALT_DEPTH, na.rm = T),
-      ALLELE_ALT_DEPTH_MIN = min(ALLELE_ALT_DEPTH, na.rm = T),
-      ALLELE_ALT_DEPTH_MAX = max(ALLELE_ALT_DEPTH, na.rm = T)
+      READ_DEPTH_MEAN = mean(READ_DEPTH, na.rm = TRUE),
+      READ_DEPTH_MEDIAN = stats::median(READ_DEPTH, na.rm = TRUE),
+      READ_DEPTH_MIN = min(READ_DEPTH, na.rm = TRUE),
+      READ_DEPTH_MAX = max(READ_DEPTH, na.rm = TRUE),
+      ALLELE_REF_DEPTH_MEAN = mean(ALLELE_REF_DEPTH, na.rm = TRUE),
+      ALLELE_REF_DEPTH_MEDIAN = stats::median(ALLELE_REF_DEPTH, na.rm = TRUE),
+      ALLELE_REF_DEPTH_MIN = min(ALLELE_REF_DEPTH, na.rm = TRUE),
+      ALLELE_REF_DEPTH_MAX = max(ALLELE_REF_DEPTH, na.rm = TRUE),
+      ALLELE_ALT_DEPTH_MEAN = mean(ALLELE_ALT_DEPTH, na.rm = TRUE),
+      ALLELE_ALT_DEPTH_MEDIAN = stats::median(ALLELE_ALT_DEPTH, na.rm = TRUE),
+      ALLELE_ALT_DEPTH_MIN = min(ALLELE_ALT_DEPTH, na.rm = TRUE),
+      ALLELE_ALT_DEPTH_MAX = max(ALLELE_ALT_DEPTH, na.rm = TRUE)
     ) %>%
     group_by(POP_ID) %>%
     summarise_each_(funs(mean), vars = c("READ_DEPTH_MEAN", "READ_DEPTH_MEDIAN", "READ_DEPTH_MIN", "READ_DEPTH_MAX", "ALLELE_REF_DEPTH_MEAN", "ALLELE_REF_DEPTH_MEDIAN", "ALLELE_REF_DEPTH_MIN", "ALLELE_REF_DEPTH_MAX", "ALLELE_ALT_DEPTH_MEAN", "ALLELE_ALT_DEPTH_MEDIAN", "ALLELE_ALT_DEPTH_MIN", "ALLELE_ALT_DEPTH_MAX")) %>%

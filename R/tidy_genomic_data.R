@@ -522,7 +522,7 @@ tidy_genomic_data <- function(
     
     # recoding genotype and creating a new column combining CHROM, LOCUS and POS 
     input <- input %>%
-      tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_", remove = FALSE) %>%
+      tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE) %>%
       mutate(
         REF= stri_replace_all_fixed(
           str = REF, 
@@ -1190,8 +1190,8 @@ tidy_genomic_data <- function(
     message("Removing monomorphic markers...")
     
     mono.markers <- input %>%
-      select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
-      tidyr::separate(col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
+      select(MARKERS, POP_ID, INDIVIDUALS, GT) %>%
+      tidyr::separate(col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
       tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
       filter(GT != "000") %>%
       group_by(MARKERS, GT) %>% 
@@ -1247,7 +1247,7 @@ tidy_genomic_data <- function(
       # We split the alleles here to prep for MAF
       maf.data <- input %>%
         select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
-        tidyr::separate(data = ., col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
+        tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
         tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
         filter(GT != "000")
       
@@ -1287,7 +1287,7 @@ tidy_genomic_data <- function(
       vcf.maf <- tidyr::separate(data = maf.data, 
                                  col = MARKERS, 
                                  into = c("CHROM", "LOCUS", "POS"), 
-                                 sep = "_", 
+                                 sep = "__", 
                                  remove = FALSE, 
                                  extra = "warn"
       )

@@ -562,7 +562,7 @@ vcf2dadi <- function(
         select(MARKERS, REF) %>%
         distinct(MARKERS, REF) %>%
         arrange(MARKERS) %>% 
-        tidyr::separate(MARKERS, c("CHROM", "LOCUS", "POS"), sep = "_") %>%
+        tidyr::separate(MARKERS, c("CHROM", "LOCUS", "POS"), sep = "__") %>%
         distinct(CHROM, LOCUS, POS, REF) %>%
         mutate(
           CHROM = as.character(stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1", vectorize_all = FALSE)),
@@ -731,7 +731,7 @@ vcf2dadi <- function(
         #   LOCUS = stri_pad_left(str = LOCUS, width = 8, pad = "0")
         # ) %>%
         arrange(CHROM, LOCUS, POS) %>%
-        tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_")
+        tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__")
       
       markers.id <- ref.allele.vcf.ingroup.fasta %>% 
         ungroup %>% 
@@ -801,7 +801,7 @@ vcf2dadi <- function(
         #   LOCUS = stri_pad_left(str = LOCUS, width = 8, pad = "0")
         # ) %>%
         arrange(CHROM, LOCUS, POS) %>%
-        tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "_")
+        tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__")
       
       ambiguous.ancestral.allele <- NULL # remove unused object
       ref.allele.outgroup.fasta <- NULL # remove unused object

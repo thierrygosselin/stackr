@@ -4,10 +4,10 @@
 \alias{summary_coverage}
 \title{Coverage summary}
 \usage{
-summary_coverage(tidy.vcf, pop.levels, filename)
+summary_coverage(data, pop.levels, filename)
 }
 \arguments{
-\item{tidy.vcf}{A tidy vcf object or file (using ".tsv"), 
+\item{data}{A tidy vcf object or file (using ".tsv"), 
 created with tidy_genomic_data.}
 
 \item{pop.levels}{Character string defining your ordered populations.}

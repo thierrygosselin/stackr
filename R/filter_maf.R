@@ -702,7 +702,7 @@ if (maf.approach == "haplotype") {
   filter <- tidyr::separate(data = maf.data, 
                             col = MARKERS, 
                             into = c("CHROM", "LOCUS", "POS"), 
-                            sep = "_", 
+                            sep = "__", 
                             remove = FALSE, 
                             extra = "warn"
   )
