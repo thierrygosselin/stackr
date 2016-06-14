@@ -23,7 +23,7 @@ observed heterozygosity and inbreeding coefficient (Fis)
 * Map-Independent Imputation of missing genotype or allele using Random Forest within several functions: *haplo2genepop*, *haplo2genind*, *haplo2hierfstat*, *haplo2gtypes*, *haplo2colony*, *vcf2genind*, *vcf2hierfstat*, *vcf2betadiv*, *vcf2dadi* and *vcf_imputation*. 
 
 ## Installation
-You can try out the dev version of **stackr**. Follow the 3 steps below:
+To try out the dev version of **stackr**, follow the 3 steps below:
 
 **Step 1:** Install or load the package **devtools**
 ```r
@@ -42,6 +42,10 @@ library(stackr) # to load
 
 
 **Problems during installation:** see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
+
+**Note on running stackr**
+The R GUI seems to be prone to crashing in parallel mode. 
+I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/).
 
 **Dependencies**
 
