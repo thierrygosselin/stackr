@@ -119,7 +119,7 @@ stackr_imputations_module <- function(
   
   # Import data ---------------------------------------------------------------
   input <- stackr::read_long_tidy_wide(data = data)
-  
+  if ("LOCUS" %in% colnames(input)) input <- rename(.data = input, MARKERS = LOCUS)
   # Imputations ***************************************************************
   message("Preparing the data for imputations")
   
