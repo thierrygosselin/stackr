@@ -40,11 +40,13 @@ library(stackr) # to load
 
 **Step 3 (optional): Parallel computing** Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputation in parallel. Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd). You don't need to do this when updating **stackr**.
 
-
-**Problems during installation:** see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
-
-**Note:** I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/) 
-to run **stackr**. The R GUI is unstable with functions using parallel.
+**Notes:**
+  * **Problems during installation:** see this
+  [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
+  * I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/) 
+  to run **stackr**. The R GUI is unstable with functions using parallel.
+  * **Windows users**:  to have *stackr* run in parallel, you need to install 
+  and load [parallelsugar](https://github.com/nathanvan/parallelsugar) [instructions](https://github.com/nathanvan/parallelsugar#installation).
 
 
 **Dependencies**
