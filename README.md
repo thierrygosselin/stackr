@@ -43,9 +43,9 @@ library(stackr) # to load
 
 **Problems during installation:** see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
 
-**Note:** The R GUI seems to be prone to crashing in parallel mode. 
-I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/) 
+**Note:** I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/) 
 to run **stackr**. The R GUI is unstable with functions using parallel.
+
 
 **Dependencies**
 
@@ -145,7 +145,7 @@ From a browser:
 
 Inside R:
 ```r
-browse(Vignettes("stackr")) # To browse vignettes
+browseVignettes("stackr") # To browse vignettes
 vignette("vignette_vcf2dadi") # To open specific vignette
 ```
 

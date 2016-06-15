@@ -75,3 +75,11 @@ devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomFor
 # Windows
 devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.2.0.zip")
 ```
+
+
+##Note
+
+I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/) 
+to run **stackr** or **assigner**. The R GUI is unstable with functions using parallel. 
+More details can be found `parallel::mclapply` or on the web. 
+Users of third-party front-ends should consult their documentation.
