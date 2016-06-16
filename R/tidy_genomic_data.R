@@ -297,9 +297,20 @@ tidy_genomic_data <- function(
   
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file missing")
-  if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
-  if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
   
+  # POP_ID in gsi_sim does not like spaces, we need to remove space in everything touching POP_ID...
+  # pop.levels, pop.labels, pop.select, strata, etc
+  if (!is.null(pop.levels) & is.null(pop.labels)) {
+    pop.levels <- stri_replace_all_fixed(pop.levels, pattern = " ", replacement = "_", vectorize_all = FALSE)
+    pop.labels <- pop.levels
+  }
+  if (!is.null(pop.labels)) {
+    pop.labels <- stri_replace_all_fixed(pop.labels, pattern = " ", replacement = "_", vectorize_all = FALSE)
+  }
+  if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
+  if (!is.null(pop.select)) {
+    pop.select <- stri_replace_all_fixed(pop.select, pattern = " ", replacement = "_", vectorize_all = FALSE)
+  }
   
   # File type detection ********************************************************
   if(is.genind(data)){
@@ -351,7 +362,7 @@ tidy_genomic_data <- function(
       stop("The haplotype approach during MAF filtering is for VCF and
            stacks haplotypes file, only. Use the snp approach for the other file types")
     }
-    }
+  }
   
   # Strata argument required for VCF and haplotypes files **********************
   if (data.type == "haplo.file" | data.type == "vcf.file") {
@@ -399,7 +410,7 @@ tidy_genomic_data <- function(
     if (is.vector(strata)) {
       message("strata file: yes")
       strata.df <- read_tsv(file = strata, col_names = TRUE, col_types = "cc") %>% 
-        rename(POP_ID = STRATA)
+        rename(POP_ID = STRATA) %>% 
     } else {
       message("strata object: yes")
       colnames(strata) <- stri_replace_all_fixed(str = colnames(strata), 
@@ -414,6 +425,7 @@ tidy_genomic_data <- function(
     if (!is.null(blacklist.id)) {
       strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
     }
+    strata.df$POP_ID <- stri_replace_all_fixed(strata.df$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
   
   # Import VCF-------------------------------------------------------------------
@@ -578,11 +590,15 @@ tidy_genomic_data <- function(
       showProgress = TRUE, 
       data.table = FALSE) %>% 
       as_data_frame() %>%
-      mutate(
-        INDIVIDUALS = stri_replace_all_fixed(# remove "_" in individual name and replace with "-"
-          str = INDIVIDUALS, 
-          pattern = c("_", ":"), replacement = c("-", "-"), vectorize_all = FALSE
-        )
+      mutate(# remove "_" in individual name and replace with "-"
+        INDIVIDUALS = stri_replace_all_fixed( str = INDIVIDUALS, 
+                                              pattern = c("_", ":"), 
+                                              replacement = c("-", "-"), 
+                                              vectorize_all = FALSE),
+        POP_ID = stri_replace_all_fixed(POP_ID, 
+                                        pattern = " ", 
+                                        replacement = "_", 
+                                        vectorize_all = FALSE)
       )
     
     # if no strata tfam = strata.df
@@ -776,11 +792,6 @@ tidy_genomic_data <- function(
     
     # population levels and strata  --------------------------------------------
     if (!is.null(strata)) {
-      # # blacklist id and strata
-      # if (!is.null(blacklist.id)) { # using the blacklist of individuals
-      #   strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
-      # }
-      
       strata.df$INDIVIDUALS <- stri_replace_all_fixed(
         str = strata.df$INDIVIDUALS, 
         pattern = c("_", ":"), 
@@ -792,6 +803,12 @@ tidy_genomic_data <- function(
         select(-POP_ID) %>% 
         left_join(strata.df, by = "INDIVIDUALS")
     }
+    
+    # Change potential problematic POP_ID space
+    input$POP_ID = stri_replace_all_fixed(input$POP_ID, 
+                                    pattern = " ", 
+                                    replacement = "_", 
+                                    vectorize_all = FALSE)
     
     # Pop select
     if (!is.null(pop.select)) {
@@ -979,15 +996,17 @@ tidy_genomic_data <- function(
     
     # population levels and strata  --------------------------------------------
     if (!is.null(strata)) {
-      # blacklist id and strata
-      # if (!is.null(blacklist.id)) { # using the blacklist of individuals
-      #   strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
-      # }
       input <- input %>%
         select(-POP_ID) %>% 
         mutate(INDIVIDUALS =  as.character(INDIVIDUALS)) %>% 
         left_join(strata.df, by = "INDIVIDUALS")
     }
+    
+    # Change potential problematic POP_ID space
+    input$POP_ID = stri_replace_all_fixed(input$POP_ID, 
+                                          pattern = " ", 
+                                          replacement = "_", 
+                                          vectorize_all = FALSE)
     
     # Pop select
     if (!is.null(pop.select)) {
