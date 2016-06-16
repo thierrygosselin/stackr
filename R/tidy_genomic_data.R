@@ -410,7 +410,7 @@ tidy_genomic_data <- function(
     if (is.vector(strata)) {
       message("strata file: yes")
       strata.df <- read_tsv(file = strata, col_names = TRUE, col_types = "cc") %>% 
-        rename(POP_ID = STRATA) %>% 
+        rename(POP_ID = STRATA)
     } else {
       message("strata object: yes")
       colnames(strata) <- stri_replace_all_fixed(str = colnames(strata), 
