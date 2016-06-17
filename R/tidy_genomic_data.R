@@ -269,7 +269,7 @@
 if (getRversion() >= "2.15.1") {
   utils::globalVariables(
     c("DP", "AD", "vcf.headers", "GT_VCF", "INDIVIDUALS2", "ALLELE_REF_DEPTH",
-      "ALLELE_ALT_DEPTH")
+      "ALLELE_ALT_DEPTH", "GT_BIN")
   )
 }
 
@@ -558,16 +558,19 @@ tidy_genomic_data <- function(
       ) %>% 
       as_data_frame()
     
+    # Experimental (for genlight object)
+    input$GT_BIN <- stri_replace_all_fixed(str = input$GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."), replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE)
+
     # Re ordering columns
     if (vcf.metadata) {
       # Re order columns
-      common.colnames <- c("MARKERS", "CHROM", "LOCUS", "POS", "POP_ID", "INDIVIDUALS", "GT_VCF", "REF", "ALT")
+      common.colnames <- c("MARKERS", "CHROM", "LOCUS", "POS", "POP_ID", "INDIVIDUALS", "GT_VCF", "GT_BIN", "REF", "ALT")
       vcf.headers <- colnames(input)
       metadata.colnames <- purrr::discard(.x = colnames(input), .p = vcf.headers %in% common.colnames)
       input <- input[c(common.colnames, metadata.colnames)]
       
     } else {
-      input <- input %>% select(MARKERS, CHROM, LOCUS, POS, POP_ID, INDIVIDUALS, GT_VCF, REF, ALT, GT)
+      input <- input %>% select(MARKERS, CHROM, LOCUS, POS, POP_ID, INDIVIDUALS, GT_VCF, GT_BIN, REF, ALT, GT)
     }
     
   } # End import VCF
