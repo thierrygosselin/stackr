@@ -197,6 +197,7 @@ stackr_imputations_module <- function(
         FUN = impute_rf_pop, 
         mc.preschedule = FALSE, 
         mc.silent = FALSE, 
+        mc.cleanup = TRUE,
         mc.cores = parallel.core
       )
       
