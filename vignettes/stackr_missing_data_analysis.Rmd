@@ -218,7 +218,7 @@ ibm.stickleback$missing.genotypes.pop.plot
 |Hadsten14-q-75.align   |Had    |              287|         31802|  0.90|
 
 
-**The boxplot of missing per populations:** `boxplot.missing.pop <- ibm.stickleback$missing.genotypes.ind`
+**The boxplot of missing per populations:** `boxplot.missing.pop <- ibm.stickleback$missing.genotypes.pop.plot`
 
 ![boxplot](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.boxplot.pop.png)
 
