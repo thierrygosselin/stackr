@@ -152,6 +152,7 @@ A new object `ibm.stickleback` was created in your global environment.
 It's a list and to view it's content use `names(ibm.stickleback)`
 
 ```r
+"tidy.data"
 "ibm.plot.strata.POP_ID"
 "blacklist.id.missing.10"
 "blacklist.id.missing.20"

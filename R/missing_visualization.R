@@ -135,7 +135,8 @@
 #' @param filename (optional) Name of the tidy data set, 
 #' written to the working directory.
 
-#' @return A list is created with several objects: the principal coordinates 
+#' @return A list is created with several objects: the tidy data, 
+#' the principal coordinates 
 #' with eigenvalues of the PCoA, the identity-by-missingness plot, several 
 #' summary tables and plots of missing information
 #' per individuals, populations and markers. Blacklisted id are also included. A
@@ -498,6 +499,7 @@ missing_visualization <- function(data,
   # missing.genotypes.markers.plot
   
   # Results --------------------------------------------------------------------
+  res$tidy.data <- input
   res$vectors <- ibm$vectors
   res$heatmap <- heatmap
   res$missing.genotypes.ind <- missing.genotypes.ind
