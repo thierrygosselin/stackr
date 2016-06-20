@@ -3,14 +3,6 @@
 \name{filter_maf}
 \alias{filter_maf}
 \title{MAF filter}
-\usage{
-filter_maf(data, interactive.filter = TRUE, maf.approach = "SNP",
-  maf.thresholds, maf.operator = "OR", maf.pop.num.threshold = 1,
-  filename = NULL, blacklist.id = NULL, blacklist.genotype = NULL,
-  whitelist.markers = NULL, monomorphic.out = TRUE, max.marker = NULL,
-  snp.ld = NULL, common.markers = FALSE, strata = NULL,
-  pop.levels = NULL, pop.labels = NULL, pop.select = NULL)
-}
 \arguments{
 \item{data}{6 options: vcf, plink, genind, genepop, 
 and a data frame in wide or long/tidy format.
@@ -53,10 +45,27 @@ Default: \code{maf.pop.num.threshold = 1}}
 written to the working directory (ending with \code{.tsv})
 Default: \code{filename = NULL}.}
 
-\item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the working directory
-(e.g. "blacklist.txt").
-Default: \code{blacklist.id = NULL}.}
+\item{strata}{(optional for data frame and PLINK files, 
+required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. With a 
+data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+PLINK files, the \code{tfam} first 2 columns are used. 
+If a \code{strata} file is specified, the strata file will have
+precedence. The \code{STRATA} column can be any hierarchical grouping. 
+To create a strata file see \code{\link[stackr]{individuals2strata}}.
+Default: \code{strata = NULL}.}
+
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
+The whitelist is in the working directory (e.g. "whitelist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+In the VCF, the column ID is the LOCUS identification.
+Default \code{whitelist.markers = NULL} for no whitelist of markers.}
+
+\item{monomorphic.out}{(optional) Should the monomorphic 
+markers present in the dataset be filtered out ? 
+Default: \code{monomorphic.out = TRUE}.}
 
 \item{blacklist.genotype}{(optional) Useful to erase genotype with below 
 average quality, e.g. genotype with more than 2 alleles in diploid likely 
@@ -72,25 +81,6 @@ with 'un' need to be changed to 1.
 Default: \code{blacklist.genotype = NULL} for no blacklist of 
 genotypes to erase.}
 
-\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
-or integer) and/or LOCUS (integer) and/or
-POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
-The whitelist is in the working directory (e.g. "whitelist.txt").
-de novo CHROM column with 'un' need to be changed to 1. 
-In the VCF, the column ID is the LOCUS identification.
-Default \code{whitelist.markers = NULL} for no whitelist of markers.}
-
-\item{monomorphic.out}{(optional) Should the monomorphic 
-markers present in the dataset be filtered out ? 
-Default: \code{monomorphic.out = TRUE}.}
-
-\item{max.marker}{An optional integer useful to subsample marker number in 
-large PLINK file. e.g. if the data set 
-contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
-subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
-keep specific markers.
-Default: \code{max.marker = NULL}.}
-
 \item{snp.ld}{(optional) \strong{For VCF file only}. 
 SNP short distance linkage disequilibrium pruning. With anonymous markers from
 RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
@@ -103,15 +93,17 @@ Default: \code{snp.ld = NULL}.}
 will only keep markers in common (genotyped) between all the populations. 
 Default: \code{common.markers = FALSE}}
 
-\item{strata}{(optional for data frame and PLINK files, 
-required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
-\code{INDIVIDUALS} and \code{STRATA}. With a 
-data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
-PLINK files, the \code{tfam} first 2 columns are used. 
-If a \code{strata} file is specified, the strata file will have
-precedence. The \code{STRATA} column can be any hierarchical grouping. 
-To create a strata file see \code{\link[stackr]{individuals2strata}}.
-Default: \code{strata = NULL}.}
+\item{max.marker}{An optional integer useful to subsample marker number in 
+large PLINK file. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
+subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
+keep specific markers.
+Default: \code{max.marker = NULL}.}
+
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
 
 \item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
 case, the id of the pop.

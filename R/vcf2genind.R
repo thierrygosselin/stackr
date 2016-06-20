@@ -415,41 +415,62 @@ vcf2genind <- function(
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
   
-  # Preparing adegenet genind object ---------------------------------------------
+  # Preparing adegenet genind object -------------------------------------------
   message("Preparing adegenet genind object")
-  genind.prep <- suppressWarnings(
-    input %>%
-      tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
-      tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID))  %>%
-      filter(GT != "000") %>% 
-      tidyr::spread(data = ., key = MARKERS, value = GT) %>% # this reintroduce the missing, but with NA
-      ungroup() %>% 
-      plyr::colwise(.fun = factor, exclude = NA)(.)
-  )
   
-  # The next part is longer than it used to be with VCF file only, 
-  # but it as the advantage of working and simplifying the use for other file type.
-  genind.prep <- suppressWarnings(
-    genind.prep %>%
-      ungroup() %>% 
-      mutate_each(funs(as.integer), -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
-      ungroup()
-  )
+  # Function to prepare data for the genind constructor-------------------------
+  # getwd()
+  # save.image(file = "sturgeon.genind.test")
+  prepare_genind <- function(x) {
+    genind.prep <- x %>% 
+      select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
+      #faster than: tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
+      mutate(
+        A1 = stri_sub(str = GT, from = 1, to = 3),
+        A2 = stri_sub(str = GT, from = 4, to = 6)
+      ) %>% 
+      select(-GT) %>% 
+      tidyr::gather(data = ., key = ALLELES, 
+                    value = GT, 
+                    -c(MARKERS, INDIVIDUALS, POP_ID)
+      ) %>% # just miliseconds longer than data.table.melt so keeping this one for simplicity
+      filter(GT != "000") # remove missing "000"
     
-    genind.prep <- tidyr::gather(data = genind.prep, key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>% 
+    # this reintroduce the missing, but with NA
+    genind.prep <- data.table::dcast.data.table(
+      data = as.data.table(genind.prep), 
+      formula = POP_ID + INDIVIDUALS + ALLELES ~ MARKERS, 
+      value.var = "GT") %>% 
+      as_data_frame() %>% 
+      plyr::colwise(.fun = factor, exclude = NA)(.) %>% 
+      mutate(INDIVIDUALS = as.character(INDIVIDUALS))
+    
+    # The next part is longer than it used to be with VCF file only, 
+    # but it as the advantage of working and simplifying the use for other file type.
+    genind.prep <- suppressWarnings(mutate_each(tbl = genind.prep, funs(as.integer), -c(INDIVIDUALS, POP_ID, ALLELES)))
+    
+    genind.prep <- tidyr::gather(data = genind.prep, 
+                                 key = MARKERS, 
+                                 value = GT, 
+                                 -c(INDIVIDUALS, POP_ID, ALLELES)
+    ) %>% # faster than data.table.melt...
       mutate(GT = stri_replace_na(str = GT, replacement = "000")) %>%
       filter(GT != "000") %>%
       select(-ALLELES) %>%
       group_by(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
-      tally %>%
+      tally %>% # count alleles, longest part of the block
       ungroup()
-      
+    
     genind.prep <- genind.prep %>%
-      tidyr::unite(MARKERS_ALLELES, MARKERS, GT, sep = ":", remove = TRUE) %>%
-      arrange(POP_ID, INDIVIDUALS, MARKERS_ALLELES) %>% 
-      group_by(POP_ID, INDIVIDUALS) %>% 
-      tidyr::spread(data = ., key = MARKERS_ALLELES, value = n) %>%
-      ungroup()
+      mutate(MARKERS_ALLELES = stri_paste(MARKERS, GT, sep = ":")) %>%  # faster then: tidyr::unite(MARKERS_ALLELES, MARKERS, GT, sep = ":", remove = TRUE)
+      select(-GT, -MARKERS) %>% 
+      arrange(POP_ID, INDIVIDUALS, MARKERS_ALLELES)
+    
+    genind.prep <- data.table::dcast.data.table(
+      data = as.data.table(genind.prep), 
+      formula = POP_ID + INDIVIDUALS ~ MARKERS_ALLELES, 
+      value.var = "n") %>% 
+      as_data_frame()
     
     genind.prep <- tidyr::gather(data = genind.prep, key = MARKERS_ALLELES, value = COUNT, -c(INDIVIDUALS, POP_ID)) %>% 
       tidyr::separate(data = ., col = MARKERS_ALLELES, into = c("MARKERS", "ALLELES"), sep = ":", remove = TRUE) %>% 
@@ -462,16 +483,23 @@ vcf2genind <- function(
       mutate(COUNT = replace(COUNT, which(COUNT == "erase"), NA)) %>% 
       arrange(POP_ID, INDIVIDUALS, MARKERS, ALLELES)
     
-    genind.prep <- genind.prep %>%  
-      tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE) %>%
-      tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>%
+    genind.prep <- genind.prep %>%
+      mutate(MARKERS_ALLELES = stri_paste(MARKERS, ALLELES, sep = ".")) %>%  # faster then: tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE)
+      select(-MARKERS, -ALLELES) %>% 
       mutate(
-        INDIVIDUALS = as.character(INDIVIDUALS),
         POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
         POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
-      ) %>% 
+      )
+    
+    genind.prep <- data.table::dcast.data.table(
+      data = as.data.table(genind.prep), 
+      formula = POP_ID + INDIVIDUALS ~ MARKERS_ALLELES, 
+      value.var = "COUNT") %>% 
+      as_data_frame() %>%
       arrange(POP_ID, INDIVIDUALS)
-
+  } # End prepare genind
+  
+  genind.prep <- prepare_genind(x = input)
   
   # genind construction: no imputation -----------------------------------------
   # genind arguments common to all data.type
@@ -522,49 +550,11 @@ vcf2genind <- function(
       parallel.core = parallel.core, 
       filename = "dataset.imputed.tsv"
     )
+    input <- NULL # no longer needed
     
     message("Preparing imputed data for adegenet genind object")
-    genind.prep.imp <- input.imp %>%
-      tidyr::separate(col = GT, into = c("A1", "A2"), sep = 3) %>%  # separate the genotypes into alleles
-      tidyr::gather(key = ALLELES, GT, -c(MARKERS, INDIVIDUALS, POP_ID))
+    genind.prep.imp <- prepare_genind(x = input.imp)
     
-    genind.prep.imp <- suppressWarnings(
-      genind.prep.imp %>%
-        tidyr::spread(data = ., key = MARKERS, value = GT) %>% # this reintroduce the missing, but with NA
-        ungroup() %>% 
-        plyr::colwise(.fun = factor, exclude = NA)(.)
-    )
-    
-    genind.prep.imp <- suppressWarnings(
-      genind.prep.imp %>%
-        ungroup() %>% 
-        mutate_each(funs(as.integer), -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
-        ungroup() %>% 
-        tidyr::gather(data = ., key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>% 
-        select(-ALLELES) %>%
-        group_by(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
-        tally %>%
-        ungroup() %>%
-        tidyr::unite(MARKERS_ALLELES, MARKERS, GT, sep = ":", remove = TRUE) %>%
-        arrange(POP_ID, INDIVIDUALS, MARKERS_ALLELES) %>% 
-        group_by(POP_ID, INDIVIDUALS) %>% 
-        tidyr::spread(data = ., key = MARKERS_ALLELES, value = n) %>%
-        ungroup() %>%
-        tidyr::gather(data = ., key = MARKERS_ALLELES, value = COUNT, -c(INDIVIDUALS, POP_ID)) %>% 
-        tidyr::separate(data = ., col = MARKERS_ALLELES, into = c("MARKERS", "ALLELES"), sep = ":", remove = TRUE) %>% 
-        mutate(COUNT = as.numeric(stri_replace_na(str = COUNT, replacement = "0"))) %>% 
-        ungroup() %>%
-        arrange(POP_ID, INDIVIDUALS, MARKERS, ALLELES) %>% 
-        tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE) %>%
-        tidyr::spread(data = ., key = MARKERS_ALLELES, value = COUNT) %>% 
-        ungroup () %>%
-        mutate(
-          INDIVIDUALS = as.character(INDIVIDUALS),
-          POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
-          POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
-        ) %>% 
-        arrange(POP_ID, INDIVIDUALS)
-    )
     
     # genind construction: no imputation ---------------------------------------
     # 1) the genind without imputations is put in a res list
@@ -604,7 +594,12 @@ vcf2genind <- function(
     # genind.prep.imp <- NULL
     
   } # End imputations
-
+  
   # outout results -------------------------------------------------------------
-  return(res)
+  if (is.null(imputation.method)) {
+    return(no.imputation)
+  } else {
+    return(res)
+  }
 }
+

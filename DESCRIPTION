@@ -23,6 +23,7 @@ Imports:
     stringi,
     tidyr,
     lazyeval,
+    ape,
     adegenet,
     randomForestSRC,
     stringdist,

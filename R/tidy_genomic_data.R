@@ -269,7 +269,7 @@
 if (getRversion() >= "2.15.1") {
   utils::globalVariables(
     c("DP", "AD", "vcf.headers", "GT_VCF", "INDIVIDUALS2", "ALLELE_REF_DEPTH",
-      "ALLELE_ALT_DEPTH", "GT_BIN")
+      "ALLELE_ALT_DEPTH", "GT_BIN", "GT_HAPLO")
   )
 }
 
@@ -409,7 +409,9 @@ tidy_genomic_data <- function(
   if (!is.null(strata)) {
     if (is.vector(strata)) {
       message("strata file: yes")
-      strata.df <- read_tsv(file = strata, col_names = TRUE, col_types = "cc") %>% 
+      number.columns.strata <- max(count.fields(strata, sep = "\t"))
+      col.types <- stri_paste(rep("c", number.columns.strata), collapse = "")
+      strata.df <- read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>% 
         rename(POP_ID = STRATA)
     } else {
       message("strata object: yes")
@@ -479,7 +481,7 @@ tidy_genomic_data <- function(
     #   strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
     # }
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
-    
+
     # Pop select
     if (!is.null(pop.select)) {
       message(stri_join(length(pop.select), "population(s) selected", sep = " "))
@@ -693,14 +695,6 @@ tidy_genomic_data <- function(
     message("Tidying the PLINK file ...")
     # Filling GT and new separating INDIVIDUALS from ALLELES
     # combining alleles
-    # input <- input %>%
-    #   tidyr::gather(data = ., key = INDIVIDUALS_ALLELES, value = GT, -LOCUS) %>% 
-    #   mutate(GT = stri_pad_left(str = GT, width = 3, pad = "0")) %>% 
-    #   tidyr::separate(data = ., col = INDIVIDUALS_ALLELES, into = c("INDIVIDUALS", "ALLELES"), sep = "_") %>% 
-    #   tidyr::spread(data = ., key = ALLELES, value = GT) %>% 
-    #   tidyr::unite(data = ., col = GT, A1, A2, sep = "") %>% 
-    #   select(LOCUS, POP_ID, INDIVIDUALS, GT)
-    
     input <- data.table::melt.data.table(
       data = as.data.table(input), 
       id.vars = "LOCUS", 
@@ -859,7 +853,9 @@ tidy_genomic_data <- function(
       select(LOCUS) %>% 
       distinct(LOCUS)
     
+    if (length(consensus.markers$LOCUS) > 0) {
     input <- suppressWarnings(anti_join(input, consensus.markers, by = "LOCUS"))
+    }
     message(stri_paste("Consensus markers removed: ", n_distinct(consensus.markers$LOCUS)))
     
     # Filter with whitelist of markers
@@ -873,14 +869,9 @@ tidy_genomic_data <- function(
       message("Filtering with blacklist of individuals")
       input <- suppressWarnings(anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
-    
     # population levels and strata  --------------------------------------------
-    # if (!is.null(blacklist.id)) {
-    #   strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
-    # }
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
-    
-    
+
     # Pop select
     if (!is.null(pop.select)) {
       message(stri_join(length(pop.select), "population(s) selected", sep = " "))
@@ -889,26 +880,24 @@ tidy_genomic_data <- function(
     
     # removing errors and potential paralogs (GT with > 2 alleles) -------------
     message("Scanning for genotypes with more than 2 alleles")
+    input <- input %>%
+      mutate(POLYMORPHISM = stri_count_fixed(GT, "/"))
+    
     blacklist.paralogs <- input %>%
-      mutate(POLYMORPHISM = stri_count_fixed(GT, "/")) %>%
       filter(POLYMORPHISM > 1) %>% 
       select(LOCUS, INDIVIDUALS)
     
     message(stri_paste("Number of genotypes with more than 2 alleles: ", length(blacklist.paralogs$LOCUS), sep = ""))
     
     if (length(blacklist.paralogs$LOCUS) > 0){
-      blacklist.paralogs <- mutate(.data = blacklist.paralogs, ERASE = rep("erase", n()))
-      
-      input <- suppressWarnings(
-        input %>%
-          full_join(blacklist.paralogs, by = c("LOCUS", "INDIVIDUALS")) %>%
-          mutate(ERASE = stri_replace_na(str = ERASE, replacement = "ok"))
-      )
-      
       input <- input %>% 
-        mutate(GT = ifelse(ERASE == "erase", NA, GT)) %>% 
-        select(-ERASE)
+        mutate(GT = ifelse(POLYMORPHISM >1, NA, GT)) %>% 
+        select(-POLYMORPHISM)
+      
+      write_tsv(blacklist.paralogs, "blacklist.genotypes.paralogs.tsv")
     }
+    
+    tidy.haplo <- input %>% select(LOCUS, INDIVIDUALS, GT_HAPLO = GT)
     
     # recode genotypes
     message("Recoding haplotypes in 6 digits format")
@@ -923,29 +912,36 @@ tidy_genomic_data <- function(
         tidyr::spread(data = ., key = LOCUS, value = GT)
     )
     
-    input <- suppressWarnings(
-      input %>% 
-        colwise(factor, exclude = "NA")(.)
-    )
+    input.id.col <- select(.data = input, POP_ID, INDIVIDUALS, ALLELES)
     
-    input <- suppressWarnings(
-      input %>%
-        mutate(GROUP = rep(1, times = nrow(.))) %>% 
-        group_by(GROUP) %>% 
-        mutate_each(funs(as.integer), -c(ALLELES, INDIVIDUALS, POP_ID, GROUP)) %>%
-        ungroup() %>% 
-        select(-GROUP) %>% 
-        tidyr::gather(data = ., key = LOCUS, value = GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>% 
-        mutate(
-          GT = as.character(GT),
-          GT = stri_pad_left(str = GT, width = 3, pad = "0"),
-          GT = stri_replace_na(str = GT, replacement = "000")
-        ) %>% 
-        tidyr::spread(data = ., key = ALLELES, value = GT) %>% 
-        tidyr::unite(GT, A1, A2, sep = "") %>%
-        select(LOCUS, POP_ID, INDIVIDUALS, GT) %>%
-        arrange(LOCUS, POP_ID, INDIVIDUALS, GT)
-    )
+    input.variable <- input %>% select(-c(POP_ID, INDIVIDUALS, ALLELES)) %>% 
+      colwise(factor, exclude = NA)(.) %>% 
+      colwise(as.numeric)(.)
+    
+    input <- bind_cols(input.id.col, input.variable)
+    
+    input <- data.table::melt.data.table(
+      data = as.data.table(input), 
+      id.vars = c("INDIVIDUALS", "POP_ID", "ALLELES"), 
+      variable.name = "LOCUS",
+      variable.factor = FALSE,
+      value.name = "GT"
+    ) %>% 
+      as_data_frame() %>% 
+      mutate(
+        GT = as.character(GT),
+        GT = stri_pad_left(str = GT, width = 3, pad = "0"),
+        GT = stri_replace_na(str = GT, replacement = "000")
+      ) %>% 
+      tidyr::spread(data = ., key = ALLELES, value = GT) %>% 
+      tidyr::unite(data = ., GT, A1, A2, sep = "") 
+    
+    # input <- arrange(.data = input, LOCUS, POP_ID, INDIVIDUALS) %>% filter(GT == "000000")
+    # tidy.haplo <- arrange(.data = tidy.haplo, LOCUS, INDIVIDUALS)
+    
+    input <- inner_join(input, tidy.haplo, by = c("LOCUS", "INDIVIDUALS")) %>%
+      select(LOCUS, POP_ID, INDIVIDUALS, GT, GT_HAPLO) %>%
+      arrange(LOCUS, POP_ID, INDIVIDUALS, GT, GT_HAPLO)
     
     # change the filename and strata.df here
   } # End import haplotypes file
@@ -1197,24 +1193,47 @@ tidy_genomic_data <- function(
       select(MARKERS) %>%
       distinct(MARKERS)
     
-    message(stri_join("Number of original markers = ", n_distinct(input$MARKERS), 
+    markers.input <- n_distinct(input$MARKERS)
+    markers.in.common <- n_distinct(pop.filter$MARKERS)
+    blacklist.markers.common <- markers.input - markers.in.common
+    
+    message(stri_join("Number of original markers = ", markers.input, 
                       "\n", "Number of markers present in all the populations = ", 
-                      n_distinct(pop.filter$MARKERS), "\n", 
+                      markers.in.common, "\n", 
                       "Number of markers removed = ", 
-                      n_distinct(input$MARKERS) - n_distinct(pop.filter$MARKERS))
+                      blacklist.markers.common)
     )
+    
+    if (blacklist.markers.common > 0) {
     input <- suppressWarnings(input %>% semi_join(pop.filter, by = "MARKERS"))
+    }
     pop.filter <- NULL # ununsed object
+    markers.input <- NULL
+    markers.in.common <- NULL
+    blacklist.markers.common <- NULL
   } # End common markers
   
   # Removing monomorphic markers------------------------------------------------
   if (monomorphic.out) {
-    message("Removing monomorphic markers...")
+    message("Removing monomorphic markers: yes")
+    message("Scanning for monomorphic markers...")
     
     mono.markers <- input %>%
-      select(MARKERS, POP_ID, INDIVIDUALS, GT) %>%
-      tidyr::separate(col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
-      tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
+      select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
+      mutate(
+        A1 = stri_sub(GT, 1, 3),
+        A2 = stri_sub(GT, 4,6)
+      ) %>% 
+      select(-GT)
+    
+    system.time(mono.markers2 <- data.table::melt.data.table(
+      data = as.data.table(mono.markers), 
+      id.vars = c("MARKERS", "INDIVIDUALS", "POP_ID"), 
+      variable.name = "ALLELES",
+      variable.factor = FALSE,
+      value.name = "GT"
+    ) %>% 
+      as_data_frame() %>% 
       filter(GT != "000") %>%
       group_by(MARKERS, GT) %>% 
       tally %>%
@@ -1222,14 +1241,38 @@ tidy_genomic_data <- function(
       select(MARKERS) %>% 
       group_by(MARKERS) %>% 
       tally %>% 
-      filter(n == 1) %>% 
+      filter(n == 1) %>%
+      ungroup() %>% 
       select(MARKERS)
+    )
     
-    
+    mono.markers <- data.table::melt.data.table(
+      data = as.data.table(mono.markers), 
+      id.vars = c("MARKERS", "INDIVIDUALS", "POP_ID"), 
+      variable.name = "ALLELES",
+      variable.factor = FALSE,
+      value.name = "GT"
+    ) %>% 
+      as_data_frame() %>% 
+      filter(GT != "000") %>%
+      select(MARKERS, GT) %>% 
+      distinct(MARKERS, GT) %>% 
+      select(MARKERS) %>% 
+      group_by(MARKERS) %>% 
+      tally %>%
+      filter(n == 1) %>%
+      ungroup() %>% 
+      select(MARKERS)
+
     # Remove the markers from the dataset
-    input <- anti_join(input, mono.markers, by = "MARKERS")
     message(paste0("Number of monomorphic markers removed: ", n_distinct(mono.markers$MARKERS)))
-  }
+    
+    if (length(mono.markers$MARKERS)>0) {
+      input <- anti_join(input, mono.markers, by = "MARKERS")
+      if(data.type == "haplo.file") mono.markers <- rename(.data = mono.markers, LOCUS = MARKERS)
+      write_tsv(mono.markers, "blacklist.momorphic.markers.tsv")
+    }
+}
   
   # Minor Allele Frequency filter ********************************************
   # maf.thresholds <- c(0.05, 0.1) # test
@@ -1269,8 +1312,20 @@ tidy_genomic_data <- function(
       # We split the alleles here to prep for MAF
       maf.data <- input %>%
         select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
-        tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
-        tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
+        mutate(
+          A1 = stri_sub(GT, 1, 3),
+          A2 = stri_sub(GT, 4,6)
+        ) %>% 
+        select(-GT)
+        
+      maf.data <- data.table::melt.data.table(
+        data = as.data.table(maf.data), 
+        id.vars = c("MARKERS", "INDIVIDUALS", "POP_ID"), 
+        variable.name = "ALLELES",
+        variable.factor = FALSE,
+        value.name = "GT"
+      ) %>% 
+        as_data_frame() %>% 
         filter(GT != "000")
       
       maf.data <- maf.data %>%
@@ -1280,7 +1335,10 @@ tidy_genomic_data <- function(
         group_by(MARKERS, GT) %>%
         mutate(sum.pop = sum(n)) %>% 
         group_by(MARKERS) %>%
-        mutate(MAF_GLOBAL = min(sum.pop)/sum(n)) %>% 
+        mutate(
+          MAF_GLOBAL = min(sum.pop)/sum(n),
+          ALT = ifelse(min(sum.pop), "alt", "ref")
+          ) %>%
         group_by(MARKERS, POP_ID) %>%
         mutate(MAF_LOCAL = n/sum(n)) %>% 
         arrange(MARKERS, POP_ID, GT) %>% 
