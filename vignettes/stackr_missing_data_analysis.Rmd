@@ -12,9 +12,10 @@ vignette: >
 ---
 
 
-# Objectives:
+# Objectives
 Learn how to visualize missing genotypes in your genomic dataset with 
 the function `stackr::missing_visualization` (time = 15 min).
+
 
 # Workflow
 The function `missing_visualization` in 
@@ -222,6 +223,12 @@ ibm.stickleback$missing.genotypes.pop.plot
 
 ![boxplot](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.boxplot.pop.png)
 
+
+
+###Filtering strategies
+* use the blacklist of individuals created with the function to **manage** missing data inside filtering pipeline
+* excluding/including individuals, populations, markers to test the impact of filtering on polymorphism discovery
+* ready to test missing data imputations ? use most of stackr functions with the imputations arguments...
 
 ##References
 
