@@ -13,8 +13,8 @@ vignette: >
 
 
 # Objectives:
-* learn how to visualize missing genotypes in your genomic dataset with 
-the function `stackr::missing_visualization` (Time = 15 min).
+Learn how to visualize missing genotypes in your genomic dataset with 
+the function `stackr::missing_visualization` (time = 15 min).
 
 # Workflow
 The function `missing_visualization` in 
@@ -60,33 +60,32 @@ writeBin(httr::content(httr::GET("http://datadryad.org/bitstream/handle/10255/dr
 The strata file is a tab-delimited file or object, in the global environment,
 with a minimum of 2 columns: `INDIVIDUALS` and `STRATA`. 
 The `STRATA` and remaining columns can be any hierarchical grouping.
-  * Because the population id is contained in the name of the individuals and
+    * Because the population id is contained in the name of the individuals and
   easily extracted with string command, we use the 
   function `stackr::individuals2strata`. 
-  
     ```r
     # here is one individual id: 
     Hadsten10_q_75.align
     # with pop starting at position 1 and to keep only 3 characters (necessary to discriminate populations from each other) we stop at... 3
-    ```
+      ```
   
-  * For info on the function use: `?individuals2strata`.
+    * For info on the function use: `?individuals2strata`.
   Don't have this kind of names... you can also make the strata file by hand, 
   the old fashion way.
 
-  * For your data, you might not need to make a strata file if you have already
+    * For your data, you might not need to make a strata file if you have already
   run \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
 the strata file is similar to a stacks `population map file`, make sure you 
 have the required column names  (`INDIVIDUALS` and `STRATA`). 
 
-  * We will extract the id from the first line of the vcf file. 
+    * We will extract the id from the first line of the vcf file. 
   If the individuals were in a single column in a file (e.g. "individuals.txt"), 
   make sure the column is named `INDIVIDUALS` and use the file directly 
   in the function `stackr::individuals2strata`.
   
-  * We could put all the lines below in one call, but for clarity we'll break down
+    * We could put all the lines below in one call, but for clarity we'll break down
 the steps:
-```r
+    ```r
 # Isolate the first line
 id.vcf <- data.table::fread(
   input = "example_vcf2dadi_ferchaud_2015.vcf",
@@ -103,8 +102,8 @@ id.vcf <- data.table::fread(
   select(-`#CHROM`)
   # to keep only the column name
   individuals <- data.frame(INDIVIDUALS = colnames(id.vcf)) 
-```
-```r
+    ```
+    ```r
 # create the strata
 strata.stickleback <- stackr::individuals2strata(
 data = individuals, 
@@ -112,7 +111,7 @@ strata.start = 1,
 strata.end = 3,
 filename = "strata.stickleback.tsv"
 )
-```
+    ```
 
 ##Run the function stackr::missing_visualization
 ```r
@@ -200,11 +199,11 @@ ibm.stickleback$missing.genotypes.pop.plot
 
 **The heatmap should look like this:**
 
-![heatmap](https://github.com/thierrygosselin/stackr/vignettes/blob/master/stickleback.missing.heatmap.png)
+![heatmap](https://github.com/thierrygosselin/stackr/blob/master/vignettes/stickleback.missing.heatmap.png)
 
 **The IBM-PCoA plot:**
 
-![IBM-PCoA plot](https://github.com/thierrygosselin/stackr/vignettes/blob/master/stickleback.ibm.png)
+![IBM-PCoA plot](https://github.com/thierrygosselin/stackr/blob/master/vignettes/stickleback.ibm.png)
 
 
 **Table summary with missing info per individuals**: `table.ind <- ibm.stickleback$missing.genotypes.ind`
@@ -221,10 +220,7 @@ ibm.stickleback$missing.genotypes.pop.plot
 
 **The boxplot of missing per populations:** `boxplot.missing.pop <- ibm.stickleback$missing.genotypes.ind`
 
-![boxplot](https://github.com/thierrygosselin/stackr/vignettes/blob/master/stickleback.missing.boxplot.pop.png)
-
-### Visualization
-We will leave that for discussion, use our [wiki page](https://github.com/thierrygosselin/CIEE_missing/wiki/CIEE-Missing-data-workgroup-Wikipedia) for this!
+![boxplot](https://github.com/thierrygosselin/stackr/blob/master/vignettes/stickleback.missing.boxplot.pop.png)
 
 
 ##References
