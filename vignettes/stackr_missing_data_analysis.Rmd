@@ -199,11 +199,11 @@ ibm.stickleback$missing.genotypes.pop.plot
 
 **The heatmap should look like this:**
 
-![heatmap](https://github.com/thierrygosselin/stackr/blob/master/vignettes/stickleback.missing.heatmap.png)
+![heatmap](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.heatmap.png)
 
 **The IBM-PCoA plot:**
 
-![IBM-PCoA plot](https://github.com/thierrygosselin/stackr/blob/master/vignettes/stickleback.ibm.png)
+![IBM-PCoA plot](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.ibm.png)
 
 
 **Table summary with missing info per individuals**: `table.ind <- ibm.stickleback$missing.genotypes.ind`
@@ -220,7 +220,7 @@ ibm.stickleback$missing.genotypes.pop.plot
 
 **The boxplot of missing per populations:** `boxplot.missing.pop <- ibm.stickleback$missing.genotypes.ind`
 
-![boxplot](https://github.com/thierrygosselin/stackr/blob/master/vignettes/stickleback.missing.boxplot.pop.png)
+![boxplot](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.boxplot.pop.png)
 
 
 ##References
