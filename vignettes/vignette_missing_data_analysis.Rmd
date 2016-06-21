@@ -29,7 +29,7 @@ More options are available, see function documentation.
 
 
 ## Prepare your R workspace
-1. Clean your desk and remove the clutter in the global environment
+1. Clean your desk
 ```r
 rm(list=ls())
 ```
@@ -170,45 +170,48 @@ It's a list and to view it's content use `names(ibm.stickleback)`
 "missing.genotypes.markers"
 "missing.genotypes.markers.plot"
 ```
-The function generates by default the IBM-PCoA plot, the heatmap plot and several plots showing the 
-distribution of missing genotypes by individuals, pop and markers. Blacklists of individuals
-are included in the list `ibm.stickleback` and written to the working directory (defaults from 10% to 70%, that automatically stops if no individuals at the threshold is found, can be changed with `ind.missing.geno.threshold` argument). Tables with summary missing information along the vectors of eigenvalues of the principal coordinates analysis are also part of the list output. All these objects are accessed with `$`, see the next step.
+The function generates by default the IBM-PCoA plot, the heatmap plot and 
+several plots showing the distribution of missing genotypes by individuals, 
+pop and markers. Blacklists of individuals are included in the list 
+`ibm.stickleback` and written to the working directory 
+(defaults from 10% to 70%, that automatically stops if no individuals at the 
+threshold is found, can be changed with `ind.missing.geno.threshold` argument). 
+Tables with summary missing information along the vectors of eigenvalues of the 
+principal coordinates analysis are also part of the list output. 
+All these objects are accessed with `$`, see the next step.
 
-### Visualization
+## Visualization
 
+1. To view the IBM-PCoA plot:
 ```r
-# To view the IBM-PCoA plot:
 ibm.stickleback$ibm.plot.strata.POP_ID
-
-# to put the heatmap figure in a new object, outside the list
-heatmap <- ibm.stickleback$heatmap 
-
-# To view the heatmap of missing genotypes per markers and individuals:
-heatmap
-
-# To save the plots in a vectorial pdf:
-ggsave(filename = "stickleback.missing.heatmap.pdf", width = 10, height = 20, dpi = 300, units = "cm", useDingbats = F)
-
-# To save the plots in a vectorial png:
-ggsave(filename = "stickleback.missing.heatmap.png", width = 10, height = 20, dpi = 100, units = "cm")
-
-# To view the distribution of missing genotypes per individuals
-ibm.stickleback$missing.genotypes.ind.plot
-
-# To view the distribution of missing genotypes per markers and populations
-ibm.stickleback$missing.genotypes.pop.plot
 ```
-
-**The heatmap should look like this:**
-
-![heatmap](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.heatmap.png)
-
-**The IBM-PCoA plot:**
 
 ![IBM-PCoA plot](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.ibm.png)
 
 
-**Table summary with missing info per individuals**: `table.ind <- ibm.stickleback$missing.genotypes.ind`
+2. Create a new object, outside the list, for the heatmap figure:
+```r
+heatmap <- ibm.stickleback$heatmap 
+# To view the heatmap of missing genotypes per markers and individuals:
+heatmap 
+```
+
+![heatmap](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.heatmap.png)
+
+
+3. To save the plots 
+```r
+# vectorial pdf:
+ggsave(filename = "stickleback.missing.heatmap.pdf", width = 10, height = 20, dpi = 300, units = "cm", useDingbats = F)
+# png:
+ggsave(filename = "stickleback.missing.heatmap.png", width = 10, height = 20, dpi = 100, units = "cm")
+```
+
+4. View the table with summary of missing genotypes per individuals: 
+```r
+table.ind <- ibm.stickleback$missing.genotypes.ind
+```
 
 |INDIVIDUALS            |POP_ID | MISSING_GENOTYPE| MARKER_NUMBER|  PERC|
 |:----------------------|:------|----------------:|-------------:|-----:|
@@ -220,15 +223,31 @@ ibm.stickleback$missing.genotypes.pop.plot
 |Hadsten14-q-75.align   |Had    |              287|         31802|  0.90|
 
 
-**The boxplot of missing per populations:** `boxplot.missing.pop <- ibm.stickleback$missing.genotypes.pop.plot`
+5. To view the distribution of missing genotypes per individuals
+```r
+ibm.stickleback$missing.genotypes.ind.plot
+```
+
+6. To view the distribution of missing genotypes per markers and populations
+```r
+ibm.stickleback$missing.genotypes.pop.plot
+```
 
 ![boxplot](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.boxplot.pop.png)
 
+7. Explore the rest by yourself!
+
+
+###Arguments
+* use `strata.select` to select columns from the strata file to generate PCoA-IBM plots. If you have several columns to test e.g. library, sequencer, sequencing lanes, sampling sites, populations, use inside a string to get all of them!
+* use `distance.method` to explore other distance metric used by the function `dist`
 
 
 ###Filtering strategies
-* use the blacklist of individuals created with the function to **manage** missing data inside filtering pipeline
-* excluding/including individuals, populations, markers to test the impact of filtering on polymorphism discovery
+* explore the impact of different filtering parameters on missing genotypes, with available arguments: e.g. `snp.ld`, `common.markers`, `maf.thresholds` arguments to quickly generate the figures.
+* test your own whitelist of markers with `whitelist.markers`
+* use the blacklist of individuals created with the function to **manage** missing data inside filtering pipelines
+* excluding/including individuals, populations and markers to test the impact of filtering on polymorphism discovery
 * ready to test missing data imputations ? use most of stackr functions with the imputations arguments...
 
 ##References

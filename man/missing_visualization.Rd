@@ -120,7 +120,8 @@ Default: \code{blacklist.id = NULL}.}
 written to the working directory.}
 }
 \value{
-A list is created with several objects: the principal coordinates 
+A list is created with several objects: the tidy data, 
+the principal coordinates 
 with eigenvalues of the PCoA, the identity-by-missingness plot, several 
 summary tables and plots of missing information
 per individuals, populations and markers. Blacklisted id are also included. A
