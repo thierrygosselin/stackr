@@ -283,12 +283,6 @@ missing_visualization <- function(data,
     )
   }
   
-  # new strata.df
-  strata.df <- input %>% 
-    select(INDIVIDUALS, POP_ID) %>% 
-    distinct(INDIVIDUALS) %>% 
-    arrange(POP_ID, INDIVIDUALS)
-  
   # create an empty list to store results
   res <- list()
   
@@ -298,10 +292,10 @@ missing_visualization <- function(data,
   message("Principal Coordinate Analysis (PCoA)...")
   
   input.prep <- input %>% 
-    select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
     mutate(GT = ifelse(GT == "000000", "0", "1"), GT = as.numeric(GT))
   
   input.pcoa <- input.prep %>% 
+    select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
     group_by(POP_ID, INDIVIDUALS) %>% 
     tidyr::spread(data = ., key = MARKERS, value = GT)
   
@@ -500,6 +494,7 @@ missing_visualization <- function(data,
   
   # Results --------------------------------------------------------------------
   res$tidy.data <- input
+  res$tidy.data.binary <- input.prep
   res$vectors <- ibm$vectors
   res$heatmap <- heatmap
   res$missing.genotypes.ind <- missing.genotypes.ind
