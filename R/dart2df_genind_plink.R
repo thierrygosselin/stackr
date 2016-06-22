@@ -1,10 +1,10 @@
-# Import, filter and transform a dart output file to different format
+# Import, filter and transform a dart output file to different formats
 
 #' @name dart2df_genind_plink
 
 #' @title swiss army knife tool to prepare DArT output file for population genetics analysis.
 
-#' @description Import, filter and transform a DArT output file to different format: 
+#' @description Import, filter and transform a DArT output file to different formats: 
 #' data frame of genotypes, genind object and/or PLINK \code{tped/tfam} format.
 
 #' @param data DArT output file in wide format or binary format tipically 
@@ -96,7 +96,7 @@
 #' pruning.
 
 #' @param plot.number.snp.reads (optional, logical) Plot the distribution of SNP
-#' per reads. 
+#' per read. 
 #' Default: \code{plot.number.snp.reads = FALSE}.
 
 
@@ -137,7 +137,7 @@
 #' @param filename (optional) The name of the file written to the directory.
 #' No file extension at the end. Default: \code{filename = NULL}
 
-#' @param imputation.method Should a map-independent imputations of markers be
+#' @param imputation.method Should a map-independent imputation of markers be
 #' computed. Available choices are: (1) \code{FALSE} for no imputation.
 #' (2) \code{"max"} to use the most frequent category for imputations.
 #' (3) \code{"rf"} using Random Forest algorithm. 
@@ -145,7 +145,7 @@
 #' @param impute (character) Imputation on missing genotype 
 #' \code{impute = "genotype"} or alleles \code{impute = "allele"}.
 #' @param imputations.group \code{"global"} or \code{"populations"}.
-#' Should the imputations be computed globally or by populations. If you choose
+#' Should the imputations be computed globally or by population. If you choose
 #' global, turn the verbose to \code{TRUE}, to see progress.
 #' Default = \code{"populations"}.
 #' @param num.tree The number of trees to grow in Random Forest. Default is 100.
@@ -155,7 +155,7 @@
 #' random splitting in Random Forest. Default is 100.
 #' @param verbose Logical. Should trace output be enabled on each iteration
 #' in Random Forest ? Default is \code{FALSE}.
-#' @param parallel.core (optional) The number of core for OpenMP shared-memory parallel
+#' @param parallel.core (optional) The number of cores for OpenMP shared-memory parallel
 #' programming of Random Forest imputations. For more info on how to install the
 #' OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 #' If not selected \code{detectCores()-1} is used as default.
