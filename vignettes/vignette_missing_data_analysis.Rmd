@@ -254,9 +254,9 @@ ibm$missing.genotypes.pop.plot
 
 ### Interpretation
 
-Do you see patterns in your plots that provides insight about the relationships that missing values might have with other variables.
+Do you see patterns in your plots that provides insight about the relationships that missing values might have with other variables (inspired from [r4ds](http://r4ds.had.co.nz/exploratory-data-analysis-eda.html)).
 
-If you see a pattern, ask yourself (inspired from [r4ds](http://r4ds.had.co.nz/exploratory-data-analysis-eda.html)):
+If you see a pattern, ask yourself:
 
 * Is the pattern due to coincidence (i.e. random chance)?
 
