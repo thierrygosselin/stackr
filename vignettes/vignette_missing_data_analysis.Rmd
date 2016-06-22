@@ -277,14 +277,13 @@ If you see a pattern, ask yourself:
 
 
 ###Filtering strategies
-* explore the impact of different filtering parameters on missing genotypes, with available arguments: e.g. `snp.ld`, `common.markers`, `maf.thresholds` arguments to quickly generate the figures.
+* explore the impact of different filtering parameters on missing genotypes pattern, with available arguments: e.g. `snp.ld`, `common.markers`, `maf.thresholds` arguments to quickly generate the figures.
 * test your own whitelist of markers with `whitelist.markers`
 * use the blacklist of individuals created with the function to **manage** missing data inside filtering pipelines
 * excluding/including individuals, populations and markers to test the impact of filtering on polymorphism discovery
-* ready to test missing data imputations ? use most of stackr functions with the imputations arguments...
+* ready to test missing data imputations ? Most stackr functions have built-in imputations arguments.
 
 ##References
-
 Ferchaud A, Hansen MM (2016) The impact of selection, gene flow and demographic history on heterogeneous genomic divergence: threespine sticklebacks in divergent environments. Molecular Ecology 25(1): 238–259. http://dx.doi.org/10.1111/mec.13399
 
 Ferchaud A, Hansen MM (2015) Data from: The impact of selection, gene flow and demographic history on heterogeneous genomic divergence: threespine sticklebacks in divergent environments. Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.kp11q
