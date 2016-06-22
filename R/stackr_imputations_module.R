@@ -124,6 +124,8 @@ stackr_imputations_module <- function(
     input <- rename(.data = input, MARKERS = LOCUS)
   }
   
+  input <- select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT)
+  
   # Imputations ***************************************************************
   message("Preparing the data for imputations")
   
