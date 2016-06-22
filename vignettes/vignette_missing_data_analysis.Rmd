@@ -243,6 +243,9 @@ table.ind <- ibm$missing.genotypes.ind
 ibm$missing.genotypes.ind.plot
 ```
 
+![scatterplot](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.ind.png)
+
+
 7. To view the distribution of missing genotypes per markers and populations
 ```r
 ibm$missing.genotypes.pop.plot
