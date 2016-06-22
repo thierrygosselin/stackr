@@ -29,16 +29,13 @@ More options are available, see function documentation.
 
 
 ## Prepare your R workspace
-1. Clean your desk
-```r
-rm(list=ls())
-```
-
-1. Load the required libraries (copy/paste in one block):
+1. Clean your desk and load the required libraries (copy/paste in one block):
 ```r
 rm(list=ls())
 if (!require("pacman")) install.packages("pacman")
 library("pacman")
+pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
+# repeat to load libraries that were just installed 
 pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
 if (!require("stackr")){
   install_github("thierrygosselin/stackr", build_vignettes = TRUE)
@@ -116,9 +113,9 @@ filename = "strata.stickleback.tsv"
 
 ##Run the function stackr::missing_visualization
 ```r
-ibm.stickleback <- stackr::missing_visualization(
+ibm <- stackr::missing_visualization(
 data = "example_vcf2dadi_ferchaud_2015.vcf", # VCF file, but see function documentation for other options
-strata = "strata.stickleback.tsv") # the strata file just downloaded
+strata = "strata.stickleback.tsv") # the strata file just created
 ```
 
 This is the simplest way to run the function. And you should see this in RStudio console:
@@ -148,11 +145,10 @@ Missingness per populations
 Missingness per markers
 ```
 
-A new object `ibm.stickleback` was created in your global environment. 
-It's a list and to view it's content use `names(ibm.stickleback)`
+A new object `ibm` was created in your global environment. 
+It's a list and to view it's content use `names(ibm)`
 
 ```r
-"tidy.data"
 "ibm.plot.strata.POP_ID"
 "blacklist.id.missing.10"
 "blacklist.id.missing.20"
@@ -161,6 +157,8 @@ It's a list and to view it's content use `names(ibm.stickleback)`
 "blacklist.id.missing.50"
 "blacklist.id.missing.60"
 "blacklist.id.missing.70"
+"tidy.data"
+"tidy.data.binary"
 "vectors"
 "heatmap"
 "missing.genotypes.ind"
@@ -173,26 +171,43 @@ It's a list and to view it's content use `names(ibm.stickleback)`
 The function generates by default the IBM-PCoA plot, the heatmap plot and 
 several plots showing the distribution of missing genotypes by individuals, 
 pop and markers. Blacklists of individuals are included in the list 
-`ibm.stickleback` and written to the working directory 
+`ibm` and written to the working directory 
 (defaults from 10% to 70%, that automatically stops if no individuals at the 
 threshold is found, can be changed with `ind.missing.geno.threshold` argument). 
 Tables with summary missing information along the vectors of eigenvalues of the 
 principal coordinates analysis are also part of the list output. 
-All these objects are accessed with `$`, see the next step.
+All these objects are accessed with `$`.
+
+For the second run, we are going to select all the groupings in the strata file.
+This will allow us to get the IBM-PCoA plot for each groupings automatically. 
+```r
+ibm <- stackr::missing_visualization(
+data = "example_vcf2dadi_ferchaud_2015.vcf", # VCF file, but see function documentation for other options
+strata = "strata.stickleback.tsv", # 4 columns: INDIVIDUALS, STRATA, POP_TYPE, ECOTYPE
+strata.select = c("POP_ID", "POP_TYPE", "ECOTYPE") # STRATA is changed to POP_ID automatically 
+)
+```
 
 ## Visualization
 
-1. To view the IBM-PCoA plot:
+1. To view the IBM-PCoA plot made with POP_ID grouping:
 ```r
-ibm.stickleback$ibm.plot.strata.POP_ID
+ibm$ibm.plot.strata.POP_ID
 ```
 
 ![IBM-PCoA plot](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.ibm.png)
 
-
-2. Create a new object, outside the list, for the heatmap figure:
+2. To view the IBM-PCoA plot made with ECOTYPE grouping:
 ```r
-heatmap <- ibm.stickleback$heatmap 
+ibm$ibm.plot.strata.ECOTYPE
+```
+
+![IBM-PCoA plot](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.ibm.ecotype.png)
+
+
+3. Create a new object, outside the list, for the heatmap figure:
+```r
+heatmap <- ibm$heatmap 
 # To view the heatmap of missing genotypes per markers and individuals:
 heatmap 
 ```
@@ -200,7 +215,7 @@ heatmap
 ![heatmap](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.heatmap.png)
 
 
-3. To save the plots 
+4. To save the plots 
 ```r
 # vectorial pdf:
 ggsave(filename = "stickleback.missing.heatmap.pdf", width = 10, height = 20, dpi = 300, units = "cm", useDingbats = F)
@@ -208,9 +223,9 @@ ggsave(filename = "stickleback.missing.heatmap.pdf", width = 10, height = 20, dp
 ggsave(filename = "stickleback.missing.heatmap.png", width = 10, height = 20, dpi = 100, units = "cm")
 ```
 
-4. View the table with summary of missing genotypes per individuals: 
+5. View the table with summary of missing genotypes per individuals: 
 ```r
-table.ind <- ibm.stickleback$missing.genotypes.ind
+table.ind <- ibm$missing.genotypes.ind
 ```
 
 |INDIVIDUALS            |POP_ID | MISSING_GENOTYPE| MARKER_NUMBER|  PERC|
@@ -223,19 +238,37 @@ table.ind <- ibm.stickleback$missing.genotypes.ind
 |Hadsten14-q-75.align   |Had    |              287|         31802|  0.90|
 
 
-5. To view the distribution of missing genotypes per individuals
+6. To view the distribution of missing genotypes per individuals
 ```r
-ibm.stickleback$missing.genotypes.ind.plot
+ibm$missing.genotypes.ind.plot
 ```
 
-6. To view the distribution of missing genotypes per markers and populations
+7. To view the distribution of missing genotypes per markers and populations
 ```r
-ibm.stickleback$missing.genotypes.pop.plot
+ibm$missing.genotypes.pop.plot
 ```
 
 ![boxplot](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.boxplot.pop.png)
 
-7. Explore the rest by yourself!
+8. Explore the rest by yourself!
+
+### Interpretation
+
+Do you see patterns in your plots that provides insight about the relationships that missing values might have with other variables.
+
+If you see a pattern, ask yourself (inspired from [r4ds](http://r4ds.had.co.nz/exploratory-data-analysis-eda.html)):
+
+* Is the pattern due to coincidence (i.e. random chance)?
+
+* Could you describe the relationship in the pattern ?
+
+* How strong is the relationship implied by the pattern?
+
+* What other variables might affect the relationship?
+
+* Does the relationship change if you look at individual subgroups of the data?
+
+* Do you think the pattern observed in the data could impact the clustering analysis?
 
 
 ###Arguments
