@@ -118,8 +118,12 @@ stackr_imputations_module <- function(
   if (missing(data)) stop("Input file missing")
   
   # Import data ---------------------------------------------------------------
-  input <- stackr::read_long_tidy_wide(data = data)
-  if ("LOCUS" %in% colnames(input)) input <- rename(.data = input, MARKERS = LOCUS)
+  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  
+  if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
+    input <- rename(.data = input, MARKERS = LOCUS)
+  }
+  
   # Imputations ***************************************************************
   message("Preparing the data for imputations")
   
