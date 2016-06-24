@@ -56,7 +56,7 @@ if (getRversion() >= "2.15.1"){
 
 find_duplicate_id <- function(data, parallel.core = detectCores()-1) {
   cat("#######################################################################\n")
-  cat("###################### stackr: find_duplicate_id ######################/n")
+  cat("###################### stackr: find_duplicate_id ######################\n")
   cat("#######################################################################\n")
   
   # manage missing arguments ---------------------------------------------------
@@ -65,7 +65,9 @@ find_duplicate_id <- function(data, parallel.core = detectCores()-1) {
   
   # Import data ----------------------------------------------------------------
   input <- stackr::read_long_tidy_wide(data = data)
-  
+  if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
+    input <- rename(.data = input, MARKERS = LOCUS)
+  }
   
   # Compute pairwise search for duplicate ----------------------------------------
   # list of id
