@@ -30,10 +30,21 @@ the dataset be filtered out ? Default: \code{filter.monomorphic = TRUE}.}
 \item{common.markers}{(optional, logical) Default: \code{common.markers = TRUE}, 
 will only keep markers in common (genotyped) between all the populations.}
 
+\item{filter.ind.heterozygosity}{(optional, numerical) Filter the 
+individual heterozygosity (averaged accross markers). This argument is useful
+to detect mixed samples. The individuals to remove will standout in the plot.
+Default: \code{filter.ind.heterozygosity = NULL}.
+e.g to remove individuals with heterozygosity higher than 10% use:
+\code{filter.ind.heterozygosity = 0.1}.}
+
+\item{plot.ind.heterozygosity}{(optional, logical) Plot the distribution 
+(boxplot and jitter plot) of individual heterozygosity. 
+Default: \code{plot.ind.heterozygosity = FALSE}.}
+
 \item{filter.reproducibility}{(optional, numerical) Filter the \code{RepAvg} 
 column in the data set. Default: \code{filter.reproducibility = NULL}.
 e.g to keep markers with reproducibility >= 99%,
-use : \code{filter.reproducibility = 0.99}.}
+use: \code{filter.reproducibility = 0.99}.}
 
 \item{plot.reproducibility}{(optional, logical) Plot the distribution 
 (violin plot) of reproducibility. Default: \code{plot.reproducibility = FALSE}.}

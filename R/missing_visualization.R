@@ -235,8 +235,9 @@ missing_visualization <- function(data,
     input <- read_long_tidy_wide(data = data)
   }
   
-  if ("LOCUS" %in% colnames(input)) input <- rename(.data = input, MARKERS = LOCUS)
-  
+  if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
+    input <- rename(.data = input, MARKERS = LOCUS)
+  }
   
   # strata.df --------------------------------------------------------
   message("Including the strata file")
