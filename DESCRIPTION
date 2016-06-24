@@ -19,7 +19,6 @@ Imports:
     reshape2,
     ggplot2,
     readr,
-    stringr,
     stringi,
     tidyr,
     lazyeval,
@@ -30,9 +29,10 @@ Imports:
     foreach,
     parallel,
     doParallel,
-    purrr
+    purrr,
+    amap,
+    tibble
 Suggests:
-    boot,
     pegas,
     hierfstat,
     knitr,
