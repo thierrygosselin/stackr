@@ -77,7 +77,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID",
 #' @import foreach
 #' @import parallel
 #' @import doParallel
-#' @importFrom stringr str_pad
+
 #' @references Anderson, Eric C., Robin S. Waples, and Steven T. Kalinowski. (2008) 
 #' An improved method for predicting the accuracy of genetic stock identification.
 #' Canadian Journal of Fisheries and Aquatic Sciences 65, 7:1475-1486.

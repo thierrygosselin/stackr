@@ -60,7 +60,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @rdname vcf2hierfstat
 #' @import reshape2
 #' @import dplyr
-#' @importFrom stringr str_pad
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
 #' G3, 1, 171-182.

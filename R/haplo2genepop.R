@@ -59,7 +59,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID",
 #' @rdname haplo2genepop
 #' @import reshape2
 #' @import dplyr
-#' @importFrom stringr str_pad
+
 #' @references Rousset F (2008) genepop’007: a complete re-implementation
 #' of the genepop software for Windows and Linux.
 #' Molecular Ecology Resources, 8, 103-106.

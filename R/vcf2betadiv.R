@@ -63,7 +63,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @rdname vcf2betadiv
 #' @import reshape2
 #' @import dplyr
-#' @importFrom stringr str_pad
 #' @references Lamy T, Legendre P, Chancerelle Y, Siu G, Claudet J (2015) 
 #' Understanding the Spatio-Temporal Response of Coral Reef Fish Communities to 
 #' Natural Disturbances: Insights from Beta-Diversity Decomposition. 
