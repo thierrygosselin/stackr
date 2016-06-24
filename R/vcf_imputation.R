@@ -97,7 +97,6 @@
 #' @import stringi
 #' @importFrom data.table fread
 #' @import lazyeval
-#' @importFrom stringr str_pad
 
 
 #' @examples
