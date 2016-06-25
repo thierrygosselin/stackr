@@ -110,6 +110,9 @@ write_genepop <- function(
                                               vectorize_all = FALSE)
   }
   
+  # Switch colnames LOCUS to MARKERS if found
+  if ("LOCUS" %in% colnames(input)) input <- rename(.data = input, MARKERS = LOCUS)
+  
   input <- input %>% 
     select(POP_ID, INDIVIDUALS, MARKERS, GT)
   
@@ -121,7 +124,10 @@ write_genepop <- function(
   # pop.levels -----------------------------------------------------------------
   if (!is.null(pop.levels)) {
     input <- input %>%
-      mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered =TRUE)) %>% 
+      mutate(
+        POP_ID = factor(POP_ID, levels = pop.levels, ordered =TRUE),
+        POP_ID = droplevels(POP_ID)
+        ) %>% 
       arrange(POP_ID, INDIVIDUALS, MARKERS)
   }
   
