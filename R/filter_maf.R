@@ -206,6 +206,12 @@
 #' # the user to apply some filtering or selection before doing the MAF filtering.
 #' }
 
+# required to pass the R CMD check and have 'no visible binding for global variable'
+if (getRversion() >= "2.15.1") {
+  utils::globalVariables(
+    c("AND", "OR")
+  )
+}
 
 filter_maf <- function(
   data,
@@ -347,24 +353,21 @@ filter_maf <- function(
       filename = NULL
     )
     
-    # create a strata.df
-    strata.df <- input %>% 
-      select(INDIVIDUALS, POP_ID) %>% 
-      distinct(INDIVIDUALS)
-    strata <- strata.df
-    pop.levels <- levels(input$POP_ID)
-    pop.labels <- pop.levels
   } else {
     message("Using input file from your global environment")
-    
     input <- read_long_tidy_wide(data = data)
-    strata.df <- input %>% 
-      select(INDIVIDUALS, POP_ID) %>% 
-      distinct(INDIVIDUALS)
-    strata <- strata.df
-    pop.levels <- levels(input$POP_ID)
-    pop.labels <- pop.levels
   }
+  # create a strata.df
+  strata.df <- input %>% 
+    select(INDIVIDUALS, POP_ID) %>% 
+    distinct(INDIVIDUALS)
+  strata <- strata.df
+  pop.levels <- levels(input$POP_ID)
+  pop.labels <- pop.levels
+  
+  
+  
+  
   # # File detection to speed up the MAF calculations with VCF file --------------
   # if ("GT_VCF" %in% colnames(input)) {
   #   data.type <- "vcf.file"
