@@ -201,7 +201,14 @@ run_sstacks <- function(
   )
   
   # command
-  system.time(system2(command = "sstacks", args = command.arguments, stdout = "09_log_files/sstacks.log", stderr = "09_log_files/sstacks.log"))
+  system.time(
+    system2(
+      command = "sstacks", 
+      args = command.arguments, 
+      stdout = "09_log_files/sstacks.log", 
+      stderr = "09_log_files/sstacks.log"
+    )
+  )
   
   # # transfer back to s3
   # if (transfer.s3) {
