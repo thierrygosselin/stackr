@@ -156,7 +156,6 @@ stackr_imputations_module <- function(
   
   # keep stratification
   strata.df.impute <- input.prep %>% 
-    select(INDIVIDUALS, POP_ID) %>% 
     distinct(INDIVIDUALS, POP_ID)
   
   # Imputation with Random Forest

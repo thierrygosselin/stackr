@@ -3,34 +3,212 @@
 \name{filter_individual}
 \alias{filter_individual}
 \title{Individual filter}
-\usage{
-filter_individual(tidy.vcf, pop.id.start, pop.id.end, pop.levels, pop.labels,
-  ind.threshold, percent, filename)
-}
 \arguments{
-\item{tidy.vcf}{A tidy vcf object or file (using ".tsv").}
+\item{data}{6 options: vcf, plink, genind, genepop, 
+and a data frame in wide or long/tidy format.
+The function uses 
+\href{https://github.com/thierrygosselin/stackr}{stackr} 
+\code{\link[stackr]{read_long_tidy_wide}} and 
+\code{\link[stackr]{tidy_genomic_data}}.}
 
-\item{pop.id.start}{The start of your population id 
-in the name of your individual sample.}
+\item{vcf.metadata}{(optional, logical) For the VCF file, with 
+default: \code{vcf.metadata = FALSE}, 
+only the genotype information is kept.
+\code{vcf.metadata = TRUE}, the metadata contained in the 
+\code{FORMAT} field will be kept in the tidy data file.}
 
-\item{pop.id.end}{The end of your population id 
-in the name of your individual sample.}
+\item{interactive.filter}{(optional, logical) Do you want the filtering session to 
+be interactive. With default: \code{interactive.filter == TRUE}, the user is 
+asked to see figures of distribution before making decisions for filtering.}
 
-\item{pop.levels}{An character string with your populations ordered.}
-
-\item{pop.labels}{An optional character string with new populations names.}
+\item{approach}{(character). 
+The approach to filter a marker, is it based on the overall number of 
+genotyped individuals (no concept of populations here), 
+\code{approach = "overall"}, or 
+the number of genotyped individuals per population \code{approach = "pop"}.
+Default: \code{approach = "pop"}.}
 
 \item{ind.threshold}{The individual threshold, proportion, percentage or 
-number e.g. 0.70, 70, 15.}
+number e.g. 0.70, 70, 15.
+Default: \code{ind.threshold = 0.5}.}
 
 \item{percent}{Is the threshold a percentage? TRUE or FALSE.
 This argument is necessary to distinguish percentage from integer individual
-threshold (e.g. 70 percent or 70 individuals).}
+threshold (e.g. 70 percent or 70 individuals).
+Default: \code{percent = FALSE}.}
 
-\item{filename}{Name of the file written to the working directory.}
+\item{prob.pop.threshold}{(integer, optional) Useful to incorporate problematic 
+populations dragging down polymorphism discovery, but still wanted for analysis.
+If individuals with missing genotypes are not managed upstream, 
+use this threshold to allow variance in the number of populations passing 
+the \code{ind.threshold} argument. e.g. with \code{prob.pop.threshold = 2},
+you tolerate a maximum of 2 populations failing to pass the 
+\code{ind.threshold}. Manage after the problematic populations 
+downstream with blacklist of individuals and/or missing data imputations. This
+argument is not necessary with \code{approach = "overall"}.
+Default: \code{prob.pop.threshold = 0}. See details for more info.}
+
+\item{filename}{(optional) Name of the filtered tidy data frame file 
+written to the working directory (ending with \code{.tsv})
+Default: \code{filename = NULL}.}
+
+\item{strata}{(optional for data frame and PLINK files, 
+required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. With a 
+data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+PLINK files, the \code{tfam} first 2 columns are used. 
+If a \code{strata} file is specified, the strata file will have
+precedence. The \code{STRATA} column can be any hierarchical grouping. 
+To create a strata file see \code{\link[stackr]{individuals2strata}}.
+Default: \code{strata = NULL}.}
+
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
+The whitelist is in the working directory (e.g. "whitelist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+In the VCF, the column ID is the LOCUS identification.
+Default \code{whitelist.markers = NULL} for no whitelist of markers.}
+
+\item{monomorphic.out}{(optional) Should the monomorphic 
+markers present in the dataset be filtered out ? 
+Default: \code{monomorphic.out = TRUE}.}
+
+\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
+average quality, e.g. genotype with more than 2 alleles in diploid likely 
+sequencing errors or genotypes with poor genotype likelihood or coverage. 
+The blacklist as a minimum of 2 column headers (markers and individuals). 
+Markers can be 1 column (CHROM or LOCUS or POS), 
+a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
+all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
+or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
+INDIVIDUALS (character) columns header. The blacklist must be in the working 
+directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
+with 'un' need to be changed to 1. 
+Default: \code{blacklist.genotype = NULL} for no blacklist of 
+genotypes to erase.}
+
+\item{snp.ld}{(optional) \strong{For VCF file only}. 
+SNP short distance linkage disequilibrium pruning. With anonymous markers from
+RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
+choosing among these 3 options: \code{"random"} selection, \code{"first"} or
+\code{"last"} SNP on the same short read/haplotype. For long distance linkage
+disequilibrium pruning, see details below.
+Default: \code{snp.ld = NULL}.}
+
+\item{common.markers}{(optional) Logical. \code{common.markers = TRUE}, 
+will only keep markers in common (genotyped) between all the populations. 
+Default: \code{common.markers = FALSE}}
+
+\item{max.marker}{An optional integer useful to subsample marker number in 
+large PLINK file. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
+subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
+keep specific markers.
+Default: \code{max.marker = NULL}.}
+
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
+
+\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
+case, the id of the pop.
+Use this argument to have the pop ordered your way instead of the default 
+alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
+instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+Default: \code{pop.levels = NULL}.}
+
+\item{pop.labels}{(optional, string) Use this argument to rename/relabel
+your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
+into a new pop called \code{"NEW"}:
+(1) First, define the levels for your pop with \code{pop.levels} argument: 
+\code{pop.levels = c("QUE", "ONT", "ALB")}. 
+(2) then, use \code{pop.labels} argument: 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+To rename \code{"QUE"} to \code{"TAS"}:
+\code{pop.labels = c("TAS", "ONT", "ALB")}.
+Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
+\code{strata} argument that can do the same thing, see below.}
+
+\item{pop.select}{(string, optional) Selected list of populations for 
+the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
+and \code{ONT} population samples (out of 20 pops).}
+}
+\value{
+With \code{interactive.filter = FALSE}, a list in the global environment,
+with 7 objects:
+\enumerate{
+\item $tidy.filtered.ind
+\item $whitelist.markers
+\item $blacklist.markers
+\item $strata
+\item $filters.parameters
+}
+
+With \code{interactive.filter = TRUE}, a list with 2 additionnal objects is created.
+\enumerate{
+\item $plot.ind.threshold
+\item $ind.threshold.helper.table
+}
+
+The object can be isolated in separate object outside the list by 
+following the example below.
 }
 \description{
-Filter individuals number, percentage or fix threshold
-from a tidy VCF file.
+Filter individuals genotyped at a marker from a tidy data 
+set (long format) of any of these file format: 
+vcf, plink (tped/tfam), stacks haplotype file, genind, 
+genepop, data frame in wide format. The function uses 
+\code{\link[stackr]{tidy_genomic_data}} and 
+\code{\link[stackr]{read_long_tidy_wide}} to load the file. For filtering
+you can consider the overall number of individuals (no concept of populations here),
+or the number of genotyped individuals per pop. The threshold can be a fixed 
+number of individuals, a proportion or a percentage.
+}
+\details{
+\strong{Interactive version}
+
+There is 2 steps in the interactive version to visualize and filter
+the data based on the number of genotyped individuals:
+
+Step 1. Impact of individual threshold on marker discovery
+
+Step 2. Choose the filtering approach and thresholds
+
+
+
+\strong{prob.pop.threshold}
+
+Used to my functions... then you've seen the \code{pop.num.threshold} here and there.
+\code{prob.pop.threshold}, is different because the number of populations 
+genotyped vary across markers, which make difficult the use 
+of \code{pop.num.threshold}. 
+e.g. If only 2 populations out of 10 are genotyped for a marker and you use 
+\code{pop.num.threshold = 0.6} this could lead to inconsistensis. Thus,
+it's easier to use the number of population you are willing to accept 
+failling to conform to the threshold.
+}
+\examples{
+\dontrun{
+turtle.ind <- filter_individual(
+data = "turtle.vcf",
+strata = "turtle.strata.tsv",
+approach = "pop",
+ind.thresholds = 50,
+percent = TRUE,
+prob.pop.threshold = 2,
+filename = "tidy.data.turtle.tsv"
+) 
+
+#If interactive.filter = TRUE, a list is created and to view the filtered tidy data:
+tidy.data <- turtle.ind$tidy.filtered.ind
+
+#Inside the same list, to isolate the blacklist.genotypes:
+bg <- turtle.ind$blacklist.genotypes
+
+# The remaining argument are used in tidy_genomic_data during import and allow
+# the user to apply some filtering or selection before doing the filtering.
+}
 }
 

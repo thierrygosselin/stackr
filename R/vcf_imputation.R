@@ -335,7 +335,7 @@ vcf_imputation <- function(data,
       blacklist.genotype <- blacklist.genotype
       message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
       # updating the whitelist of markers to have all columns that id markers
-      whitelist.markers.ind <- input %>% select(CHROM, LOCUS, POS, INDIVIDUALS) %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
+      whitelist.markers.ind <- input %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
       
       
       # updating the blacklist.genotype
@@ -381,7 +381,7 @@ vcf_imputation <- function(data,
   # LD control... keep only 1 SNP per haplotypes/reads (optional) ************
   if (!is.null(snp.ld)) {
     message("Minimizing LD...")
-    snp.locus <- input %>% select(LOCUS, POS) %>% distinct(POS)
+    snp.locus <- input %>% distinct(LOCUS, POS)
     # Random selection
     if (snp.ld == "random") {
       snp.select <- snp.locus %>%
@@ -430,7 +430,6 @@ vcf_imputation <- function(data,
       group_by(MARKERS) %>%
       filter(n_distinct(POP_ID) == pop.number) %>%
       arrange(MARKERS) %>%
-      select(MARKERS) %>%
       distinct(MARKERS)
     
     
@@ -447,7 +446,7 @@ vcf_imputation <- function(data,
   # create a keeper list of MARKERS, REF and ALT *******************************
   vcf.keeper <- input %>%
     select(MARKERS, REF, ALT) %>% 
-    distinct(MARKERS)
+    distinct(MARKERS, .keep_all = TRUE)
   
   # Imputations **************************************************************
   if (imputation.method == "max"){
@@ -658,7 +657,6 @@ vcf_imputation <- function(data,
       arrange(MARKERS, POP_ID) %>% 
       inner_join(
         input %>% 
-          select(MARKERS, POP_ID, REF, ALT) %>% 
           distinct(MARKERS, POP_ID, REF, ALT)
         , by = c("MARKERS", "POP_ID")
       ) %>% 

@@ -130,7 +130,7 @@ write_structure <- function(
   }
   
   # Create a marker vector  ------------------------------------------------
-  markers <- input %>% select(MARKERS) %>% distinct(MARKERS) %>% arrange(MARKERS)
+  markers <- input %>% distinct(MARKERS) %>% arrange(MARKERS)
   markers <- markers$MARKERS
   
   # Structure format ----------------------------------------------------------------

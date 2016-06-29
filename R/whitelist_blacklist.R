@@ -118,7 +118,6 @@ whitelist_snp_vcf <- function(data, filename) {
   }
   
   whitelist <- data %>% 
-    select(POS) %>% 
     distinct(POS) %>% 
     mutate(CHROM = rep("1", n())) %>% 
     arrange(CHROM, POS) %>% 
@@ -172,10 +171,8 @@ blacklist_loci <- function(before.filter.data, after.filter.data, filename,
   }
   
   blacklist <- before.filter.data %>%
-    select(LOCUS) %>% 
     distinct(LOCUS) %>% 
     anti_join(after.filter.data %>% 
-                select(LOCUS) %>%
                 distinct(LOCUS),
               by = "LOCUS") %>%
     arrange(LOCUS)

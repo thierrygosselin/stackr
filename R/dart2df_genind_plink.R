@@ -365,7 +365,7 @@ dart2df_genind_plink <- function(data,
       ungroup() %>% 
       select(MARKERS, LOCUS, POS, REF, ALT, CALL_RATE, AVG_COUNT_REF, AVG_COUNT_SNP, REP_AVG) %>% 
       filter(!is.na(REF) | !is.na(ALT)) %>% 
-      distinct(MARKERS, LOCUS, POS, REF, ALT, CALL_RATE, AVG_COUNT_REF, AVG_COUNT_SNP, REP_AVG) %>% 
+      distinct(MARKERS, LOCUS, POS, REF, ALT, CALL_RATE, AVG_COUNT_REF, AVG_COUNT_SNP, REP_AVG, .keep_all = TRUE) %>% 
       mutate(
         REF = stri_replace_all_fixed(str = REF, pattern = c("A", "C", "G", "T"), replacement = c("01", "02", "03", "04"), vectorize_all = FALSE), # replace nucleotide with numbers
         ALT = stri_replace_all_fixed(str = ALT, pattern = c("A", "C", "G", "T"), replacement = c("01", "02", "03", "04"), vectorize_all = FALSE)# replace nucleotide with numbers
@@ -440,7 +440,7 @@ dart2df_genind_plink <- function(data,
       select(MARKERS, GT) %>%
       filter(GT != "0_0") %>%
       group_by(MARKERS, GT) %>%
-      distinct %>% 
+      distinct(MARKERS, GT) %>% 
       group_by(MARKERS) %>%
       tally %>% 
       filter(n == 1) %>% 
@@ -472,7 +472,6 @@ dart2df_genind_plink <- function(data,
     
     blacklist.individuals  <- het.ind %>%
       filter(HET_PROP > filter.ind.heterozygosity) %>%
-      select(INDIVIDUALS) %>% 
       distinct(INDIVIDUALS)
     
     # Remove the individuals from the dataset
@@ -577,19 +576,16 @@ dart2df_genind_plink <- function(data,
     filter <- input %>% 
       ungroup() %>% 
       filter(GT != "0_0") %>%
-      select(MARKERS, POP_ID) %>% 
       distinct(MARKERS, POP_ID) %>% 
       group_by(MARKERS) %>%
       tally() %>% 
       filter(n == pop.number) %>% 
       arrange(MARKERS) %>%
-      select(MARKERS) %>%
       distinct(MARKERS)
     
-    whitelist.filter <- filter %>% select(MARKERS) %>% distinct(MARKERS)
+    whitelist.filter <- filter %>% distinct(MARKERS)
     
     blacklist.common.markers <- input %>% 
-      select(MARKERS) %>% 
       distinct(MARKERS) %>%
       filter(!MARKERS %in% whitelist.filter$MARKERS)
     
@@ -608,7 +604,6 @@ dart2df_genind_plink <- function(data,
     whitelist.filter <- filter %>% select(MARKERS, LOCUS, POS) %>% distinct(MARKERS, LOCUS, POS)
     
     blacklist.markers.reproducibility <- input %>% 
-      select(MARKERS, LOCUS, POS) %>% 
       distinct(MARKERS, LOCUS, POS) %>%
       filter(!MARKERS %in% whitelist.filter$MARKERS)
     
@@ -682,10 +677,9 @@ dart2df_genind_plink <- function(data,
     filter <- input %>% 
       filter(AVG_COUNT_SNP <= filter.coverage.high)
     
-    whitelist.filter <- filter %>% select(MARKERS, LOCUS, POS) %>% distinct(MARKERS, LOCUS, POS)
+    whitelist.filter <- filter %>% distinct(MARKERS, LOCUS, POS)
     
     blacklist.markers.coverage.high <- input %>% 
-      select(MARKERS, LOCUS, POS) %>% 
       distinct(MARKERS, LOCUS, POS) %>%
       filter(!MARKERS %in% whitelist.filter$MARKERS)
     
@@ -700,10 +694,9 @@ dart2df_genind_plink <- function(data,
     filter <- input %>% 
       filter(AVG_COUNT_SNP >= filter.coverage.low)
     
-    whitelist.filter <- filter %>% select(MARKERS, LOCUS, POS) %>% distinct(MARKERS, LOCUS, POS)
+    whitelist.filter <- filter %>% distinct(MARKERS, LOCUS, POS)
     
     blacklist.markers.coverage.low <- input %>% 
-      select(MARKERS, LOCUS, POS) %>% 
       distinct(MARKERS, LOCUS, POS) %>%
       filter(!MARKERS %in% whitelist.filter$MARKERS)
     
@@ -776,10 +769,9 @@ dart2df_genind_plink <- function(data,
     filter <- input %>% 
       filter(CALL_RATE >= filter.call.rate)
     
-    whitelist.filter <- filter %>% select(MARKERS, LOCUS, POS) %>% distinct(MARKERS, LOCUS, POS)
+    whitelist.filter <- filter %>% distinct(MARKERS, LOCUS, POS)
     
     blacklist.call.rate <- input %>% 
-      select(MARKERS, LOCUS, POS) %>% 
       distinct(MARKERS, LOCUS, POS) %>%
       filter(!MARKERS %in% whitelist.filter$MARKERS)
     
@@ -867,10 +859,9 @@ dart2df_genind_plink <- function(data,
       filter(GENOTYPED_PROP >= filter.ind.missing.geno)
     
     
-    whitelist.filter <- filter %>% select(INDIVIDUALS) %>% distinct(INDIVIDUALS)
+    whitelist.filter <- filter %>% distinct(INDIVIDUALS)
     
     blacklist.ind.missing.geno <- input %>% 
-      select(INDIVIDUALS) %>% 
       distinct(INDIVIDUALS) %>% 
       filter(!INDIVIDUALS %in% whitelist.filter$INDIVIDUALS)
     
@@ -969,10 +960,9 @@ dart2df_genind_plink <- function(data,
     filter <- input %>% 
       filter(MISSING_IND_PROP >= filter.markers.missing.ind)
     
-    whitelist.filter <- filter %>% select(MARKERS) %>% distinct(MARKERS)
+    whitelist.filter <- filter %>% distinct(MARKERS)
     
     blacklist.marker.missing.ind.prop <- input %>% 
-      select(MARKERS) %>% 
       distinct(MARKERS) %>% 
       filter(!MARKERS %in% whitelist.filter$MARKERS)
     
@@ -1067,12 +1057,10 @@ dart2df_genind_plink <- function(data,
   if (filter.snp.ld == "1snp") {
     whitelist.filter <- number.snp.reads %>% 
       filter(SNP_N == 1) %>% 
-      select(LOCUS) %>% 
       distinct(LOCUS) %>% 
       arrange(LOCUS)
     
     blacklist.snp.per.reads <- input %>% 
-      select(MARKERS, LOCUS, POS) %>% 
       distinct(MARKERS, LOCUS, POS) %>%
       filter(!LOCUS %in% whitelist.filter$LOCUS)
     write_tsv(x = blacklist.snp.per.reads, path = "blacklist.1snp.per.reads.only.tsv", col_names = TRUE)
@@ -1085,12 +1073,10 @@ dart2df_genind_plink <- function(data,
   if(filter.snp.ld == "2snp") {
     whitelist.filter <- number.snp.reads %>% 
       filter(SNP_N <= 2) %>% 
-      select(LOCUS) %>% 
       distinct(LOCUS) %>% 
       arrange(LOCUS)
     
     blacklist.snp.per.reads <- input %>% 
-      select(MARKERS, LOCUS, POS) %>% 
       distinct(MARKERS, LOCUS, POS) %>%
       filter(!LOCUS %in% whitelist.filter$LOCUS)
     write_tsv(x = blacklist.snp.per.reads, path = "blacklist.max2snp.per.reads.only.tsv", col_names = TRUE)
@@ -1101,7 +1087,7 @@ dart2df_genind_plink <- function(data,
   
   # Random selection
   if (filter.snp.ld == "random") {
-    snp.locus <- input %>% select(LOCUS, POS) %>% distinct(LOCUS, POS)
+    snp.locus <- input %>% distinct(LOCUS, POS)
     
     whitelist.filter <- snp.locus %>%
       group_by(LOCUS) %>%
@@ -1109,7 +1095,6 @@ dart2df_genind_plink <- function(data,
       tidyr::unite(MARKERS, c(LOCUS, POS))
     
     blacklist.snp.per.reads <- input %>% 
-      select(MARKERS, LOCUS, POS) %>% 
       distinct(MARKERS, LOCUS, POS) %>%
       filter(!MARKERS %in% whitelist.filter$MARKERS)
     write_tsv(x = blacklist.snp.per.reads, path = "blacklist.1snp.per.reads.random.tsv", col_names = TRUE)
@@ -1120,7 +1105,7 @@ dart2df_genind_plink <- function(data,
   
   # Last SNP on the read (where most error usually occurs)
   if (filter.snp.ld == "last") {
-    snp.locus <- input %>% select(LOCUS, POS) %>% distinct(LOCUS, POS)
+    snp.locus <- input %>% distinct(LOCUS, POS)
     
     whitelist.filter <- snp.locus %>%
       group_by(LOCUS) %>%
@@ -1128,7 +1113,6 @@ dart2df_genind_plink <- function(data,
       tidyr::unite(MARKERS, c(LOCUS, POS))
     
     blacklist.snp.per.reads <- input %>% 
-      select(MARKERS, LOCUS, POS) %>% 
       distinct(MARKERS, LOCUS, POS) %>%
       filter(!MARKERS %in% whitelist.filter$MARKERS)
     write_tsv(x = blacklist.snp.per.reads, path = "blacklist.1snp.per.reads.last.tsv", col_names = TRUE)
@@ -1139,7 +1123,7 @@ dart2df_genind_plink <- function(data,
   
   # First SNP on the read
   if (filter.snp.ld == "first") {
-    snp.locus <- input %>% select(LOCUS, POS) %>% distinct(LOCUS, POS)
+    snp.locus <- input %>% distinct(LOCUS, POS)
     
     whitelist.filter <- snp.locus %>%
       group_by(LOCUS) %>%
@@ -1147,7 +1131,6 @@ dart2df_genind_plink <- function(data,
       tidyr::unite(MARKERS, c(LOCUS, POS))
     
     blacklist.snp.per.reads <- input %>% 
-      select(MARKERS, LOCUS, POS) %>% 
       distinct(MARKERS, LOCUS, POS) %>%
       filter(!MARKERS %in% whitelist.filter$MARKERS)
     
@@ -1234,7 +1217,7 @@ dart2df_genind_plink <- function(data,
   # Writing to working directory the filtered data frame -----------------------
   
   # Whitelist 
-  whitelist.markers <- input %>% select(MARKERS, LOCUS, POS) %>% distinct(MARKERS)
+  whitelist.markers <- input %>% select(MARKERS, LOCUS, POS) %>% distinct(MARKERS, .keep_all = TRUE)
   write_tsv(x = whitelist.markers, path = "whitelist.markers.tsv", col_names = TRUE)
   message("Writing the whitelist of markers: whitelist.markers.tsv")
   
@@ -1331,7 +1314,6 @@ dart2df_genind_plink <- function(data,
       arrange(MARKERS)
     
     tfam <- x %>%
-      select(POP_ID, INDIVIDUALS) %>% 
       distinct(POP_ID, INDIVIDUALS) %>% 
       arrange(INDIVIDUALS) %>% 
       mutate(
@@ -1451,7 +1433,7 @@ dart2df_genind_plink <- function(data,
       select(-c(INDIVIDUALS, POP_ID))
     rownames(genind.df) <- ind
     loc.names <- colnames(genind.df)
-    strata <- genind.prep %>% ungroup() %>% select(INDIVIDUALS, POP_ID) %>% distinct(INDIVIDUALS, POP_ID)
+    strata <- genind.prep %>% ungroup() %>% distinct(INDIVIDUALS, POP_ID)
     
     # genind constructor
     prevcall <- match.call()
@@ -1473,7 +1455,6 @@ dart2df_genind_plink <- function(data,
       
       strata <- genind.prep.imp %>% 
         ungroup() %>% 
-        select(INDIVIDUALS, POP_ID) %>% 
         distinct(INDIVIDUALS, POP_ID)
       
       # genind constructor

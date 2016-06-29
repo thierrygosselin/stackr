@@ -248,7 +248,6 @@ haplo2colony <- function(haplotypes.file,
     summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>%
     filter(POLYMORPHISM_MAX > 1) %>%
     group_by(Catalog.ID) %>%
-    select(Catalog.ID) %>%
     distinct(Catalog.ID)
   
   nparalogs <- stri_join("Found and/or removed", n_distinct(paralogs$Catalog.ID), "paralogs", sep = " ")
@@ -345,7 +344,7 @@ haplo2colony <- function(haplotypes.file,
         mutate(N = length(NUCLEOTIDES)) %>% 
         group_by(Catalog.ID, NUCLEOTIDES) %>%
         mutate(n = n()) %>% 
-        distinct(Catalog.ID, NUCLEOTIDES) %>% 
+        distinct(Catalog.ID, NUCLEOTIDES, .keep_all = TRUE) %>% 
         mutate(FREQ = n/N) %>% 
         select(-N, -n) %>% 
         group_by(Catalog.ID) %>% 
@@ -374,7 +373,7 @@ haplo2colony <- function(haplotypes.file,
         mutate(N = length(NUCLEOTIDES)) %>% 
         group_by(Catalog.ID, NUCLEOTIDES) %>%
         mutate(n = n()) %>% 
-        distinct(Catalog.ID, NUCLEOTIDES) %>% 
+        distinct(Catalog.ID, NUCLEOTIDES, .keep_all = TRUE) %>% 
         mutate(FREQ = n/N) %>% 
         select(-N, -n) %>% 
         group_by(Catalog.ID) %>% 
@@ -407,7 +406,7 @@ haplo2colony <- function(haplotypes.file,
       group_by(Catalog.ID) %>% 
       arrange(Catalog.ID)
   )
-  markers.name <- haplo.prep %>% select(Catalog.ID) %>% distinct(Catalog.ID)
+  markers.name <- haplo.prep %>% distinct(Catalog.ID)
   marker.num <- nrow(markers.name)
   markers.name <- t(markers.name)
   
@@ -950,7 +949,7 @@ haplo2colony <- function(haplotypes.file,
         group_by(Catalog.ID) %>% 
         arrange(Catalog.ID)
     )
-    markers.name <- haplo.imp %>% select(Catalog.ID) %>% distinct(Catalog.ID)
+    markers.name <- haplo.imp %>% distinct(Catalog.ID)
     marker.num <- nrow(markers.name)
     markers.name <- t(markers.name)
     

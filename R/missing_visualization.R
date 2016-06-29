@@ -243,8 +243,7 @@ missing_visualization <- function(data,
   message("Including the strata file")
   
   strata.df <- input %>% 
-    select(INDIVIDUALS, POP_ID) %>% 
-    distinct(INDIVIDUALS) %>% 
+    distinct(INDIVIDUALS, POP_ID) %>% 
     arrange(POP_ID, INDIVIDUALS)
   
   if (!is.null(strata)) {

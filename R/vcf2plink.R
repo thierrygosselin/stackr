@@ -356,7 +356,7 @@ vcf2plink <- function(data,
       blacklist.genotype <- blacklist.genotype
       message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
       # updating the whitelist of markers to have all columns that id markers
-      whitelist.markers.ind <- input %>% select(CHROM, LOCUS, POS, INDIVIDUALS) %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
+      whitelist.markers.ind <- input %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
       
       
       # updating the blacklist.genotype
@@ -395,7 +395,7 @@ vcf2plink <- function(data,
   # LD control... keep only 1 SNP per haplotypes/reads (optional) ************
   if (!is.null(snp.ld)) {
     message("Minimizing LD...")
-    snp.locus <- input %>% select(LOCUS, POS) %>% distinct(POS)
+    snp.locus <- input %>% distinct(LOCUS, POS)
     # Random selection
     if (snp.ld == "random") {
       snp.select <- snp.locus %>%
@@ -444,7 +444,6 @@ vcf2plink <- function(data,
       group_by(MARKERS) %>%
       filter(n_distinct(POP_ID) == pop.number) %>%
       arrange(MARKERS) %>%
-      select(MARKERS) %>%
       distinct(MARKERS)
     
     
@@ -518,7 +517,6 @@ vcf2plink <- function(data,
   
   # Create a tfam file
   tfam <- input %>% 
-    select(POP_ID, INDIVIDUALS) %>% 
     distinct(POP_ID, INDIVIDUALS) %>% 
     arrange(POP_ID, INDIVIDUALS) %>% 
     mutate(
@@ -747,7 +745,6 @@ vcf2plink <- function(data,
     write_delim(x = tped.imp, path = filename.tped.imp, col_names = FALSE, delim = " ")
     
     tfam.imp <- plink.prep.imp %>% 
-      select(POP_ID, INDIVIDUALS) %>% 
       distinct(POP_ID, INDIVIDUALS) %>% 
       arrange(POP_ID, INDIVIDUALS) %>% 
       mutate(

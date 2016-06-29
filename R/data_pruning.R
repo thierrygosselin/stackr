@@ -363,7 +363,7 @@ data_pruning <- function(data,
   strata.df <- NULL
   strata.df <- input %>% 
     select(INDIVIDUALS, POP_ID) %>% 
-    distinct(INDIVIDUALS)
+    distinct(INDIVIDUALS, .keep_all = TRUE)
   
   strata <- strata.df
   

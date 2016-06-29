@@ -128,7 +128,6 @@ find_duplicate_genome <- function(data,
   # strata
   strata <- input %>% 
     ungroup %>% 
-    select(POP_ID, INDIVIDUALS) %>% 
     distinct(POP_ID, INDIVIDUALS)
   
   # Functions -------------------------------------------------------------------

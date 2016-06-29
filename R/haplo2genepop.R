@@ -189,7 +189,6 @@ haplo2genepop <- function(haplotypes.file,
     summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>%
     filter(POLYMORPHISM_MAX > 1) %>%
     group_by(Catalog.ID) %>%
-    select(Catalog.ID) %>%
     distinct(Catalog.ID)
   
   nparalogs <- stri_join("Found and/or removed", n_distinct(paralogs$Catalog.ID), "paralogs", sep = " ")

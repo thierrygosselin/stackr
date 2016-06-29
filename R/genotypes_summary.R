@@ -365,7 +365,6 @@ genotypes_summary <- function(
       dcast(LOCUS + JOINMAP ~ INDIVIDUALS, value.var="GENOTYPES")
     
     progeny.names <- genotypes.file %>% 
-      select(INDIVIDUALS) %>% 
       distinct(INDIVIDUALS) %>% 
       arrange(INDIVIDUALS)
     
@@ -427,7 +426,6 @@ genotypes_summary <- function(
       mutate(MARKERS = paste(.[,1], .[,2], sep = "\t"))
 
         progeny.names <- genotypes.file %>% 
-      select(INDIVIDUALS) %>% 
       distinct(INDIVIDUALS) %>% 
       arrange(INDIVIDUALS)
   

@@ -409,8 +409,7 @@ vcf2genind <- function(
   
   # create a strata.df
   strata.df <- input %>% 
-    select(INDIVIDUALS, POP_ID) %>% 
-    distinct(INDIVIDUALS)
+    distinct(INDIVIDUALS, POP_ID)
   strata <- strata.df
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
@@ -510,7 +509,7 @@ vcf2genind <- function(
     select(-c(INDIVIDUALS, POP_ID))
   rownames(genind.df) <- ind
   loc.names <- colnames(genind.df)
-  strata <- genind.prep %>% ungroup() %>% select(INDIVIDUALS, POP_ID) %>% distinct(INDIVIDUALS, POP_ID)
+  strata <- genind.prep %>% ungroup() %>% distinct(INDIVIDUALS, POP_ID)
   
   # genind constructor
   prevcall <- match.call()
@@ -574,7 +573,6 @@ vcf2genind <- function(
     
     strata <- genind.prep.imp %>% 
       ungroup() %>% 
-      select(INDIVIDUALS, POP_ID) %>% 
       distinct(INDIVIDUALS, POP_ID)
     
     # genind constructor

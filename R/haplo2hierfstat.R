@@ -77,9 +77,9 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("Catalog ID", "Catalog.I
 
 
 haplo2hierfstat <- function(haplotypes.file, whitelist.loci = NULL, blacklist.id = NULL, 
-                        fstat.filename = "fstat_gbs.dat", pop.levels, pop.id.start, pop.id.end, imputations = FALSE, 
-                        imputations.group = "populations", num.tree = 100, iteration.rf = 10, split.number = 100, 
-                        verbose = FALSE, parallel.core = 2) {
+                            fstat.filename = "fstat_gbs.dat", pop.levels, pop.id.start, pop.id.end, imputations = FALSE, 
+                            imputations.group = "populations", num.tree = 100, iteration.rf = 10, split.number = 100, 
+                            verbose = FALSE, parallel.core = 2) {
   
   
   if (imputations == "FALSE") {
@@ -161,9 +161,14 @@ haplo2hierfstat <- function(haplotypes.file, whitelist.loci = NULL, blacklist.id
   # Paralogs-------------------------------------------------------------------
   message("Looking for paralogs...")
   
-  paralogs <- haplotype %>% mutate(POLYMORPHISM = stri_count_fixed(HAPLOTYPES, 
-                                                                   "/")) %>% group_by(Catalog.ID) %>% summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>% 
-    filter(POLYMORPHISM_MAX > 1) %>% group_by(Catalog.ID) %>% select(Catalog.ID) %>% 
+  paralogs <- haplotype %>% 
+    mutate(
+      POLYMORPHISM = stri_count_fixed(HAPLOTYPES, "/")
+    ) %>% 
+    group_by(Catalog.ID) %>% 
+    summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>% 
+    filter(POLYMORPHISM_MAX > 1) %>% 
+    group_by(Catalog.ID) %>% 
     distinct(Catalog.ID)
   
   nparalogs <- stri_join("Found and/or removed", n_distinct(paralogs$Catalog.ID), 
@@ -233,7 +238,7 @@ haplo2hierfstat <- function(haplotypes.file, whitelist.loci = NULL, blacklist.id
       ungroup() %>% 
       select(-GROUP) %>% 
       melt(id.vars = c("INDIVIDUALS", "POP_ID", "ALLELE"), variable.name = "Catalog.ID", value.name = "HAPLOTYPES")
-    )
+  )
   
   # Get the highest number used to label an allele
   nu <- max(haplo.prep$HAPLOTYPES, na.rm = TRUE)
@@ -347,12 +352,12 @@ haplo2hierfstat <- function(haplotypes.file, whitelist.loci = NULL, blacklist.id
           message(pop.imputed)
         }
         haplo.imp <- as.data.frame(bind_rows(imputed.dataset))
-
+        
         # Second round of imputations: remove introduced NA if some pop don't have the markers by using
         # RF globally
         haplo.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(haplo.imp)) # Make the columns factor
         haplo.imp <- impute_markers_rf(haplo.imp) # impute globally
-
+        
         # dump unused objects
         haplo.filtered <- NULL
         haplo.prep <- NULL

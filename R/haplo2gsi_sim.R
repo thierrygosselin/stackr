@@ -215,7 +215,6 @@ haplo2gsi_sim <- function(haplotypes.file,
       summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>%
       filter(POLYMORPHISM_MAX > 1) %>%
       group_by(Catalog.ID) %>%
-      select(Catalog.ID) %>%
       distinct(Catalog.ID)
     
     haplotype.whitelist.blacklist.id.paralogs <- suppressWarnings(

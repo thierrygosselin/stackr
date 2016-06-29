@@ -517,7 +517,7 @@ summary_haplotypes <- function(haplotypes.file,
   
   summary.pop <- summary.prep %>%
     group_by(LOCUS, POP_ID) %>%
-    distinct(ALLELES) %>% 
+    distinct(ALLELES, .keep_all = TRUE) %>% 
     summarise(ALLELES_COUNT = length(ALLELES)) %>%
     group_by(POP_ID) %>% 
     summarise(
@@ -548,7 +548,7 @@ summary_haplotypes <- function(haplotypes.file,
   
   total <- summary.prep %>%
     group_by(LOCUS) %>%
-    distinct(ALLELES) %>% 
+    distinct(ALLELES, .keep_all = TRUE) %>% 
     summarise(ALLELES_COUNT = length(ALLELES)) %>%
     summarise(
       MONOMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT == 1]),

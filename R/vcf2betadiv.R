@@ -231,7 +231,7 @@ vcf2betadiv <- function(vcf.file,
   if(missing(snp.LD) | is.null(snp.LD)){
     vcf <- vcf
   } else{
-    snp.locus <- vcf %>% select(LOCUS, POS) %>% distinct(POS)
+    snp.locus <- vcf %>% distinct(LOCUS, POS)
     # Random selection
     if(snp.LD == "random"){
       snp.select <- snp.locus %>%
@@ -283,7 +283,6 @@ vcf2betadiv <- function(vcf.file,
       group_by(MARKERS) %>%
       filter(n_distinct(POP_ID) == pop.number) %>%
       arrange(MARKERS) %>% 
-      select(MARKERS) %>% 
       distinct(MARKERS)
     
     message(stri_c("Number of original markers = ", n_distinct(vcf$MARKERS), "\n", "Number of markers present in all the populations = ", n_distinct(pop.filter$MARKERS), "\n", "Number of markers removed = ", n_distinct(vcf$MARKERS) - n_distinct(pop.filter$MARKERS)))

@@ -448,8 +448,7 @@ vcf2dadi <- function(
   
   # create a strata.df
   strata.df <- input %>% 
-    select(INDIVIDUALS, POP_ID) %>% 
-    distinct(INDIVIDUALS)
+    distinct(INDIVIDUALS, POP_ID, .keep_all = TRUE)
   strata <- strata.df
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
@@ -553,11 +552,10 @@ vcf2dadi <- function(
       # Get the list of ref. allele in the vcf of the ingroup
       ref.allele.vcf.ingroup <- input %>% 
         ungroup() %>% 
-        select(MARKERS, REF) %>%
-        distinct(MARKERS, REF) %>%
+        distinct(MARKERS, REF, .keep_all = TRUE) %>%
         arrange(MARKERS) %>% 
         tidyr::separate(MARKERS, c("CHROM", "LOCUS", "POS"), sep = "__") %>%
-        distinct(CHROM, LOCUS, POS, REF) %>%
+        distinct(CHROM, LOCUS, POS, REF, .keep_all = TRUE) %>%
         mutate(
           CHROM = as.character(stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1", vectorize_all = FALSE)),
           LOCUS = as.integer(LOCUS),
@@ -616,7 +614,7 @@ vcf2dadi <- function(
         tidyr::separate(ALLELE, c("ALLELE", "INDIVIDUALS"), sep = " ", extra = "warn" ) %>% 
         mutate(LOCUS = as.integer(stri_replace_all_fixed(LOCUS, pattern = ">CLocus_", replacement = "", vectorize_all = FALSE))) %>%
         select(-GARBAGE, -INDIVIDUALS) %>% 
-        distinct(LOCUS, ALLELE, ANCESTRAL, SEQUENCES) 
+        distinct(LOCUS, ALLELE, ANCESTRAL, SEQUENCES, .keep_all = TRUE) 
       
       fasta.data <- NULL
       
@@ -639,7 +637,7 @@ vcf2dadi <- function(
           LOCUS = as.integer(LOCUS),
           POS = as.integer(POS)
         ) %>% 
-        distinct(CHROM, LOCUS, SNP_READ_POS) %>% 
+        distinct(CHROM, LOCUS, SNP_READ_POS, .keep_all = TRUE) %>% 
         semi_join(markers, by = c("CHROM", "LOCUS", "POS")) %>% 
         arrange(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
         mutate(ANCESTRAL = rep("outgroup", times = n())) %>%
@@ -662,7 +660,7 @@ vcf2dadi <- function(
           LOCUS = as.integer(LOCUS),
           POS = as.integer(POS)
         ) %>% 
-        distinct(CHROM, LOCUS, SNP_READ_POS) %>% 
+        distinct(CHROM, LOCUS, SNP_READ_POS, .keep_all = TRUE) %>% 
         semi_join(markers, by = c("CHROM", "LOCUS", "POS")) %>% 
         arrange(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
         mutate(ANCESTRAL = rep("ingroup", times = n())) %>%
@@ -710,7 +708,7 @@ vcf2dadi <- function(
         # remove lines with no match between all the alleles in the fasta file and the REF in the VCF
         filter(FASTA_REF == REF) %>%
         group_by(CHROM, LOCUS, POS, REF) %>%
-        distinct(CHROM, LOCUS, POS, REF) %>% 
+        distinct(CHROM, LOCUS, POS, REF, .keep_all = TRUE) %>% 
         mutate(
           IN_GROUP = ifelse(SNP_READ_POS == max.length.read, stri_pad(IN_GROUP, width = 3, side = "right", pad = "-"), IN_GROUP),
           IN_GROUP = ifelse(SNP_READ_POS == 1, stri_pad(IN_GROUP, width = 3, side = "left", pad = "-"), IN_GROUP)
@@ -809,7 +807,6 @@ vcf2dadi <- function(
         tally %>% 
         filter(n == 2) %>%
         arrange(MARKERS) %>%
-        select(MARKERS) %>%
         distinct(MARKERS)
       
       markers.ingroup <- NULL
@@ -901,8 +898,7 @@ vcf2dadi <- function(
   # Imputations **************************************************************
   if (!is.null(imputation.method)) {
     get.ref.alt.alleles <- input.count %>% 
-      select(MARKERS, REF, ALT) %>% 
-      distinct(MARKERS, REF, ALT)
+      distinct(MARKERS, REF, ALT, .keep_all = TRUE)
     
     input.count <- NULL # unused object
       

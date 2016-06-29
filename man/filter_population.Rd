@@ -3,25 +3,171 @@
 \name{filter_population}
 \alias{filter_population}
 \title{Population filter}
-\usage{
-filter_population(data, pop.threshold, percent, filename)
-}
 \arguments{
-\item{data}{A data frame object or file (using ".tsv").
-The data is a sumstats prepared file,
-a tidy VCF file or any of the last two file format modified by other filters.}
+\item{data}{6 options: vcf, plink, genind, genepop, 
+and a data frame in wide or long/tidy format.
+The function uses 
+\href{https://github.com/thierrygosselin/stackr}{stackr} 
+\code{\link[stackr]{read_long_tidy_wide}} and 
+\code{\link[stackr]{tidy_genomic_data}}.}
 
-\item{pop.threshold}{A threshold number: proportion, percentage
-or fixed number e.g. 0.70, 70 or 15.}
+\item{interactive.filter}{(optional, logical) Do you want the filtering session to 
+be interactive. With default: \code{interactive.filter == TRUE}, the user is 
+asked to see figures of distribution before making decisions for filtering.}
+
+\item{pop.threshold}{The population threshold, proportion, percentage or 
+number e.g. 0.70, 70, 15.
+Default: \code{pop.threshold = 100}.}
 
 \item{percent}{Is the threshold a percentage? TRUE or FALSE.
-This argument is necessary to distinguish percentage from integer population threshold.
-(e.g. 5 percent or 5 populations).}
+This argument is necessary to distinguish percentage from integer population
+threshold (e.g. 50 percent or 50 populations).
+Default: \code{percent = TRUE}.}
 
-\item{filename}{Name of the file written to the working directory.}
+\item{filename}{(optional) Name of the filtered tidy data frame file 
+written to the working directory (ending with \code{.tsv})
+Default: \code{filename = NULL}.}
+
+\item{strata}{(optional for data frame and PLINK files, 
+required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. With a 
+data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+PLINK files, the \code{tfam} first 2 columns are used. 
+If a \code{strata} file is specified, the strata file will have
+precedence. The \code{STRATA} column can be any hierarchical grouping. 
+To create a strata file see \code{\link[stackr]{individuals2strata}}.
+Default: \code{strata = NULL}.}
+
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
+The whitelist is in the working directory (e.g. "whitelist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+In the VCF, the column ID is the LOCUS identification.
+Default \code{whitelist.markers = NULL} for no whitelist of markers.}
+
+\item{monomorphic.out}{(optional) Should the monomorphic 
+markers present in the dataset be filtered out ? 
+Default: \code{monomorphic.out = TRUE}.}
+
+\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
+average quality, e.g. genotype with more than 2 alleles in diploid likely 
+sequencing errors or genotypes with poor genotype likelihood or coverage. 
+The blacklist as a minimum of 2 column headers (markers and individuals). 
+Markers can be 1 column (CHROM or LOCUS or POS), 
+a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
+all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
+or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
+INDIVIDUALS (character) columns header. The blacklist must be in the working 
+directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
+with 'un' need to be changed to 1. 
+Default: \code{blacklist.genotype = NULL} for no blacklist of 
+genotypes to erase.}
+
+\item{snp.ld}{(optional) \strong{For VCF file only}. 
+SNP short distance linkage disequilibrium pruning. With anonymous markers from
+RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
+choosing among these 3 options: \code{"random"} selection, \code{"first"} or
+\code{"last"} SNP on the same short read/haplotype. For long distance linkage
+disequilibrium pruning, see details below.
+Default: \code{snp.ld = NULL}.}
+
+\item{common.markers}{(optional) Logical. \code{common.markers = TRUE}, 
+will only keep markers in common (genotyped) between all the populations. 
+Default: \code{common.markers = FALSE}}
+
+\item{max.marker}{An optional integer useful to subsample marker number in 
+large PLINK file. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
+subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
+keep specific markers.
+Default: \code{max.marker = NULL}.}
+
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
+
+\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
+case, the id of the pop.
+Use this argument to have the pop ordered your way instead of the default 
+alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
+instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+Default: \code{pop.levels = NULL}.}
+
+\item{pop.labels}{(optional, string) Use this argument to rename/relabel
+your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
+into a new pop called \code{"NEW"}:
+(1) First, define the levels for your pop with \code{pop.levels} argument: 
+\code{pop.levels = c("QUE", "ONT", "ALB")}. 
+(2) then, use \code{pop.labels} argument: 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+To rename \code{"QUE"} to \code{"TAS"}:
+\code{pop.labels = c("TAS", "ONT", "ALB")}.
+Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
+\code{strata} argument that can do the same thing, see below.}
+
+\item{pop.select}{(string, optional) Selected list of populations for 
+the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
+and \code{ONT} population samples (out of 20 pops).}
+}
+\value{
+With \code{interactive.filter = FALSE}, a list in the global environment,
+with 7 objects:
+\enumerate{
+\item $tidy.filtered.ind
+\item $whitelist.markers
+\item $blacklist.markers
+\item $strata
+\item $filters.parameters
+}
+
+With \code{interactive.filter = TRUE}, a list with 2 additionnal objects is created.
+\enumerate{
+\item $plot.pop.threshold
+\item $pop.threshold.helper.table
+}
+
+The object can be isolated in separate object outside the list by 
+following the example below.
 }
 \description{
-Filter loci based on population threshold with loci: number, 
-percentage or fix threshold.
+Filter markes based on populations genotyped. Use a tidy data 
+set (long format) of any of these file format: 
+vcf, plink (tped/tfam), stacks haplotype file, genind, 
+genepop, data frame in wide format. The function uses 
+\code{\link[stackr]{tidy_genomic_data}} and 
+\code{\link[stackr]{read_long_tidy_wide}} to load the file. For filtering
+The threshold can be a fixed number of population, a proportion or a percentage.
+}
+\details{
+\strong{Interactive version}
+
+There is 2 steps in the interactive version to visualize and filter
+the data based on the population representation:
+
+Step 1. Impact of population threshold on marker discovery
+
+Step 2. Choose the filtering threshold
+}
+\examples{
+\dontrun{
+turtle.pop <- filter_population(
+data = "turtle.vcf",
+strata = "turtle.strata.tsv",
+pop.thresholds = 100,
+percent = TRUE,
+filename = "tidy.data.turtle.tsv"
+) 
+
+#If interactive.filter = TRUE, a list is created and to view the filtered tidy data:
+tidy.data <- turtle.ind$tidy.filtered.ind
+
+#Inside the same list, to isolate the blacklist.genotypes:
+bg <- turtle.ind$blacklist.genotypes
+
+# The remaining argument are used in tidy_genomic_data during import and allow
+# the user to apply some filtering or selection before doing the filtering.
+}
 }
 

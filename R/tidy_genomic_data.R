@@ -682,8 +682,7 @@ tidy_genomic_data <- function(
       input <- sample_n(tbl = input, size = max(as.numeric(max.marker)), replace = FALSE)
       
       max.marker.subsample.select <- input %>% 
-        select(LOCUS) %>% 
-        distinct(LOCUS) %>% 
+        distinct(LOCUS, .keep_all = TRUE) %>% 
         arrange(LOCUS)
       
       write_tsv(# save results
@@ -738,8 +737,7 @@ tidy_genomic_data <- function(
       input <- suppressWarnings(
         semi_join(input, 
                   remove.missing.gt %>% 
-                    select(LOCUS) %>% 
-                    distinct(LOCUS), 
+                    distinct(LOCUS, .keep_all = TRUE), 
                   by = "LOCUS")
       )
     }
@@ -850,8 +848,7 @@ tidy_genomic_data <- function(
     message("Scanning for consensus markers")
     consensus.markers <- input %>%
       filter(GT == "consensus") %>% 
-      select(LOCUS) %>% 
-      distinct(LOCUS)
+      distinct(LOCUS, .keep_all = TRUE)
     
     if (length(consensus.markers$LOCUS) > 0) {
     input <- suppressWarnings(anti_join(input, consensus.markers, by = "LOCUS"))
@@ -1031,7 +1028,6 @@ tidy_genomic_data <- function(
   
   strata.df <- input %>%
     ungroup() %>%
-    select(POP_ID, INDIVIDUALS) %>%
     distinct(POP_ID, INDIVIDUALS)
   
   # Blacklist genotypes ********************************************************
@@ -1073,9 +1069,9 @@ tidy_genomic_data <- function(
       message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
       # updating the whitelist of markers to have all columns that id markers
       if (data.type == "vcf.file"){
-        whitelist.markers.ind <- input %>% select(CHROM, LOCUS, POS, INDIVIDUALS) %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
+        whitelist.markers.ind <- input %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
       } else {
-        whitelist.markers.ind <- input %>% select(LOCUS, INDIVIDUALS) %>% distinct(LOCUS, INDIVIDUALS)
+        whitelist.markers.ind <- input %>% distinct(LOCUS, INDIVIDUALS)
       }
       
       # updating the blacklist.genotype
@@ -1130,7 +1126,7 @@ tidy_genomic_data <- function(
              PLINK linkage disequilibrium based SNP pruning option")
     }
     message("Minimizing LD...")
-    snp.locus <- input %>% select(LOCUS, POS) %>% distinct(POS)
+    snp.locus <- input %>% distinct(LOCUS, POS)
     # Random selection
     if (snp.ld == "random") {
       snp.select <- snp.locus %>%
@@ -1190,7 +1186,6 @@ tidy_genomic_data <- function(
       group_by(MARKERS) %>%
       filter(n_distinct(POP_ID) == pop.number) %>%
       arrange(MARKERS) %>%
-      select(MARKERS) %>%
       distinct(MARKERS)
     
     markers.input <- n_distinct(input$MARKERS)
@@ -1255,7 +1250,6 @@ tidy_genomic_data <- function(
     ) %>% 
       as_data_frame() %>% 
       filter(GT != "000") %>%
-      select(MARKERS, GT) %>% 
       distinct(MARKERS, GT) %>% 
       select(MARKERS) %>% 
       group_by(MARKERS) %>% 
@@ -1344,7 +1338,7 @@ tidy_genomic_data <- function(
         arrange(MARKERS, POP_ID, GT) %>% 
         group_by(MARKERS, POP_ID) %>% 
         filter(n == min(n)) %>% 
-        distinct(MARKERS, POP_ID) %>% 
+        distinct(MARKERS, POP_ID, .keep_all = TRUE) %>% 
         select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
     }# end maf calculations with PLINK or data frame of genotypes
     

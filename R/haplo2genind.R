@@ -334,7 +334,7 @@ haplo2genind <- function(data,
         blacklist.genotype <- blacklist.genotype
         message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
         # updating the whitelist of markers to have all columns that id markers
-        whitelist.markers.ind <- input %>% select(LOCUS, INDIVIDUALS) %>% distinct(LOCUS, INDIVIDUALS)
+        whitelist.markers.ind <- input %>% distinct(LOCUS, INDIVIDUALS)
         
         # updating the blacklist.genotype
         blacklist.genotype <- suppressWarnings(semi_join(whitelist.markers.ind, blacklist.genotype, by = columns.names.blacklist.genotype))
@@ -375,7 +375,6 @@ haplo2genind <- function(data,
         summarise(POLYMORPHISM_MAX = max(POLYMORPHISM)) %>%
         filter(POLYMORPHISM_MAX > 1) %>%
         group_by(LOCUS) %>%
-        select(LOCUS) %>%
         distinct(LOCUS)
       
       input <- suppressWarnings(
@@ -443,7 +442,6 @@ haplo2genind <- function(data,
         group_by(MARKERS) %>%
         filter(n_distinct(POP_ID) == pop.number) %>%
         arrange(MARKERS) %>%
-        select(MARKERS) %>%
         distinct(MARKERS)
       
       message(stri_join("Number of original markers = ", n_distinct(input$MARKERS), 
@@ -532,7 +530,7 @@ haplo2genind <- function(data,
       select(-c(INDIVIDUALS, POP_ID))
     rownames(genind.df) <- ind
     loc.names <- colnames(genind.df)
-    strata <- genind.prep %>% ungroup() %>% select(INDIVIDUALS, POP_ID) %>% distinct(INDIVIDUALS, POP_ID)
+    strata <- genind.prep %>% ungroup() %>% distinct(INDIVIDUALS, POP_ID)
     prevcall <- match.call()
     res <- genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
     message("A large 'genind' object was created in your Environment")
@@ -776,7 +774,7 @@ haplo2genind <- function(data,
       select(-c(INDIVIDUALS, POP_ID))
     rownames(genind.df) <- ind
     loc.names <- colnames(genind.df)
-    strata <- genind.prep.imp %>% ungroup() %>% select(INDIVIDUALS, POP_ID) %>% distinct(INDIVIDUALS, POP_ID)
+    strata <- genind.prep.imp %>% ungroup() %>% distinct(INDIVIDUALS, POP_ID)
     
     # genind constructor
     prevcall <- match.call()

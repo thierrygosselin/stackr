@@ -326,7 +326,7 @@ filter_genotype_likelihood <- function (
     # create a strata.df
     strata.df <- input %>% 
       select(INDIVIDUALS, POP_ID) %>% 
-      distinct(INDIVIDUALS)
+      distinct(INDIVIDUALS, .keep_all = TRUE)
     strata <- strata.df
     pop.levels <- levels(input$POP_ID)
     pop.labels <- pop.levels
@@ -336,7 +336,7 @@ filter_genotype_likelihood <- function (
     input <- read_long_tidy_wide(data = data)
     strata.df <- input %>% 
       select(INDIVIDUALS, POP_ID) %>% 
-      distinct(INDIVIDUALS)
+      distinct(INDIVIDUALS, .keep_all = TRUE)
     strata <- strata.df
     pop.levels <- levels(input$POP_ID)
     pop.labels <- pop.levels
@@ -686,7 +686,6 @@ filter_genotype_likelihood <- function (
   # saving whitelist
   whitelist.markers <- filter %>% 
     ungroup() %>%
-    select(CHROM, LOCUS, POS) %>% 
     distinct(CHROM, LOCUS, POS)
   message("Writing the whitelist of markers based on GL information in your working directory\nwhitelist.markers.gl.tsv")
   write_tsv(whitelist.markers, "whitelist.markers.gl.tsv", append = FALSE, col_names = TRUE)
@@ -694,7 +693,6 @@ filter_genotype_likelihood <- function (
   # saving blacklist
   blacklist.markers <- data %>% 
     ungroup() %>%
-    select(CHROM, LOCUS, POS) %>% 
     distinct(CHROM, LOCUS, POS) %>% 
     anti_join(whitelist.markers, by = c("CHROM", "LOCUS", "POS"))
   message("Writing the blacklist of markers based on GL information in your working directory\nblacklist.markers.gl.tsv")

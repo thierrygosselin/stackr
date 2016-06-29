@@ -360,7 +360,7 @@ filter_maf <- function(
   # create a strata.df
   strata.df <- input %>% 
     select(INDIVIDUALS, POP_ID) %>% 
-    distinct(INDIVIDUALS)
+    distinct(INDIVIDUALS, .keep_all = TRUE)
   strata <- strata.df
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
@@ -432,7 +432,7 @@ filter_maf <- function(
         arrange(MARKERS, POP_ID, GT) %>% 
         group_by(MARKERS, POP_ID) %>% 
         filter(n == min(n)) %>% 
-        distinct(MARKERS, POP_ID) %>% 
+        distinct(MARKERS, POP_ID, .keep_all = TRUE) %>% 
         select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
     }# end maf calculations
   } # end summarize data
@@ -450,7 +450,6 @@ filter_maf <- function(
       OVERALL <- NULL
       global.data <- maf.data %>% 
         group_by(MARKERS) %>% 
-        select(MARKERS, MAF_GLOBAL) %>% 
         distinct(MARKERS, MAF_GLOBAL) %>%
         mutate(OVERALL = rep("overall", n()))
       
@@ -580,7 +579,7 @@ filter_maf <- function(
   # number of individuals / pop
   maf.helper.table <- input %>% 
     group_by(POP_ID, INDIVIDUALS) %>% 
-    distinct(POP_ID, INDIVIDUALS) %>%
+    distinct(POP_ID, INDIVIDUALS, .keep_all = TRUE) %>%
     ungroup %>% 
     group_by(POP_ID) %>% 
     tally
@@ -833,7 +832,6 @@ message("Writing the whitelist of markers in your working directory\nwhitelist.m
 if (data.type == "vcf.file") {
   whitelist.markers <- filter %>% 
     ungroup() %>%
-    select(CHROM, LOCUS, POS) %>% 
     distinct(CHROM, LOCUS, POS)
 } else {
   whitelist.markers <- filter %>% 
@@ -849,7 +847,6 @@ message("Writing the blacklist of markers in your working directory\nblacklist.m
 if (data.type == "vcf.file") {
   blacklist.markers <- input %>% 
     ungroup() %>%
-    select(CHROM, LOCUS, POS) %>% 
     distinct(CHROM, LOCUS, POS) %>% 
     anti_join(whitelist.markers, by = c("CHROM", "LOCUS", "POS"))
 } else {
