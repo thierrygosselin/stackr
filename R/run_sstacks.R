@@ -194,7 +194,7 @@ run_sstacks <- function(
     sample.list <- stri_paste(input.path, "/", sample.list)
     s <- stri_paste("-s ", shQuote(sample.list))
   }
-  message("Matching the sample files to the catalog...")
+  message("Matching the samples' files to the catalog...")
   # command args ---------------------------------------------------------------
   command.arguments <- c(
     p, b, c, s, o, g, x, v, h, gapped
