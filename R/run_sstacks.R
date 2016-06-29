@@ -192,7 +192,7 @@ run_sstacks <- function(
   if (is.null(sample.list)) {
     s <- stri_paste("-s ", shQuote(stri_paste(input.path, "/", sample.in.folder$INDIVIDUALS_REP)))
   } else {
-    sample.list <- purrr::discard(.x = sample.list, .p = sample.list %in% sample.in.folder$INDIVIDUALS_REP)
+    sample.list <- purrr::keep(.x = sample.list, .p = sample.list %in% sample.in.folder$INDIVIDUALS_REP)
     sample.list <- stri_paste(input.path, "/", sample.list)
     s <- stri_paste("-s ", shQuote(sample.list))
   }
