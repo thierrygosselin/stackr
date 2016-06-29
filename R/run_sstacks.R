@@ -180,17 +180,19 @@ run_sstacks <- function(
   } 
   
   # s: filename prefix from which to load sample loci---------------------------
+  sample.in.folder <- data_frame(INDIVIDUALS_REP = list.files(input.path)) %>% 
+    filter(!grepl("batch", INDIVIDUALS_REP) & grepl("alleles", INDIVIDUALS_REP)) %>% 
+    mutate(INDIVIDUALS_REP = stri_replace_all_fixed(
+      str = INDIVIDUALS_REP, 
+      pattern = ".alleles.tsv.gz", replacement = "", 
+      vectorized_all = FALSE)
+    ) %>% 
+    distinct(INDIVIDUALS_REP)
+  
   if (is.null(sample.list)) {
-    sample.list <- data_frame(INDIVIDUALS_REP = list.files(input.path)) %>% 
-      filter(!grepl("batch", INDIVIDUALS_REP) & grepl("alleles", INDIVIDUALS_REP)) %>% 
-      mutate(INDIVIDUALS_REP = stri_replace_all_fixed(
-        str = INDIVIDUALS_REP, 
-        pattern = ".alleles.tsv.gz", replacement = "", 
-        vectorized_all = FALSE)
-      ) %>% 
-      distinct(INDIVIDUALS_REP)
-    s <- stri_paste("-s ", shQuote(stri_paste(input.path, "/", sample.list$INDIVIDUALS_REP)))
+    s <- stri_paste("-s ", shQuote(stri_paste(input.path, "/", sample.in.folder$INDIVIDUALS_REP)))
   } else {
+    sample.list <- purrr::discard(.x = sample.list, .p = sample.list %in% sample.in.folder$INDIVIDUALS_REP)
     sample.list <- stri_paste(input.path, "/", sample.list)
     s <- stri_paste("-s ", shQuote(sample.list))
   }
