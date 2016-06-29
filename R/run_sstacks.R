@@ -189,7 +189,7 @@ run_sstacks <- function(
         vectorized_all = FALSE)
       ) %>% 
       distinct(INDIVIDUALS_REP)
-    s <- stri_paste("-s ", shQuote(sample.list$INDIVIDUALS_REP))
+    s <- stri_paste("-s ", shQuote(stri_paste(input.path, "/", sample.list$INDIVIDUALS_REP)))
   } else {
     sample.list <- stri_paste(input.path, "/", sample.list)
     s <- stri_paste("-s ", shQuote(sample.list))
