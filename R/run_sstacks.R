@@ -197,7 +197,7 @@ run_sstacks <- function(
   
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
-    input.path, p, b, catalog.prefix, s, o, g , x, v, h, gapped
+    p, b, catalog.prefix, s, o, g, x, v, h, gapped
   )
   
   # command
