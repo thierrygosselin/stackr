@@ -132,7 +132,7 @@ run_sstacks <- function(
   
   list.catalog.files <- list.files(path = input.path, pattern = catalog.prefix)
   if (length(list.catalog.files) > 0) {
-    message("Found the catalog files")
+    message("Reading the catalog files...")
   } else {
     stop("Catalog files are required, check the input.path or catalog prefix
         arguments")
@@ -194,7 +194,7 @@ run_sstacks <- function(
     sample.list <- stri_paste(input.path, "/", sample.list)
     s <- stri_paste("-s ", shQuote(sample.list))
   }
-  
+  message("Matching the sample files to the catalog...")
   # command args ---------------------------------------------------------------
   command.arguments <- c(
     p, b, c, s, o, g, x, v, h, gapped
