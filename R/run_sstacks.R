@@ -208,5 +208,5 @@ run_sstacks <- function(
   #   cstacks.files.to.s3 <- list.files(path = sample.list.path, pattern = individual, full.names = FALSE)
   #   purrr::walk(.x = cstacks.files.to.s3, .f = copy_s3, from.folder = from.folder, destination.folder = destination.folder)
   # }
-  cat("#######################################################################\n")
+  message("#######################################################################\n")
 }# end run_sstacks
