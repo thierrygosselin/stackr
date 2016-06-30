@@ -182,7 +182,7 @@ run_sstacks <- function(
   # s: filename prefix from which to load sample loci---------------------------
   samples.in.folder <- data_frame(INDIVIDUALS_REP = list.files(input.path)) %>% 
     filter(!grepl("batch", INDIVIDUALS_REP))
-
+  
   samples.matched <- samples.in.folder %>% 
     filter(grepl("matches", INDIVIDUALS_REP)) %>% 
     mutate(INDIVIDUALS_REP = stri_replace_all_fixed(
@@ -191,6 +191,8 @@ run_sstacks <- function(
       vectorized_all = FALSE)
     ) %>% 
     distinct(INDIVIDUALS_REP)
+  message(stri_paste("Samples in folder already matched to the catalog: ", 
+                     length(samples.matched$INDIVIDUALS_REP)))
   
   samples.to.match <- samples.in.folder %>% 
     filter(grepl("alleles", INDIVIDUALS_REP)) %>% 
@@ -201,16 +203,19 @@ run_sstacks <- function(
     ) %>% 
     distinct(INDIVIDUALS_REP) %>% 
     filter(!INDIVIDUALS_REP %in% samples.matched$INDIVIDUALS_REP)
-    
+  
+  message(stri_paste("Samples in folder not matched to the catalog: ", length(samples.to.match$INDIVIDUALS_REP)))
+  
   
   if (is.null(sample.list)) {
-    s <- stri_paste("-s ", shQuote(stri_paste(input.path, "/", samples.in.folder$INDIVIDUALS_REP)))
+    s <- stri_paste("-s ", shQuote(stri_paste(input.path, "/", samples.to.match$INDIVIDUALS_REP)))
+    message(stri_paste("Matching ", length(samples.to.match$INDIVIDUALS_REP), " sample(s) to the catalog..."))
   } else {
-    sample.list <- purrr::keep(.x = sample.list, .p = sample.list %in% samples.in.folder$INDIVIDUALS_REP)
+    sample.list <- purrr::keep(.x = sample.list, .p = sample.list %in% samples.to.match$INDIVIDUALS_REP)
     sample.list <- stri_paste(input.path, "/", sample.list)
     s <- stri_paste("-s ", shQuote(sample.list))
+    message(stri_paste("Matching ", length(sample.list), " sample(s) to the catalog..."))
   }
-  message("Matching the samples' files to the catalog...")
   
   # logs files -----------------------------------------------------------------
   number.log.files <- length(list.files(path = "09_log_files", pattern = "sstacks.log"))
