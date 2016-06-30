@@ -218,7 +218,7 @@ run_sstacks <- function(
   }
   
   # logs files -----------------------------------------------------------------
-  number.log.files <- length(list.files(path = "09_log_files", pattern = "sstacks.log"))
+  number.log.files <- length(list.files(path = "09_log_files", pattern = "sstacks"))
   if (number.log.files != 0) {
     log.number <- number.log.files + 1
     log.file <- stri_paste("09_log_files/sstacks_", log.number,".log")
@@ -246,5 +246,5 @@ run_sstacks <- function(
   #   cstacks.files.to.s3 <- list.files(path = sample.list.path, pattern = individual, full.names = FALSE)
   #   purrr::walk(.x = cstacks.files.to.s3, .f = copy_s3, from.folder = from.folder, destination.folder = destination.folder)
   # }
-  message("#######################################################################\n")
+  cat("#######################################################################\n")
 }# end run_sstacks
