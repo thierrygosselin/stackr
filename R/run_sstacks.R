@@ -217,6 +217,8 @@ run_sstacks <- function(
   if (number.log.files != 0) {
     log.number <- number.log.files + 1
     log.file <- stri_paste("09_log_files/sstacks_", log.number,".log")
+  } else {
+    log.file <- "09_log_files/sstacks.log"
   }
   
   # command args ---------------------------------------------------------------
@@ -229,8 +231,8 @@ run_sstacks <- function(
     system2(
       command = "sstacks", 
       args = command.arguments, 
-      stdout = "09_log_files/sstacks.log", 
-      stderr = "09_log_files/sstacks.log"
+      stdout = log.file, 
+      stderr = log.file
     )
   )
   
