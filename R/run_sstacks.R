@@ -211,9 +211,15 @@ run_sstacks <- function(
     s <- stri_paste("-s ", shQuote(stri_paste(input.path, "/", samples.to.match$INDIVIDUALS_REP)))
     message(stri_paste("Matching ", length(samples.to.match$INDIVIDUALS_REP), " sample(s) to the catalog..."))
   } else {
+    sample.list.before <- sample.list
     sample.list <- purrr::keep(.x = sample.list, .p = sample.list %in% samples.to.match$INDIVIDUALS_REP)
     sample.list <- stri_paste(input.path, "/", sample.list)
     s <- stri_paste("-s ", shQuote(sample.list))
+    
+    samples.to.remove <- length(sample.list) -length(sample.list.before)
+    if (samples.to.remove != 0) {
+      message(stri_paste("Removed ", samples.to.remove, " problematic sample(s) from the samples list to match"))
+    }
     message(stri_paste("Matching ", length(sample.list), " sample(s) to the catalog..."))
   }
   
