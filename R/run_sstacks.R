@@ -180,23 +180,45 @@ run_sstacks <- function(
   } 
   
   # s: filename prefix from which to load sample loci---------------------------
-  sample.in.folder <- data_frame(INDIVIDUALS_REP = list.files(input.path)) %>% 
-    filter(!grepl("batch", INDIVIDUALS_REP) & grepl("alleles", INDIVIDUALS_REP)) %>% 
+  samples.in.folder <- data_frame(INDIVIDUALS_REP = list.files(input.path)) %>% 
+    filter(!grepl("batch", INDIVIDUALS_REP))
+
+  samples.matched <- samples.in.folder %>% 
+    filter(grepl("matches", INDIVIDUALS_REP)) %>% 
+    mutate(INDIVIDUALS_REP = stri_replace_all_fixed(
+      str = INDIVIDUALS_REP, 
+      pattern = ".matches.tsv.gz", replacement = "", 
+      vectorized_all = FALSE)
+    ) %>% 
+    distinct(INDIVIDUALS_REP)
+  
+  samples.to.match <- samples.in.folder %>% 
+    filter(grepl("alleles", INDIVIDUALS_REP)) %>% 
     mutate(INDIVIDUALS_REP = stri_replace_all_fixed(
       str = INDIVIDUALS_REP, 
       pattern = ".alleles.tsv.gz", replacement = "", 
       vectorized_all = FALSE)
     ) %>% 
-    distinct(INDIVIDUALS_REP)
+    distinct(INDIVIDUALS_REP) %>% 
+    filter(!INDIVIDUALS_REP %in% samples.matched$INDIVIDUALS_REP)
+    
   
   if (is.null(sample.list)) {
-    s <- stri_paste("-s ", shQuote(stri_paste(input.path, "/", sample.in.folder$INDIVIDUALS_REP)))
+    s <- stri_paste("-s ", shQuote(stri_paste(input.path, "/", samples.in.folder$INDIVIDUALS_REP)))
   } else {
-    sample.list <- purrr::keep(.x = sample.list, .p = sample.list %in% sample.in.folder$INDIVIDUALS_REP)
+    sample.list <- purrr::keep(.x = sample.list, .p = sample.list %in% samples.in.folder$INDIVIDUALS_REP)
     sample.list <- stri_paste(input.path, "/", sample.list)
     s <- stri_paste("-s ", shQuote(sample.list))
   }
   message("Matching the samples' files to the catalog...")
+  
+  # logs files -----------------------------------------------------------------
+  number.log.files <- length(list.files(path = "09_log_files", pattern = "sstacks.log"))
+  if (number.log.files != 0) {
+    log.number <- number.log.files + 1
+    log.file <- stri_paste("09_log_files/sstacks_", log.number,".log")
+  }
+  
   # command args ---------------------------------------------------------------
   command.arguments <- c(
     p, b, c, s, o, g, x, v, h, gapped
