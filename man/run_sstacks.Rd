@@ -65,4 +65,14 @@ Those files are created in the
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 module.
 }
+\examples{
+\dontrun{
+# The simplest form of the function:
+run_sstacks()
+# that's it ! Now if you have your own workflow folders, etc. Enter them like this:
+run_sstacks (input.path = "/my/input/path", p = 32, b = 2, catalog.prefix = "batch_2", 
+sample.list = c("ind1", "ind2", "..."), o = "/my/output/path", g = FALSE,
+x = FALSE, gapped = FALSE)
+}
+}
 
