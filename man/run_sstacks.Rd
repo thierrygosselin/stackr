@@ -8,7 +8,7 @@
 Default: \code{input.path = "06_ustacks_cstacks_sstacks"}}
 
 \item{p}{Enable parallel execution with num_threads threads. 
-Default: \code{ p = 4}}
+Default: \code{p = 4}}
 
 \item{b}{MySQL ID of this batch. 
 Default: \code{b = 1}.}
@@ -18,7 +18,7 @@ Default: \code{b = 1}.}
 \code{c: TSV file from which to load the catalog loci.}
 Here, you give the prefix of the catalog file and the function take cares of
 the rest. 
-Default: \code{catalog.prefix = "batch_1"}. I'll}
+Default: \code{catalog.prefix = "batch_1"}.}
 
 \item{sample.list}{This is for the \code{s} option in
 \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}. 
@@ -55,15 +55,26 @@ returns a \code{.matches.tsv.gz file for each sample}
 \description{
 Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks} 
-module inside R! 
-\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
-requires the 3 files from the catalog, created in 
-\href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks} and 
-for each sample, 4 files ending with 
-\code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}. 
+module inside R!
+Inside the folder \code{06_ustacks_cstacks_sstacks}, you should have:
+\itemize{
+  \item \strong{3 Catalog files:} the files created in 
+\href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks} 
+and usually looking like this: \code{batch_1.catalog.alleles.tsv.gz, 
+batch_1.catalog.snps.tsv.gz, 
+batch_1.catalog.tags.tsv.gz}
+  \item \strong{4 files for each samples:} The sample name is the prefix of 
+  the files ending with:
+\code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
 Those files are created in the 
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 module.
+}
+}
+\details{
+\strong{Computer or server problem during the sstacks ?} 
+Just launch again the same command, the function will start again, but only
+with the unmatched samples!
 }
 \examples{
 \dontrun{

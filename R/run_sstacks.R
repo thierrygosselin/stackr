@@ -18,8 +18,6 @@
 #' module.
 #' }
 
-
-
 #' @param input.path Path to input file. 
 #' Default: \code{input.path = "06_ustacks_cstacks_sstacks"}
 
