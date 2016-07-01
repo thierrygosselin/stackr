@@ -62,7 +62,7 @@ Default: \code{min_aln_len = 0.8}}
 Default: \code{k_len = NULL}}
 
 \item{report_mmatches}{Report query loci that match more than one catalog locus.
-Default: \cpde{report_mmatches = FALSE}}
+Default: \code{report_mmatches = FALSE}}
 }
 \value{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}

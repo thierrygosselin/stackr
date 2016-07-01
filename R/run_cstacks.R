@@ -71,7 +71,7 @@
 #' Default: \code{k_len = NULL}
 
 #' @param report_mmatches Report query loci that match more than one catalog locus.
-#' Default: \cpde{report_mmatches = FALSE}
+#' Default: \code{report_mmatches = FALSE}
 
 #' @rdname run_cstacks
 #' @export
@@ -164,10 +164,15 @@ run_cstacks <- function(
 ) {  
   
   # Check directory ------------------------------------------------------------
-  if(!dir.exists("06_ustacks_cstacks_sstacks")) dir.create("06_ustacks_cstacks_sstacks")
+  if(!dir.exists(input.path)) dir.create(input.path)
   if(!dir.exists("09_log_files")) dir.create("09_log_files")
   
   # Catalog editing ------------------------------------------------------------
+  old.catalog <- list.files(path = input.path, pattern = "batch_")
+  if (length(old.catalog) > 0 & length(old.catalog) == 3) {
+    message("Found a catalog in the input folder, using files: ")
+    message(stri_paste(old.catalog, ", "))
+  }
   if (is.null(catalog.path)) {
     catalog.path <- ""
   } else {
