@@ -2,21 +2,29 @@
 #' @title Run STACKS sstacks module
 #' @description Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks} 
-#' module inside R! 
-#' \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
-#' requires the 3 files from the catalog, created in 
-#' \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks} and 
-#' for each sample, 4 files ending with 
-#' \code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}. 
+#' module inside R!
+#' Inside the folder \code{06_ustacks_cstacks_sstacks}, you should have:
+#' \itemize{
+#'   \item \strong{3 Catalog files:} the files created in 
+#' \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks} 
+#' and usually looking like this: \code{batch_1.catalog.alleles.tsv.gz, 
+#' batch_1.catalog.snps.tsv.gz, 
+#' batch_1.catalog.tags.tsv.gz}
+#'   \item \strong{4 files for each samples:} The sample name is the prefix of 
+#'   the files ending with:
+#' \code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
 #' Those files are created in the 
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 #' module.
+#' }
+
+
 
 #' @param input.path Path to input file. 
 #' Default: \code{input.path = "06_ustacks_cstacks_sstacks"}
 
 #' @param p Enable parallel execution with num_threads threads. 
-#' Default: \code{ p = 4}
+#' Default: \code{p = 4}
 
 #' @param b MySQL ID of this batch. 
 #' Default: \code{b = 1}.
@@ -26,7 +34,7 @@
 #' \code{c: TSV file from which to load the catalog loci.}
 #' Here, you give the prefix of the catalog file and the function take cares of
 #' the rest. 
-#' Default: \code{catalog.prefix = "batch_1"}. I'll
+#' Default: \code{catalog.prefix = "batch_1"}.
 
 #' @param sample.list This is for the \code{s} option in
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}. 
@@ -65,6 +73,10 @@
 
 #' @return \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
 #' returns a \code{.matches.tsv.gz file for each sample}
+
+#' @details \strong{Computer or server problem during the sstacks ?} 
+#' Just launch again the same command, the function will start again, but only
+#' with the unmatched samples!
 
 #' @examples
 #' \dontrun{
@@ -134,7 +146,7 @@ run_sstacks <- function(
     message("Reading the catalog files...")
   } else {
     stop("Catalog files are required, check the input.path or catalog prefix
-        arguments")
+        arguments, usually it starts with batch_1")
   }
   
   c <- stri_paste("-c ", input.path, "/", catalog.prefix)
@@ -179,9 +191,12 @@ run_sstacks <- function(
   } 
   
   # s: filename prefix from which to load sample loci---------------------------
+  
+  # Get the samples in the folder
   samples.in.folder <- data_frame(INDIVIDUALS_REP = list.files(input.path)) %>% 
     filter(!grepl("batch", INDIVIDUALS_REP))
   
+  # Search for those already matched
   samples.matched <- samples.in.folder %>% 
     filter(grepl("matches", INDIVIDUALS_REP)) %>% 
     mutate(INDIVIDUALS_REP = stri_replace_all_fixed(
@@ -190,9 +205,11 @@ run_sstacks <- function(
       vectorized_all = FALSE)
     ) %>% 
     distinct(INDIVIDUALS_REP)
+  
   message(stri_paste("Samples in folder already matched to the catalog: ", 
                      length(samples.matched$INDIVIDUALS_REP)))
   
+  # Get the name of samples that need to be match to the catalog
   samples.to.match <- samples.in.folder %>% 
     filter(grepl("alleles", INDIVIDUALS_REP)) %>% 
     mutate(INDIVIDUALS_REP = stri_replace_all_fixed(
@@ -223,14 +240,12 @@ run_sstacks <- function(
   }
   
   # logs files -----------------------------------------------------------------
-  number.log.files <- length(list.files(path = "09_log_files", pattern = "sstacks"))
-  if (number.log.files != 0) {
-    log.number <- number.log.files + 1
-    log.file <- stri_paste("09_log_files/sstacks_", log.number,".log")
-  } else {
-    log.file <- "09_log_files/sstacks.log"
-  }
+  file.date.time <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
+  file.date.time <- stri_replace_all_fixed(file.date.time, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
+  file.date.time <- stri_sub(file.date.time, from = 1, to = 13)
   
+  log.file <- stri_paste("09_log_files/sstacks_", file.date.time,".log")
+  message(stri_paste("For progress, look in the log file: ", log.file))
   # command args ---------------------------------------------------------------
   command.arguments <- c(
     p, b, c, s, o, g, x, v, h, gapped
