@@ -50,10 +50,21 @@
 #' @param catalog.path This is for the "Catalog editing" part in cstacks where 
 #' you can provide the path to an existing catalog.
 #' cstacks will add data to this existing catalog.
-#' With default: \code{catalog.path = NULL}, the catalog files is inside the 
-#' input.path filder along the samples files and detected automatically. 
-#' In the catalog files are detected, the samples in the \code{sample.list} argument
-#' will be included in this catalog.
+#' With default: \code{catalog.path = NULL} or with a supplied path, the function
+#' The function scan automatically for the presence of a catalog inside the input folder.
+#' If none is found, a new catalog is created. 
+#' If your catalog is not in the input folder, supply a path here. 
+#' e.g. \code{catalog.path = ~/catalog_folder}
+#' 
+#' 
+#' , the catalog files are inside the 
+#' input.path folder along the samples files and detected automatically. 
+#' If a catalog is detected in the input folder, 
+#' the samples in the \code{sample.list} argument
+#' will be added in this catalog. The catalog is made of 3 files: 
+#' \code{batch_1.catalog.alleles.tsv.gz, 
+#' batch_1.catalog.snps.tsv.gz, 
+#' batch_1.catalog.tags.tsv.gz}
 
 #' @param gapped Gapped assembly options: do you want to preform 
 #' gapped alignments between stacks.
@@ -168,87 +179,141 @@ run_cstacks <- function(
   if(!dir.exists("09_log_files")) dir.create("09_log_files")
   
   # Catalog editing ------------------------------------------------------------
-  old.catalog <- list.files(path = input.path, pattern = "batch_")
-  if (length(old.catalog) > 0 & length(old.catalog) == 3) {
-    message("Found a catalog in the input folder, using files: ")
-    message(stri_paste(old.catalog, ", "))
+  
+  if (is.null(catalog.path)) { # no catalog path, searching in the input path...
+    old.catalog <- list.files(path = input.path, pattern = "batch_")
+    if (length(old.catalog) > 0 & length(old.catalog) == 3) {
+      message("Found a catalog in the input folder, using files: ")
+      message(stri_paste(old.catalog, "\n"))
+      
+      catalog.path <- stri_replace_all_fixed(
+        str = old.catalog[1], 
+        pattern = ".catalog.alleles.tsv.gz", 
+        replacement = "", 
+        vectorize_all = FALSE
+      )
+      catalog.path <- stri_paste(input.path, "/", catalog.path)
+      catalog.path <- stri_paste("--catalog ", shQuote(catalog.path))
+    } 
+    if (length(old.catalog) > 0 & length(old.catalog) < 3) {
+      stop("Incomplete catalog, 3 files are required, see argument documentation")
+    }
+    
+    if (length(old.catalog) == 0) {
+      message("Builing catalog for the first time")
+      catalog.path <- ""
+    }
+  } else {
+    old.catalog <- list.files(path = catalog.path, pattern = "batch_")
+    if (length(old.catalog) > 0 & length(old.catalog) == 3) {
+      message("Found the catalog in the catalog path using files: ")
+      message(stri_paste(old.catalog, "\n"))
+      
+      catalog.path <- stri_replace_all_fixed(
+        str = old.catalog[1], 
+        pattern = ".catalog.alleles.tsv.gz", 
+        replacement = "", 
+        vectorize_all = FALSE
+      )
+      catalog.path <- stri_paste(input.path, "/", catalog.path)
+      catalog.path <- stri_paste("--catalog ", shQuote(catalog.path))
+    } 
+    if (length(old.catalog) > 0 & length(old.catalog) < 3) {
+      stop("Incomplete catalog, 3 files are required, see argument documentation")
+    }
+    
+    if (length(old.catalog) == 0) {
+      message("Builing catalog for the first time")
+      catalog.path <- ""
+    }
   }
-  if (is.null(catalog.path)) {
-    catalog.path <- ""
-  } else {
-    catalog.path <- stri_paste("--catalog ", shQuote(catalog.path))
-  }
+    
+    
+    # cstacks options ------------------------------------------------------------
+    b <- stri_paste("-b ", b)
+    
+    o <- stri_paste("-o ", shQuote(o))
+    
+    if(g) {
+      g <- stri_paste("-g ")
+    } else {
+      g <- ""
+    }
+    
+    if(m) {
+      m <- stri_paste("-m ")
+    } else {
+      m <- ""
+    }  
+    
+    n <- stri_paste("-n ", n)
+    p <- stri_paste("-p ", p)
+    
+    if (h) {
+      h <- stri_paste("-h ")
+    } else {
+      h <- ""
+    }
+    
+    
+    # gapped assembly options ---------------------------------------------------
+    if(gapped) {
+      gapped <- stri_paste("--gapped ")
+    } else {
+      gapped <- ""
+    } 
+    
+    max_gaps <- stri_paste("--max_gaps ", max_gaps)
+    min_aln_len <- stri_paste("--min_aln_len ", min_aln_len)
+    
+    # Advanced options ----------------------------------------------------------
+    
+    if (is.null(k_len)) {
+      k_len <- ""
+    } else {
+      k_len <- stri_paste("--k_len ", k_len)
+    }
+    
+    if(report_mmatches) {
+      report_mmatches <- stri_paste("--report_mmatches ")
+    } else {
+      report_mmatches <- ""
+    }
+    
+    # Samples to include in the catalog ------------------------------------------
+    # s: filename prefix from which to load loci into the catalog.
+    sample.list <- stri_paste(input.path, "/", sample.list)
+    s <- stri_paste("-s ", shQuote(sample.list))
+    
+    # logs files -----------------------------------------------------------------
+    file.date.time <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
+    file.date.time <- stri_replace_all_fixed(
+      file.date.time, 
+      pattern = c("-", " ", ":"), 
+      replacement = c("", "@", ""), 
+      vectorize_all = FALSE
+      )
+    file.date.time <- stri_sub(file.date.time, from = 1, to = 13)
+    
+    log.file <- stri_paste("09_log_files/cstacks_", file.date.time,".log")
+    message(stri_paste("For progress, look in the log file: ", log.file))
+    
+    
+    # command args ---------------------------------------------------------------
+    command.arguments <- paste(
+      sample.list,
+      input.path,
+      catalog.path, b, o, g, m, n, p, h, gapped, max_gaps, min_aln_len, k_len,
+      report_mmatches, s
+    )
+    
+    # command
+    system.time(system2(command = "cstacks", args = command.arguments, stdout = log.file, stderr = log.file))
+    
+    # # transfer back to s3
+    # if (transfer.s3) {
+    #   cstacks.files.to.s3 <- list.files(path = sample.list.path, pattern = individual, full.names = FALSE)
+    #   purrr::walk(.x = cstacks.files.to.s3, .f = copy_s3, from.folder = from.folder, destination.folder = destination.folder)
+    # }
+  }# end run_cstacks
   
-  # cstacks options ------------------------------------------------------------
-  b <- stri_paste("-b ", b)
-  
-  o <- stri_paste("-o ", shQuote(o))
-  
-  if(g) {
-    g <- stri_paste("-g ")
-  } else {
-    g <- ""
-  }
-  
-  if(m) {
-    m <- stri_paste("-m ")
-  } else {
-    m <- ""
-  }  
-  
-  n <- stri_paste("-n ", n)
-  p <- stri_paste("-p ", p)
-  
-  if (h) {
-    h <- stri_paste("-h ")
-  } else {
-    h <- ""
-  }
-  
-  
-  # gapped assembly options ---------------------------------------------------
-  if(gapped) {
-    gapped <- stri_paste("--gapped ")
-  } else {
-    gapped <- ""
-  } 
-  
-  max_gaps <- stri_paste("--max_gaps ", max_gaps)
-  min_aln_len <- stri_paste("--min_aln_len ", min_aln_len)
-  
-  # Advanced options ----------------------------------------------------------
-  
-  if (is.null(k_len)) {
-    k_len <- ""
-  } else {
-    k_len <- stri_paste("--k_len ", k_len)
-  }
-  
-  if(report_mmatches) {
-    report_mmatches <- stri_paste("--report_mmatches ")
-  } else {
-    report_mmatches <- ""
-  }
-  
-  # Samples to include in the catalog ------------------------------------------
-  # s: filename prefix from which to load loci into the catalog.
-  sample.list <- stri_paste(input.path, "/", sample.list)
-  s <- stri_paste("-s ", shQuote(sample.list))
-  
-  # command args ---------------------------------------------------------------
-  command.arguments <- paste(
-    sample.list,
-    input.path,
-    catalog.path, b, o, g, m, n, p, h, gapped, max_gaps, min_aln_len, k_len,
-    report_mmatches, s
-  )
-  
-  # command
-  system.time(system2(command = "cstacks", args = command.arguments, stdout = "09_log_files/cstacks.log", stderr = "09_log_files/cstacks.log"))
-  
-  # # transfer back to s3
-  # if (transfer.s3) {
-  #   cstacks.files.to.s3 <- list.files(path = sample.list.path, pattern = individual, full.names = FALSE)
-  #   purrr::walk(.x = cstacks.files.to.s3, .f = copy_s3, from.folder = from.folder, destination.folder = destination.folder)
-  # }
-}# end run_cstacks

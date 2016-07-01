@@ -7,7 +7,8 @@
 #' \itemize{
 #'   \item \strong{3 Catalog files:} the files created in 
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks} 
-#' and usually looking like this: \code{batch_1.catalog.alleles.tsv.gz, 
+#' and usually looking like this: 
+#' \code{batch_1.catalog.alleles.tsv.gz, 
 #' batch_1.catalog.snps.tsv.gz, 
 #' batch_1.catalog.tags.tsv.gz}
 #'   \item \strong{4 files for each samples:} The sample name is the prefix of 
@@ -244,6 +245,7 @@ run_sstacks <- function(
   
   log.file <- stri_paste("09_log_files/sstacks_", file.date.time,".log")
   message(stri_paste("For progress, look in the log file: ", log.file))
+  
   # command args ---------------------------------------------------------------
   command.arguments <- c(
     p, b, c, s, o, g, x, v, h, gapped

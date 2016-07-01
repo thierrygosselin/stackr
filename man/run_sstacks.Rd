@@ -60,7 +60,8 @@ Inside the folder \code{06_ustacks_cstacks_sstacks}, you should have:
 \itemize{
   \item \strong{3 Catalog files:} the files created in 
 \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks} 
-and usually looking like this: \code{batch_1.catalog.alleles.tsv.gz, 
+and usually looking like this: 
+\code{batch_1.catalog.alleles.tsv.gz, 
 batch_1.catalog.snps.tsv.gz, 
 batch_1.catalog.tags.tsv.gz}
   \item \strong{4 files for each samples:} The sample name is the prefix of 

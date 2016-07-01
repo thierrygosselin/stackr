@@ -41,10 +41,21 @@ Default: \code{h = FALSE}}
 \item{catalog.path}{This is for the "Catalog editing" part in cstacks where 
 you can provide the path to an existing catalog.
 cstacks will add data to this existing catalog.
-With default: \code{catalog.path = NULL}, the catalog files is inside the 
-input.path filder along the samples files and detected automatically. 
-In the catalog files are detected, the samples in the \code{sample.list} argument
-will be included in this catalog.}
+With default: \code{catalog.path = NULL} or with a supplied path, the function
+The function scan automatically for the presence of a catalog inside the input folder.
+If none is found, a new catalog is created. 
+If your catalog is not in the input folder, supply a path here. 
+e.g. \code{catalog.path = ~/catalog_folder}
+
+
+, the catalog files are inside the 
+input.path folder along the samples files and detected automatically. 
+If a catalog is detected in the input folder, 
+the samples in the \code{sample.list} argument
+will be added in this catalog. The catalog is made of 3 files: 
+\code{batch_1.catalog.alleles.tsv.gz, 
+batch_1.catalog.snps.tsv.gz, 
+batch_1.catalog.tags.tsv.gz}}
 
 \item{gapped}{Gapped assembly options: do you want to preform 
 gapped alignments between stacks.
