@@ -60,29 +60,35 @@ e.g. \code{pop.select = "QUE"} to select QUE population samples.
 \item{hierarchy}{(optional) A formula that explicitely defines hierarchical levels 
 in your strata. See \code{\link[adegenet]{genind}} for details.}
 
-\item{imputation.method}{Should a map-independent imputations of markers be
-computed. Available choices are: (1) \code{FALSE} for no imputation.
-(2) \code{"max"} to use the most frequent category for imputations.
-(3) \code{"rf"} using Random Forest algorithm. Default = \code{FALSE}.}
+\item{imputation.method}{(character, optional) 
+Methods available for map-independent imputations of missing genotype: 
+(1) \code{"max"} to use the most frequent category for imputations.
+(2) \code{"rf"} using Random Forest algorithm. 
+Default: no imputation \code{imputation.method = NULL}.}
 
-\item{impute}{(character) Imputation on missing genotype 
-\code{impute = "genotype"} or alleles \code{impute = "allele"}.}
+\item{impute}{(character, optional) Imputation on missing genotype 
+\code{impute = "genotype"} or alleles \code{impute = "allele"}.
+Default: \code{"genotype"}.}
 
-\item{imputations.group}{\code{"global"} or \code{"populations"}.
+\item{imputations.group}{(character, optional) \code{"global"} or \code{"populations"}.
 Should the imputations be computed globally or by populations. If you choose
 global, turn the verbose to \code{TRUE}, to see progress.
 Default = \code{"populations"}.}
 
-\item{num.tree}{The number of trees to grow in Random Forest. Default is 100.}
+\item{num.tree}{(integer, optional) The number of trees to grow in Random Forest. 
+Default: \code{num.tree = 100}.}
 
-\item{iteration.rf}{The number of iterations of missing data algorithm 
-in Random Forest. Default is 10.}
+\item{iteration.rf}{(integer, optional) The number of iterations of missing data algorithm
+in Random Forest. 
+Default: \code{iteration.rf = 10}.}
 
-\item{split.number}{Non-negative integer value used to specify 
-random splitting in Random Forest. Default is 100.}
+\item{split.number}{(integer, optional) Non-negative integer value used to specify
+random splitting in Random Forest. 
+Default: \code{split.number = 100}.}
 
-\item{verbose}{Logical. Should trace output be enabled on each iteration 
-in Random Forest ? Default is \code{FALSE}.}
+\item{verbose}{(logical, optional) Should trace output be enabled on each iteration
+in Random Forest ? 
+Default: \code{verbose = FALSE}.}
 
 \item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
 programming of Random Forest imputations. For more info on how to install the

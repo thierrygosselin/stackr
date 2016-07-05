@@ -51,23 +51,39 @@
 #' \code{pop.select = c("QUE", "ONT")} to select QUE and ONT population samples.
 #' @param hierarchy (optional) A formula that explicitely defines hierarchical levels 
 #' in your strata. See \code{\link[adegenet]{genind}} for details.
-#' @param imputation.method Should a map-independent imputations of markers be
-#' computed. Available choices are: (1) \code{FALSE} for no imputation.
-#' (2) \code{"max"} to use the most frequent category for imputations.
-#' (3) \code{"rf"} using Random Forest algorithm. Default = \code{FALSE}.
-#' @param impute (character) Imputation on missing genotype 
+
+
+#' @param imputation.method (character, optional) 
+#' Methods available for map-independent imputations of missing genotype: 
+#' (1) \code{"max"} to use the most frequent category for imputations.
+#' (2) \code{"rf"} using Random Forest algorithm. 
+#' Default: no imputation \code{imputation.method = NULL}.
+
+#' @param impute (character, optional) Imputation on missing genotype 
 #' \code{impute = "genotype"} or alleles \code{impute = "allele"}.
-#' @param imputations.group \code{"global"} or \code{"populations"}.
+#' Default: \code{"genotype"}.
+
+#' @param imputations.group (character, optional) \code{"global"} or \code{"populations"}.
 #' Should the imputations be computed globally or by populations. If you choose
 #' global, turn the verbose to \code{TRUE}, to see progress.
 #' Default = \code{"populations"}.
-#' @param num.tree The number of trees to grow in Random Forest. Default is 100.
-#' @param iteration.rf The number of iterations of missing data algorithm 
-#' in Random Forest. Default is 10.
-#' @param split.number Non-negative integer value used to specify 
-#' random splitting in Random Forest. Default is 100.
-#' @param verbose Logical. Should trace output be enabled on each iteration 
-#' in Random Forest ? Default is \code{FALSE}.
+
+#' @param num.tree (integer, optional) The number of trees to grow in Random Forest. 
+#' Default: \code{num.tree = 100}.
+
+#' @param iteration.rf (integer, optional) The number of iterations of missing data algorithm
+#' in Random Forest. 
+#' Default: \code{iteration.rf = 10}.
+
+#' @param split.number (integer, optional) Non-negative integer value used to specify
+#' random splitting in Random Forest. 
+#' Default: \code{split.number = 100}.
+
+#' @param verbose (logical, optional) Should trace output be enabled on each iteration
+#' in Random Forest ? 
+#' Default: \code{verbose = FALSE}.
+
+
 #' @param parallel.core (optional) The number of core for OpenMP shared-memory parallel
 #' programming of Random Forest imputations. For more info on how to install the
 #' OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
@@ -144,43 +160,24 @@ vcf2genepop <- function(data,
                         strata = NULL,
                         pop.select = NULL,
                         hierarchy = NULL,
-                        imputation.method = FALSE,
-                        impute,
+                        imputation.method = NULL,
+                        impute = "genotype",
                         imputations.group = "populations",
                         num.tree = 100,
                         iteration.rf = 10,
                         split.number = 100,
                         verbose = FALSE,
-                        parallel.core,
-                        genepop.filename,
-                        genepop.header
+                        parallel.core = detectCores()-1,
+                        genepop.filename = "genepop.gen",
+                        genepop.header = "my firt genepop"
 ) {
   if (missing(data)) stop("Input file missing")
-  if (missing(whitelist.markers)) whitelist.markers <- NULL # no Whitelist
-  if (missing(blacklist.id)) blacklist.id <- NULL # No blacklist of ID
-  if (missing(blacklist.genotype)) blacklist.genotype <- NULL # no genotype to erase
   if (missing(pop.id.start)) pop.id.start <- NULL
   if (missing(pop.id.end)) pop.id.end <- NULL
-  if (missing(strata)) strata <- NULL
   if (missing(pop.levels)) stop("pop.levels required")
   if (missing(pop.labels)) pop.labels <- pop.levels # pop.labels
-  if (missing(pop.select)) pop.select <- NULL
-  if (missing(snp.ld)) snp.ld <- NULL
-  if (missing(common.markers)) common.markers <- FALSE
-  if (missing(hierarchy)) hierarchy <- NULL
-  if (missing(imputation.method)) imputation.method <- FALSE
-  if (imputation.method != FALSE & missing(impute)) stop("impute argument is necessary")
-  if (imputation.method == FALSE & missing(impute)) impute <- NULL
-  if (missing(imputations.group)) imputations.group <- "populations"
-  if (missing(num.tree)) num.tree <- 100
-  if (missing(iteration.rf)) iteration.rf <- 10
-  if (missing(split.number)) split.number <- 100
-  if (missing(verbose)) verbose <- FALSE
-  if (missing(parallel.core)) parallel.core <- detectCores()-1
-  if (missing(genepop.filename)) genepop.filename <- "genepop.gen"
-  if (missing(genepop.header)) genepop.header <- "my firt genepop"
-  
-  if (imputation.method == "FALSE") {
+
+  if (is.null(imputation.method)) {
     message("vcf2genepop: without imputation...")
   } else {
     message("vcf2genepop: with/without imputations...")
@@ -490,7 +487,7 @@ vcf2genepop <- function(data,
   genepop.split <- NULL
   
   # Imputations: genind with imputed haplotypes using Random Forest*************
-  if (imputation.method != "FALSE") {
+  if (!is.null(imputation.method)) {
     
     if (impute == "genotype") {
       input.prep <- input %>%

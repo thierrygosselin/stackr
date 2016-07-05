@@ -107,7 +107,7 @@ if (getRversion() >= "2.15.1"){
 
 find_duplicate_genome <- function(data,
                               distance.method = "manhattan",
-                              genome = NULL,
+                              genome = FALSE,
                               parallel.core = detectCores()-1) {
   cat("###############################################################################\n")
   cat("######################## stackr: find_duplicate_genome ########################\n")

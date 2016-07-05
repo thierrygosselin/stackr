@@ -497,7 +497,6 @@ vcf2genind <- function(
       as_data_frame() %>%
       arrange(POP_ID, INDIVIDUALS)
   } # End prepare genind
-  
   genind.prep <- prepare_genind(x = input)
   
   # genind construction: no imputation -----------------------------------------
@@ -507,7 +506,7 @@ vcf2genind <- function(
   pop <- genind.prep$POP_ID
   genind.df <- genind.prep %>% ungroup() %>% 
     select(-c(INDIVIDUALS, POP_ID))
-  rownames(genind.df) <- ind
+  suppressWarnings(rownames(genind.df) <- ind)
   loc.names <- colnames(genind.df)
   strata <- genind.prep %>% ungroup() %>% distinct(INDIVIDUALS, POP_ID)
   
@@ -568,7 +567,7 @@ vcf2genind <- function(
     genind.df <- genind.prep.imp %>%
       ungroup() %>% 
       select(-c(INDIVIDUALS, POP_ID))
-    rownames(genind.df) <- ind
+    suppressWarnings(rownames(genind.df) <- ind)
     loc.names <- colnames(genind.df)
     
     strata <- genind.prep.imp %>% 
@@ -577,7 +576,7 @@ vcf2genind <- function(
     
     # genind constructor
     prevcall <- match.call()
-    res$imputed  <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = hierarchy)
+    res$imputed  <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = NULL)
     message("A large 'genind' object was created in your Environment (with and without imputations)")
     # sum <- summary(res$imputed) # test
     # sum$NA.perc # test
@@ -594,10 +593,10 @@ vcf2genind <- function(
   } # End imputations
   
   # outout results -------------------------------------------------------------
-  if (is.null(imputation.method)) {
-    return(no.imputation)
-  } else {
+  if (!is.null(imputation.method)) {
     return(res)
+  } else {
+    return(no.imputation)
   }
 }
 
