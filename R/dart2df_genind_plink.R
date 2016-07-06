@@ -439,7 +439,6 @@ dart2df_genind_plink <- function(data,
     blacklist.monomorphic  <- input %>%
       select(MARKERS, GT) %>%
       filter(GT != "0_0") %>%
-      group_by(MARKERS, GT) %>%
       distinct(MARKERS, GT) %>% 
       group_by(MARKERS) %>%
       tally %>% 
