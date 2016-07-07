@@ -44,7 +44,7 @@ library(stackr) # to load
   * **Installation problem:** see this
   [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
   * **Windows users**:  to have *stackr* run in parallel use [parallelsugar](https://github.com/nathanvan/parallelsugar).
-  Easy to install and use [instructions](https://github.com/nathanvan/parallelsugar#installation).
+  Easy to install and use ([instructions](https://github.com/nathanvan/parallelsugar#installation)).
   * For a better experience in **stackr** and in R in general, I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/). 
   The R GUI is unstable with functions using parallel ([more info](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html)). 
   Below, the combination of packages and how I install/load them :
@@ -96,12 +96,11 @@ For previous news:
 
 * Until publication **stackr** will change rapidly (see contributions below for bug reports).
 * Updated filters: more efficient, interactive and visualization included.
-* Integrate different input/output files for better integration of other 
-GBS/RADseq approaches, beside [STACKS](http://catchenlab.life.illinois.edu/stacks/).
+* Better integration with other GBS/RADseq approaches, beside [STACKS](http://catchenlab.life.illinois.edu/stacks/).
 * Integrated converter function to input and output several file formats.
-* Workflow tutorial that links to specific vignette to further explore some problems.
-* Use Shiny and ggvis when subplots or facets are available
-* Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database
+* Workflow tutorial that links functions and points to specific vignettes to further explore some problems.
+* Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database.
+* Use Shiny and ggvis when subplots or facets becomes available...
 * Suggestions ?
 
 
