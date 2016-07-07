@@ -50,13 +50,13 @@ library(stackr) # to load
   and load [parallelsugar](https://github.com/nathanvan/parallelsugar) [instructions](https://github.com/nathanvan/parallelsugar#installation).
   * For a better experience in **stackr** and in R in general, here is the combination of packages and how I install/load them :
     ```r
-if (!require("pacman")) install.packages("pacman")
-library("pacman")
-pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
-pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
-# install_github("thierrygosselin/stackr", build_vignettes = TRUE) # uncomment to install
-library("stackr")
-```
+  if (!require("pacman")) install.packages("pacman")
+  library("pacman")
+  pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
+  pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
+  # install_github("thierrygosselin/stackr", build_vignettes = TRUE) # uncomment to install
+  library("stackr")
+  ```
 
 ## New features
 Version, new feature and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
