@@ -5,22 +5,25 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr)
 [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-The goal of **stackr** is to make GBS/RAD data produced by [STACKS] (http://catchenlab.life.illinois.edu/stacks/) and other pipelines easy to analyse in R.
+The goal of **stackr** is to make GBS/RAD data easy to analyse inside R.
 
 This is the development page of the **stackr** package for the R software, optimized for *de novo* and population genetics.
 
 ## Use stackr to:
 
-* Avoid bad data exploration. Use different filters and convert to the appropriate data file format.
-* Filter genetic markers based on: alleles and 
+* Explore, manipulate and visualize your GBS/RADseq data
+* **Imput file**: various file format are supported (VCF, PLINK tped/tfam, genind, genlight, genepop, haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/) and data frame of genotypes)
+* **Filters**: alleles, genotypes, markers, individuals and populations can be filtered and/or 
+selected in several ways using blacklist and whitelist.
+Avoid bad data exploration, use the filters to explore alleles and 
 genotype coverage (read depth), genotype likelihood, proportion/percentage/number 
 of genotyped individuals and populations, minor allele frequency (local and global),
 observed heterozygosity and inbreeding coefficient (Fis)
-* Read and modify several output files: VCF, PLINK (tped/tfam), haplotype file produced by [STACKS] (http://catchenlab.life.illinois.edu/stacks/), genepop, genind and dataframes in wide or long/tidy formats
-* Transform genomic file format into a tidy format useful to quickly visualise and filter summary statistics within R
+* **Imputations**: Map-independent imputation of missing genotype/alleles 
+using Random Forest or the most frequent category
+* **Output**: convert genomic dataset in a **tidy** format and/or into *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *fstat*, *gtypes*, *betadiv* and *dadi* formats for easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
 * `ggplot2`-based plotting to view distributions of summary statistics and create publication-ready figures
-* Convert data into *genepop*, *genind*, *fstat*, *gtypes*, *betadiv* and *dadi* files or objects for easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
-* Map-Independent Imputation of missing genotype or allele using Random Forest within several functions: *haplo2genepop*, *haplo2genind*, *haplo2hierfstat*, *haplo2gtypes*, *haplo2colony*, *vcf2genind*, *vcf2hierfstat*, *vcf2betadiv*, *vcf2dadi* and *vcf_imputation*. 
+
 
 ## Installation
 To try out the dev version of **stackr**, follow the 3 steps below:
@@ -49,26 +52,20 @@ library(stackr) # to load
   and load [parallelsugar](https://github.com/nathanvan/parallelsugar) [instructions](https://github.com/nathanvan/parallelsugar#installation).
 
 
-**Dependencies**
+**Prerequisite**
+Here is the combination of packages necessary for a better experience in **stackr** and in R in general:
   * **Imports:** adegenet, data.table, ggplot2, lazyeval, parallel, purrr, randomForestSRC, readr, stringi, stringr, tidyr, utils, plyr, dplyr
   * **Suggests:** devtools, knitr, rmarkdown
   * **Remotes:** github::thierrygosselin/assigner
 
-A quick way to install/load required packages and start using my packages (copy/paste the whole block):
+A quick way to install/load the required packages is to use the package **packman**, copy/paste the whole block below:
 ```r
 if (!require("pacman")) install.packages("pacman")
 library("pacman")
 pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
-if (!require("stackr")){
-  install_github("thierrygosselin/stackr", build_vignettes = TRUE)
-  library("stackr")
-}
-if (!require("assigner")) {
-  install_github("thierrygosselin/assigner", build_vignettes = TRUE)
-  # if assigner was re-installed, uncomment and run the next line to install gsi_sim:
-  #install_gsi_sim(fromSource = TRUE) 
-  library("assigner")
-}
+pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
+# install_github("thierrygosselin/stackr", build_vignettes = TRUE) # uncomment to install
+library("stackr")
 ```
 
 ## New features
@@ -84,17 +81,38 @@ For previous news:
 
 ## Roadmap of future developments:
 
-* Very soon: Joint Allele Frequency Spectrum from a *batch_x.sumstats.tsv* or a *batch_x.haplotypes.tsv* files
-* Re-Integration with [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel)
-* Improved documentation and vignette
-* Workflow tutorial
-* More linkage map tools
+* Updated filters: more efficient, interactive and visualization included.
+* Integrate different input/output files for better integration of other 
+GBS/RADseq approaches, beside [STACKS](http://catchenlab.life.illinois.edu/stacks/).
+* Integrated converter function to input and output several file formats.
+* Workflow tutorial that links to specific vignette to further explore some problems.
 * Use Shiny and ggvis when subplots or facets are available
-* CRAN
-* Interaction with [STACKS] (http://creskolab.uoregon.edu/stacks/) database (Web-interface)
-* Reference genome tools
-* Maybe try some integration with other GBS approaches: AftrRAD, pyRAD, dDocent
-* ...suggestions ?
+* Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database
+* Suggestions ?
+
+## Vignettes and examples
+
+From a browser:
+* [installation problems](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
+* [parallel computing during imputations](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) 
+* [vcf2dadi](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_vcf2dadi.Rmd)
+* [haplo2genind](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_haplo2genind.Rmd)
+* [Missing data visualization and analysis](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_missing_data_analysis.Rmd)
+Inside R:
+```r
+browseVignettes("stackr") # To browse vignettes
+vignette("vignette_vcf2dadi") # To open specific vignette
+```
+
+Vignettes are in development, check periodically for updates.
+
+
+## Citation:
+To get the citation, inside R:
+```r
+citation("stackr")
+```
+
 
 ## Contributions:
 
@@ -108,6 +126,7 @@ New to pull request on github ? The process is very easy:
 * Make the changes using github’s in-page editor and save.
 * Submit a pull request and include a brief description of your changes. 
 * “Fixing typos” is perfectly adequate.
+
 
 ## GBS workflow
 The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS] (http://catchenlab.life.illinois.edu/stacks/) and other software. You can use the [STACKS] (http://catchenlab.life.illinois.edu/stacks/) workflow [used in the Bernatchez lab] (https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
@@ -134,25 +153,3 @@ Step 1 as a quality insurance step. We need to modify the data to play with it e
 Step 2 is where the actual work is done to remove artifactual and uninformative markers based on summary statistics of your markers.
 
 
-## Vignettes and examples
-
-From a browser:
-* [installation problems](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
-* [parallel computing during imputations](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) 
-* [vcf2dadi](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_vcf2dadi.Rmd)
-* [haplo2genind](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_haplo2genind.Rmd)
-* [Missing data visualization and analysis](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_missing_data_analysis.Rmd)
-Inside R:
-```r
-browseVignettes("stackr") # To browse vignettes
-vignette("vignette_vcf2dadi") # To open specific vignette
-```
-
-Vignettes are in development, check periodically for updates.
-
-
-## Citation:
-To get the citation, inside R:
-```r
-citation("stackr")
-```

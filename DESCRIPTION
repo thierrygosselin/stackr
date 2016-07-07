@@ -31,7 +31,8 @@ Imports:
     doParallel,
     purrr,
     amap,
-    tibble
+    tibble,
+    methods
 Suggests:
     pegas,
     hierfstat,

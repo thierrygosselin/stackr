@@ -2,7 +2,7 @@
 
 #' @name dart2df_genind_plink
 
-#' @title swiss army knife tool to prepare DArT output file for population genetics analysis.
+#' @title swiss army knife tool to prepare [DArT](http://www.diversityarrays.com) output file for population genetics analysis.
 
 #' @description Import, filter and transform a DArT output file to different format: 
 #' data frame of genotypes, genind object and/or PLINK \code{tped/tfam} format.
