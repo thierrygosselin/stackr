@@ -2,8 +2,8 @@
 #' @title Visualize missing genotypes in genomic data set.
 #' @description Use this function to visualize pattern of missing data.
 #'  \itemize{
-#'    \item \strong{Imput file:} various file format are supported 
-#'    (see \code{data} argument below)
+#'    \item \strong{Input file:} various file formats are supported 
+#'    (see \code{data} arguments below)
 #'    \item \strong{Filters:} genotypes, markers, individuals and populations can be 
 #'   filtered and/or selected in several ways using blacklist,
 #'   whitelist and other arguments
