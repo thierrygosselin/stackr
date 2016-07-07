@@ -43,10 +43,10 @@ library(stackr) # to load
  package to do imputations in parallel.
   * **Installation problem:** see this
   [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
-  * **Windows users**:  to have *stackr* run in parallel, you need to install 
-  and load [parallelsugar](https://github.com/nathanvan/parallelsugar), here is the [instructions](https://github.com/nathanvan/parallelsugar#installation).
+  * **Windows users**:  to have *stackr* run in parallel use [parallelsugar](https://github.com/nathanvan/parallelsugar).
+  Easy to install and use [instructions](https://github.com/nathanvan/parallelsugar#installation).
   * For a better experience in **stackr** and in R in general, I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/). 
-  The R GUI is unstable with functions using parallel [see here for more info](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html). 
+  The R GUI is unstable with functions using parallel ([more info](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html)). 
   Below, the combination of packages and how I install/load them :
   
   ```r
