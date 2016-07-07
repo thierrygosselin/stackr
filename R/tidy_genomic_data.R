@@ -440,7 +440,8 @@ tidy_genomic_data <- function(
       stringsAsFactors = FALSE, 
       header = TRUE,
       # Automatically filter with blacklist of id
-      drop = c("QUAL", "FILTER", "INFO", blacklist.id$INDIVIDUALS),
+      # drop = c("QUAL", "FILTER", "INFO", blacklist.id$INDIVIDUALS),
+      drop = c("QUAL", "FILTER", "INFO"),
       skip = "CHROM",
       showProgress = TRUE,
       verbose = FALSE
@@ -467,6 +468,8 @@ tidy_genomic_data <- function(
     # input <- input %>%
     # tidyr::gather(INDIVIDUALS, FORMAT_ID, -c(CHROM, LOCUS, POS, REF, ALT)) # Gather individuals in 1 colummn
     
+    # filter blacklisted individuals
+    
     input <- data.table::melt.data.table(
       data = as.data.table(input), 
       id.vars = c("CHROM", "LOCUS", "POS", "REF", "ALT"), 
@@ -474,14 +477,22 @@ tidy_genomic_data <- function(
       variable.factor = FALSE,
       value.name = "FORMAT_ID"
     ) %>% 
-      as_data_frame()
+      as_data_frame() %>% 
+      mutate(
+        INDIVIDUALS = stri_replace_all_fixed(
+          str = INDIVIDUALS, 
+          pattern = c("_", ":"), 
+          replacement = c("-", "-"), 
+          vectorize_all = FALSE)
+      ) %>% 
+      filter(!INDIVIDUALS %in% blacklist.id$INDIVIDUALS)
     
     # population levels and strata  --------------------------------------------
     # if (!is.null(blacklist.id)) {
     #   strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
     # }
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
-
+    
     # Pop select
     if (!is.null(pop.select)) {
       message(stri_join(length(pop.select), "population(s) selected", sep = " "))
@@ -562,8 +573,92 @@ tidy_genomic_data <- function(
     
     # Experimental (for genlight object)
     input$GT_BIN <- stri_replace_all_fixed(str = input$GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."), replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE)
-
-    # Re ordering columns
+    
+    # re-computing the REF/ALT allele-----------------------------------------------
+    if (!is.null(pop.select) || !is.null(blacklist.id)) {
+      message("Adjusting REF/ALT alleles to account for filters...")
+      
+      input.select <- input %>%
+        select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
+        #faster than: tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
+        mutate(
+          A1 = stri_sub(str = GT, from = 1, to = 3),
+          A2 = stri_sub(str = GT, from = 4, to = 6)
+        ) %>%
+        select(-GT)
+      
+      new.ref.alt.alleles <- input.select %>% 
+        tidyr::gather(
+          data = ., key = ALLELES, 
+          value = GT, 
+          -c(MARKERS, INDIVIDUALS, POP_ID)
+        ) %>% # just miliseconds longer than data.table.melt so keeping this one for simplicity
+        filter(GT != "000") %>%  # remove missing "000"
+        group_by(MARKERS, GT) %>%
+        tally %>% 
+        ungroup() %>% 
+        mutate(ALLELE_NUMBER = rep(c("A1", "A2"), each = 1, times = n()/2)) %>% 
+        group_by(MARKERS) %>%
+        mutate(
+          PROBLEM = ifelse(n[ALLELE_NUMBER == "A1"] == n[ALLELE_NUMBER == "A2"], "equal_number", "ok"),
+          GROUP = ifelse(n == max(n), "REF", "ALT")
+        ) %>% 
+        group_by(MARKERS, GT) %>% 
+        mutate(
+          ALLELE = ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A1", "REF", 
+                          ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A2", "ALT", 
+                                 GROUP)
+          )
+        ) %>% 
+        select(MARKERS, GT, ALLELE) %>%
+        group_by(MARKERS) %>% 
+        tidyr::spread(data = ., ALLELE, GT) %>% 
+        select(MARKERS, REF, ALT)
+      
+      old.ref.alt.alleles <- distinct(.data = input, MARKERS, REF, ALT)
+      
+      ref.alt.alleles <- full_join(old.ref.alt.alleles,
+                                   new.ref.alt.alleles %>% 
+                                     rename(REF_NEW = REF, ALT_NEW = ALT)
+                                   , by = "MARKERS") %>% 
+        mutate(
+          REF_ALT_CHANGE = if_else(REF == REF_NEW, "identical", "different")) %>% 
+        filter(REF_ALT_CHANGE == "different")
+      
+      message(stri_paste("Number of markers with REF/ALT change = ", length(ref.alt.alleles$MARKERS)))
+      
+      ref.alt.alleles.change <- full_join(input.select, new.ref.alt.alleles, by = "MARKERS") %>% 
+        mutate(
+          A1 = replace(A1, which(A1 == "000"), NA),
+          A2 = replace(A2, which(A2 == "000"), NA),
+          GT_VCF_A1 = if_else(A1 == REF, "0", "1", missing = "."),
+          GT_VCF_A2 = if_else(A2 == REF, "0", "1", missing = "."),
+          GT_VCF = stri_paste(GT_VCF_A1, GT_VCF_A2, sep = "/"),
+          GT_BIN = stri_replace_all_fixed(
+            str = GT_VCF, 
+            pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
+            replacement = c("0", "2", "1", "1", NA), 
+            vectorize_all = FALSE
+          )
+        ) %>% 
+        select(MARKERS, INDIVIDUALS, REF, ALT, GT_VCF, GT_BIN)
+      
+      input <- left_join(
+        input %>% 
+          select(-c(REF, ALT, GT_VCF, GT_BIN)), 
+        ref.alt.alleles.change, 
+        by = c("MARKERS", "INDIVIDUALS")
+        )
+      
+      # remove unused object
+      input.select <- NULL
+      new.ref.alt.alleles <- NULL 
+      old.ref.alt.alleles <- NULL 
+      ref.alt.alleles <- NULL 
+      ref.alt.alleles.change <- NULL 
+    } # end re-computing the REF/ALT allele
+    
+    # Re ordering columns-------------------------------------------------------
     if (vcf.metadata) {
       # Re order columns
       common.colnames <- c("MARKERS", "CHROM", "LOCUS", "POS", "POP_ID", "INDIVIDUALS", "GT_VCF", "GT_BIN", "REF", "ALT")
@@ -574,7 +669,6 @@ tidy_genomic_data <- function(
     } else {
       input <- input %>% select(MARKERS, CHROM, LOCUS, POS, POP_ID, INDIVIDUALS, GT_VCF, GT_BIN, REF, ALT, GT)
     }
-    
   } # End import VCF
   
   # Import PLINK ---------------------------------------------------------------
@@ -801,9 +895,9 @@ tidy_genomic_data <- function(
     
     # Change potential problematic POP_ID space
     input$POP_ID = stri_replace_all_fixed(input$POP_ID, 
-                                    pattern = " ", 
-                                    replacement = "_", 
-                                    vectorize_all = FALSE)
+                                          pattern = " ", 
+                                          replacement = "_", 
+                                          vectorize_all = FALSE)
     
     # Pop select
     if (!is.null(pop.select)) {
@@ -851,7 +945,7 @@ tidy_genomic_data <- function(
       distinct(LOCUS, .keep_all = TRUE)
     
     if (length(consensus.markers$LOCUS) > 0) {
-    input <- suppressWarnings(anti_join(input, consensus.markers, by = "LOCUS"))
+      input <- suppressWarnings(anti_join(input, consensus.markers, by = "LOCUS"))
     }
     message(stri_paste("Consensus markers removed: ", n_distinct(consensus.markers$LOCUS)))
     
@@ -868,7 +962,7 @@ tidy_genomic_data <- function(
     }
     # population levels and strata  --------------------------------------------
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
-
+    
     # Pop select
     if (!is.null(pop.select)) {
       message(stri_join(length(pop.select), "population(s) selected", sep = " "))
@@ -1200,7 +1294,7 @@ tidy_genomic_data <- function(
     )
     
     if (blacklist.markers.common > 0) {
-    input <- suppressWarnings(input %>% semi_join(pop.filter, by = "MARKERS"))
+      input <- suppressWarnings(input %>% semi_join(pop.filter, by = "MARKERS"))
     }
     pop.filter <- NULL # ununsed object
     markers.input <- NULL
@@ -1257,7 +1351,7 @@ tidy_genomic_data <- function(
       filter(n == 1) %>%
       ungroup() %>% 
       select(MARKERS)
-
+    
     # Remove the markers from the dataset
     message(paste0("Number of monomorphic markers removed: ", n_distinct(mono.markers$MARKERS)))
     
@@ -1266,7 +1360,7 @@ tidy_genomic_data <- function(
       if(data.type == "haplo.file") mono.markers <- rename(.data = mono.markers, LOCUS = MARKERS)
       write_tsv(mono.markers, "blacklist.momorphic.markers.tsv")
     }
-}
+  }
   
   # Minor Allele Frequency filter ********************************************
   # maf.thresholds <- c(0.05, 0.1) # test
@@ -1311,7 +1405,7 @@ tidy_genomic_data <- function(
           A2 = stri_sub(GT, 4,6)
         ) %>% 
         select(-GT)
-        
+      
       maf.data <- data.table::melt.data.table(
         data = as.data.table(maf.data), 
         id.vars = c("MARKERS", "INDIVIDUALS", "POP_ID"), 
@@ -1332,7 +1426,7 @@ tidy_genomic_data <- function(
         mutate(
           MAF_GLOBAL = min(sum.pop)/sum(n),
           ALT = ifelse(min(sum.pop), "alt", "ref")
-          ) %>%
+        ) %>%
         group_by(MARKERS, POP_ID) %>%
         mutate(MAF_LOCAL = n/sum(n)) %>% 
         arrange(MARKERS, POP_ID, GT) %>% 
