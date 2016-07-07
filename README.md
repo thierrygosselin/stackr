@@ -49,7 +49,8 @@ library(stackr) # to load
   * **Windows users**:  to have *stackr* run in parallel, you need to install 
   and load [parallelsugar](https://github.com/nathanvan/parallelsugar) [instructions](https://github.com/nathanvan/parallelsugar#installation).
   * For a better experience in **stackr** and in R in general, here is the combination of packages and how I install/load them :
-    ```r
+  
+  ```r
   if (!require("pacman")) install.packages("pacman")
   library("pacman")
   pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
