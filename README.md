@@ -5,8 +5,6 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr)
 [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-The goal of **stackr** is to make 
-
 This is the development page of the **stackr**, an R package who's goal is
 to make GBS/RAD data easy to analyse inside R.
 
@@ -39,8 +37,8 @@ devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to
 library(stackr) # to load
 ```
 
-## Prerequisite - Suggestions - Troubleshooting**
-  *Parallel computing**: Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd). to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
+## Prerequisite - Suggestions - Troubleshooting
+  * **Parallel computing**: Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd). to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
  package to do imputation in parallel.
   * **Installation problem:** see this
   [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
