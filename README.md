@@ -38,14 +38,15 @@ library(stackr) # to load
 ```
 
 ## Prerequisite - Suggestions - Troubleshooting
-  * **Parallel computing**: Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd). to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
- package to do imputation in parallel.
+  * **Parallel computing**: Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) 
+  to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
+ package to do imputations in parallel.
   * **Installation problem:** see this
   [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
   * I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/) 
   to run **stackr**. The R GUI is unstable with functions using parallel.
   * **Windows users**:  to have *stackr* run in parallel, you need to install 
-  and load [parallelsugar](https://github.com/nathanvan/parallelsugar) [instructions](https://github.com/nathanvan/parallelsugar#installation).
+  and load [parallelsugar](https://github.com/nathanvan/parallelsugar), here is the [instructions](https://github.com/nathanvan/parallelsugar#installation).
   * For a better experience in **stackr** and in R in general, here is the combination of packages and how I install/load them :
   
   ```r
@@ -56,28 +57,6 @@ library(stackr) # to load
   # install_github("thierrygosselin/stackr", build_vignettes = TRUE) # uncomment to install
   library("stackr")
   ```
-
-## New features
-Version, new feature and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
-
-**v.0.2.9**
-* bug fix in `tidy_genomic_data`
-* bug fix between stackr -> devtools -> github -> travis, [this page helped] (http://itsalocke.com/using-travis-make-sure-use-github-pat/)
-
-
-For previous news:
-[NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
-
-## Roadmap of future developments:
-
-* Updated filters: more efficient, interactive and visualization included.
-* Integrate different input/output files for better integration of other 
-GBS/RADseq approaches, beside [STACKS](http://catchenlab.life.illinois.edu/stacks/).
-* Integrated converter function to input and output several file formats.
-* Workflow tutorial that links to specific vignette to further explore some problems.
-* Use Shiny and ggvis when subplots or facets are available
-* Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database
-* Suggestions ?
 
 ## Vignettes and examples
 
@@ -101,6 +80,29 @@ To get the citation, inside R:
 ```r
 citation("stackr")
 ```
+
+## New features
+Version, new feature and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
+
+**v.0.2.9**
+* bug fix in `tidy_genomic_data`
+* bug fix between stackr -> devtools -> github -> travis, [this page helped] (http://itsalocke.com/using-travis-make-sure-use-github-pat/)
+
+
+For previous news:
+[NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
+
+## Roadmap of future developments:
+
+* Until publication **stackr** will change rapidly (see contributions below for bug reports).
+* Updated filters: more efficient, interactive and visualization included.
+* Integrate different input/output files for better integration of other 
+GBS/RADseq approaches, beside [STACKS](http://catchenlab.life.illinois.edu/stacks/).
+* Integrated converter function to input and output several file formats.
+* Workflow tutorial that links to specific vignette to further explore some problems.
+* Use Shiny and ggvis when subplots or facets are available
+* Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database
+* Suggestions ?
 
 
 ## Contributions:
