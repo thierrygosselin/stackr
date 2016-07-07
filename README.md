@@ -11,52 +11,48 @@ This is the development page of the **stackr** package for the R software, optim
 
 ## Use stackr to:
 
-* Explore, manipulate and visualize your GBS/RADseq data
-* **Imput file**: various file format are supported (VCF, PLINK tped/tfam, genind, genlight, genepop, haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/) and data frame of genotypes)
-* **Filters**: alleles, genotypes, markers, individuals and populations can be filtered and/or 
-selected in several ways using blacklist and whitelist.
-Avoid bad data exploration, use the filters to explore alleles and 
-genotype coverage (read depth), genotype likelihood, proportion/percentage/number 
-of genotyped individuals and populations, minor allele frequency (local and global),
-observed heterozygosity and inbreeding coefficient (Fis)
+* **Input**: various file formats are supported (VCF, PLINK tped/tfam, genind, genlight, genepop, haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/) and data frame of genotypes)
+* **Explore**, **manipulate** and **visualize** your GBS/RADseq data. 
+Caracteristics and statistics for important variables of GBS/RADseq data are available: read depth (coverage) of alleles and 
+genotype, genotype likelihood, genotyped individuals and populations, missing data, minor allele frequency (local and global MAF),
+observed heterozygosity (Hetobs) and inbreeding coefficient (Fis), duplicate individual etc.
+* **Filters**: avoid bad data exploration and control the impact of filters on your dataset. 
+Alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways.
 * **Imputations**: Map-independent imputation of missing genotype/alleles 
 using Random Forest or the most frequent category
-* **Output**: convert genomic dataset in a **tidy** format and/or into *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *fstat*, *gtypes*, *betadiv* and *dadi* formats for easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
+* **Output**: painless conversion process. Functions are integrated with important filters, blacklist and whitelist to convert genomic dataset in a **tidy** format and/or into *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *fstat*, *gtypes*, *betadiv* and *dadi* formats for easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas) and [poppr] (https://github.com/grunwaldlab/poppr)
 * `ggplot2`-based plotting to view distributions of summary statistics and create publication-ready figures
 
-
+ 
 ## Installation
-To try out the dev version of **stackr**, follow the 3 steps below:
+To try out the dev version of **stackr**, copy/paste the code below:
 
-**Step 1:** Install or load the package **devtools**
 ```r
+# Install or load the package **devtools**
 if (!require("devtools")) install.packages("devtools") # to install
 library(devtools) # to load
-```
-
-**Step 2:** Install **stackr**
-```r
-devtools::install_github("thierrygosselin/stackr") # to install without vignettes
+# Install **stackr**
+# devtools::install_github("thierrygosselin/stackr") # to install without vignettes
 devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to install WITH vignettes
 library(stackr) # to load
 ```
 
-**Step 3 (optional): Parallel computing** Install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputation in parallel. Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd). You don't need to do this when updating **stackr**.
+**Parallel computing (optional): ** Install an OpenMP 
+enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) 
+package to do imputation in parallel. 
+Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd). 
+You don't need to do this when updating **stackr**.
 
-**Notes:**
-  * **Problems during installation:** see this
+## Notes: Prerequisite, suggestions and troubleshooting**
+  * **Installation problem:** see this
   [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
   * I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/) 
   to run **stackr**. The R GUI is unstable with functions using parallel.
   * **Windows users**:  to have *stackr* run in parallel, you need to install 
   and load [parallelsugar](https://github.com/nathanvan/parallelsugar) [instructions](https://github.com/nathanvan/parallelsugar#installation).
-
-
-**Prerequisite**
-Here is the combination of packages necessary for a better experience in **stackr** and in R in general:
-  * **Imports:** adegenet, data.table, ggplot2, lazyeval, parallel, purrr, randomForestSRC, readr, stringi, stringr, tidyr, utils, plyr, dplyr
-  * **Suggests:** devtools, knitr, rmarkdown
-  * **Remotes:** github::thierrygosselin/assigner
+  * For a better experience in **stackr** and in R in general, here is the combination of packages :
+    * **Imports:** adegenet, data.table, ggplot2, lazyeval, parallel, purrr, randomForestSRC, readr, stringi, stringr, tidyr, utils, plyr, dplyr
+    * **Suggests:** devtools, knitr, rmarkdown
 
 A quick way to install/load the required packages is to use the package **packman**, copy/paste the whole block below:
 ```r
