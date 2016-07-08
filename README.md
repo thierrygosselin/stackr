@@ -95,7 +95,8 @@ With the new function `genomic_converter`, import and imputations are only
 done once, saving time if you were generating different output WITH imputations.
 * Change: all the `vcf2...` functions (excep `vcf2dadi`) are now a shorcut of `genomic_converter`. 
  This is particularly interesting and faster if you were generating different
- output WITH imputations.
+ output WITH imputations. This makes the functions `vcf2...` and `genomic_converter`
+ easier to debug for me and more stable for users.
 * Deprecated: the `haplo2...` functions are all deprecated and replaced by 
 `genomic_converter`, **except haplo2colony** that requires so many arguments that it 
 would be too complicated, for now, to integrate with `genomic_converter`.
