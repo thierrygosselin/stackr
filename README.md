@@ -91,7 +91,7 @@ Version, new feature and bug history now lives in the [NEWS.md file] (https://gi
 are now separate modules available to users (look for `write_...` with the outputformat)
 * New function `genomic_converter`: If you want the to convert from the supported 
 input file formats to many output formats, at once, this is the function. 
-With the new function `genomic_converter`, import and imputations is only 
+With the new function `genomic_converter`, import and imputations are only 
 done once, saving time if you were generating different output WITH imputations.
 * Change: all the `vcf2...` functions (excep `vcf2dadi`) are now a shorcut of `genomic_converter`. 
  This is particularly interesting and faster if you were generating different
@@ -99,8 +99,9 @@ done once, saving time if you were generating different output WITH imputations.
 * Deprecated: the `haplo2...` functions are all deprecated and replaced by 
 `genomic_converter`, **except haplo2colony** that requires so many arguments that it 
 would be too complicated, for now, to integrate with `genomic_converter`.
-* New feature: when selecting populations and/or using a blacklist of ID and/or 
-after imputations, the REF and ALT alleles are now re-computed to account for the filters and imputations.
+* New feature: when arguments `pop.select`, `blacklist.id` and `imputation.method`
+are used, the REF and ALT alleles are now re-computed to account for the filters 
+and imputations.
 
 For previous news:
 [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
