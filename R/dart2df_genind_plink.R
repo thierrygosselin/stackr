@@ -1330,11 +1330,11 @@ dart2df_genind_plink <- function(
   
   if ("genepop" %in% output) {
     message("Generating the genepop file")
-    stackr::write_genepop(data = input, genepop.header = "stackr::dart2df_genind_plink: no imputations", markers.line = "line", filename = filename)
+    stackr::write_genepop(data = input, genepop.header = "stackr::dart2df_genind_plink: no imputations", markers.line = TRUE, filename = filename)
 
     if (!is.null(imputation.method)) {
       message("Generating the genepop file: with imputations")
-      stackr::write_genepop(data = input.imp, genepop.header = "stackr::dart2df_genind_plink: imputed data", markers.line = "line", filename = stri_paste(filename, "_imputed"))
+      stackr::write_genepop(data = input.imp, genepop.header = "stackr::dart2df_genind_plink: imputed data", markers.line = TRUE, filename = stri_paste(filename, "_imputed"))
     }
   } # end genepop
   
