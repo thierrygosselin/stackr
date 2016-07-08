@@ -10,6 +10,11 @@
 #' @param data DArT output file in wide format or binary format tipically 
 #' used by CSIRO genomic projects.
 
+#' @param output Several options: tidy, genind, genlight, vcf, plink, genepop, 
+#' structure. Use a character string,
+#' e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
+#' output formats generated. The tidy format is generated automatically.
+
 #' @param strata A tab delimited file with columns header:
 #' \code{INDIVIDUALS} and \code{POP_ID}. 
 #' Note: the column \code{POP_ID} refers to any grouping of individuals. If a third column
@@ -129,53 +134,20 @@
 #' global MAF to pass the thresholds, to keep the marker?
 
 
-#' @param plink (optional, logical). To have the filtered data set output as 
-#' plink \code{tped/tfam} file, use \code{plink = TRUE}. 
-#' Default: \code{plink = FALSE}
+#' @param filename (optional) The filename prefix for the objet in the global environment 
+#' or the working directory. Default: \code{filename = NULL}. A default name will be used,
+#' customized with the output file(s) selected.
 
-#' @param genind (optional, logical). To have the filtered data set output as 
-#' genind object to use inside adegenet, use \code{genind = TRUE}. 
-#' Default: \code{genind = FALSE}
 
-#' @param genepop (optional, logical). To have the filtered data set output as 
-#' a genepop file, use \code{genepop = TRUE}. 
-#' Default: \code{genepop = FALSE}.
+#' @inheritParams stackr_imputations_module 
 
-#' @param structure (optional, logical). To have the filtered data set output as 
-#' a structure file, use \code{structure = TRUE}. 
-#' Default: \code{structure = FALSE}.
 
-#' @param filename (optional) The name of the file written to the directory.
-#' No file extension at the end. Default: \code{filename = NULL}
+#' @return The function returns an object (list). The content of the object 
+#' can be listed with \code{names(object)} and use \code{$} to isolate specific
+#' object (see examples). Some output format will write the output file in the 
+#' working directory. The tidy genomic data frame is generated automatically.
 
-#' @param imputation.method Should a map-independent imputation of markers be
-#' computed. Available choices are: (1) \code{FALSE} for no imputation.
-#' (2) \code{"max"} to use the most frequent category for imputations.
-#' (3) \code{"rf"} using Random Forest algorithm. 
-#' Default: \code{imputation.method = NULL}.
-#' @param impute (character) Imputation on missing genotype 
-#' \code{impute = "genotype"} or alleles \code{impute = "allele"}.
-#' @param imputations.group \code{"global"} or \code{"populations"}.
-#' Should the imputations be computed globally or by population. If you choose
-#' global, turn the verbose to \code{TRUE}, to see progress.
-#' Default = \code{"populations"}.
-#' @param num.tree The number of trees to grow in Random Forest. Default is 100.
-#' @param iteration.rf The number of iterations of missing data algorithm
-#' in Random Forest. Default is 10.
-#' @param split.number Non-negative integer value used to specify
-#' random splitting in Random Forest. Default is 100.
-#' @param verbose Logical. Should trace output be enabled on each iteration
-#' in Random Forest ? Default is \code{FALSE}.
-#' @param parallel.core (optional) The number of cores for OpenMP shared-memory parallel
-#' programming of Random Forest imputations. For more info on how to install the
-#' OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
-#' If not selected \code{detectCores()-1} is used as default.
 
-#' @return Depending on arguments selected, several files are written to the your
-#' working directory or \code{folder}
-#' The output in your global environment is a list. To view the assignment results
-#' \code{$assignment} to view the ggplot2 figure \code{$plot.assignment}. 
-#' See example below.
 
 #' @export
 #' @rdname dart2df_genind_plink
@@ -226,6 +198,7 @@ if (getRversion() >= "2.15.1") {
 dart2df_genind_plink <- function(
   data,
   strata,
+  output,
   pop.levels = NULL,
   blacklist.id = NULL,
   pop.select = NULL,
@@ -249,10 +222,6 @@ dart2df_genind_plink <- function(
   maf.thresholds = NULL,
   maf.pop.num.threshold = 1,
   maf.operator = "OR",
-  plink = FALSE,
-  genind = FALSE,
-  genepop = FALSE,
-  structure = FALSE,
   filename = NULL,
   imputation.method = NULL,
   impute = "genotype",
@@ -271,17 +240,39 @@ dart2df_genind_plink <- function(
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file missing")
   if (missing(strata)) stop("strata file missing")
+  if (missing(output)) stop("At least 1 output format is required")
   
-  # Filename ------------------------------------------------------------------
-  # Create a folder based on filename to save the output files *****************
+  # Filename -------------------------------------------------------------------
+  # Get date and time to have unique filenaming
   if (is.null(filename)) {
-    # Get date and time to have unique filenaming
-    file.date <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
-    file.date <- stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
+    file.date <- stri_replace_all_fixed(
+      Sys.time(), 
+      pattern = " EDT", 
+      replacement = "", 
+      vectorize_all = FALSE
+    )
+    file.date <- stri_replace_all_fixed(
+      file.date, 
+      pattern = c("-", " ", ":"), 
+      replacement = c("", "@", ""), 
+      vectorize_all = FALSE
+    )
     file.date <- stri_sub(file.date, from = 1, to = 13)
-    filename <- stri_join("stackr_default_filename", file.date, sep = "_")
-    file.date <- NULL #unused object
+    
+    filename <- stri_paste("stackr_data_", file.date)
+    
+    if (!is.null(imputation.method)) {
+      filename.imp <- stri_paste("stackr_data_imputed_", file.date)
+    }
+  } else {
+    if (!is.null(imputation.method)) {
+      filename.imp <- stri_paste(filename, "_imputed")
+    }
   }
+  
+  
+  
+  
   # Strata file ------------------------------------------------------------------
   strata.df <- read_tsv(file = strata, col_names = TRUE)
   
@@ -307,9 +298,6 @@ dart2df_genind_plink <- function(
       arrange(LOCUS, POS)
   )  
   
-  # Determine the type of DArT file
-  binary <- anyDuplicated(input$LOCUS)
-  
   # Screen for duplicate names -------------------------------------------------
   remove.list <- c("LOCUS", "SNP", "POS", "CALL_RATE", "AVG_COUNT_REF", "AVG_COUNT_SNP", "REP_AVG")
   individuals.df <- data_frame(INDIVIDUALS = purrr::discard(.x = colnames(input), .p = colnames(input) %in% remove.list))
@@ -325,16 +313,22 @@ dart2df_genind_plink <- function(
   duplicate.individuals <- NULL
   
   # Tidying data ---------------------------------------------------------------
-  if (binary != 2) {
-    message("Tidying the dataset...")
-    input <- input %>% 
+  input <- suppressWarnings(
+    input %>% 
       tidyr::separate(col = LOCUS, into = c("LOCUS", "NOT_USEFUL"), sep = "\\|", extra = "drop") %>%  
       select(-NOT_USEFUL) %>%
       tidyr::separate(col = SNP, into = c("NOT_USEFUL", "KEEPER"), sep = ":", extra = "drop") %>% 
       select(-NOT_USEFUL) %>%
       tidyr::separate(col = KEEPER, into = c("REF", "ALT"), sep = ">") %>% 
       mutate(MARKERS = stri_paste(LOCUS, POS, sep = "_"))
+  )
+
+  # Determine the type of DArT file
+  binary <- anyDuplicated(input$LOCUS)
     
+  
+  if (binary != 2) {
+    message("Tidying the dataset...")
     input <- data.table::melt.data.table(
       data = as.data.table(input), 
       id.vars = c("MARKERS", "LOCUS", "POS", "REF", "ALT", "CALL_RATE", "AVG_COUNT_REF", "AVG_COUNT_SNP", "REP_AVG"), 
@@ -353,14 +347,6 @@ dart2df_genind_plink <- function(
   }
   if (binary == 2) {
     message("Tidying DArT binary data set")
-    input3 <- suppressWarnings(
-      input %>% 
-        tidyr::separate(col = SNP, into = c("NOT_USEFUL", "KEEPER"), sep = ":", extra = "drop") %>% 
-        select(-NOT_USEFUL) %>%
-        tidyr::separate(col = KEEPER, into = c("REF", "ALT"), sep = ">", extra = "drop") %>%
-        tidyr::unite(MARKERS, LOCUS, POS, sep = "_", remove = FALSE )
-    )
-    
     # necessary to deal with the duplication of lines because of the GT in 2 lines
     grouping.column <- input %>% 
       ungroup() %>% 
@@ -408,6 +394,7 @@ dart2df_genind_plink <- function(
       rename(INDIVIDUALS = NEW_ID)
   }
   
+  colnames(input) <- stri_replace_all_fixed(str = colnames(input), pattern = "STRATA", replacement = "POP_ID", vectorize_all = FALSE)
   
   # pop.levels -------------------------------------------------------------------
   if (is.null(pop.levels)) {
@@ -433,6 +420,9 @@ dart2df_genind_plink <- function(
     message(stri_join(length(pop.select), "population(s) selected", sep = " "))
     input <- suppressWarnings(input %>% filter(POP_ID %in% pop.select))
   }
+  
+  # Prepare the results list ---------------------------------------------------
+  res <- list()
   
   # Filter monomorphic markers  ---------------------------------------------------
   if (filter.monomorphic == TRUE) {
@@ -1282,227 +1272,83 @@ dart2df_genind_plink <- function(
   } # End imputations
   
   if (is.null(imputation.method)) {
-    genind.data.imp <- "not selected"
     input.imp <- "not selected"
   }
   
   
-  # PLINK ------------------------------------------------------------------------
-  write_plink <- function(x, filename) {
-    tped <- x %>% 
-      arrange(INDIVIDUALS) %>% 
-      mutate(
-        COL1 = rep("0", n()),
-        COL3 = rep("0", n()),
-        COL4 = rep("0", n())
-      ) %>% 
-      select(COL1, MARKERS, COL3, COL4, INDIVIDUALS, GT) %>% 
-      mutate(
-        A1 = stri_sub(str = GT, from = 1, to = 3),
-        A2 = stri_sub(str = GT, from = 4, to = 6)
-      ) %>% 
-      select(-GT) %>% 
-      tidyr::gather(ALLELES, GENOTYPE, -c(COL1, MARKERS, COL3, COL4, INDIVIDUALS)) %>%
-      mutate(
-        GENOTYPE = as.character(as.numeric(GENOTYPE)),
-        GENOTYPE = stri_pad_left(GENOTYPE, width = 2, pad = "0")
-      ) %>%  
-      arrange(INDIVIDUALS, ALLELES) %>% 
-      tidyr::unite(INDIVIDUALS_ALLELES, INDIVIDUALS, ALLELES, sep = "_") %>%
-      group_by(COL1, MARKERS, COL3, COL4) %>% 
-      tidyr::spread(data = ., key = INDIVIDUALS_ALLELES, value = GENOTYPE) %>% 
-      arrange(MARKERS)
-    
-    tfam <- x %>%
-      distinct(POP_ID, INDIVIDUALS) %>% 
-      arrange(INDIVIDUALS) %>% 
-      mutate(
-        COL3 = rep("0",n()),
-        COL4 = rep("0",n()),
-        COL5 = rep("0",n()),
-        COL6 = rep("-9",n())
-      )
-    write_delim(x = tped, path = stri_paste(filename, ".tped", sep = ""), col_names = FALSE, delim = " ")
-    write_delim(x = tfam, path = stri_paste(filename, ".tfam", sep = ""), col_names = FALSE, delim = " ")
-  } # end write_plink
-  
-  if (plink) {
+  # PLINK ----------------------------------------------------------------------
+  if ("plink" %in% output) {
     message("Generating the PLINK tped and tfam files")
-    write_plink (x = input, filename = filename)
+    stackr::write_plink (data = input, filename = filename)
     
     if (!is.null(imputation.method)) {
       message("Generating the PLINK tped and tfam files: with imputations")
-      write_plink (x = input.imp, filename = stri_paste(filename, "_imputed"))
+      stackr::write_plink (data = input.imp, filename = stri_paste(filename, "_imputed"))
     } # end plink imputed
-    
-    
-  } else {
-    message("PLINK output not selected")
   } # end plink
   
-  
-  # genind object for adegenet -------------------------------------------------
-  prepare_genind <- function(x) {
-    genind.prep <- x %>% 
-      select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
-      #faster than: tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
-      mutate(
-        A1 = stri_sub(str = GT, from = 1, to = 3),
-        A2 = stri_sub(str = GT, from = 4, to = 6)
-      ) %>% 
-      select(-GT) %>% 
-      tidyr::gather(data = ., key = ALLELES, 
-                    value = GT, 
-                    -c(MARKERS, INDIVIDUALS, POP_ID)
-      ) %>% # just miliseconds longer than data.table.melt so keeping this one for simplicity
-      filter(GT != "000") # remove missing "000"
-    
-    # this reintroduce the missing, but with NA
-    genind.prep <- data.table::dcast.data.table(
-      data = as.data.table(genind.prep), 
-      formula = POP_ID + INDIVIDUALS + ALLELES ~ MARKERS, 
-      value.var = "GT") %>% 
-      as_data_frame() %>% 
-      plyr::colwise(.fun = factor, exclude = NA)(.) %>% 
-      mutate(INDIVIDUALS = as.character(INDIVIDUALS))
-    
-    # The next part is longer than it used to be with VCF file only, 
-    # but it as the advantage of working and simplifying the use for other file type.
-    genind.prep <- suppressWarnings(mutate_each(tbl = genind.prep, funs(as.integer), -c(INDIVIDUALS, POP_ID, ALLELES)))
-    
-    genind.prep <- tidyr::gather(data = genind.prep, 
-                                 key = MARKERS, 
-                                 value = GT, 
-                                 -c(INDIVIDUALS, POP_ID, ALLELES)
-    ) %>% # faster than data.table.melt...
-      mutate(GT = stri_replace_na(str = GT, replacement = "000")) %>%
-      filter(GT != "000") %>%
-      select(-ALLELES) %>%
-      group_by(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
-      tally %>% # count alleles, longest part of the block
-      ungroup()
-    
-    genind.prep <- genind.prep %>%
-      mutate(MARKERS_ALLELES = stri_paste(MARKERS, GT, sep = ":")) %>%  # faster then: tidyr::unite(MARKERS_ALLELES, MARKERS, GT, sep = ":", remove = TRUE)
-      select(-GT, -MARKERS) %>% 
-      arrange(POP_ID, INDIVIDUALS, MARKERS_ALLELES)
-    
-    genind.prep <- data.table::dcast.data.table(
-      data = as.data.table(genind.prep), 
-      formula = POP_ID + INDIVIDUALS ~ MARKERS_ALLELES, 
-      value.var = "n") %>% 
-      as_data_frame()
-    
-    genind.prep <- tidyr::gather(data = genind.prep, key = MARKERS_ALLELES, value = COUNT, -c(INDIVIDUALS, POP_ID)) %>% 
-      tidyr::separate(data = ., col = MARKERS_ALLELES, into = c("MARKERS", "ALLELES"), sep = ":", remove = TRUE) %>% 
-      mutate(COUNT = as.numeric(stri_replace_na(str = COUNT, replacement = "0"))) %>% 
-      group_by(INDIVIDUALS, MARKERS) %>%
-      mutate(MAX_COUNT_MARKERS = max(COUNT, na.rm = TRUE)) %>%
-      ungroup() %>% 
-      mutate(COUNT = ifelse(MAX_COUNT_MARKERS == 0, "erase", COUNT)) %>%
-      select(-MAX_COUNT_MARKERS) %>% 
-      mutate(COUNT = replace(COUNT, which(COUNT == "erase"), NA)) %>% 
-      arrange(POP_ID, INDIVIDUALS, MARKERS, ALLELES)
-    
-    genind.prep <- genind.prep %>%
-      mutate(MARKERS_ALLELES = stri_paste(MARKERS, ALLELES, sep = ".")) %>%  # faster then: tidyr::unite(MARKERS_ALLELES, MARKERS, ALLELES, sep = ".", remove = TRUE)
-      select(-MARKERS, -ALLELES) %>% 
-      mutate(
-        POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
-        POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
-      )
-    
-    genind.prep <- data.table::dcast.data.table(
-      data = as.data.table(genind.prep), 
-      formula = POP_ID + INDIVIDUALS ~ MARKERS_ALLELES, 
-      value.var = "COUNT") %>% 
-      as_data_frame() %>%
-      arrange(POP_ID, INDIVIDUALS)
-  } # End prepare genind
-  
-  if (genind) {
-    message("Preparing data for adegenet genind object...")
-    genind.prep <- prepare_genind(x = input)
-    
-    # genind construction: no imputation -----------------------------------------
-    # genind arguments common to all data.type
-    message("Building the genind object")
-    ind <- genind.prep$INDIVIDUALS
-    pop <- genind.prep$POP_ID
-    genind.df <- genind.prep %>% ungroup() %>% 
-      select(-c(INDIVIDUALS, POP_ID))
-    rownames(genind.df) <- ind
-    loc.names <- colnames(genind.df)
-    strata <- genind.prep %>% ungroup() %>% distinct(INDIVIDUALS, POP_ID)
-    
-    # genind constructor
-    prevcall <- match.call()
-    no.imputation <- genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = NULL)
+  # GENIND ---------------------------------------------------------------------
+  if ("genind" %in% output) {
+    message("Generating adegenet genind object without imputation")
+    res$genind.no.imputation <- stackr::write_genind(data = input)
     
     if (!is.null(imputation.method)) {
-      message("Preparing imputed data for adegenet genind object...")
-      genind.prep.imp <- prepare_genind(x = input.imp)
-      
-      # genind construction: with imputations ----------------------------------
-      message("Building the imputed genind object")
-      ind <- genind.prep.imp$INDIVIDUALS
-      pop <- genind.prep.imp$POP_ID
-      genind.df <- genind.prep.imp %>%
-        ungroup() %>% 
-        select(-c(INDIVIDUALS, POP_ID))
-      rownames(genind.df) <- ind
-      loc.names <- colnames(genind.df)
-      
-      strata <- genind.prep.imp %>% 
-        ungroup() %>% 
-        distinct(INDIVIDUALS, POP_ID)
-      
-      # genind constructor
-      prevcall <- match.call()
-      imputed  <- adegenet::genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = NULL)
-
-      ind <- NULL
-      pop <- NULL
-      genind.df <- NULL
-      loc.names <- NULL
-      strata <- NULL
-      prevcall <- NULL
-    } else {
-      
-    }# end genind imp
-    imputed <- "not selected"
-  } else {
-    no.imputation <- "not selected"
-    imputed <- "not selected"
+      message("Generating adegenet genind object WITH imputations")
+      res$genind.imputed <- stackr::write_genind(data = input.imp)
+    }
   } # end genind
+  
+  # GENLIGHT -------------------------------------------------------------------
+  if ("genlight" %in% output) {
+    message("Generating adegenet genlight object without imputation")
+    res$genlight.no.imputation <- stackr::write_genlight(data = input)
+    
+    if (!is.null(imputation.method)) {
+      message("Generating adegenet genlight object WITH imputations")
+      res$genlight.imputed <- stackr::write_genlight(data = input.imp)
+    }
+  } # end genlight output
+  
+  # VCF ------------------------------------------------------------------------
+  if ("vcf" %in% output) {
+    message("Generating VCF file without imputation")
+    write_vcf(
+      data = input, 
+      filename = filename
+    )
+    
+    if (!is.null(imputation.method)) {
+      message("Generating VCF file WITH imputations")
+      write_vcf(
+        data = input.imp, 
+        filename = filename.imp
+      )
+    }
+  } # end vcf output
   
   # genepop --------------------------------------------------------------------
   
-  if (genepop) {
+  if ("genepop" %in% output) {
     message("Generating the genepop file")
-    stackr::write_genepop(data = input, genepop.header = "stackr::dart2df_genind_plink: no imputations", markers.line.format = "line", filename = stri_paste(filename, ".gen", sep = ""))
+    stackr::write_genepop(data = input, genepop.header = "stackr::dart2df_genind_plink: no imputations", markers.line = "line", filename = filename)
 
     if (!is.null(imputation.method)) {
       message("Generating the genepop file: with imputations")
-      stackr::write_genepop(data = input.imp, genepop.header = "stackr::dart2df_genind_plink: imputed data", markers.line.format = "line", filename = stri_paste(filename, "_imputed.gen", sep = ""))
+      stackr::write_genepop(data = input.imp, genepop.header = "stackr::dart2df_genind_plink: imputed data", markers.line = "line", filename = stri_paste(filename, "_imputed"))
     }
-  } else {
-    message("genepop output not selected")
-  }
+  } # end genepop
   
   # STRUCTURE --------------------------------------------------------------------
   
-  if (structure) {
+  if ("structure" %in% output) {
     message("Generating the structure file")
-    stackr::write_structure(data = input, markers.line = TRUE, filename = stri_paste(filename, ".str", sep = ""))
+    stackr::write_structure(data = input, markers.line = TRUE, filename = filename)
 
     if (!is.null(imputation.method)) {
       message("Generating the structure file: with imputations")
-      stackr::write_structure(data = input.imp, markers.line = TRUE, filename = stri_paste(filename, "_imputed.str", sep = ""))
+      stackr::write_structure(data = input.imp, markers.line = TRUE, filename = stri_paste(filename, "_imputed"))
     }
-  } else {
-    message("structure output not selected")
-  }
+  } # end structure
   
   input <- tidyr::separate(data = input, col = MARKERS, into = c("LOCUS", "POS"), sep = "_", remove = FALSE, extra = "drop")
   
@@ -1514,7 +1360,6 @@ dart2df_genind_plink <- function(
   message(stri_paste("LOCUS: ", locus.before.filters, " -> ", n_distinct(input$LOCUS)))
   cat("#######################################################################\n")
   
-  res <- list()
   res$jitterplot.ind.het <- jitterplot.ind.het
   res$boxplot.ind.het <- boxplot.ind.het
   res$plot.reproducibility <- plot.repro
@@ -1528,7 +1373,6 @@ dart2df_genind_plink <- function(
   res$whitelist.markers <- whitelist.markers
   res$data.filtered <- input.filtered.df
   res$data.filtered.imputed <- input.imp
-  res$genind.data <- no.imputation
-  res$genind.data.imputed <- imputed
+  cat("############################## completed ##############################\n")
   return(res)
 }

@@ -7,6 +7,11 @@
 \item{data}{DArT output file in wide format or binary format tipically 
 used by CSIRO genomic projects.}
 
+\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop, 
+structure. Use a character string,
+e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
+output formats generated. The tidy format is generated automatically.}
+
 \item{strata}{A tab delimited file with columns header:
 \code{INDIVIDUALS} and \code{POP_ID}. 
 Note: the column \code{POP_ID} refers to any grouping of individuals. If a third column
@@ -124,61 +129,15 @@ When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
 
-\item{plink}{(optional, logical). To have the filtered data set output as 
-plink \code{tped/tfam} file, use \code{plink = TRUE}. 
-Default: \code{plink = FALSE}}
-
-\item{genind}{(optional, logical). To have the filtered data set output as 
-genind object to use inside adegenet, use \code{genind = TRUE}. 
-Default: \code{genind = FALSE}}
-
-\item{genepop}{(optional, logical). To have the filtered data set output as 
-a genepop file, use \code{genepop = TRUE}. 
-Default: \code{genepop = FALSE}.}
-
-\item{structure}{(optional, logical). To have the filtered data set output as 
-a structure file, use \code{structure = TRUE}. 
-Default: \code{structure = FALSE}.}
-
-\item{filename}{(optional) The name of the file written to the directory.
-No file extension at the end. Default: \code{filename = NULL}}
-
-\item{imputation.method}{Should a map-independent imputation of markers be
-computed. Available choices are: (1) \code{FALSE} for no imputation.
-(2) \code{"max"} to use the most frequent category for imputations.
-(3) \code{"rf"} using Random Forest algorithm. 
-Default: \code{imputation.method = NULL}.}
-
-\item{impute}{(character) Imputation on missing genotype 
-\code{impute = "genotype"} or alleles \code{impute = "allele"}.}
-
-\item{imputations.group}{\code{"global"} or \code{"populations"}.
-Should the imputations be computed globally or by population. If you choose
-global, turn the verbose to \code{TRUE}, to see progress.
-Default = \code{"populations"}.}
-
-\item{num.tree}{The number of trees to grow in Random Forest. Default is 100.}
-
-\item{iteration.rf}{The number of iterations of missing data algorithm
-in Random Forest. Default is 10.}
-
-\item{split.number}{Non-negative integer value used to specify
-random splitting in Random Forest. Default is 100.}
-
-\item{verbose}{Logical. Should trace output be enabled on each iteration
-in Random Forest ? Default is \code{FALSE}.}
-
-\item{parallel.core}{(optional) The number of cores for OpenMP shared-memory parallel
-programming of Random Forest imputations. For more info on how to install the
-OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
-If not selected \code{detectCores()-1} is used as default.}
+\item{filename}{(optional) The filename prefix for the objet in the global environment 
+or the working directory. Default: \code{filename = NULL}. A default name will be used,
+customized with the output file(s) selected.}
 }
 \value{
-Depending on arguments selected, several files are written to the your
-working directory or \code{folder}
-The output in your global environment is a list. To view the assignment results
-\code{$assignment} to view the ggplot2 figure \code{$plot.assignment}. 
-See example below.
+The function returns an object (list). The content of the object 
+can be listed with \code{names(object)} and use \code{$} to isolate specific
+object (see examples). Some output format will write the output file in the 
+working directory. The tidy genomic data frame is generated automatically.
 }
 \description{
 Import, filter and transform a DArT output file to different formats: 

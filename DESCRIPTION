@@ -32,8 +32,7 @@ Imports:
     purrr,
     amap,
     tibble,
-    methods,
-    strataG
+    methods
 Suggests:
     pegas,
     hierfstat,
