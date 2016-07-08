@@ -269,7 +269,7 @@
 if (getRversion() >= "2.15.1") {
   utils::globalVariables(
     c("DP", "AD", "vcf.headers", "GT_VCF", "INDIVIDUALS2", "ALLELE_REF_DEPTH",
-      "ALLELE_ALT_DEPTH", "GT_BIN", "GT_HAPLO")
+      "ALLELE_ALT_DEPTH", "GT_BIN", "GT_HAPLO", "REF_NEW", "REF_ALT_CHANGE", "GT_VCF_A1", "GT_VCF_A2")
   )
 }
 

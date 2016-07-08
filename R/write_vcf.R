@@ -1,0 +1,211 @@
+# write a vcf file from a tidy data frame
+
+#' @name write_vcf
+#' @title Used internally in stackr to write a vcf file from a tidy 
+#' data frame
+#' @description Write a vcf file from a tidy data frame.
+#' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
+#' and might be of interest for users.
+#' 
+#' @param data A file in the working directory or object in the global environment 
+#' in wide or long (tidy) formats. See details for more info. 
+
+#' @param filename (optional) The file name prefix for the vcf file 
+#' written to the working directory. With default: \code{filename = NULL}, 
+#' the date and time is appended to \code{stackr_vcf_file_}.
+
+#' @details \strong{Input data:}
+#'  
+#' To discriminate the long from the wide format, 
+#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
+#' for \code{MARKERS or LOCUS} in column names (TRUE = long format).
+#' The data frame is tab delimitted.
+
+#' \strong{Wide format:}
+#' The wide format cannot store metadata info.
+#' The wide format starts with these 2 id columns: 
+#' \code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
+#' the remaining columns are the markers in separate columns storing genotypes.
+#' 
+#' \strong{Long/Tidy format:}
+#' The long format is considered to be a tidy data frame and can store metadata info. 
+#' (e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
+#' are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
+#' \code{MARKERS or LOCUS} and \code{GENOTYPE or GT}. The rest are considered metata info.
+#' 
+#' \strong{2 genotypes formats are available:}
+#' 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
+#' 6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
+#' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
+#' 
+#' \emph{How to get a tidy data frame ?}
+#' \pkg{stackr} \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
+#' in a tidy data frame.
+
+
+#' @export
+#' @rdname write_vcf
+#' @import reshape2
+#' @import dplyr
+#' @import stringi
+#' @importFrom data.table fread
+
+#' @references Danecek P, Auton A, Abecasis G et al. (2011)
+#' The variant call format and VCFtools.
+#' Bioinformatics, 27, 2156-2158.
+
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
+
+write_vcf <- function(data, filename = NULL) {
+  
+  # Import data ---------------------------------------------------------------
+  if (is.vector(data)) {
+    input <- stackr::read_long_tidy_wide(data = data)
+  } else {
+    input <- data
+  }
+  
+  colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
+                                            pattern = "GENOTYPE", 
+                                            replacement = "GT", 
+                                            vectorize_all = FALSE)
+  
+  
+  # REF/ALT Alleles and VCF genotype format ------------------------------------
+  if (!tibble::has_name(input, "GT_VCF")) {
+    input.select <- input %>%
+      select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
+      #faster than: tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
+      mutate(
+        A1 = stri_sub(str = GT, from = 1, to = 3),
+        A2 = stri_sub(str = GT, from = 4, to = 6)
+      ) %>%
+      select(-GT)
+    
+    new.ref.alt.alleles <- input.select %>% 
+      tidyr::gather(
+        data = ., key = ALLELES, 
+        value = GT, 
+        -c(MARKERS, INDIVIDUALS, POP_ID)
+      ) %>% # just miliseconds longer than data.table.melt so keeping this one for simplicity
+      filter(GT != "000") %>%  # remove missing "000"
+      group_by(MARKERS, GT) %>%
+      tally %>% 
+      ungroup() %>% 
+      mutate(ALLELE_NUMBER = rep(c("A1", "A2"), each = 1, times = n()/2)) %>% 
+      group_by(MARKERS) %>%
+      mutate(
+        PROBLEM = ifelse(n[ALLELE_NUMBER == "A1"] == n[ALLELE_NUMBER == "A2"], "equal_number", "ok"),
+        GROUP = ifelse(n == max(n), "REF", "ALT")
+      ) %>% 
+      group_by(MARKERS, GT) %>% 
+      mutate(
+        ALLELE = ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A1", "REF", 
+                        ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A2", "ALT", 
+                               GROUP)
+        )
+      ) %>% 
+      select(MARKERS, GT, ALLELE) %>%
+      group_by(MARKERS) %>% 
+      tidyr::spread(data = ., ALLELE, GT) %>% 
+      mutate(
+        CHROM = rep("1", n()),
+        LOCUS = MARKERS,
+        POS = MARKERS
+      ) %>% 
+      select(MARKERS, CHROM, LOCUS, POS, REF, ALT)
+    
+    ref.alt.alleles.change <- full_join(input.select, new.ref.alt.alleles, by = "MARKERS") %>% 
+      mutate(
+        A1 = replace(A1, which(A1 == "000"), NA),
+        A2 = replace(A2, which(A2 == "000"), NA),
+        GT_VCF_A1 = if_else(A1 == REF, "0", "1", missing = "."),
+        GT_VCF_A2 = if_else(A2 == REF, "0", "1", missing = "."),
+        GT_VCF = stri_paste(GT_VCF_A1, GT_VCF_A2, sep = "/"),
+        GT_BIN = stri_replace_all_fixed(
+          str = GT_VCF, 
+          pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
+          replacement = c("0", "2", "1", "1", NA), 
+          vectorize_all = FALSE
+        )
+      ) %>% 
+      select(MARKERS, CHROM, LOCUS, POS, INDIVIDUALS, REF, ALT, GT_VCF, GT_BIN)
+    
+    input <- left_join(input, ref.alt.alleles.change, by = c("MARKERS", "INDIVIDUALS"))
+  }
+  
+  # Remove the POP_ID column ---------------------------------------------------
+  if (tibble::has_name(input, "POP_ID")) {
+    input <- select(.data = input, -POP_ID)
+  }
+  
+  # Info field -----------------------------------------------------------------
+  info.field <- suppressWarnings(
+    input %>% 
+      group_by(MARKERS) %>%
+      filter(GT_VCF != "./.") %>% 
+      tally %>% 
+      mutate(INFO = stri_paste("NS=", n, sep = "")) %>% 
+      select(-n)
+  )
+  
+  # VCF body  ------------------------------------------------------------------
+  output <- suppressWarnings(
+    left_join(input, info.field, by = "MARKERS") %>% 
+      select(MARKERS, CHROM, LOCUS, POS, REF, ALT, INDIVIDUALS, GT_VCF, INFO) %>% 
+      group_by(MARKERS, CHROM, LOCUS, POS, INFO, REF, ALT) %>% 
+      tidyr::spread(data = ., key = INDIVIDUALS, value = GT_VCF) %>%
+      ungroup() %>% 
+      mutate(
+        # LOCUS = as.numeric(LOCUS),
+        # POS = as.numeric(POS),
+        QUAL = rep(".", n()),
+        FILTER = rep("PASS", n()),
+        FORMAT = rep("GT", n())
+      ) %>% 
+      arrange(CHROM, LOCUS, POS) %>% 
+      ungroup() %>%
+      select(-MARKERS) %>% 
+      select('#CHROM' = CHROM, POS, ID = LOCUS, REF, ALT, QUAL, FILTER, INFO, FORMAT, everything())
+  )
+  
+  # Filename ------------------------------------------------------------------
+  if (is.null(filename)) {
+    # Get date and time to have unique filenaming
+    file.date <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "", vectorize_all = FALSE)
+    file.date <- stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
+    file.date <- stri_sub(file.date, from = 1, to = 13)
+    filename <- stri_paste("stackr_vcf_file_", file.date, ".vcf")
+  } else {
+    filename <- stri_paste(filename, ".vcf")
+  }
+  
+  # File format ----------------------------------------------------------------
+  file.format <- "##fileformat=VCFv4.2"
+  file.format <- as.data.frame(file.format)
+  utils::write.table(x = file.format, file = filename, sep = " ", append = FALSE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  
+  # File date ------------------------------------------------------------------
+  file.date <- stri_replace_all_fixed(Sys.Date(), pattern = "-", replacement = "")
+  file.date <- stri_paste("##fileDate=", file.date, sep = "")
+  utils::write.table(x = file.date, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  
+  # Source ---------------------------------------------------------------------
+  file.source <- as.data.frame(stri_paste("##source=stackr v.", utils::packageVersion("stackr"), sep = ""))
+  utils::write.table(x = file.source, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  
+  # Info field 1 ---------------------------------------------------------------
+  info1 <- '##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of Samples With Data">'
+  info1 <- as.data.frame(info1)
+  utils::write.table(x = info1, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  
+  # Format field 1 -------------------------------------------------------------
+  format1 <- '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">'
+  format1 <- as.data.frame(format1)
+  utils::write.table(x = format1, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  
+  # Write the prunned vcf to the file ------------------------------------------
+  suppressWarnings(
+    write_tsv(x = output, path = filename, append = TRUE, col_names = TRUE)
+  )
+} # end write_vcf

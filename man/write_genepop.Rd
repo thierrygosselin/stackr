@@ -4,16 +4,12 @@
 \alias{write_genepop}
 \title{Used internally in stackr to write a genepop file from a tidy data frame}
 \usage{
-write_genepop(data, sep = NULL, pop.levels = NULL,
-  genepop.header = "my firt genepop", markers.line.format = "line",
-  filename = "stackr_genepop.gen", ...)
+write_genepop(data, pop.levels = NULL, genepop.header = "my firt genepop",
+  markers.line = TRUE, filename = NULL, ...)
 }
 \arguments{
 \item{data}{A file in the working directory or object in the global environment 
 in wide or long (tidy) formats. See details for more info.}
-
-\item{sep}{(optional) A character string separating alleles. 
-Default: \code{sep = NULL}.}
 
 \item{pop.levels}{(optional, string) A character string with your populations ordered.
 Default: \code{pop.levels = NULL}.}
@@ -21,16 +17,17 @@ Default: \code{pop.levels = NULL}.}
 \item{genepop.header}{The first line of the Genepop file.
 Default: \code{genepop.header = "my firt genepop"}.}
 
-\item{markers.line.format}{(optional, character) You can write the markers 
-on a single line separated by commas \code{markers.line.format = "line"}, 
-or have markers on a separate line, i.e. in one column, 
-\code{markers.line.format = "column"} 
-(not very useful with thousands of markers). 
-Default: \code{markers.line.format = "line"}.}
+\item{markers.line}{(optional, logical) In the genepop and structure
+file, you can write the markers on a single line separated by 
+commas \code{markers.line = TRUE}, 
+or have markers on a separate line, i.e. in one column, for the genepop file
+(not very useful with thousands of markers) and not printed at all for the
+structure file.
+Default: \code{markers.line = TRUE}.}
 
-\item{filename}{The name of the file written to the working directory.
-Use the extension ".gen" at the end. 
-Default: \code{filename = "stackr_genepop.gen"}.}
+\item{filename}{(optional) The file name prefix for the genepop file 
+written to the working directory. With default: \code{filename = NULL}, 
+the date and time is appended to \code{stackr_genepop_}.}
 
 \item{...}{other parameters passed to the function.}
 }
@@ -44,12 +41,6 @@ and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.
 }
 \details{
-\strong{Details for the sep argument}
-This character is directly used in regular expressions using strigi. 
-Some characters need to be preceeded by double backslashes \code{\\}. 
-For instance, "/" works but "|" must be coded as "\\|".
-
-
 \strong{Details for Input data:}
  
 To discriminate the long from the wide format, 
@@ -71,7 +62,10 @@ are required in the long format: \code{INDIVIDUALS}, \code{POP_ID},
 \strong{2 genotypes formats are available:}
 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
 6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
-The separator can be any of these: \code{"/", ":", "_", "-", "."}.
+The separator can be any of these: \code{"/", ":", "_", "-", "."}. 
+If a separator is present, it is automatically removed. 
+
+
 
 \emph{How to get a tidy data frame ?}
 \pkg{stackr} \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 

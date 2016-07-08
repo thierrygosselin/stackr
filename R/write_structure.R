@@ -13,14 +13,18 @@
 #' @param pop.levels (optional, string) A character string with your populations ordered.
 #' Default: \code{pop.levels = NULL}.
 
-#' @param markers.line (optional, logical) You can write the markers 
-#' on a single line separated by tab \code{markers.line = TRUE}, 
-#' or not print markers, \code{markers.line = FALSE}.
+#' @param markers.line (optional, logical) In the genepop and structure
+#' file, you can write the markers on a single line separated by 
+#' commas \code{markers.line = TRUE}, 
+#' or have markers on a separate line, i.e. in one column, for the genepop file
+#' (not very useful with thousands of markers) and not printed at all for the
+#' structure file.
 #' Default: \code{markers.line = TRUE}.
 
-#' @param filename The name of the file written to the working directory.
-#' Use the extension ".str" at the end. 
-#' Default: \code{filename = "stackr_structure.str"}.
+
+#' @param filename (optional) The file name prefix for the genepop file 
+#' written to the working directory. With default: \code{filename = NULL}, 
+#' the date and time is appended to \code{stackr_structure_}.
 
 #' @param ... other parameters passed to the function.
 
@@ -80,7 +84,7 @@ write_structure <- function(
   data,
   pop.levels = NULL, 
   markers.line = TRUE, 
-  filename = "stackr_structure.str",
+  filename = NULL,
   ...
   ) {
   
@@ -89,25 +93,15 @@ write_structure <- function(
 
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {
-    # input <- structure.prep # test
     input <- stackr::read_long_tidy_wide(data = data)
-    
-    if ("GENOTYPE" %in% colnames(input)) {
-      colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
-                                                pattern = "GENOTYPE", 
-                                                replacement = "GT", 
-                                                vectorize_all = FALSE)
-    }
   } else {
-    # data <- structure.prep # test
     input <- data
-    if ("GENOTYPE" %in% colnames(input)) {
-      colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
-                                                pattern = "GENOTYPE", 
-                                                replacement = "GT", 
-                                                vectorize_all = FALSE)
-    }
   }
+  
+  colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
+                                            pattern = "GENOTYPE", 
+                                            replacement = "GT", 
+                                            vectorize_all = FALSE)
   
   # Switch colnames LOCUS to MARKERS if found
   if ("LOCUS" %in% colnames(input)) input <- rename(.data = input, MARKERS = LOCUS)
@@ -147,7 +141,19 @@ write_structure <- function(
     select(-ALLELES) %>% 
     arrange(POP_ID, INDIVIDUALS)
 
-  # Write the file in structure format -------------------------------------------
+  # Write the file in structure format -----------------------------------------
+  
+  # Filename
+  if (is.null(filename)) {
+    # Get date and time to have unique filenaming
+    file.date <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "", vectorize_all = FALSE)
+    file.date <- stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
+    file.date <- stri_sub(file.date, from = 1, to = 13)
+    filename <- stri_paste("stackr_structure_", file.date, ".gen")
+  } else {
+    filename <- stri_paste(filename, ".str")
+  }
+  
   filename.connection <- file(filename, "w") # open the connection to the file
   writeLines(text = stri_paste(markers, sep = "\t", collapse = "\t"), con = filename.connection, sep = "\n") 
   close(filename.connection) # close the connection
