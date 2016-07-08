@@ -32,13 +32,13 @@ Imports:
     purrr,
     amap,
     tibble,
-    methods
+    methods,
+    strataG
 Suggests:
     pegas,
     hierfstat,
     knitr,
-    rmarkdown,
-    strataG
+    rmarkdown
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr
