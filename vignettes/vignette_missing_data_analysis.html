@@ -12,7 +12,7 @@
 
 <meta name="author" content="Thierry Gosselin" />
 
-<meta name="date" content="2016-06-23" />
+<meta name="date" content="2016-07-06" />
 
 <title>stackr missing data visualization analysis</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">stackr missing data visualization analysis</h1>
 <h4 class="author"><em>Thierry Gosselin</em></h4>
-<h4 class="date"><em>2016-06-23</em></h4>
+<h4 class="date"><em>2016-07-06</em></h4>
 
 
 
@@ -188,6 +188,7 @@ Missingness per markers</code></pre></div>
 <p>For the second run, we are going to select all the groupings in the strata file. This will allow us to get the IBM-PCoA plot for each groupings automatically.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ibm &lt;-<span class="st"> </span>stackr::<span class="kw">missing_visualization</span>(
 <span class="dt">data =</span> <span class="st">&quot;example_vcf2dadi_ferchaud_2015.vcf&quot;</span>, <span class="co"># VCF file, but see function documentation for other options</span>
+<span class="dt">blacklist.id =</span> <span class="st">&quot;blacklist.id.missing.10.tsv&quot;</span>,
 <span class="dt">strata =</span> <span class="st">&quot;strata.stickleback.tsv&quot;</span>, <span class="co"># 4 columns: INDIVIDUALS, STRATA, POP_TYPE, ECOTYPE</span>
 <span class="dt">strata.select =</span> <span class="kw">c</span>(<span class="st">&quot;POP_ID&quot;</span>, <span class="st">&quot;POP_TYPE&quot;</span>, <span class="st">&quot;ECOTYPE&quot;</span>) <span class="co"># STRATA is changed to POP_ID automatically </span>
 )</code></pre></div>

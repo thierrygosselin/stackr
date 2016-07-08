@@ -133,8 +133,8 @@
 
 #' @param pop.select (string, optional) Selected list of populations for 
 #' the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
-#'and \code{ONT} population samples (out of 20 pops).
-# Default: \code{pop.select = NULL} 
+#' and \code{ONT} population samples (out of 20 pops).
+#' Default: \code{pop.select = NULL} 
 
 
 #' @param filename (optional) The file name for the tidy data frame
@@ -617,12 +617,14 @@ tidy_genomic_data <- function(
       
       old.ref.alt.alleles <- distinct(.data = input, MARKERS, REF, ALT)
       
-      ref.alt.alleles <- full_join(old.ref.alt.alleles,
-                                   new.ref.alt.alleles %>% 
-                                     rename(REF_NEW = REF, ALT_NEW = ALT)
-                                   , by = "MARKERS") %>% 
+      ref.alt.alleles <- full_join(
+        old.ref.alt.alleles,
+        new.ref.alt.alleles %>% 
+          rename(REF_NEW = REF, ALT_NEW = ALT)
+        , by = "MARKERS") %>% 
         mutate(
-          REF_ALT_CHANGE = if_else(REF == REF_NEW, "identical", "different")) %>% 
+          REF_ALT_CHANGE = if_else(REF == REF_NEW, "identical", "different")
+          ) %>% 
         filter(REF_ALT_CHANGE == "different")
       
       message(stri_paste("Number of markers with REF/ALT change = ", length(ref.alt.alleles$MARKERS)))
@@ -1314,26 +1316,6 @@ tidy_genomic_data <- function(
         A2 = stri_sub(GT, 4,6)
       ) %>% 
       select(-GT)
-    
-    system.time(mono.markers2 <- data.table::melt.data.table(
-      data = as.data.table(mono.markers), 
-      id.vars = c("MARKERS", "INDIVIDUALS", "POP_ID"), 
-      variable.name = "ALLELES",
-      variable.factor = FALSE,
-      value.name = "GT"
-    ) %>% 
-      as_data_frame() %>% 
-      filter(GT != "000") %>%
-      group_by(MARKERS, GT) %>% 
-      tally %>%
-      ungroup() %>% 
-      select(MARKERS) %>% 
-      group_by(MARKERS) %>% 
-      tally %>% 
-      filter(n == 1) %>%
-      ungroup() %>% 
-      select(MARKERS)
-    )
     
     mono.markers <- data.table::melt.data.table(
       data = as.data.table(mono.markers), 

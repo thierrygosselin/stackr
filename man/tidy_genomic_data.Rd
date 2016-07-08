@@ -124,7 +124,8 @@ Default: \code{strata = NULL}.}
 
 \item{pop.select}{(string, optional) Selected list of populations for 
 the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
-and \code{ONT} population samples (out of 20 pops).}
+and \code{ONT} population samples (out of 20 pops).
+Default: \code{pop.select = NULL}}
 
 \item{filename}{(optional) The file name for the tidy data frame
 written to the working directory.

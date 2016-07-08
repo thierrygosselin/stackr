@@ -2,7 +2,7 @@
 % Please edit documentation in R/dart2df_genind_plink.R
 \name{dart2df_genind_plink}
 \alias{dart2df_genind_plink}
-\title{swiss army knife tool to prepare DArT output file for population genetics analysis.}
+\title{swiss army knife tool to prepare [DArT](http://www.diversityarrays.com) output file for population genetics analysis.}
 \arguments{
 \item{data}{DArT output file in wide format or binary format tipically 
 used by CSIRO genomic projects.}

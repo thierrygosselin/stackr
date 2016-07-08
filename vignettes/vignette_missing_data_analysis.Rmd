@@ -183,6 +183,7 @@ This will allow us to get the IBM-PCoA plot for each groupings automatically.
 ```r
 ibm <- stackr::missing_visualization(
 data = "example_vcf2dadi_ferchaud_2015.vcf", # VCF file, but see function documentation for other options
+blacklist.id = "blacklist.id.missing.10.tsv",
 strata = "strata.stickleback.tsv", # 4 columns: INDIVIDUALS, STRATA, POP_TYPE, ECOTYPE
 strata.select = c("POP_ID", "POP_TYPE", "ECOTYPE") # STRATA is changed to POP_ID automatically 
 )
