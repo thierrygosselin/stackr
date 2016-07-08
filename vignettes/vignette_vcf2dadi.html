@@ -12,7 +12,7 @@
 
 <meta name="author" content="Thierry Gosselin and Anne-Laure Ferchaud" />
 
-<meta name="date" content="2016-06-20" />
+<meta name="date" content="2016-07-08" />
 
 <title>Generate a ∂a∂i input file stackr::vcf2dadi</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Generate a ∂a∂i input file <code>stackr::vcf2dadi</code></h1>
 <h4 class="author"><em>Thierry Gosselin and Anne-Laure Ferchaud</em></h4>
-<h4 class="date"><em>2016-06-20</em></h4>
+<h4 class="date"><em>2016-07-08</em></h4>
 
 
 
@@ -200,8 +200,8 @@ Saved here:<span class="st"> </span><span class="er">/</span>Users/thierry/Docum
 <li>For the second run of <code>stackr::vcf2dadi</code>, we will also ask to generate a ∂a∂i input file with:</li>
 </ol>
 <ul>
-<li><p>short range LD pruning: the small reads of this experiment (RADseq &lt; 100 pb read) make the short range linkage disequillibrium pruning easy. We will keep the first SNP on every read (<code>snp.ld = &quot;first&quot;</code>). Don’t want the snp pruning, turn it off with <code>snp.ld = NULL</code> or leave the argument missing.</p></li>
-<li><p>Minor Allele Frequency filter: for ∂a∂i we want to keep most of the Allele Frequency Spectrum because they are informative to date a demographic event. The arguments in the function are here to help you test the impact of the MAF. Here we are filtering differently than for population assignment. We want to make sure we don’t include the SNP with very very low frequency, the uninformative markers (most likely errors). If you have total confidence in your low frequency markers keep them (<code>maf.thresholds = NULL</code> or leave the argument missing). In this example we remove markers if the MAF is not at least 0.001 local (by pop) OR 0.001 global (overall pops) in a least 1 population (out of 3 the toal selected). For further details on how to remove low polymorphism markers with arguments provided in <code>vcf2dadi</code>, see the maf arguments documentation of the function.</p></li>
+<li><p>short range LD pruning: the small reads of this experiment (RADseq &lt; 100 pb read) make the short range linkage disequillibrium pruning easy. We will keep the first SNP on every read (<code>snp.ld = &quot;first&quot;</code>). Don’t want the SNP pruning, turn it off with <code>snp.ld = NULL</code> or leave the argument missing.</p></li>
+<li><p>Minor Allele Frequency filter: for ∂a∂i we want to keep most of the Allele Frequency Spectrum because they are informative to date a demographic event. The arguments in the function are here to help you test the impact of the MAF. Here we are filtering differently than for population assignment. We want to make sure we don’t include the SNP with very very low frequency, the uninformative markers (most likely errors). If you have total confidence in your low frequency markers keep them (<code>maf.thresholds = NULL</code> or leave the argument missing). In this example we remove markers if the MAF is not at least 0.001 local (by pop) OR 0.001 global (overall pops) in a least 1 population (out of 3 the total selected). For further details on how to remove low polymorphism markers with arguments provided in <code>vcf2dadi</code>, see the maf arguments documentation of the function.</p></li>
 <li><p>imputations using random forest with default settings (see function arguments documentation for more details)</p></li>
 <li><p>the parallel process used by default will be all my CPU - 1.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># The function results are redirected in the object `dadi.df`</span>
