@@ -112,23 +112,41 @@ stackr_imputations_module <- function(
   verbose = FALSE,
   parallel.core = detectCores()-1,
   filename = NULL,
-  ...) {
+  ...
+  ) {
   
-  # Checking for missing and/or default arguments ******************************
+  # Checking for missing and/or default arguments ------------------------------
   if (missing(data)) stop("Input file missing")
   
   # Import data ---------------------------------------------------------------
   input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
   
-  if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
+  # necessary steps to make sure we work with unique markers and not duplicated LOCUS
+  if (!tibble::has_name(input, "MARKERS") && tibble::has_name(input, "LOCUS")) {
     input <- rename(.data = input, MARKERS = LOCUS)
   }
   
+  # scan for the columnn CHROM and keep the info to include it after imputations
+  if (tibble::has_name(input, "CHROM")) {
+    marker.meta <- distinct(.data = input, MARKERS, CHROM, LOCUS, POS)
+  } else {
+    marker.meta <- NULL
+  }
+  
+  # scan for REF allele column
+  if (tibble::has_name(input, "REF")) {
+    ref.column <- TRUE
+  } else {
+    ref.column <- FALSE
+  }
+  
+  # select the column for the imputations
   input <- select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT)
   
-  # Imputations ***************************************************************
+  # Imputations ----------------------------------------------------------------
   message("Preparing the data for imputations")
   
+  # prepare the data in working with genotype or alleles
   if (impute == "genotype") {
     input.prep <- input %>%
       mutate(
@@ -158,7 +176,7 @@ stackr_imputations_module <- function(
   strata.df.impute <- input.prep %>% 
     distinct(INDIVIDUALS, POP_ID)
   
-  # Imputation with Random Forest
+  # Imputation with Random Forest  ---------------------------------------------
   if (imputation.method == "rf") {
     # Parallel computations options
     options(rf.cores = parallel.core, mc.cores = parallel.core)
@@ -234,6 +252,7 @@ stackr_imputations_module <- function(
       input.prep <- NULL
       
     } # End imputation RF populations
+    
     # Random Forest global
     if (imputations.group == "global") { # Globally (not by pop_id)
       message("Imputations computed globally, take a break...")
@@ -268,7 +287,7 @@ stackr_imputations_module <- function(
     }
   } # End imputation RF
   
-  # Imputation using the most common genotype
+  # Imputation using the most common genotype ----------------------------------
   if (imputation.method == "max") { # End imputation max
     if (imputations.group == "populations") {
       message("Imputations computed by populations")
@@ -334,15 +353,30 @@ stackr_imputations_module <- function(
     } # End imputation max global 
   } # End imputations max
 
-  # prepare the imputed dataset for gsi_sim or adegenet
-  message("Preparing imputed data set...")
+  # results --------------------------------------------------------------------
+  message("Tidying the imputed data set")
+  
+  # back to a tidy format for the allele dataset
   if (impute == "allele") {
     input.imp <- input.imp %>% 
       tidyr::spread(data = ., key = ALLELES, value = GT) %>% 
       tidyr::unite(data = ., GT, A1, A2, sep = "")
   }
   
-  # results --------------------------------------------------------------------
+  # Compute REF/ALT allele
+  # REF/ALT might have change depending on prop of missing values
+  if (ref.column) {
+    message("Adjusting REF/ALT alleles to account for imputations...")
+    ref.alt.alleles.change <- ref_alt_alleles(data = input.imp)
+    input.imp <- left_join(input.imp, ref.alt.alleles.change, by = c("MARKERS", "INDIVIDUALS"))
+  } # end computing REF/ALT
+  
+  # Integrate marker.meta columns
+  if (!is.null(marker.meta)) {
+    input.imp <- left_join(input.imp, marker.meta, by = "MARKERS") %>% 
+      select(MARKERS, CHROM, LOCUS, POS, REF, ALT, POP_ID, INDIVIDUALS, GT, GT_VCF, GT_BIN)
+  }
+  
   # Write to working directory
   if (!is.null(filename)) {
   message(stri_paste("Writing the imputed tidy data to the working directory: \n"), filename)

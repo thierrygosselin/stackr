@@ -2,14 +2,31 @@
 % Please edit documentation in R/vcf2genind.R
 \name{vcf2genind}
 \alias{vcf2genind}
-\title{Create a \code{adegenet} \code{\link[adegenet]{genind}} object from a \code{STACKS} vcf file}
+\title{VCF to \code{adegenet} \code{\link[adegenet]{genind}} object with filters and data imputation}
+\usage{
+vcf2genind(data, output, filename = NULL, blacklist.id = NULL,
+  blacklist.genotype = NULL, whitelist.markers = NULL,
+  monomorphic.out = TRUE, snp.ld = NULL, common.markers = TRUE,
+  maf.thresholds = NULL, maf.pop.num.threshold = 1, maf.approach = "SNP",
+  maf.operator = "OR", max.marker = NULL, strata = NULL,
+  pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
+  imputation.method = NULL, impute = "genotype",
+  imputations.group = "populations", num.tree = 100, iteration.rf = 10,
+  split.number = 100, verbose = FALSE, parallel.core = detectCores() - 1)
+}
 \arguments{
-\item{data}{(biallelic data) 6 options: vcf, plink, genind, genepop, 
-and a data frame in wide or long/tidy format. \emph{See details}.
-The function uses 
-\href{https://github.com/thierrygosselin/stackr}{stackr} 
-\code{\link[stackr]{read_long_tidy_wide}} and 
-\code{\link[stackr]{tidy_genomic_data}}.}
+\item{data}{6 options: vcf (to make vcf population ready, see details below),
+plink, stacks haplotype file, genind, genepop, 
+and a data frame in wide format. \emph{See details}.}
+
+\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop, 
+structure, hierfstat, gtypes, betadiv. Use a character string,
+e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
+output formats generated. The tidy format is generated automatically.}
+
+\item{filename}{(optional) The filename prefix for the objet in the global environment 
+or the working directory. Default: \code{filename = NULL}. A default name will be used,
+customized with the output file(s) selected.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
 a column header 'INDIVIDUALS'. The blacklist is in the working directory
@@ -57,19 +74,22 @@ will only keep markers in common (genotyped) between all the populations.}
 local/populations and global/overall maf thresholds, respectively.
 e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold 
 of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame 
-files. Use stackr for haplotypes files and use the whitelist of markers.
+files.
 Default: \code{maf.thresholds = NULL}.}
 
 \item{maf.pop.num.threshold}{(integer, optional) When maf thresholds are used,
 this argument is for the number of pop required to pass the maf thresholds
 to keep the locus. Default: \code{maf.pop.num.threshold = 1}}
 
-\item{maf.approach}{(character, optional). By \code{maf.approach = "SNP"} or 
-by \code{maf.approach = "haplotype"}.
-The function will consider the SNP or ID/LOCUS/haplotype/read MAF statistics 
-to filter the markers.
-Default is \code{maf.approach = "SNP"}. The \code{haplotype} approach is 
-restricted to VCF file.}
+\item{maf.approach}{(character, optional). 
+\code{maf.approach = "haplotype"} : looks at the minimum MAF found on the 
+read/haplotype. Using this option will discard all the markers/snp on 
+that read based on the thresholds chosen. This method is only available 
+for VCF and haplotype files, or tidy data frame from those file types.
+\code{maf.approach = "SNP"} : treats all the SNP on the same 
+haplotype/read as independent. Doesn't work with haplotype file, 
+but does work for all other file type.
+Default is \code{maf.approach = "SNP"}.}
 
 \item{maf.operator}{(character, optional) \code{maf.operator = "AND"} or 
 default \code{maf.operator = "OR"}.
@@ -83,6 +103,20 @@ contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
 subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
 keep specific markers.
 Default: \code{max.marker = NULL}.}
+
+\item{strata}{(optional for data frame and PLINK files, 
+required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. With a 
+data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+PLINK files, the \code{tfam} first 2 columns are used. 
+If a \code{strata} file is specified, the strata file will have
+precedence. The \code{STRATA} column can be any hierarchical grouping. 
+To create a strata file see \code{\link[stackr]{individuals2strata}}.
+If you have already run 
+\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
+the strata file is similar to a stacks `population map file`, make sure you 
+have the required column names  (\code{INDIVIDUALS} and \code{STRATA}).
+Default: \code{strata = NULL}.}
 
 \item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
 case, the id of the pop.
@@ -100,27 +134,13 @@ into a new pop called \code{"NEW"}:
 \code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
 To rename \code{"QUE"} to \code{"TAS"}:
 \code{pop.labels = c("TAS", "ONT", "ALB")}.
-Default: \code{pop.labels = NULL}. When pop.levels is not null and pop.labels
-is not specified. pop.labels = pop.levels.
-If you find this too complicated, there is also the
+Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
 \code{strata} argument that can do the same thing, see below.}
-
-\item{strata}{(optional for data frame and PLINK files, 
-required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
-\code{INDIVIDUALS} and \code{STRATA}. With a 
-data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
-PLINK files, the \code{tfam} first 2 columns are used. 
-If a \code{strata} file is specified, the strata file will have
-precedence. The \code{STRATA} column can be any hierarchical grouping. 
-To create a strata file see \code{\link[stackr]{individuals2strata}}.
-Default: \code{strata = NULL}.}
 
 \item{pop.select}{(string, optional) Selected list of populations for 
 the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
-and \code{ONT} population samples (out of 20 pops).}
-
-\item{hierarchy}{(optional) A formula that explicitely defines hierarchical levels 
-in your strata. See \code{\link[adegenet]{genind}} for details.}
+and \code{ONT} population samples (out of 20 pops).
+Default: \code{pop.select = NULL}}
 
 \item{imputation.method}{(character, optional) 
 Methods available for map-independent imputations of missing genotype: 
@@ -157,138 +177,24 @@ programming of Random Forest imputations. For more info on how to install the
 OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 If not selected \code{detectCores()-1} is used as default.}
 }
-\value{
-When no imputation is selected an object of the 
-class \code{\link[adegenet]{genind}} is returned.
-When imputation is selected a list with 2 objects is returned
-and accessed with \code{$no.imputation} or \code{$imputed}.
-}
 \description{
-This function can first filter the vcf file 
-with a whitelist of loci
-and a blacklist of individuals (optional). Then it will convert the file
-to a \code{adegenet} \code{\link[adegenet]{genind}} object.
-Map-independent imputation using Random Forest or the most frequent category
-is also available as an option.
-}
-\details{
-\strong{Input files:}
-\enumerate{
-\item VCF file (e.g. \code{data = "batch_1.vcf"}). 
-To make the VCF population ready, you need the \code{strata} argument.
-
-\item haplotype file created in STACKS (e.g. \code{data = "batch_1.haplotypes.tsv"}).
-To make the haplotype file population ready, you need the \code{strata} argument.
-
-\item Data frame
-Tab delimitted.
-\strong{2 genotypes formats are available, both use 3 character per allele:}
-6 characters no allele separator: e.g. \code{001002 of 111333} (for heterozygote individual).
-6 characters WITH an allele separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
-The separator can be any of these: \code{"/", ":", "_", "-", "."}.
-Missing alleles are coded \code{000}.
-To discriminate the long from the wide format, 
-the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-for columns number, > 20 for wide 
-(i.e. don't use less than 10 markers in wide format, the function was not designed for that).
-
-Data Frame wide format:
-The wide format cannot store metadata info.
-The wide format contains starts with these 2 id columns: 
-\code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
-the remaining columns are the markers in separate columns storing genotypes.
-This format requires column numbers to be larger than 20.
-Data frame long/tidy format:
-This format requires column numbers to be within the range: 4 min - 20 max.
-The long format is considered to be a tidy data frame and can store metadata info. 
-(e.g. from a VCF see \pkg{stackr} \code{\link[stackr]{tidy_genomic_data}}). The 4 columns
-required in the long format are: \code{INDIVIDUALS}, \code{POP_ID}, 
-\code{MARKERS} and \code{GENOTYPE or GT}.
-
-Note that the \code{POP_ID} column can be any hierarchical grouping. 
-See the argument \code{strata} for other means of controlling grouping used 
-in the assignment.
-
-\item PLINK file in 
-\code{tped/tfam} format (e.g. \code{data =  "data.assignment.tped"}). 
-The first 2 columns of the \code{tfam} file will be used for the 
-\code{strata} argument below, unless a new one is provided. 
-Columns 1, 3 and 4 of the \code{tped} are discarded. The remaining columns 
-correspond to the genotype in the format \code{01/04} 
-where \code{A = 01, C = 02, G = 03 and T = 04}. For \code{A/T} format, use 
-PLINK or bash to convert.
-Use \href{http://vcftools.sourceforge.net/}{VCFTOOLS} with \code{--plink-tped} 
-to convert very large VCF file. For \code{.ped} file conversion to 
-\code{.tped} use \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK} 
-with \code{--recode transpose},
-
-\item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
-
-\item genepop data file (e.g. \code{data = kiwi_data.gen}). Here, the function can only use
-alleles encoded with 3 digits.
-}
-
-\strong{Imputations details:}
-The imputations using Random Forest requires more time to compute and can take several
-minutes and hours depending on the size of the dataset and polymorphism of
-the species used. e.g. with a low polymorphic taxa, and a data set 
-containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
-will require 15 min.
-}
-\examples{
-\dontrun{
-snowcrab <- vcf2genind(
-data = "batch_1.vcf",
-strata = "snowcrab.strata.tsv",
-whitelist.markers = "whitelist.txt",
-common.markers = TRUE,
-blacklist.id = "blacklist.id.lobster.tsv",
-pop.levels = c("PAN", "COS")
-imputation.method = "rf",
-impute = "genotype",
-imputations.group <- "populations", 
-num.tree <- 100,
-iteration.rf <- 10,
-split.number <- 100,
-verbose <- FALSE,
-parallel.core = 12
-)
-
-A list with 2 genind objects, with and without imputation: 
-no.imputation <- snowcrab$no.imputation
-imputed <- snowcrab$imputed
-}
+For full details of the function, please use 
+\pkg{stackr} \code{\link[stackr]{genomic_converter}}. This function is a shorcut
+to output only genind object.
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
 \references{
-Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
-Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
-G3, 1, 171-182.
-
-Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
-Stacks: an analysis tool set for population genomics. 
-Molecular Ecology, 22, 3124-3140.
-
 Jombart T (2008) adegenet: a R package for the multivariate
 analysis of genetic markers. Bioinformatics, 24, 1403-1405.
 
 Jombart T, Ahmed I (2011) adegenet 1.3-1: 
 new tools for the analysis of genome-wide SNP data. 
 Bioinformatics, 27, 3070-3071.
-
-Ishwaran H. and Kogalur U.B. (2015). Random Forests for Survival,
- Regression and Classification (RF-SRC), R package version 1.6.1.
-
-Ishwaran H. and Kogalur U.B. (2007). Random survival forests
-for R. R News 7(2), 25-31.
-
-Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008).
-Random survival forests. Ann. Appl. Statist. 2(3), 841-860.
 }
 \seealso{
 \code{adegenet} is available on CRAN \url{http://cran.r-project.org/web/packages/adegenet/} and github \url{https://github.com/thibautjombart/}
-\code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/} and github \url{https://github.com/ehrlinger/randomForestSRC}
+\code{\link[stackr]{genomic_converter}}
 }
 

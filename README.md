@@ -19,7 +19,7 @@ observed heterozygosity (Het obs) and inbreeding coefficient (Fis), duplicate in
 Alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways.
 * **Imputations**: Map-independent imputation of missing genotype/alleles 
 using Random Forest or the most frequent category
-* **Output**: painless conversion process. Conversion functions are integrated with important filters, blacklist and whitelist to convert genomic dataset in a **tidy** format and/or into *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *fstat*, *gtypes*, *betadiv* and *dadi* formats. 
+* **Output**: painless conversion process. Conversion functions are integrated with important filters, blacklist and whitelist to convert genomic dataset in a **tidy** format and/or into *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *hierfstat*, *gtypes*, *betadiv* and *dadi* formats. 
 Easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas), [poppr] (https://github.com/grunwaldlab/poppr) and [assigner](https://github.com/thierrygosselin/assigner)
 * `ggplot2`-based plotting to view distributions of summary statistics and create publication-ready figures
 
@@ -52,8 +52,8 @@ library(stackr) # to load
   ```r
   if (!require("pacman")) install.packages("pacman")
   library("pacman")
-  pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
-  pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
+  pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)
+  pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)
   # install_github("thierrygosselin/stackr", build_vignettes = TRUE) # uncomment to install
   library("stackr")
   ```
@@ -84,10 +84,23 @@ citation("stackr")
 ## New features
 Version, new feature and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
-**v.0.2.9**
-* bug fix in `tidy_genomic_data`
-* bug fix between stackr -> devtools -> github -> travis, [this page helped] (http://itsalocke.com/using-travis-make-sure-use-github-pat/)
-
+**v.0.3.0**
+* Update that makes my coding life easier.
+* Several internal functions to convert from a tidy dataframe to:
+`vcf`, `plink`, `genind`, `genlight`, `gtypes`, `hierfstat`, `genepop`, `structure` and `betadiv` 
+are now separate modules available to users (look for `write_...` with the outputformat)
+* New function `genomic_converter`: If you want the to convert from the supported 
+input file formats to many output formats, at once, this is the function. 
+With the new function `genomic_converter`, import and imputations is only 
+done once, saving time if you were generating different output WITH imputations.
+* Change: all the `vcf2...` functions (excep `vcf2dadi`) are now a shorcut of `genomic_converter`. 
+ This is particularly interesting and faster if you were generating different
+ output WITH imputations.
+* Deprecated: the `haplo2...` functions are all deprecated and replaced by 
+`genomic_converter`, **except haplo2colony** that requires so many arguments that it 
+would be too complicated, for now, to integrate with `genomic_converter`.
+* New feature: when selecting populations and/or using a blacklist of ID and/or 
+after imputations, the REF and ALT alleles are now re-computed to account for the filters and imputations.
 
 For previous news:
 [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
@@ -95,10 +108,10 @@ For previous news:
 ## Roadmap of future developments:
 
 * Until publication **stackr** will change rapidly (see contributions below for bug reports).
-* Updated filters: more efficient, interactive and visualization included.
-* Better integration with other GBS/RADseq approaches, beside [STACKS](http://catchenlab.life.illinois.edu/stacks/).
-* Integrated converter function to input and output several file formats.
-* Workflow tutorial that links functions and points to specific vignettes to further explore some problems.
+* Updated filters: more efficient, interactive and visualization included: *in progress*
+* Better integration with other GBS/RADseq approaches, beside [STACKS](http://catchenlab.life.illinois.edu/stacks/): *in progress* 
+* Integrated converter function to input and output several file formats: *done*
+* Workflow tutorial that links functions and points to specific vignettes to further explore some problems: *in progress*
 * Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database.
 * Use Shiny and ggvis when subplots or facets becomes available...
 * Suggestions ?

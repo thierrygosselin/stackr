@@ -86,17 +86,13 @@ write_structure <- function(
   markers.line = TRUE, 
   filename = NULL,
   ...
-  ) {
+) {
   
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file necessary to write the structure file is missing")
-
+  
   # Import data ---------------------------------------------------------------
-  if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data)
-  } else {
-    input <- data
-  }
+  input <- stackr::read_long_tidy_wide(data = data)
   
   colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
                                             pattern = "GENOTYPE", 
@@ -115,7 +111,7 @@ write_structure <- function(
       mutate(
         POP_ID = factor(POP_ID, levels = pop.levels, ordered =TRUE),
         POP_ID = droplevels(POP_ID)
-        ) %>% 
+      ) %>% 
       arrange(POP_ID, INDIVIDUALS, MARKERS)
   } else {
     input <- input %>% 
@@ -140,7 +136,7 @@ write_structure <- function(
     mutate(POP_ID = as.numeric(POP_ID)) %>% 
     select(-ALLELES) %>% 
     arrange(POP_ID, INDIVIDUALS)
-
+  
   # Write the file in structure format -----------------------------------------
   
   # Filename

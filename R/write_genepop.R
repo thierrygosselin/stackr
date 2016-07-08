@@ -8,7 +8,7 @@
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and \href{https://github.com/thierrygosselin/assigner}{assigner}
 #' and might be of interest for users.
- 
+
 #' @param data A file in the working directory or object in the global environment 
 #' in wide or long (tidy) formats. See details for more info. 
 
@@ -16,7 +16,7 @@
 #' Default: \code{pop.levels = NULL}.
 
 #' @param genepop.header The first line of the Genepop file.
-#' Default: \code{genepop.header = "my firt genepop"}.
+#' Default: \code{genepop.header = NULL} will use "stackr genepop with date".
 
 #' @param markers.line (optional, logical) In the genepop and structure
 #' file, you can write the markers on a single line separated by 
@@ -91,21 +91,17 @@
 write_genepop <- function(
   data,
   pop.levels = NULL, 
-  genepop.header = "my firt genepop", 
+  genepop.header = NULL, 
   markers.line = TRUE, 
   filename = NULL,
   ...
-  ) {
+) {
   
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file necessary to write the genepop file is missing")
-
+  
   # Import data ---------------------------------------------------------------
-  if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data)
-  } else {
-    input <- data
-  }
+  input <- stackr::read_long_tidy_wide(data = data)
   
   colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
                                             pattern = "GENOTYPE", 
@@ -134,7 +130,7 @@ write_genepop <- function(
       mutate(
         POP_ID = factor(POP_ID, levels = pop.levels, ordered =TRUE),
         POP_ID = droplevels(POP_ID)
-        ) %>% 
+      ) %>% 
       arrange(POP_ID, INDIVIDUALS, MARKERS)
   }
   
@@ -164,6 +160,17 @@ write_genepop <- function(
     filename <- stri_paste(filename, ".gen")
   }
   
+  
+  # genepop header  ------------------------------------------------------------
+  if (is.null(genepop.header)) {
+    # Get date and time to have unique filenaming
+    file.date <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "", vectorize_all = FALSE)
+    file.date <- stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
+    file.date <- stri_sub(file.date, from = 1, to = 13)
+    genepop.header <- stri_paste("stackr genepop ", file.date)
+  }
+  
+  # genepop construction
   pop <- input$POP_ID # Create a population vector
   input <- split(select(.data = input, -POP_ID), pop) # split genepop by populations
   filename.connection <- file(filename, "w") # open the connection to the file

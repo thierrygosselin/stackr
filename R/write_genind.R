@@ -61,16 +61,14 @@ write_genind <- function(data) {
   if (missing(data)) stop("Input file necessary to write the genepop file is missing")
   
   # Import data ---------------------------------------------------------------
-  if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data)
-  } else {
-    input <- data
-  }
+  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
   
   colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
                                             pattern = "GENOTYPE", 
                                             replacement = "GT", 
                                             vectorize_all = FALSE)
+  # Switch colnames LOCUS to MARKERS if found
+  # if ("LOCUS" %in% colnames(input)) input <- rename(.data = input, MARKERS = LOCUS)
   
   genind.prep <- input %>% 
     select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
@@ -148,5 +146,18 @@ write_genind <- function(data) {
     as_data_frame() %>%
     arrange(POP_ID, INDIVIDUALS)
   
-  return(genind.prep)
+  # genind arguments common to all data.type
+  ind <- genind.prep$INDIVIDUALS
+  pop <- genind.prep$POP_ID
+  genind.df <- genind.prep %>% ungroup() %>% 
+    select(-c(INDIVIDUALS, POP_ID))
+  suppressWarnings(rownames(genind.df) <- ind)
+  loc.names <- colnames(genind.df)
+  strata <- genind.prep %>% ungroup() %>% distinct(INDIVIDUALS, POP_ID)
+  
+  # genind constructor
+  prevcall <- match.call()
+  res <- genind(tab = genind.df, pop = pop, prevcall = prevcall, ploidy = 2, type = "codom", strata = strata, hierarchy = NULL)
+  
+  return(res)
 } # End write_genind

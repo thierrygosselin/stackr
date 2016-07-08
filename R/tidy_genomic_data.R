@@ -221,6 +221,7 @@
 #' @importFrom data.table fread
 #' @importFrom data.table melt.data.table
 #' @importFrom data.table as.data.table
+#' @importFrom plyr colwise
 
 
 #' @examples
@@ -315,29 +316,29 @@ tidy_genomic_data <- function(
   # File type detection ********************************************************
   if(is.genind(data)){
     data.type <- "genind.file"
-    message("File type: genind object")
+    # message("File type: genind object")
   } else {
     data.type <- readChar(con = data, nchars = 16L, useBytes = TRUE)
     if (identical(data.type, "##fileformat=VCF") | stri_detect_fixed(str = data, pattern = ".vcf")) {
       data.type <- "vcf.file"
-      message("File type: VCF")
+      # message("File type: VCF")
     }
     if (stri_detect_fixed(str = data, pattern = ".tped")) {
       data.type <- "plink.file"
-      message("File type: PLINK")
+      # message("File type: PLINK")
       if (!file.exists(stri_replace_all_fixed(str = data, pattern = ".tped", replacement = ".tfam", vectorize_all = FALSE))) {
         stop("Missing tfam file with the same prefix as your tped")
       }
     } 
     if (stri_detect_fixed(str = data.type, pattern = "POP_ID") | stri_detect_fixed(str = data.type, pattern = "INDIVIDUALS") | stri_detect_fixed(str = data.type, pattern = "MARKERS")| stri_detect_fixed(str = data.type, pattern = "LOCUS")) {
       data.type <- "df.file"
-      message("File type: data frame of genotypes")
+      # message("File type: data frame of genotypes")
     }
     
     
     if (stri_detect_fixed(str = data.type, pattern = "Catalog")) {
       data.type <- "haplo.file"
-      message("File type: haplotypes from stacks")
+      # message("File type: haplotypes from stacks")
       # if (is.null(blacklist.genotype)) {
       #   stop("blacklist.genotype file missing. 
       #        Use stackr's missing_genotypes function to create this blacklist")
@@ -345,7 +346,7 @@ tidy_genomic_data <- function(
     }
     if (stri_detect_fixed(str = data, pattern = ".gen")) {
       data.type <- "genepop.file"
-      message("File type: genepop")
+      # message("File type: genepop")
     } 
   } # end file type detection
   
@@ -371,9 +372,9 @@ tidy_genomic_data <- function(
   
   # Import whitelist of markers ************************************************
   if (is.null(whitelist.markers)) { # no Whitelist
-    message("Whitelist of markers: no")
+    # message("Whitelist of markers: no")
   } else { # with Whitelist of markers
-    message("Whitelist of markers: yes")
+    # message("Whitelist of markers: yes")
     whitelist.markers <- read_tsv(whitelist.markers, col_names = TRUE)
     columns.names.whitelist <- colnames(whitelist.markers)
     if ("CHROM" %in% columns.names.whitelist) {
@@ -399,22 +400,22 @@ tidy_genomic_data <- function(
   
   # Import blacklist id ********************************************************
   if (is.null(blacklist.id)) { # No blacklist of ID
-    message("Blacklisted individuals: no")
+    # message("Blacklisted individuals: no")
   } else { # With blacklist of ID
-    message("Blacklisted individuals: yes")
+    # message("Blacklisted individuals: yes")
     blacklist.id <- read_tsv(blacklist.id, col_names = TRUE)
   }
   
   # population levels and strata ***********************************************
   if (!is.null(strata)) {
     if (is.vector(strata)) {
-      message("strata file: yes")
+      # message("strata file: yes")
       number.columns.strata <- max(count.fields(strata, sep = "\t"))
       col.types <- stri_paste(rep("c", number.columns.strata), collapse = "")
       strata.df <- read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>% 
         rename(POP_ID = STRATA)
     } else {
-      message("strata object: yes")
+      # message("strata object: yes")
       colnames(strata) <- stri_replace_all_fixed(str = colnames(strata), 
                                                  pattern = "STRATA", 
                                                  replacement = "POP_ID", 
@@ -488,9 +489,6 @@ tidy_genomic_data <- function(
       filter(!INDIVIDUALS %in% blacklist.id$INDIVIDUALS)
     
     # population levels and strata  --------------------------------------------
-    # if (!is.null(blacklist.id)) {
-    #   strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
-    # }
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
     
     # Pop select
@@ -1008,8 +1006,8 @@ tidy_genomic_data <- function(
     input.id.col <- select(.data = input, POP_ID, INDIVIDUALS, ALLELES)
     
     input.variable <- input %>% select(-c(POP_ID, INDIVIDUALS, ALLELES)) %>% 
-      colwise(factor, exclude = NA)(.) %>% 
-      colwise(as.numeric)(.)
+      plyr::colwise(factor, exclude = NA)(.) %>% 
+      plyr::colwise(as.numeric)(.)
     
     input <- bind_cols(input.id.col, input.variable)
     
@@ -1335,7 +1333,7 @@ tidy_genomic_data <- function(
       select(MARKERS)
     
     # Remove the markers from the dataset
-    message(paste0("Number of monomorphic markers removed: ", n_distinct(mono.markers$MARKERS)))
+    message(paste0("Number of monomorphic markers removed = ", n_distinct(mono.markers$MARKERS)))
     
     if (length(mono.markers$MARKERS)>0) {
       input <- anti_join(input, mono.markers, by = "MARKERS")

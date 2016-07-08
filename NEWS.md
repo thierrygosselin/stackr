@@ -1,3 +1,8 @@
+# stackr v.0.2.9
+* bug fix in `tidy_genomic_data`
+* bug fix between stackr -> devtools -> github -> travis, [this page helped] (http://itsalocke.com/using-travis-make-sure-use-github-pat/)
+
+
 # stackr v.0.2.8
 * bug fix in `tidy_genomic_data` while using data.table::melt.data.table instead 
 of tidyr::gather, and forgot to 

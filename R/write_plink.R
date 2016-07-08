@@ -64,11 +64,7 @@
 write_plink <- function(data, filename = NULL) {
   
   # Import data ---------------------------------------------------------------
-  if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data)
-  } else {
-    input <- data
-  }
+  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
   
   colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
                                             pattern = "GENOTYPE", 

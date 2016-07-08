@@ -59,11 +59,7 @@
 write_vcf <- function(data, filename = NULL) {
   
   # Import data ---------------------------------------------------------------
-  if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data)
-  } else {
-    input <- data
-  }
+  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
   
   colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
                                             pattern = "GENOTYPE", 
@@ -73,67 +69,20 @@ write_vcf <- function(data, filename = NULL) {
   
   # REF/ALT Alleles and VCF genotype format ------------------------------------
   if (!tibble::has_name(input, "GT_VCF")) {
-    input.select <- input %>%
-      select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
-      #faster than: tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
-      mutate(
-        A1 = stri_sub(str = GT, from = 1, to = 3),
-        A2 = stri_sub(str = GT, from = 4, to = 6)
-      ) %>%
-      select(-GT)
-    
-    new.ref.alt.alleles <- input.select %>% 
-      tidyr::gather(
-        data = ., key = ALLELES, 
-        value = GT, 
-        -c(MARKERS, INDIVIDUALS, POP_ID)
-      ) %>% # just miliseconds longer than data.table.melt so keeping this one for simplicity
-      filter(GT != "000") %>%  # remove missing "000"
-      group_by(MARKERS, GT) %>%
-      tally %>% 
-      ungroup() %>% 
-      mutate(ALLELE_NUMBER = rep(c("A1", "A2"), each = 1, times = n()/2)) %>% 
-      group_by(MARKERS) %>%
-      mutate(
-        PROBLEM = ifelse(n[ALLELE_NUMBER == "A1"] == n[ALLELE_NUMBER == "A2"], "equal_number", "ok"),
-        GROUP = ifelse(n == max(n), "REF", "ALT")
-      ) %>% 
-      group_by(MARKERS, GT) %>% 
-      mutate(
-        ALLELE = ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A1", "REF", 
-                        ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A2", "ALT", 
-                               GROUP)
-        )
-      ) %>% 
-      select(MARKERS, GT, ALLELE) %>%
-      group_by(MARKERS) %>% 
-      tidyr::spread(data = ., ALLELE, GT) %>% 
-      mutate(
-        CHROM = rep("1", n()),
-        LOCUS = MARKERS,
-        POS = MARKERS
-      ) %>% 
-      select(MARKERS, CHROM, LOCUS, POS, REF, ALT)
-    
-    ref.alt.alleles.change <- full_join(input.select, new.ref.alt.alleles, by = "MARKERS") %>% 
-      mutate(
-        A1 = replace(A1, which(A1 == "000"), NA),
-        A2 = replace(A2, which(A2 == "000"), NA),
-        GT_VCF_A1 = if_else(A1 == REF, "0", "1", missing = "."),
-        GT_VCF_A2 = if_else(A2 == REF, "0", "1", missing = "."),
-        GT_VCF = stri_paste(GT_VCF_A1, GT_VCF_A2, sep = "/"),
-        GT_BIN = stri_replace_all_fixed(
-          str = GT_VCF, 
-          pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
-          replacement = c("0", "2", "1", "1", NA), 
-          vectorize_all = FALSE
-        )
-      ) %>% 
-      select(MARKERS, CHROM, LOCUS, POS, INDIVIDUALS, REF, ALT, GT_VCF, GT_BIN)
-    
+    ref.alt.alleles.change <- ref_alt_alleles(data = input)
     input <- left_join(input, ref.alt.alleles.change, by = c("MARKERS", "INDIVIDUALS"))
   }
   
+  # Include CHROM, LOCUS, POS --------------------------------------------------
+  if (!tibble::has_name(input, "CHROM")) {
+    input <- mutate(
+      .data = input, 
+      CHROM = rep("1", n()),
+      LOCUS = MARKERS,
+      POS = MARKERS
+    )
+  }
+
   # Remove the POP_ID column ---------------------------------------------------
   if (tibble::has_name(input, "POP_ID")) {
     input <- select(.data = input, -POP_ID)
@@ -165,8 +114,7 @@ write_vcf <- function(data, filename = NULL) {
       ) %>% 
       arrange(CHROM, LOCUS, POS) %>% 
       ungroup() %>%
-      select(-MARKERS) %>% 
-      select('#CHROM' = CHROM, POS, ID = LOCUS, REF, ALT, QUAL, FILTER, INFO, FORMAT, everything())
+      select(-MARKERS, '#CHROM' = CHROM, POS, ID = LOCUS, REF, ALT, QUAL, FILTER, INFO, FORMAT, everything())
   )
   
   # Filename ------------------------------------------------------------------

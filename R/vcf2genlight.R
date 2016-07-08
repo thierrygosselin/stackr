@@ -1,11 +1,11 @@
-# VCF data imputation using Random Forest
+# Write a adegenet genlight object from VCF file
 
-#' @name vcf2genepop
-#' @title VCF to genepop with filters and data imputation
+#' @name vcf2genlight
+#' @title VCF to \code{adegenet} \code{\link[adegenet]{genlight}} object with filters and data imputation
 
 #' @description For full details of the function, please use 
 #' \pkg{stackr} \code{\link[stackr]{genomic_converter}}. This function is a shorcut
-#' to output only genepop file.
+#' to output only genlight object.
 #' @inheritParams genomic_converter 
 #' @inheritParams tidy_genomic_data 
 #' @inheritParams write_genepop
@@ -17,34 +17,28 @@
 #' @inheritParams write_gtypes
 #' @inheritParams write_hierfstat
 #' @inheritParams stackr_imputations_module 
-#' @seealso \code{\link[stackr]{genomic_converter}}
-
 
 #' @export
-#' @rdname vcf2genepop
-#' @import reshape2
+#' @rdname vcf2genlight
 #' @import dplyr
 #' @import stringi
 #' @importFrom data.table fread
+#' @import parallel
+#' @import dplyr
+#' @import stringi
 
+#' @references Jombart T (2008) adegenet: a R package for the multivariate
+#' analysis of genetic markers. Bioinformatics, 24, 1403-1405.
+#' @references Jombart T, Ahmed I (2011) adegenet 1.3-1: 
+#' new tools for the analysis of genome-wide SNP data. 
+#' Bioinformatics, 27, 3070-3071.
+
+#' @seealso \code{adegenet} is available on CRAN \url{http://cran.r-project.org/web/packages/adegenet/} and github \url{https://github.com/thibautjombart/}
+#' \code{\link[stackr]{genomic_converter}}
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-# to get rid of notes in build check
-# if(getRversion() >= "2.15.1") {
-#   utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", 
-#                            "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", 
-#                            "SAMPLES", "ALLELES", 'A1', 'A2', 'COUNT', 
-#                            "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", 
-#                            "POLYMORPHISM", "POLYMORPHISM_MAX", "other", 
-#                            "strata", "hierarchy", "GROUP", ".", 'MARKERS', 
-#                            'MARKERS_ALLELES', 'STRATA'
-#   )
-#   )
-# }
-
-
-vcf2genepop <- function(
+vcf2genlight <- function(
   data,
   output,
   filename = NULL,
@@ -75,7 +69,7 @@ vcf2genepop <- function(
   
   res <- genomic_converter(
     data,
-    output = "genepop",
+    output = "genlight",
     filename = filename,
     blacklist.id = blacklist.id,
     blacklist.genotype = blacklist.genotype,
@@ -103,3 +97,4 @@ vcf2genepop <- function(
   )
   return(res)
 }
+

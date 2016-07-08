@@ -92,6 +92,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @import reshape2
 #' @import dplyr
 #' @import lazyeval
+#' @importFrom plyr colwise
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
 #' G3, 1, 171-182.
@@ -327,7 +328,7 @@ haplo2colony <- function(haplotypes.file,
   message("step 3/5: completed")
   haplo.prep <- suppressWarnings(
     haplo.prep %>% 
-      colwise(factor, exclude = "NA")(.)
+      plyr::colwise(factor, exclude = "NA")(.)
   )
   # Allele frequency per locus
   if (allele.freq == "overall"){

@@ -1,11 +1,11 @@
-# VCF data imputation using Random Forest
+# Write a structure object from a VCF file
 
-#' @name vcf2genepop
-#' @title VCF to genepop with filters and data imputation
+#' @name vcf2structure
+#' @title VCF to structure with filters and data imputation
 
 #' @description For full details of the function, please use 
 #' \pkg{stackr} \code{\link[stackr]{genomic_converter}}. This function is a shorcut
-#' to output only genepop file.
+#' to output only structure file.
 #' @inheritParams genomic_converter 
 #' @inheritParams tidy_genomic_data 
 #' @inheritParams write_genepop
@@ -17,34 +17,17 @@
 #' @inheritParams write_gtypes
 #' @inheritParams write_hierfstat
 #' @inheritParams stackr_imputations_module 
-#' @seealso \code{\link[stackr]{genomic_converter}}
-
 
 #' @export
-#' @rdname vcf2genepop
+#' @rdname vcf2structure
 #' @import reshape2
 #' @import dplyr
-#' @import stringi
-#' @importFrom data.table fread
 
+#' @seealso \code{\link[stackr]{genomic_converter}}
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-# to get rid of notes in build check
-# if(getRversion() >= "2.15.1") {
-#   utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", 
-#                            "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", 
-#                            "SAMPLES", "ALLELES", 'A1', 'A2', 'COUNT', 
-#                            "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", 
-#                            "POLYMORPHISM", "POLYMORPHISM_MAX", "other", 
-#                            "strata", "hierarchy", "GROUP", ".", 'MARKERS', 
-#                            'MARKERS_ALLELES', 'STRATA'
-#   )
-#   )
-# }
-
-
-vcf2genepop <- function(
+vcf2structure <- function(
   data,
   output,
   filename = NULL,
@@ -75,7 +58,7 @@ vcf2genepop <- function(
   
   res <- genomic_converter(
     data,
-    output = "genepop",
+    output = "structure",
     filename = filename,
     blacklist.id = blacklist.id,
     blacklist.genotype = blacklist.genotype,

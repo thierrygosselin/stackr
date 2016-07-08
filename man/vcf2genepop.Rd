@@ -3,12 +3,35 @@
 \name{vcf2genepop}
 \alias{vcf2genepop}
 \title{VCF to genepop with filters and data imputation}
+\usage{
+vcf2genepop(data, output, filename = NULL, blacklist.id = NULL,
+  blacklist.genotype = NULL, whitelist.markers = NULL,
+  monomorphic.out = TRUE, snp.ld = NULL, common.markers = TRUE,
+  maf.thresholds = NULL, maf.pop.num.threshold = 1, maf.approach = "SNP",
+  maf.operator = "OR", max.marker = NULL, strata = NULL,
+  pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
+  imputation.method = NULL, impute = "genotype",
+  imputations.group = "populations", num.tree = 100, iteration.rf = 10,
+  split.number = 100, verbose = FALSE, parallel.core = detectCores() - 1)
+}
 \arguments{
-\item{data}{The VCF file created by STACKS.}
+\item{data}{6 options: vcf (to make vcf population ready, see details below),
+plink, stacks haplotype file, genind, genepop, 
+and a data frame in wide format. \emph{See details}.}
 
-\item{whitelist.markers}{(optional) A whitelist containing CHROM (character or integer) and/or LOCUS (integer) and/or 
-POS (integer) columns header. To filter by CHROM and/or locus and/or by snp.
-The whitelist is in the directory (e.g. "whitelist.txt"). de novo CHROM column with 'un' need to be changed to 1.}
+\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop, 
+structure, hierfstat, gtypes, betadiv. Use a character string,
+e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
+output formats generated. The tidy format is generated automatically.}
+
+\item{filename}{(optional) The filename prefix for the objet in the global environment 
+or the working directory. Default: \code{filename = NULL}. A default name will be used,
+customized with the output file(s) selected.}
+
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
 
 \item{blacklist.genotype}{(optional) Useful to erase genotype with below 
 average quality, e.g. genotype with more than 2 alleles in diploid likely 
@@ -20,45 +43,104 @@ all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (charact
 or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
 INDIVIDUALS (character) columns header. The blacklist must be in the working 
 directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
-with 'un' need to be changed to 1. Default \code{NULL} for no blacklist of 
+with 'un' need to be changed to 1. 
+Default: \code{blacklist.genotype = NULL} for no blacklist of 
 genotypes to erase.}
 
-\item{snp.ld}{(optional) Minimize linkage disequilibrium (LD) by choosing 
-among these 3 options: \code{"random"} selection, \code{"first"} or 
-\code{"last"} SNP on the same read/haplotype. Default = \code{NULL}.}
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
+The whitelist is in the working directory (e.g. "whitelist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+In the VCF, the column ID is the LOCUS identification.
+Default \code{whitelist.markers = NULL} for no whitelist of markers.}
 
-\item{common.markers}{(optional) Logical. Default = \code{FALSE}. 
-With \code{TRUE}, will keep markers present in all the populations.}
+\item{monomorphic.out}{(optional) Should the monomorphic 
+markers present in the dataset be filtered out ? 
+Default: \code{monomorphic.out = TRUE}.}
 
-\item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the directory
- (e.g. "blacklist.txt").}
+\item{snp.ld}{(optional) \strong{For VCF file only}. 
+SNP short distance linkage disequilibrium pruning. With anonymous markers from
+RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
+choosing among these 3 options: \code{"random"} selection, \code{"first"} or
+\code{"last"} SNP on the same short read/haplotype. For long distance linkage
+disequilibrium pruning, see details below.
+Default: \code{snp.ld = NULL}.}
 
-\item{pop.levels}{(required) A character string with your populations ordered.}
+\item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE}, 
+will only keep markers in common (genotyped) between all the populations.}
 
-\item{pop.labels}{(optional) A character string of your populations labels.
-If you need to rename sampling sites in \code{pop.levels} or combined sites/pop
-into a different names, here is the place.}
+\item{maf.thresholds}{(string, double, optional) String with 
+local/populations and global/overall maf thresholds, respectively.
+e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold 
+of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame 
+files.
+Default: \code{maf.thresholds = NULL}.}
 
-\item{pop.id.start}{The start of your population id 
-in the name of your individual sample.}
+\item{maf.pop.num.threshold}{(integer, optional) When maf thresholds are used,
+this argument is for the number of pop required to pass the maf thresholds
+to keep the locus. Default: \code{maf.pop.num.threshold = 1}}
 
-\item{pop.id.end}{The end of your population id 
-in the name of your individual sample.}
+\item{maf.approach}{(character, optional). 
+\code{maf.approach = "haplotype"} : looks at the minimum MAF found on the 
+read/haplotype. Using this option will discard all the markers/snp on 
+that read based on the thresholds chosen. This method is only available 
+for VCF and haplotype files, or tidy data frame from those file types.
+\code{maf.approach = "SNP"} : treats all the SNP on the same 
+haplotype/read as independent. Doesn't work with haplotype file, 
+but does work for all other file type.
+Default is \code{maf.approach = "SNP"}.}
 
-\item{strata}{(optional) A tab delimited file with 2 columns with header:
-\code{INDIVIDUALS} and \code{STRATA}. Default: \code{strata = NULL}. 
-This is especially useful if you have a hierarchical or factorial sampling 
-design. See also \code{\link[adegenet]{genind}} for details.}
+\item{maf.operator}{(character, optional) \code{maf.operator = "AND"} or 
+default \code{maf.operator = "OR"}.
+When filtering over LOCUS or SNP, do you want the local \code{"AND"}
+global MAF to pass the thresholds, or ... you want the local \code{"OR"}
+global MAF to pass the thresholds, to keep the marker?}
 
-\item{pop.select}{(string) Conduct the conversion on a
-selected list of populations. Default = \code{NULL} for no selection and keep
-all population.
-e.g. \code{pop.select = "QUE"} to select QUE population samples.
-\code{pop.select = c("QUE", "ONT")} to select QUE and ONT population samples.}
+\item{max.marker}{An optional integer useful to subsample marker number in 
+large PLINK file. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
+subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
+keep specific markers.
+Default: \code{max.marker = NULL}.}
 
-\item{hierarchy}{(optional) A formula that explicitely defines hierarchical levels 
-in your strata. See \code{\link[adegenet]{genind}} for details.}
+\item{strata}{(optional for data frame and PLINK files, 
+required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. With a 
+data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+PLINK files, the \code{tfam} first 2 columns are used. 
+If a \code{strata} file is specified, the strata file will have
+precedence. The \code{STRATA} column can be any hierarchical grouping. 
+To create a strata file see \code{\link[stackr]{individuals2strata}}.
+If you have already run 
+\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
+the strata file is similar to a stacks `population map file`, make sure you 
+have the required column names  (\code{INDIVIDUALS} and \code{STRATA}).
+Default: \code{strata = NULL}.}
+
+\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
+case, the id of the pop.
+Use this argument to have the pop ordered your way instead of the default 
+alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
+instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+Default: \code{pop.levels = NULL}.}
+
+\item{pop.labels}{(optional, string) Use this argument to rename/relabel
+your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
+into a new pop called \code{"NEW"}:
+(1) First, define the levels for your pop with \code{pop.levels} argument: 
+\code{pop.levels = c("QUE", "ONT", "ALB")}. 
+(2) then, use \code{pop.labels} argument: 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+To rename \code{"QUE"} to \code{"TAS"}:
+\code{pop.labels = c("TAS", "ONT", "ALB")}.
+Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
+\code{strata} argument that can do the same thing, see below.}
+
+\item{pop.select}{(string, optional) Selected list of populations for 
+the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
+and \code{ONT} population samples (out of 20 pops).
+Default: \code{pop.select = NULL}}
 
 \item{imputation.method}{(character, optional) 
 Methods available for map-independent imputations of missing genotype: 
@@ -94,64 +176,16 @@ Default: \code{verbose = FALSE}.}
 programming of Random Forest imputations. For more info on how to install the
 OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 If not selected \code{detectCores()-1} is used as default.}
-
-\item{genepop.filename}{The name of the file written to the directory.
-Use the extension ".gen" at the end. 
-Default: \code{genepop.filename = "genepop.gen"}.}
-
-\item{genepop.header}{The first line of the Genepop file.
-Default: \code{genepop.header = "my firt genepop"}.}
-}
-\value{
-When no imputation is selected a genepop file is saved to the 
-working directory. When imputation is selected 2 genepop files are saved to
-the working directory.
 }
 \description{
-This function can first filter the vcf file 
-with a whitelist of loci and a blacklist of individuals (optional). 
-Then it will convert the file
-to a genepop file.
-Map-independent imputation using Random Forest or the most frequent category
-is also available as an option.
-}
-\details{
-The imputations using Random Forest requires more time to compute and can take several
-minutes and hours depending on the size of the dataset and polymorphism of
-the species used. e.g. with a low polymorphic taxa, and a data set 
-containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
-will require 15 min.
+For full details of the function, please use 
+\pkg{stackr} \code{\link[stackr]{genomic_converter}}. This function is a shorcut
+to output only genepop file.
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
-\references{
-Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
-Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
-G3, 1, 171-182.
-
-Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
-Stacks: an analysis tool set for population genomics. 
-Molecular Ecology, 22, 3124-3140.
-
-Jombart T (2008) adegenet: a R package for the multivariate
-analysis of genetic markers. Bioinformatics, 24, 1403-1405.
-
-Jombart T, Ahmed I (2011) adegenet 1.3-1: 
-new tools for the analysis of genome-wide SNP data. 
-Bioinformatics, 27, 3070-3071.
-
-Ishwaran H. and Kogalur U.B. (2015). Random Forests for Survival,
- Regression and Classification (RF-SRC), R package version 1.6.1.
-
-Ishwaran H. and Kogalur U.B. (2007). Random survival forests
-for R. R News 7(2), 25-31.
-
-Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008).
-Random survival forests. Ann. Appl. Statist. 2(3), 841-860.
-}
 \seealso{
-\code{adegenet} is available on CRAN \url{http://cran.r-project.org/web/packages/adegenet/} and github \url{https://github.com/thibautjombart/}
-\code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/} and github \url{https://github.com/ehrlinger/randomForestSRC}
+\code{\link[stackr]{genomic_converter}}
 }
 
