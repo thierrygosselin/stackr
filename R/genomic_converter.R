@@ -1,7 +1,9 @@
 # Convert genomic dataset to other useful genomic format with filter and imputation
 
 #' @name genomic_converter
+
 #' @title Conversion tool among several genomic formats
+
 #' @description The arguments in the \code{genomic_converter} function were tailored for the
 #' reality of GBS/RADseq data while maintaining a reproducible workflow.
 #' 
@@ -196,20 +198,6 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com} and 
 #' Laura Benestan \email{laura.benestan@@icloud.com} (for betadiv)
-
-# to get rid of notes in build check
-# if(getRversion() >= "2.15.1") {
-#   utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", 
-#                            "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", 
-#                            "SAMPLES", "ALLELES", 'A1', 'A2', 'COUNT', 
-#                            "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", 
-#                            "POLYMORPHISM", "POLYMORPHISM_MAX", "other", 
-#                            "strata", "hierarchy", "GROUP", ".", 'MARKERS', 
-#                            'MARKERS_ALLELES', 'STRATA'
-#   )
-#   )
-# }
-
 
 genomic_converter <- function(
   data,

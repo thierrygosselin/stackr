@@ -10,6 +10,12 @@
 #' @param data A file in the working directory or object in the global environment 
 #' in wide or long (tidy) formats. See details for more info. 
 
+#' @param pop.info (optional, logical) Should the population information be 
+#' included in the FORMAT field (along the GT info for each samples ?). To make
+#' the VCF population-ready use \code{pop.info = TRUE}. The populatio information
+#' must be included in the \code{POP_ID} column of the tidy dataset.
+#' Default: \code{pop.info = FALSE}.
+
 #' @param filename (optional) The file name prefix for the vcf file 
 #' written to the working directory. With default: \code{filename = NULL}, 
 #' the date and time is appended to \code{stackr_vcf_file_}.
@@ -56,7 +62,7 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-write_vcf <- function(data, filename = NULL) {
+write_vcf <- function(data, pop.info = FALSE, filename = NULL) {
   
   # Import data ---------------------------------------------------------------
   input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
@@ -82,9 +88,9 @@ write_vcf <- function(data, filename = NULL) {
       POS = MARKERS
     )
   }
-
+  
   # Remove the POP_ID column ---------------------------------------------------
-  if (tibble::has_name(input, "POP_ID")) {
+  if (tibble::has_name(input, "POP_ID") & (!pop.info)) {
     input <- select(.data = input, -POP_ID)
   }
   
@@ -99,23 +105,44 @@ write_vcf <- function(data, filename = NULL) {
   )
   
   # VCF body  ------------------------------------------------------------------
-  output <- suppressWarnings(
-    left_join(input, info.field, by = "MARKERS") %>% 
-      select(MARKERS, CHROM, LOCUS, POS, REF, ALT, INDIVIDUALS, GT_VCF, INFO) %>% 
-      group_by(MARKERS, CHROM, LOCUS, POS, INFO, REF, ALT) %>% 
-      tidyr::spread(data = ., key = INDIVIDUALS, value = GT_VCF) %>%
-      ungroup() %>% 
-      mutate(
-        # LOCUS = as.numeric(LOCUS),
-        # POS = as.numeric(POS),
-        QUAL = rep(".", n()),
-        FILTER = rep("PASS", n()),
-        FORMAT = rep("GT", n())
-      ) %>% 
-      arrange(CHROM, LOCUS, POS) %>% 
-      ungroup() %>%
-      select(-MARKERS, '#CHROM' = CHROM, POS, ID = LOCUS, REF, ALT, QUAL, FILTER, INFO, FORMAT, everything())
-  )
+  GT_VCF_POP_ID <- NULL
+  if (pop.info) {
+    output <- suppressWarnings(
+      left_join(input, info.field, by = "MARKERS") %>% 
+        select(MARKERS, CHROM, LOCUS, POS, REF, ALT, INFO, INDIVIDUALS, GT_VCF, POP_ID) %>%
+        mutate(GT_VCF_POP_ID = stri_paste(GT_VCF, POP_ID, sep = ":")) %>%
+        select(-c(GT_VCF, POP_ID)) %>% 
+        group_by(MARKERS, CHROM, LOCUS, POS, INFO, REF, ALT) %>% 
+        tidyr::spread(data = ., key = INDIVIDUALS, value = GT_VCF_POP_ID) %>%
+        ungroup() %>% 
+        mutate(
+          QUAL = rep(".", n()),
+          FILTER = rep("PASS", n()),
+          FORMAT = rep("GT:POP", n())
+        )
+    )
+    
+  } else {
+    output <- suppressWarnings(
+      left_join(input, info.field, by = "MARKERS") %>% 
+        select(MARKERS, CHROM, LOCUS, POS, REF, ALT, INDIVIDUALS, GT_VCF, INFO) %>% 
+        group_by(MARKERS, CHROM, LOCUS, POS, INFO, REF, ALT) %>% 
+        tidyr::spread(data = ., key = INDIVIDUALS, value = GT_VCF) %>%
+        ungroup() %>% 
+        mutate(
+          QUAL = rep(".", n()),
+          FILTER = rep("PASS", n()),
+          FORMAT = rep("GT", n())
+        )
+    )
+  }
+  
+  output <- output %>% 
+    arrange(CHROM, LOCUS, POS) %>%
+    ungroup() %>%
+    select(-MARKERS) %>%
+    select('#CHROM' = CHROM, POS, ID = LOCUS, REF, ALT, QUAL, FILTER, INFO, FORMAT, everything())
+  
   
   # Filename ------------------------------------------------------------------
   if (is.null(filename)) {
@@ -129,31 +156,32 @@ write_vcf <- function(data, filename = NULL) {
   }
   
   # File format ----------------------------------------------------------------
-  file.format <- "##fileformat=VCFv4.2"
-  file.format <- as.data.frame(file.format)
-  utils::write.table(x = file.format, file = filename, sep = " ", append = FALSE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  write_delim(x = data_frame("##fileformat=VCFv4.2"), path = filename, delim = " ", append = FALSE, col_names = FALSE)
   
   # File date ------------------------------------------------------------------
   file.date <- stri_replace_all_fixed(Sys.Date(), pattern = "-", replacement = "")
   file.date <- stri_paste("##fileDate=", file.date, sep = "")
-  utils::write.table(x = file.date, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  write_delim(x = data_frame(file.date), path = filename, delim = " ", append = TRUE, col_names = FALSE)
   
   # Source ---------------------------------------------------------------------
-  file.source <- as.data.frame(stri_paste("##source=stackr v.", utils::packageVersion("stackr"), sep = ""))
-  utils::write.table(x = file.source, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-  
+  write_delim(x = data_frame(stri_paste("##source=stackr_v.", utils::packageVersion("stackr"))), path = filename, delim = " ", append = TRUE, col_names = FALSE)
+
   # Info field 1 ---------------------------------------------------------------
-  info1 <- '##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of Samples With Data">'
-  info1 <- as.data.frame(info1)
+  info1 <- as.data.frame('##INFO=<ID=NS,Number=1,Type=Integer,Description=\"Number of Samples With Data\">')
   utils::write.table(x = info1, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-  
+
+
   # Format field 1 -------------------------------------------------------------
   format1 <- '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">'
   format1 <- as.data.frame(format1)
   utils::write.table(x = format1, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-  
+
+  # Format field 2 ---------------------------------------------------------------
+  if (pop.info) {
+    format2 <- as.data.frame('##FORMAT=<ID=POP_ID,Number=1,Type=Character,Description="Population identification of Sample">')
+    utils::write.table(x = format2, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
+  }
+
   # Write the prunned vcf to the file ------------------------------------------
-  suppressWarnings(
-    write_tsv(x = output, path = filename, append = TRUE, col_names = TRUE)
-  )
+  suppressWarnings(write_tsv(x = output, path = filename, append = TRUE, col_names = TRUE))
 } # end write_vcf

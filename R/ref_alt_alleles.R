@@ -59,7 +59,6 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-
 ref_alt_alleles <- function (data) {
   
   # Checking for missing and/or default arguments ------------------------------

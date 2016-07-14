@@ -5,11 +5,17 @@
 \title{Used internally in stackr to write a vcf file from a tidy 
 data frame}
 \usage{
-write_vcf(data, filename = NULL)
+write_vcf(data, pop.info = FALSE, filename = NULL)
 }
 \arguments{
 \item{data}{A file in the working directory or object in the global environment 
 in wide or long (tidy) formats. See details for more info.}
+
+\item{pop.info}{(optional, logical) Should the population information be 
+included in the FORMAT field (along the GT info for each samples ?). To make
+the VCF population-ready use \code{pop.info = TRUE}. The populatio information
+must be included in the \code{POP_ID} column of the tidy dataset.
+Default: \code{pop.info = FALSE}.}
 
 \item{filename}{(optional) The file name prefix for the vcf file 
 written to the working directory. With default: \code{filename = NULL}, 

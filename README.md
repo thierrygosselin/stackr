@@ -5,8 +5,10 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr)
 [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-This is the development page of the **stackr**, an R package who's goal is
-to make GBS/RAD data easy to analyse inside R.
+The goal of **stackr** is to make GBS/RADseq data easy to analyse inside the R environment.
+
+This is the development page of the **stackr**, 
+if you want to help, see [contributions section](https://github.com/thierrygosselin/stackr#contributions)
 
 ## Use stackr to:
 
@@ -15,8 +17,11 @@ to make GBS/RAD data easy to analyse inside R.
 Caracteristics and statistics for important variables of GBS/RADseq data are available: read depth (coverage) of alleles and 
 genotypes, genotype likelihood, genotyped individuals and populations, missing data, minor allele frequency (local and global MAF),
 observed heterozygosity (Het obs) and inbreeding coefficient (Fis), duplicate individual, etc.
-* **Filters**: avoid bad data exploration and control the impact of filters on your downstream genetic analysis. 
+* **Filters**: Most genomic analysis look for patterns and trends with various statistics. 
+Bias, noise and outliers can have bounded influence on estimators and interfere with polymorphisms discovery. 
+Avoid bad data exploration and control the impact of filters on your downstream genetic analysis.
 Alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways.
+
 * **Imputations**: Map-independent imputation of missing genotype/alleles 
 using Random Forest or the most frequent category
 * **Output**: painless conversion process. Conversion functions are integrated with important filters, blacklist and whitelist to convert genomic dataset in a **tidy** format and/or into *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *hierfstat*, *gtypes*, *betadiv* and *dadi* formats. 
@@ -83,6 +88,10 @@ citation("stackr")
 
 ## New features
 Version, new feature and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
+
+**v.0.3.1**
+* Bug fix: combined use of `if (getRversion() >= "2.15.1") utils::globalVariables("variable")` 
+and `@inheritParams` was not showing all the argument description.
 
 **v.0.3.0**
 * Update that makes my coding life easier.

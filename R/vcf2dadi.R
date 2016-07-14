@@ -2,13 +2,13 @@
 #' @title Create a \code{dadi} SNP input file from a any vcf file.
 #' @description This function will create a \code{dadi} SNP input file using a
 #' VCF file (Danecek et al. 2011). Missing data can bias demographic inference, 
-#' `vcf2dadi` was created to address this problem, providing a customizable 
+#' \code{vcf2dadi} was created to address this problem, providing a customizable 
 #' imputation framework specifically designed to work with GBS/RAD data.
 #' If your VCF is not filtered, you can supply the function a whitelist of loci and a 
 #' blacklist of individuals.
-
-#' @inheritParams tidy_genomic_data 
-#' @inheritParams stackr_imputations_module 
+#' @inheritParams genomic_converter 
+#' @inheritParams tidy_genomic_data
+#' @inheritParams stackr_imputations_module
 
 #' @param fasta.outgroup (optional) The fasta output file from STACKS. This file is 
 #' required to use an outgroup. Default: \code{fasta.outgroup = NULL}.
@@ -31,63 +31,31 @@
 #' Default use date and time to make the file. If used, the file extension
 #' need to finish with \code{.tsv or .txt}.
 
+
 #' @details 
-#' \strong{Input files:}
-#' \enumerate{
-#' \item VCF file (e.g. \code{data = "batch_1.vcf"}). 
-#' To make the VCF population ready, you need the \code{strata} argument.
-#' 
-#' \item haplotype file created in STACKS (e.g. \code{data = "batch_1.haplotypes.tsv"}).
-#' To make the haplotype file population ready, you need the \code{strata} argument.
-#' 
-#' \item Data frame
-#' Tab delimitted.
-#' \strong{2 genotypes formats are available, both use 3 character per allele:}
-#' 6 characters no allele separator: e.g. \code{001002 of 111333} (for heterozygote individual).
-#' 6 characters WITH an allele separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
-#' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
-#' Missing alleles are coded \code{000}.
+#' \strong{Input data:}
+#'  
 #' To discriminate the long from the wide format, 
 #' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-#' for columns number, > 20 for wide 
-#' (i.e. don't use less than 10 markers in wide format, the function was not designed for that).
-#' 
-#' Data Frame wide format:
+#' for \code{MARKERS or LOCUS} in column names (TRUE = long format).
+#' The data frame is tab delimitted.
+
+#' \strong{Wide format:}
 #' The wide format cannot store metadata info.
-#' The wide format contains starts with these 2 id columns: 
+#' The wide format starts with these 2 id columns: 
 #' \code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
 #' the remaining columns are the markers in separate columns storing genotypes.
-#' This format requires column numbers to be larger than 20.
-
-#' Data frame long/tidy format:
-#' This format requires column numbers to be within the range: 4 min - 20 max.
+#' 
+#' \strong{Long/Tidy format:}
 #' The long format is considered to be a tidy data frame and can store metadata info. 
-#' (e.g. from a VCF see \pkg{stackr} \code{\link[stackr]{tidy_genomic_data}}). The 4 columns
-#' required in the long format are: \code{INDIVIDUALS}, \code{POP_ID}, 
-#' \code{MARKERS} and \code{GENOTYPE or GT}.
+#' (e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
+#' are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
+#' \code{MARKERS or LOCUS} and \code{GENOTYPE or GT}. The rest are considered metata info.
 #' 
-#' Note that the \code{POP_ID} column can be any hierarchical grouping. 
-#' See the argument \code{strata} for other means of controlling grouping used 
-#' in the assignment.
-#' 
-#' \item PLINK file in 
-#' \code{tped/tfam} format (e.g. \code{data =  "data.assignment.tped"}). 
-#' The first 2 columns of the \code{tfam} file will be used for the 
-#' \code{strata} argument below, unless a new one is provided. 
-#' Columns 1, 3 and 4 of the \code{tped} are discarded. The remaining columns 
-#' correspond to the genotype in the format \code{01/04} 
-#' where \code{A = 01, C = 02, G = 03 and T = 04}. For \code{A/T} format, use 
-#' PLINK or bash to convert.
-#' Use \href{http://vcftools.sourceforge.net/}{VCFTOOLS} with \code{--plink-tped} 
-#' to convert very large VCF file. For \code{.ped} file conversion to 
-#' \code{.tped} use \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK} 
-#' with \code{--recode transpose},
-#' 
-#' \item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
-#' 
-#' \item genepop data file (e.g. \code{data = kiwi_data.gen}). Here, the function can only use
-#' alleles encoded with 3 digits.
-#' }
+#' \strong{2 genotypes formats are available:}
+#' 6 characters no separator: e.g. \code{001002 or 111333} (for heterozygote individual).
+#' 6 characters WITH separator: e.g. \code{001/002 or 111/333} (for heterozygote individual).
+#' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
 #' 
 #' 
 #' \strong{Imputations details:}
@@ -171,21 +139,13 @@
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com} and
 #' Anne-Laure Ferchaud \email{annelaureferchaud@@gmail.com} 
 
-# remove NOTE about no visible binding for global variable during Build ------
-if(getRversion() >= "2.15.1") {
-  utils::globalVariables(c("#CHROM","QUAL", "FILTER", "INFO", "FORMAT", "FORMAT_ID",
-                           "ID", "REF", "ALT", "READ_DEPTH", 'ALLELE_DEPTH', 'GL', 'MARKERS', 
-                           "GT", "PP", "QQ", "PQ", "MAF", "fasta", "ALLELE_GROUP",
-                           "Allele1", "Allele2", "POP", "IN_GROUP", "OUT_GROUP",
-                           "ID.FILTER", "ANCESTRAL", "SEQUENCES", "GARBAGE", 
-                           "Chr", "Locus", "BP", "Col", "SNP_READ_POS", "FASTA_REF",
-                           "contains", "Locus ID", "i", "m", "PROBLEM", "REF2", "ALT2"
-  )
-  )
-}
-
 vcf2dadi <- function(
   data,
+  fasta.ingroup = NULL,
+  fasta.outgroup = NULL,
+  sumstats.ingroup = NULL,
+  sumstats.outgroup = NULL,
+  dadi.input.filename = NULL,
   blacklist.id = NULL,
   blacklist.genotype = NULL,
   whitelist.markers = NULL,
@@ -208,11 +168,6 @@ vcf2dadi <- function(
   iteration.rf = 10,
   split.number = 100,
   verbose = FALSE,
-  fasta.ingroup = NULL,
-  fasta.outgroup = NULL,
-  sumstats.ingroup = NULL,
-  sumstats.outgroup = NULL,
-  dadi.input.filename = NULL,
   parallel.core = detectCores()-1
 ){
   
@@ -220,6 +175,7 @@ vcf2dadi <- function(
   cat("#######################################################################\n")
   cat("########################## stackr::vcf2dadi ###########################\n")
   cat("#######################################################################\n")
+  
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file missing")
   if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
@@ -259,14 +215,14 @@ vcf2dadi <- function(
         stop("blacklist.genotype file missing. 
              Use stackr's missing_genotypes function to create this blacklist")
       }
-    }
+      }
     if (stri_detect_fixed(str = data, pattern = ".gen")) {
       # data.type <- "genepop.file"
       message("File type: genepop")
       message("Multilocus genepop file won't work, only for biallelic markers")
     } 
     
-  } # end file type detection
+    } # end file type detection
   
   # Strata argument required for VCF and haplotypes files **********************
   if (data.type == "vcf.file" & is.null(strata)) stop("strata argument is required")
@@ -705,7 +661,9 @@ vcf2dadi <- function(
   
   # without imputations (automatic)
   res$dadi.no.imputation <- write_dadi(input = input.count, write.imputation = FALSE)
-  # Imputations **************************************************************
+  
+  # Imputations-----------------------------------------------------------------
+  
   if (!is.null(imputation.method)) {
     input.imp <- stackr::stackr_imputations_module(
       data = input, 
@@ -719,7 +677,7 @@ vcf2dadi <- function(
       parallel.core = parallel.core, 
       filename = NULL
     )
-
+    
     # transform the imputed dataset  -------------------------------------------
     message("Computing the Allele Frequency Spectrum for the imputed data")
     
@@ -741,4 +699,4 @@ vcf2dadi <- function(
   cat("############################## completed ##############################\n")
   
   return(res)
-} # End vcf2dadi
+  } # End vcf2dadi

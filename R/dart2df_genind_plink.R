@@ -2,7 +2,8 @@
 
 #' @name dart2df_genind_plink
 
-#' @title swiss army knife tool to prepare [DArT](http://www.diversityarrays.com) output file for population genetics analysis.
+#' @title Swiss Army knife tool to prepare \href{http://www.diversityarrays.com}{DArT} 
+#' output file for population genetics analysis.
 
 #' @description Import, filter and transform a DArT output file to different formats: 
 #' data frame of genotypes, genind object and/or PLINK \code{tped/tfam} format.
@@ -183,18 +184,6 @@
 #' Random survival forests. Ann. Appl. Statist. 2(3), 841--860.
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-# required to pass the R CMD check and have 'no visible binding for global variable'
-if (getRversion() >= "2.15.1") {
-  utils::globalVariables(
-    c("ID", "CloneID", "SnpPosition", "CallRate", "AvgCountRef", "AvgCountSnp", 
-      "RepAvg", "NOT_USEFUL", "SNP", "CALL_RATE", "AVG_COUNT_REF", 
-      "AVG_COUNT_SNP", "REP_AVG", "NEW_ID", "SNP_N", "ALLELE_NAME", "ALLELE_NUMBER",
-      "ALLELES_COUNT", "GENOTYPED_PROP", "MISSING_IND_PROP", "AlleleID", "HET_NUMBER",
-      "HET_PERCENT", "HET_PROP"
-    )
-  )
-}
-
 dart2df_genind_plink <- function(
   data,
   strata,
@@ -236,6 +225,7 @@ dart2df_genind_plink <- function(
   cat("#######################################################################\n")
   cat("#################### stackr: dart2df_genind_plink #####################\n")
   cat("#######################################################################\n")
+  
   message("Importing data ...")
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file missing")
@@ -1358,8 +1348,6 @@ dart2df_genind_plink <- function(
   message("The number of markers before -> after the filters")
   message(stri_paste("SNP: ", snp.before.filters, " -> ", n_distinct(input$MARKERS)))
   message(stri_paste("LOCUS: ", locus.before.filters, " -> ", n_distinct(input$LOCUS)))
-  cat("#######################################################################\n")
-  
   res$jitterplot.ind.het <- jitterplot.ind.het
   res$boxplot.ind.het <- boxplot.ind.het
   res$plot.reproducibility <- plot.repro
@@ -1373,6 +1361,6 @@ dart2df_genind_plink <- function(
   res$whitelist.markers <- whitelist.markers
   res$data.filtered <- input.filtered.df
   res$data.filtered.imputed <- input.imp
-  cat("############################## completed ##############################\n")
+  cat("############################ completed ################################\n")
   return(res)
 }

@@ -106,15 +106,6 @@ tidy_stacks_haplotypes_vcf <- function(
   filename = NULL
   ) {
   
-
-  # required to pass the R CMD check and have 'no visible binding for global variable'
-  # if (getRversion() >= "2.15.1") {
-  #   utils::globalVariables(
-  #     c("DP", "AD", "vcf.headers", "GT_VCF", "INDIVIDUALS2", ""
-  #     )
-  #   )
-  # }
-  
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file missing")
   if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels

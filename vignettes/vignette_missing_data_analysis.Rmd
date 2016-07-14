@@ -216,7 +216,8 @@ heatmap
 ![heatmap](https://raw.githubusercontent.com/thierrygosselin/stackr/master/vignettes/stickleback.missing.heatmap.png)
 
 
-4. To save the plots 
+4. To save the heatmap plots, code below, though you migh want to take a long 
+coffee break, have lunch or even best, do it overnight while it runs...
 ```r
 # vectorial pdf:
 ggsave(filename = "stickleback.missing.heatmap.pdf", width = 10, height = 20, dpi = 300, units = "cm", useDingbats = F)

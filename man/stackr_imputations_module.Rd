@@ -68,7 +68,13 @@ Map-independent imputation of missing genotype using Random Forest
 or the most frequent category. Impute genotypes or alleles. Used internally 
 in \href{https://github.com/thierrygosselin/assigner}{assigner} and
 \href{https://github.com/thierrygosselin/stackr}{stackr} and 
-might be of interest for users.
+might be of interest for users. 
+
+The goal of \code{missing_visualization} is to provide a simple solution for a complicated
+problem: missing observations in genotype datasets. Before running this function
+to populate the original dataset with synthetic data you should try 
+\code{\link[stackr]{missing_visualization}} to detect patterns of missingness.
+Follow the vignette for more info.
 }
 \examples{
 \dontrun{

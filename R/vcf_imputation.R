@@ -61,26 +61,8 @@
 #' @param common.markers (optional) Logical. Default = \code{FALSE}. 
 #' With \code{TRUE}, will keep markers present in all the populations.
 
-#' @param imputation.method Available choices are: (1) \code{"max"} to use the 
-#' most frequent category for imputations.
-#' (2) \code{"rf"} using Random Forest algorithm. Default = \code{"rf"}.
-#' @param impute (character) Imputation on missing genotype 
-#' \code{impute = "genotype"} or alleles \code{impute = "allele"}.
-#' @param imputations.group \code{"global"} or \code{"populations"}.
-#' Should the imputations be computed globally or by populations. If you choose
-#' global, turn the verbose to \code{TRUE}, to see progress.
-#' Default = \code{"populations"}.
-#' @param num.tree The number of trees to grow in Random Forest. Default is 100.
-#' @param iteration.rf The number of iterations of missing data algorithm 
-#' in Random Forest. Default is 10.
-#' @param split.number Non-negative integer value used to specify 
-#' random splitting in Random Forest. Default is 100.
-#' @param verbose Logical. Should trace output be enabled on each iteration 
-#' in Random Forest ? Default is \code{FALSE}.
-#' @param parallel.core (optional) The number of core for OpenMP shared-memory parallel
-#' programming of Random Forest imputations. For more info on how to install the
-#' OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
-#' If not selected \code{detectCores()-1} is used as default.
+#' @inheritParams stackr_imputations_module
+
 
 #' @param filename The name of the file written to the directory.
 #' Use the extension ".vcf" at the end. Default \code{vcf.imputed.data.time.vcf}.
@@ -138,12 +120,6 @@
 #' and github \url{https://github.com/ehrlinger/randomForestSRC}
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-# remove NOTE about no visible binding for global variable during Build ------
-if(getRversion() >= "2.15.1") {
-  utils::globalVariables(c("everything"))
-}
-
-
 vcf_imputation <- function(data,
                            whitelist.markers = NULL, 
                            blacklist.id = NULL,
@@ -156,37 +132,22 @@ vcf_imputation <- function(data,
                            blacklist.genotype = NULL,
                            snp.ld = NULL,
                            common.markers = FALSE,
-                           filename,
+                           filename = NULL,
                            imputation.method = "rf",
-                           impute,
+                           impute = "genotype",
                            imputations.group = "populations",
                            num.tree = 100,
                            iteration.rf = 10,
                            split.number = 100,
                            verbose = FALSE,
-                           parallel.core
+                           parallel.core = detectCores()-1
 ) {
   
   if (missing(data)) stop("Input file missing")
   if (missing(whitelist.markers)) whitelist.markers <- NULL # no Whitelist
-  if (missing(blacklist.id)) blacklist.id <- NULL # No blacklist of ID
-  if (missing(strata)) strata <- NULL
-  if (missing(pop.select)) pop.select <- NULL
-  if (missing(blacklist.genotype)) blacklist.genotype <- NULL # no genotype to erase
   if (missing(pop.levels)) stop("pop.levels required")
   if (missing(pop.labels)) pop.labels <- pop.levels # pop.labels
-  if (missing(common.markers)) common.markers <- FALSE
-  if (missing(snp.ld)) snp.ld <- NULL
-  if (missing(filename)) filename <- NULL
-  if (missing(imputation.method)) imputation.method <- "rf"
-  if (missing(impute)) stop("impute argument is necessary")
-  if (missing(imputations.group)) imputations.group <- "populations"
-  if (missing(num.tree)) num.tree <- 100
-  if (missing(iteration.rf)) iteration.rf <- 10
-  if (missing(split.number)) split.number <- 100
-  if (missing(verbose)) verbose <- FALSE
-  if (missing(parallel.core)) parallel.core <- detectCores()-1
-  
+
   # Import whitelist of markers ************************************************
   if (is.null(whitelist.markers)) { # no Whitelist
     message("Whitelist of markers: no")

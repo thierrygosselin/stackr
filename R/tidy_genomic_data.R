@@ -266,14 +266,6 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-# required to pass the R CMD check and have 'no visible binding for global variable'
-if (getRversion() >= "2.15.1") {
-  utils::globalVariables(
-    c("DP", "AD", "vcf.headers", "GT_VCF", "INDIVIDUALS2", "ALLELE_REF_DEPTH",
-      "ALLELE_ALT_DEPTH", "GT_BIN", "GT_HAPLO", "REF_NEW", "REF_ALT_CHANGE", "GT_VCF_A1", "GT_VCF_A2")
-  )
-}
-
 tidy_genomic_data <- function(
   data, 
   vcf.metadata = TRUE,
@@ -292,8 +284,8 @@ tidy_genomic_data <- function(
   pop.labels = NULL,
   strata = NULL,
   pop.select = NULL,
-  filename = NULL,
-  ...) {
+  filename = NULL
+  ) {
   
   
   # Checking for missing and/or default arguments ******************************

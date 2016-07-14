@@ -42,7 +42,7 @@ Default: \code{distance.method = "euclidean"}}
 
 \item{ind.missing.geno.threshold}{(string) Percentage of missing genotype 
 allowed per individuals. 
- Default:\code{ind.missing.geno.threshold = c(10,20,30,40,50,60,70)}}
+Default:\code{ind.missing.geno.threshold = c(10,20,30,40,50,60,70)}}
 
 \item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
 case, the id of the pop.

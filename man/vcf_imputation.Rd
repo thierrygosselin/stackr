@@ -3,6 +3,15 @@
 \name{vcf_imputation}
 \alias{vcf_imputation}
 \title{VCF data imputation}
+\usage{
+vcf_imputation(data, whitelist.markers = NULL, blacklist.id = NULL,
+  pop.id.start, pop.id.end, pop.levels, pop.labels, strata = NULL,
+  pop.select = NULL, blacklist.genotype = NULL, snp.ld = NULL,
+  common.markers = FALSE, filename = NULL, imputation.method = "rf",
+  impute = "genotype", imputations.group = "populations", num.tree = 100,
+  iteration.rf = 10, split.number = 100, verbose = FALSE,
+  parallel.core = detectCores() - 1)
+}
 \arguments{
 \item{data}{The VCF file created by STACKS or imputed VCF file created
 by \code{\link[stackr]{vcf_imputation}}.}
@@ -15,17 +24,17 @@ The whitelist is in the directory (e.g. "whitelist.txt"). de novo CHROM column w
 a column header 'INDIVIDUALS'. The blacklist is in the directory
  (e.g. "blacklist.txt").}
 
-\item{pop.levels}{(required) A character string with your populations ordered.}
-
-\item{pop.labels}{(optional) A character string of your populations labels.
-If you need to rename sampling sites in \code{pop.levels} or combined sites/pop
-into a different names, here is the place.}
-
 \item{pop.id.start}{The start of your population id 
 in the name of your individual sample.}
 
 \item{pop.id.end}{The end of your population id 
 in the name of your individual sample.}
+
+\item{pop.levels}{(required) A character string with your populations ordered.}
+
+\item{pop.labels}{(optional) A character string of your populations labels.
+If you need to rename sampling sites in \code{pop.levels} or combined sites/pop
+into a different names, here is the place.}
 
 \item{strata}{(optional) A tab delimited file with 2 columns with header:
 \code{INDIVIDUALS} and \code{STRATA}. Default: \code{strata = NULL}. 
@@ -58,36 +67,43 @@ among these 3 options: \code{"random"} selection, \code{"first"} or
 \item{common.markers}{(optional) Logical. Default = \code{FALSE}. 
 With \code{TRUE}, will keep markers present in all the populations.}
 
-\item{imputation.method}{Available choices are: (1) \code{"max"} to use the 
-most frequent category for imputations.
-(2) \code{"rf"} using Random Forest algorithm. Default = \code{"rf"}.}
+\item{filename}{The name of the file written to the directory.
+Use the extension ".vcf" at the end. Default \code{vcf.imputed.data.time.vcf}.}
 
-\item{impute}{(character) Imputation on missing genotype 
-\code{impute = "genotype"} or alleles \code{impute = "allele"}.}
+\item{imputation.method}{(character, optional) 
+Methods available for map-independent imputations of missing genotype: 
+(1) \code{"max"} to use the most frequent category for imputations.
+(2) \code{"rf"} using Random Forest algorithm. 
+Default: no imputation \code{imputation.method = NULL}.}
 
-\item{imputations.group}{\code{"global"} or \code{"populations"}.
+\item{impute}{(character, optional) Imputation on missing genotype 
+\code{impute = "genotype"} or alleles \code{impute = "allele"}.
+Default: \code{"genotype"}.}
+
+\item{imputations.group}{(character, optional) \code{"global"} or \code{"populations"}.
 Should the imputations be computed globally or by populations. If you choose
 global, turn the verbose to \code{TRUE}, to see progress.
 Default = \code{"populations"}.}
 
-\item{num.tree}{The number of trees to grow in Random Forest. Default is 100.}
+\item{num.tree}{(integer, optional) The number of trees to grow in Random Forest. 
+Default: \code{num.tree = 100}.}
 
-\item{iteration.rf}{The number of iterations of missing data algorithm 
-in Random Forest. Default is 10.}
+\item{iteration.rf}{(integer, optional) The number of iterations of missing data algorithm
+in Random Forest. 
+Default: \code{iteration.rf = 10}.}
 
-\item{split.number}{Non-negative integer value used to specify 
-random splitting in Random Forest. Default is 100.}
+\item{split.number}{(integer, optional) Non-negative integer value used to specify
+random splitting in Random Forest. 
+Default: \code{split.number = 100}.}
 
-\item{verbose}{Logical. Should trace output be enabled on each iteration 
-in Random Forest ? Default is \code{FALSE}.}
+\item{verbose}{(logical, optional) Should trace output be enabled on each iteration
+in Random Forest ? 
+Default: \code{verbose = FALSE}.}
 
 \item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
 programming of Random Forest imputations. For more info on how to install the
 OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 If not selected \code{detectCores()-1} is used as default.}
-
-\item{filename}{The name of the file written to the directory.
-Use the extension ".vcf" at the end. Default \code{vcf.imputed.data.time.vcf}.}
 }
 \value{
 When no imputation is selected ....

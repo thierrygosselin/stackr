@@ -2,21 +2,39 @@
 % Please edit documentation in R/dart2df_genind_plink.R
 \name{dart2df_genind_plink}
 \alias{dart2df_genind_plink}
-\title{swiss army knife tool to prepare [DArT](http://www.diversityarrays.com) output file for population genetics analysis.}
+\title{Swiss Army knife tool to prepare \href{http://www.diversityarrays.com}{DArT} 
+output file for population genetics analysis.}
+\usage{
+dart2df_genind_plink(data, strata, output, pop.levels = NULL,
+  blacklist.id = NULL, pop.select = NULL, filter.monomorphic = TRUE,
+  common.markers = TRUE, filter.ind.heterozygosity = NULL,
+  plot.ind.heterozygosity = FALSE, filter.reproducibility = NULL,
+  plot.reproducibility = FALSE, filter.coverage.high = NULL,
+  filter.coverage.low = NULL, plot.coverage = FALSE,
+  filter.call.rate = NULL, plot.call.rate = FALSE,
+  filter.ind.missing.geno = NULL, plot.ind.missing.geno = FALSE,
+  filter.markers.missing.ind = NULL, plot.markers.missing.ind = FALSE,
+  filter.snp.ld = NULL, plot.number.snp.reads = FALSE,
+  maf.thresholds = NULL, maf.pop.num.threshold = 1, maf.operator = "OR",
+  filename = NULL, imputation.method = NULL, impute = "genotype",
+  imputations.group = "populations", num.tree = 100, iteration.rf = 10,
+  split.number = 100, verbose = FALSE, parallel.core = detectCores() - 1,
+  ...)
+}
 \arguments{
 \item{data}{DArT output file in wide format or binary format tipically 
 used by CSIRO genomic projects.}
-
-\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop, 
-structure. Use a character string,
-e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
-output formats generated. The tidy format is generated automatically.}
 
 \item{strata}{A tab delimited file with columns header:
 \code{INDIVIDUALS} and \code{POP_ID}. 
 Note: the column \code{POP_ID} refers to any grouping of individuals. If a third column
 named \code{NEW_ID} is used, this column will be used to replace the
 \code{INDIVIDUALS} column in the main data file.}
+
+\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop, 
+structure. Use a character string,
+e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
+output formats generated. The tidy format is generated automatically.}
 
 \item{pop.levels}{(optional string) A character string with your populations ordered.}
 
@@ -132,6 +150,43 @@ global MAF to pass the thresholds, to keep the marker?}
 \item{filename}{(optional) The filename prefix for the objet in the global environment 
 or the working directory. Default: \code{filename = NULL}. A default name will be used,
 customized with the output file(s) selected.}
+
+\item{imputation.method}{(character, optional) 
+Methods available for map-independent imputations of missing genotype: 
+(1) \code{"max"} to use the most frequent category for imputations.
+(2) \code{"rf"} using Random Forest algorithm. 
+Default: no imputation \code{imputation.method = NULL}.}
+
+\item{impute}{(character, optional) Imputation on missing genotype 
+\code{impute = "genotype"} or alleles \code{impute = "allele"}.
+Default: \code{"genotype"}.}
+
+\item{imputations.group}{(character, optional) \code{"global"} or \code{"populations"}.
+Should the imputations be computed globally or by populations. If you choose
+global, turn the verbose to \code{TRUE}, to see progress.
+Default = \code{"populations"}.}
+
+\item{num.tree}{(integer, optional) The number of trees to grow in Random Forest. 
+Default: \code{num.tree = 100}.}
+
+\item{iteration.rf}{(integer, optional) The number of iterations of missing data algorithm
+in Random Forest. 
+Default: \code{iteration.rf = 10}.}
+
+\item{split.number}{(integer, optional) Non-negative integer value used to specify
+random splitting in Random Forest. 
+Default: \code{split.number = 100}.}
+
+\item{verbose}{(logical, optional) Should trace output be enabled on each iteration
+in Random Forest ? 
+Default: \code{verbose = FALSE}.}
+
+\item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
+programming of Random Forest imputations. For more info on how to install the
+OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
+If not selected \code{detectCores()-1} is used as default.}
+
+\item{...}{other parameters passed to the function.}
 }
 \value{
 The function returns an object (list). The content of the object 

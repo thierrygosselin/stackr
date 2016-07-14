@@ -52,8 +52,8 @@
 #' \code{MARKERS or LOCUS} and \code{GENOTYPE or GT}. The rest are considered metata info.
 #' 
 #' \strong{2 genotypes formats are available:}
-#' 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
-#' 6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
+#' 6 characters no separator: e.g. \code{001002 or 111333} (for heterozygote individual).
+#' 6 characters WITH separator: e.g. \code{001/002 or 111/333} (for heterozygote individual).
 #' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
 #' 
 #' \emph{How to get a tidy data frame ?}
