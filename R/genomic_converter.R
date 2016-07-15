@@ -328,6 +328,8 @@ genomic_converter <- function(
   }
   message(stri_join("\n", "parallel.core: ", parallel.core, "\n"))  
   cat("#######################################################################\n")
+  
+  
   # Filename -------------------------------------------------------------------
   # Get date and time to have unique filenaming
   if (is.null(filename)) {
