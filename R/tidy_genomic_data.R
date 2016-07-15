@@ -288,7 +288,7 @@ tidy_genomic_data <- function(
   ) {
   
   
-  # Checking for missing and/or default arguments ******************************
+  # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("Input file missing")
   
   # POP_ID in gsi_sim does not like spaces, we need to remove space in everything touching POP_ID...
@@ -305,7 +305,7 @@ tidy_genomic_data <- function(
     pop.select <- stri_replace_all_fixed(pop.select, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
   
-  # File type detection ********************************************************
+  # File type detection----------------------------------------------------------
   if(is.genind(data)){
     data.type <- "genind.file"
     # message("File type: genind object")
@@ -357,12 +357,12 @@ tidy_genomic_data <- function(
     }
   }
   
-  # Strata argument required for VCF and haplotypes files **********************
+  # Strata argument required for VCF and haplotypes files-----------------------
   if (data.type == "haplo.file" | data.type == "vcf.file") {
     if (is.null(strata)) stop("strata argument is required")
   }
   
-  # Import whitelist of markers ************************************************
+  # Import whitelist of markers-------------------------------------------------
   if (is.null(whitelist.markers)) { # no Whitelist
     # message("Whitelist of markers: no")
   } else { # with Whitelist of markers
@@ -383,14 +383,9 @@ tidy_genomic_data <- function(
       whitelist.markers <- select(.data = whitelist.markers, LOCUS)
       columns.names.whitelist <- colnames(whitelist.markers)
     }
-    # # for df.file, plink.file, genepop.file and genind objct
-    # if (data.type %in% c("genind.file", "plink.file", "df.file", "genepop.file") {
-    #   whitelist.markers <- whitelist.markers %>% select(MARKERS = LOCUS)
-    #   columns.names.whitelist <- colnames(whitelist.markers)
-    # }
   }
   
-  # Import blacklist id ********************************************************
+  # Import blacklist id --------------------------------------------------------
   if (is.null(blacklist.id)) { # No blacklist of ID
     # message("Blacklisted individuals: no")
   } else { # With blacklist of ID
@@ -398,7 +393,7 @@ tidy_genomic_data <- function(
     blacklist.id <- read_tsv(blacklist.id, col_names = TRUE)
   }
   
-  # population levels and strata ***********************************************
+  # population levels and strata------------------------------------------------
   if (!is.null(strata)) {
     if (is.vector(strata)) {
       # message("strata file: yes")
@@ -408,10 +403,11 @@ tidy_genomic_data <- function(
         rename(POP_ID = STRATA)
     } else {
       # message("strata object: yes")
-      colnames(strata) <- stri_replace_all_fixed(str = colnames(strata), 
-                                                 pattern = "STRATA", 
-                                                 replacement = "POP_ID", 
-                                                 vectorize_all = FALSE
+      colnames(strata) <- stri_replace_all_fixed(
+        str = colnames(strata), 
+        pattern = "STRATA", 
+        replacement = "POP_ID", 
+        vectorize_all = FALSE
       )
       strata.df <- strata
     }
@@ -420,6 +416,7 @@ tidy_genomic_data <- function(
     if (!is.null(blacklist.id)) {
       strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
     }
+    # Remove potential whitespace in pop_id
     strata.df$POP_ID <- stri_replace_all_fixed(strata.df$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
   
@@ -458,11 +455,6 @@ tidy_genomic_data <- function(
     
     # Tidying the VCF to make it easy to work on the data for conversion
     message("Making the VCF population wise")
-    # input <- input %>%
-    # tidyr::gather(INDIVIDUALS, FORMAT_ID, -c(CHROM, LOCUS, POS, REF, ALT)) # Gather individuals in 1 colummn
-    
-    # filter blacklisted individuals
-    
     input <- data.table::melt.data.table(
       data = as.data.table(input), 
       id.vars = c("CHROM", "LOCUS", "POS", "REF", "ALT"), 
@@ -477,10 +469,28 @@ tidy_genomic_data <- function(
           pattern = c("_", ":"), 
           replacement = c("-", "-"), 
           vectorize_all = FALSE)
-      ) %>% 
-      filter(!INDIVIDUALS %in% blacklist.id$INDIVIDUALS)
+      )
     
-    # population levels and strata  --------------------------------------------
+    # filter blacklisted individuals
+    if (!is.null(blacklist.id)) {
+      blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
+        str = blacklist.id$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"), 
+        vectorize_all = FALSE
+      )
+      
+      input <- filter(.data = input, !INDIVIDUALS %in% blacklist.id$INDIVIDUALS)
+    }
+    
+    # population levels and strata
+    strata.df$INDIVIDUALS <- stri_replace_all_fixed(
+        str = strata.df$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"), 
+        vectorize_all = FALSE
+        )
+    
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
     
     # Pop select
@@ -564,7 +574,7 @@ tidy_genomic_data <- function(
     # Experimental (for genlight object)
     input$GT_BIN <- stri_replace_all_fixed(str = input$GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."), replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE)
     
-    # re-computing the REF/ALT allele-----------------------------------------------
+    # re-computing the REF/ALT allele
     if (!is.null(pop.select) || !is.null(blacklist.id)) {
       message("Adjusting REF/ALT alleles to account for filters...")
       
@@ -650,7 +660,7 @@ tidy_genomic_data <- function(
       ref.alt.alleles.change <- NULL 
     } # end re-computing the REF/ALT allele
     
-    # Re ordering columns-------------------------------------------------------
+    # Re ordering columns
     if (vcf.metadata) {
       # Re order columns
       common.colnames <- c("MARKERS", "CHROM", "LOCUS", "POS", "POP_ID", "INDIVIDUALS", "GT_VCF", "GT_BIN", "REF", "ALT")
@@ -681,12 +691,14 @@ tidy_genomic_data <- function(
       showProgress = TRUE, 
       data.table = FALSE) %>% 
       as_data_frame() %>%
-      mutate(# remove "_" in individual name and replace with "-"
+      mutate(
+        # remove unwanted sep in individual name and replace with "-"
         INDIVIDUALS = stri_replace_all_fixed( str = INDIVIDUALS, 
                                               pattern = c("_", ":"), 
                                               replacement = c("-", "-"), 
                                               vectorize_all = FALSE),
-        POP_ID = stri_replace_all_fixed(POP_ID, 
+        # remove potential whitespace in tfam pop id column
+        POP_ID = stri_replace_all_fixed(POP_ID,
                                         pattern = " ", 
                                         replacement = "_", 
                                         vectorize_all = FALSE)
@@ -696,13 +708,12 @@ tidy_genomic_data <- function(
     if (is.null(strata)) {
       strata.df <- tfam
     } else {
-      strata.df <- mutate(.data = strata.df, 
-                          INDIVIDUALS = stri_replace_all_fixed(
-                            str = INDIVIDUALS, 
-                            pattern = c("_", ":"), 
-                            replacement = c("-", "-"),
-                            vectorize_all = FALSE
-                          )
+      # remove unwanted sep in individual name and replace with "-"
+      strata.df$INDIVIDUALS <- stri_replace_all_fixed(
+        str = strata.df$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"),
+        vectorize_all = FALSE
       )
     }
     
@@ -724,12 +735,12 @@ tidy_genomic_data <- function(
     tped.header.integer <- c(2, tped.header.prep$NUMBER)
     
     if (!is.null(blacklist.id)) { # using the blacklist of individuals
-      blacklist.id <- mutate(
-        .data = blacklist.id, 
-        INDIVIDUALS = stri_replace_all_fixed(# remove "_" in individual name and replace with "-"
-          str = INDIVIDUALS, 
-          pattern = c("_", ":"), replacement = c("-", "-"), vectorize_all = FALSE
-        )
+      # remove unwanted sep in individual name and replace with "-"
+      blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
+          str = blacklist.id$INDIVIDUALS, 
+          pattern = c("_", ":"), 
+          replacement = c("-", "-"), 
+          vectorize_all = FALSE
       )
       
       whitelist.id <- tped.header.prep %>% 
@@ -741,7 +752,8 @@ tidy_genomic_data <- function(
       strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
     }
     
-    input <- data.table::fread( # import PLINK
+    # import PLINK
+    input <- data.table::fread( 
       input = data, 
       sep = " ", 
       header = FALSE, 
@@ -801,7 +813,7 @@ tidy_genomic_data <- function(
       tidyr::unite(data = ., col = GT, A1, A2, sep = "") %>% 
       select(LOCUS, INDIVIDUALS, GT)
     
-    # population levels and strata  ----------------------------------------------
+    # population levels and strata
     message("Integrating the tfam/strata file...")
     
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
@@ -930,7 +942,7 @@ tidy_genomic_data <- function(
     
     number.columns <- NULL
     
-    # remove consensus markers -------------------------------------------------
+    # remove consensus markers
     message("Scanning for consensus markers")
     consensus.markers <- input %>%
       filter(GT == "consensus") %>% 
@@ -950,9 +962,25 @@ tidy_genomic_data <- function(
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       message("Filtering with blacklist of individuals")
+      
+      blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
+        str = blacklist.id$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"),
+        vectorize_all = FALSE
+      )
+      
       input <- suppressWarnings(anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
-    # population levels and strata  --------------------------------------------
+    
+    # population levels and strata
+    strata.df$INDIVIDUALS = stri_replace_all_fixed(
+        str = strata.df$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"), 
+        vectorize_all = FALSE
+        )
+    
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
     
     # Pop select
@@ -1029,7 +1057,7 @@ tidy_genomic_data <- function(
     # change the filename and strata.df here
   } # End import haplotypes file
   
-  # Import genepop **************************************************************
+  # Import genepop--------------------------------------------------------------
   if (data.type == "genepop.file") {
     message("Tidying the genepop file ...")
     
@@ -1039,7 +1067,7 @@ tidy_genomic_data <- function(
     genind.type <- "genepop"
   }
   
-  # Import GENIND **************************************************************
+  # Import GENIND--------------------------------------------------------------
   # load("/Users/thierry/Documents/skipjack/fst.test.RData")
   if (data.type == "genind.file") { # DATA FRAME OF GENOTYPES
     # data = skipjack.genind
@@ -1064,6 +1092,19 @@ tidy_genomic_data <- function(
         mutate(GT = replace(GT, which(GT == "NANA"), "000000"))
     }
     
+    # remove unwanted sep in id and pop.id names
+    input <- input %>% 
+      mutate(
+        INDIVIDUALS = stri_replace_all_fixed( str = INDIVIDUALS, 
+                                              pattern = c("_", ":"), 
+                                              replacement = c("-", "-"), 
+                                              vectorize_all = FALSE),
+        POP_ID = stri_replace_all_fixed(POP_ID,
+                                        pattern = " ", 
+                                        replacement = "_", 
+                                        vectorize_all = FALSE)
+      )
+    
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
       message("Filtering with whitelist of markers")
@@ -1073,10 +1114,18 @@ tidy_genomic_data <- function(
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       message("Filtering with blacklist of individuals")
+      
+      blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
+        str = blacklist.id$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"),
+        vectorize_all = FALSE
+      )
+      
       input <- suppressWarnings(anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
     
-    # population levels and strata  --------------------------------------------
+    # population levels and strata
     if (!is.null(strata)) {
       input <- input %>%
         select(-POP_ID) %>% 
@@ -1085,10 +1134,12 @@ tidy_genomic_data <- function(
     }
     
     # Change potential problematic POP_ID space
-    input$POP_ID = stri_replace_all_fixed(input$POP_ID, 
-                                          pattern = " ", 
-                                          replacement = "_", 
-                                          vectorize_all = FALSE)
+    input$POP_ID = stri_replace_all_fixed(
+      input$POP_ID, 
+      pattern = " ", 
+      replacement = "_", 
+      vectorize_all = FALSE
+      )
     
     # Pop select
     if (!is.null(pop.select)) {
@@ -1101,22 +1152,19 @@ tidy_genomic_data <- function(
     
   } # End tidy genind
   
-  # Arrange the id and create a strata after pop select ************************
-  input <- input %>% 
-    mutate(
-      INDIVIDUALS = stri_replace_all_fixed(
-        str = INDIVIDUALS, 
+  # Arrange the id and create a strata after pop select ------------------------
+  input$INDIVIDUALS <- stri_replace_all_fixed(
+        str = input$INDIVIDUALS, 
         pattern = c("_", ":"), 
         replacement = c("-", "-"),
         vectorize_all = FALSE
-      )
     )
   
   strata.df <- input %>%
     ungroup() %>%
     distinct(POP_ID, INDIVIDUALS)
   
-  # Blacklist genotypes ********************************************************
+  # Blacklist genotypes --------------------------------------------------------
   if (is.null(blacklist.genotype)) { # no Whitelist
     message("Erasing genotype: no")
   } else {
@@ -1184,7 +1232,7 @@ tidy_genomic_data <- function(
   } # End erase genotypes
   
   
-  # population levels **********************************************************
+  # population levels --------------------------------------------------------
   if(is.null(pop.levels)) { # no pop.levels
     input <- mutate(.data = input, POP_ID = factor(POP_ID))
   } else { # with pop.levels
@@ -1204,7 +1252,7 @@ tidy_genomic_data <- function(
   whitelist.markers.ind <- NULL
   blacklist.genotype <- NULL
   
-  # LD control... keep only 1 SNP per haplotypes/reads (optional) ************
+  # LD  ------------------------------------------------------------------------
   if (!is.null(snp.ld)) {
     if (data.type != "vcf.file") {
       stop("snp.ld is only available for VCF file, use stackr package for 
@@ -1242,7 +1290,7 @@ tidy_genomic_data <- function(
     message("Filtering the tidy VCF to minimize LD by keeping only 1 SNP per short read/haplotype")
   } # End of snp.ld control
   
-  # Unique markers id *********************************************************
+  # Unique markers id ----------------------------------------------------------- --------------------------------------------------------
   # we want to keep LOCUS in the vcf, but not in the other type of input file
   if (data.type != "vcf.file") {
     colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
@@ -1251,7 +1299,7 @@ tidy_genomic_data <- function(
                                               vectorize_all = FALSE)
   }
   
-  # Removing special characters in markers id ******************************
+  # Removing special characters in markers id ----------------------------------
   input <- input %>% 
     mutate(
       MARKERS = stri_replace_all_fixed(
@@ -1261,7 +1309,7 @@ tidy_genomic_data <- function(
         vectorize_all = FALSE)
     )
   
-  # Markers in common between all populations (optional) *********************
+  # Markers in common between all populations (optional) -----------------------
   if (common.markers) { # keep only markers present in all pop
     message("Using markers common in all populations:")
     pop.number <- n_distinct(input$POP_ID)
@@ -1334,7 +1382,7 @@ tidy_genomic_data <- function(
     }
   }
   
-  # Minor Allele Frequency filter ********************************************
+  # Minor Allele Frequency filter ----------------------------------------------
   # maf.thresholds <- c(0.05, 0.1) # test
   if (!is.null(maf.thresholds)) { # with MAF
     maf.local.threshold <- maf.thresholds[1]
