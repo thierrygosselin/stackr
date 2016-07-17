@@ -15,10 +15,8 @@ Easy integration with other software or R packages like [adegenet] (https://gith
 Conversion functions are integrated with important filters, blacklist and whitelist.
 
 * **Explore** and **filter** important variables caracteristics and statistics:
-        
-    
     * missing data,
-    *read depth (coverage) of alleles and genotypes, 
+    * read depth (coverage) of alleles and genotypes, 
     * genotype likelihood,
     * genotyped individuals and populations,
     * minor allele frequency (local and global MAF),
