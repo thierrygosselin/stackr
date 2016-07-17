@@ -10,11 +10,12 @@ if you want to help, see [contributions section](https://github.com/thierrygosse
 
 ## Use stackr to: import, explore, manipulate, filter, impute, visualize and export your GBS/RADseq data
 
-* **Import/Export** your GBS/RADseq data with the various supported genomic file formats: **tidy**, *wide*, *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *hierfstat*, *gtypes*, *betadiv*, *dadi* and the haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/). 
+* **Import/Export** your GBS/RADseq data with the various supported genomic file formats: *tidy*, *wide*, *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *hierfstat*, *gtypes*, *betadiv*, *dadi* and the haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/). 
 Easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas), [poppr] (https://github.com/grunwaldlab/poppr) and [assigner](https://github.com/thierrygosselin/assigner). 
 Conversion functions are integrated with important filters, blacklist and whitelist.
 
 * **Explore** and **filter** important variables caracteristics and statistics: 
+  
   *read depth (coverage) of alleles and genotypes, 
   * genotype likelihood,
   * genotyped individuals and populations,
