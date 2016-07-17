@@ -15,13 +15,15 @@ Easy integration with other software or R packages like [adegenet] (https://gith
 Conversion functions are integrated with important filters, blacklist and whitelist.
 
 * **Explore** and **filter** important variables caracteristics and statistics:
-        *read depth (coverage) of alleles and genotypes, 
+        
+    
+    * missing data,
+    *read depth (coverage) of alleles and genotypes, 
     * genotype likelihood,
     * genotyped individuals and populations,
-    * missing data,
     * minor allele frequency (local and global MAF),
     * observed heterozygosity (Het obs) and inbreeding coefficient (Fis),
-    * find duplicate individual or mixed sample.
+    * find duplicate individual and mixed samples.
 
 * **Filter**: Most genomic analysis look for patterns and trends with various statistics. 
 Bias, noise and outliers can have bounded influence on estimators and interfere with polymorphism discovery. 
