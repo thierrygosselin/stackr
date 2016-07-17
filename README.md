@@ -1,32 +1,37 @@
-# stackr
+# stackr: an R package to analyse GBS/RADseq data
 
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr)
 [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-The goal of **stackr** is to make GBS/RADseq data easy to analyse inside the R environment.
-
 This is the development page of the **stackr**, 
 if you want to help, see [contributions section](https://github.com/thierrygosselin/stackr#contributions)
 
-## Use stackr to:
+## Use stackr to: import, explore, manipulate, filter, impute, visualize and export your GBS/RADseq data
 
-* **Input**: various file formats are supported (VCF, PLINK tped/tfam, genind, genlight, genepop, haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/) and data frame of genotypes)
-* **Explore**, **manipulate** and **visualize**: 
-Caracteristics and statistics for important variables of GBS/RADseq data are available: read depth (coverage) of alleles and 
-genotypes, genotype likelihood, genotyped individuals and populations, missing data, minor allele frequency (local and global MAF),
-observed heterozygosity (Het obs) and inbreeding coefficient (Fis), duplicate individual, etc.
-* **Filters**: Most genomic analysis look for patterns and trends with various statistics. 
-Bias, noise and outliers can have bounded influence on estimators and interfere with polymorphisms discovery. 
+* **Import/Export** your GBS/RADseq data with the various supported genomic file formats: **tidy**, *wide*, *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *hierfstat*, *gtypes*, *betadiv*, *dadi* and the haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/). 
+Easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas), [poppr] (https://github.com/grunwaldlab/poppr) and [assigner](https://github.com/thierrygosselin/assigner). 
+Conversion functions are integrated with important filters, blacklist and whitelist.
+
+* **Explore** and **filter** important variables caracteristics and statistics: 
+  *read depth (coverage) of alleles and genotypes, 
+  * genotype likelihood,
+  * genotyped individuals and populations,
+  * missing data,
+  * minor allele frequency (local and global MAF),
+  * observed heterozygosity (Het obs) and inbreeding coefficient (Fis),
+  * find duplicate individual or mixed sample.
+
+* **Filter**: Most genomic analysis look for patterns and trends with various statistics. 
+Bias, noise and outliers can have bounded influence on estimators and interfere with polymorphism discovery. 
 Avoid bad data exploration and control the impact of filters on your downstream genetic analysis.
 Alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways.
 
-* **Imputations**: Map-independent imputation of missing genotype/alleles 
-using Random Forest or the most frequent category
-* **Output**: painless conversion process. Conversion functions are integrated with important filters, blacklist and whitelist to convert genomic dataset in a **tidy** format and/or into *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *hierfstat*, *gtypes*, *betadiv* and *dadi* formats. 
-Easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas), [poppr] (https://github.com/grunwaldlab/poppr) and [assigner](https://github.com/thierrygosselin/assigner)
-* `ggplot2`-based plotting to view distributions of summary statistics and create publication-ready figures
+* **Map-independent imputation** of missing genotype/alleles 
+using Random Forest or the most frequent category.
+
+* **Visualization:** `ggplot2`-based plotting for publication-ready figures.
 
  
 ## Installation
