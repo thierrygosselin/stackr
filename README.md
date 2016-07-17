@@ -14,15 +14,14 @@ if you want to help, see [contributions section](https://github.com/thierrygosse
 Easy integration with other software or R packages like [adegenet] (https://github.com/thibautjombart/adegenet), [strataG] (https://github.com/EricArcher/strataG.devel/tree/master/strataG.devel), [hierfstat] (https://github.com/jgx65/hierfstat), [pegas] (https://github.com/emmanuelparadis/pegas), [poppr] (https://github.com/grunwaldlab/poppr) and [assigner](https://github.com/thierrygosselin/assigner). 
 Conversion functions are integrated with important filters, blacklist and whitelist.
 
-* **Explore** and **filter** important variables caracteristics and statistics: 
-  
-  *read depth (coverage) of alleles and genotypes, 
-  * genotype likelihood,
-  * genotyped individuals and populations,
-  * missing data,
-  * minor allele frequency (local and global MAF),
-  * observed heterozygosity (Het obs) and inbreeding coefficient (Fis),
-  * find duplicate individual or mixed sample.
+* **Explore** and **filter** important variables caracteristics and statistics:
+    *read depth (coverage) of alleles and genotypes, 
+    * genotype likelihood,
+    * genotyped individuals and populations,
+    * missing data,
+    * minor allele frequency (local and global MAF),
+    * observed heterozygosity (Het obs) and inbreeding coefficient (Fis),
+    * find duplicate individual or mixed sample.
 
 * **Filter**: Most genomic analysis look for patterns and trends with various statistics. 
 Bias, noise and outliers can have bounded influence on estimators and interfere with polymorphism discovery. 
