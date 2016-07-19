@@ -1,3 +1,37 @@
+# stackr v.0.3.2
+* `genomic_converter` including all the `vcf2...` function can now use phase/unphase genotypes.
+Some **pyRAD** vcf (e.g. v.3.0.64) have a mix of GT format with `/` and `|`. 
+e.g. missing GT  = `./.` and genotyped individuals = `0|0`. 
+I'm not sure it follows [VCF specification](http://samtools.github.io/hts-specs/VCFv4.2.pdf), 
+but **stackr** can now read those vcf files.
+* `vcf2dadi` is more user-friendly for scientist with in- and out-group metadata, using STACKS or not.
+
+
+# stackr v.0.3.1
+* Bug fix: combined use of `if (getRversion() >= "2.15.1") utils::globalVariables("variable")` 
+and `@inheritParams` was not showing all the argument description.
+
+# stackr v.0.3.0
+* Update that makes my coding life easier.
+* Several internal functions to convert from a tidy dataframe to:
+`vcf`, `plink`, `genind`, `genlight`, `gtypes`, `hierfstat`, `genepop`, `structure` and `betadiv` 
+are now separate modules available to users (look for `write_...` with the outputformat)
+* New function `genomic_converter`: If you want the to convert from the supported 
+input file formats to many output formats, at once, this is the function. 
+With the new function `genomic_converter`, import and imputations are only 
+done once, saving time if you were generating different output WITH imputations.
+* Change: all the `vcf2...` functions (excep `vcf2dadi`) are now a shorcut of `genomic_converter`. 
+ This is particularly interesting and faster if you were generating different
+ output WITH imputations. This makes the functions `vcf2...` and `genomic_converter`
+ easier to debug for me and more stable for users.
+* Deprecated: the `haplo2...` functions are all deprecated and replaced by 
+`genomic_converter`, **except haplo2colony** that requires so many arguments that it 
+would be too complicated, for now, to integrate with `genomic_converter`.
+* New feature: when arguments `pop.select`, `blacklist.id` and `imputation.method`
+are used, the REF and ALT alleles are now re-computed to account for the filters 
+and imputations.
+
+
 # stackr v.0.2.9
 * bug fix in `tidy_genomic_data`
 * bug fix between stackr -> devtools -> github -> travis, [this page helped] (http://itsalocke.com/using-travis-make-sure-use-github-pat/)

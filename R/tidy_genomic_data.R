@@ -560,6 +560,7 @@ tidy_genomic_data <- function(
           replacement = c("001", "002", "003", "004"), 
           vectorize_all = FALSE
         ),# replace nucleotide with numbers
+        GT = stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
         GT_VCF = GT,
         GT = ifelse(GT == "0/0", stri_join(REF, REF, sep = ""),
                     ifelse(GT == "1/1",  stri_join(ALT, ALT, sep = ""),
