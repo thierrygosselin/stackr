@@ -1,4 +1,4 @@
-# stackr: an R package to analyse GBS/RADseq data
+# stackr: an R package for the analysis of GBS/RADseq data
 
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr)
