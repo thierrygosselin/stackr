@@ -197,5 +197,4 @@ vcf_strata <- function(data, strata, filename = NULL) {
   suppressWarnings(write_tsv(x = input, path = filename, append = TRUE, col_names = TRUE))
   
   cat("############################## completed ##############################\n")
-  
 }

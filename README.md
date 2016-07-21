@@ -94,6 +94,8 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.3.3**
+* `tidy_genomic_data`: added a check that throws an error when pop.levels != the pop.id in strata
 
 **v.0.3.2**
 * `genomic_converter` including all the `vcf2...` function can now use phase/unphase genotypes.
@@ -102,10 +104,6 @@ e.g. missing GT  = `./.` and genotyped individuals = `0|0`.
 I'm not sure it follows [VCF specification](http://samtools.github.io/hts-specs/VCFv4.2.pdf), 
 but **stackr** can now read those vcf files.
 * `vcf2dadi` is more user-friendly for scientist with in- and out-group metadata, using STACKS or not.
-
-**v.0.3.1**
-* Bug fix: combined use of `if (getRversion() >= "2.15.1") utils::globalVariables("variable")` 
-and `@inheritParams` was not showing all the argument description.
 
 For previous news:
 [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)

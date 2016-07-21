@@ -285,7 +285,7 @@ tidy_genomic_data <- function(
   strata = NULL,
   pop.select = NULL,
   filename = NULL
-  ) {
+) {
   
   
   # Checking for missing and/or default arguments-------------------------------
@@ -297,10 +297,15 @@ tidy_genomic_data <- function(
     pop.levels <- stri_replace_all_fixed(pop.levels, pattern = " ", replacement = "_", vectorize_all = FALSE)
     pop.labels <- pop.levels
   }
+  
+  if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
+  
   if (!is.null(pop.labels)) {
+    if (length(pop.labels) != length(pop.levels)) stop("pop.labels and pop.levels must have the same length (number of groups)")
     pop.labels <- stri_replace_all_fixed(pop.labels, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
-  if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
+  
+  
   if (!is.null(pop.select)) {
     pop.select <- stri_replace_all_fixed(pop.select, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
@@ -420,6 +425,14 @@ tidy_genomic_data <- function(
     strata.df$POP_ID <- stri_replace_all_fixed(strata.df$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
   
+  # Check with strata and pop.levels/pop.labels
+  if (!is.null(strata) & !is.null(pop.levels)) {
+    if (length(levels(factor(strata.df$POP_ID))) != length(pop.levels)) {
+      stop("The number of groups in your strata file must match the number of groups in pop.levels")
+    }
+  }
+  
+  
   # Import VCF-------------------------------------------------------------------
   if (data.type == "vcf.file") { # VCF
     message("Importing the VCF...")
@@ -485,11 +498,11 @@ tidy_genomic_data <- function(
     
     # population levels and strata
     strata.df$INDIVIDUALS <- stri_replace_all_fixed(
-        str = strata.df$INDIVIDUALS, 
-        pattern = c("_", ":"), 
-        replacement = c("-", "-"), 
-        vectorize_all = FALSE
-        )
+      str = strata.df$INDIVIDUALS, 
+      pattern = c("_", ":"), 
+      replacement = c("-", "-"), 
+      vectorize_all = FALSE
+    )
     
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
     
@@ -625,7 +638,7 @@ tidy_genomic_data <- function(
         , by = "MARKERS") %>% 
         mutate(
           REF_ALT_CHANGE = if_else(REF == REF_NEW, "identical", "different")
-          ) %>% 
+        ) %>% 
         filter(REF_ALT_CHANGE == "different")
       
       message(stri_paste("Number of markers with REF/ALT change = ", length(ref.alt.alleles$MARKERS)))
@@ -651,7 +664,7 @@ tidy_genomic_data <- function(
           select(-c(REF, ALT, GT_VCF, GT_BIN)), 
         ref.alt.alleles.change, 
         by = c("MARKERS", "INDIVIDUALS")
-        )
+      )
       
       # remove unused object
       input.select <- NULL
@@ -708,6 +721,13 @@ tidy_genomic_data <- function(
     # if no strata tfam = strata.df
     if (is.null(strata)) {
       strata.df <- tfam
+      
+      # Check with strata and pop.levels/pop.labels
+      if (!is.null(pop.levels)) {
+        if (length(levels(factor(strata.df$POP_ID))) != length(pop.levels)) {
+          stop("The number of groups in your tfam file must match the number of groups in pop.levels")
+        }
+      }
     } else {
       # remove unwanted sep in individual name and replace with "-"
       strata.df$INDIVIDUALS <- stri_replace_all_fixed(
@@ -738,10 +758,10 @@ tidy_genomic_data <- function(
     if (!is.null(blacklist.id)) { # using the blacklist of individuals
       # remove unwanted sep in individual name and replace with "-"
       blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
-          str = blacklist.id$INDIVIDUALS, 
-          pattern = c("_", ":"), 
-          replacement = c("-", "-"), 
-          vectorize_all = FALSE
+        str = blacklist.id$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"), 
+        vectorize_all = FALSE
       )
       
       whitelist.id <- tped.header.prep %>% 
@@ -899,10 +919,20 @@ tidy_genomic_data <- function(
     }
     
     # Change potential problematic POP_ID space
-    input$POP_ID = stri_replace_all_fixed(input$POP_ID, 
-                                          pattern = " ", 
-                                          replacement = "_", 
-                                          vectorize_all = FALSE)
+    input$POP_ID = stri_replace_all_fixed(
+      input$POP_ID, 
+      pattern = " ", 
+      replacement = "_", 
+      vectorize_all = FALSE
+      )
+    
+    # Check with strata and pop.levels/pop.labels
+    if (!is.null(pop.levels)) {
+      if (length(levels(factor(input$POP_ID))) != length(pop.levels)) {
+        stop("The number of groups in your POP_ID column file must match the number of groups in pop.levels")
+      }
+    }
+    
     
     # Pop select
     if (!is.null(pop.select)) {
@@ -976,11 +1006,11 @@ tidy_genomic_data <- function(
     
     # population levels and strata
     strata.df$INDIVIDUALS = stri_replace_all_fixed(
-        str = strata.df$INDIVIDUALS, 
-        pattern = c("_", ":"), 
-        replacement = c("-", "-"), 
-        vectorize_all = FALSE
-        )
+      str = strata.df$INDIVIDUALS, 
+      pattern = c("_", ":"), 
+      replacement = c("-", "-"), 
+      vectorize_all = FALSE
+    )
     
     input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
     
@@ -1140,7 +1170,14 @@ tidy_genomic_data <- function(
       pattern = " ", 
       replacement = "_", 
       vectorize_all = FALSE
-      )
+    )
+    
+    # Check with strata and pop.levels/pop.labels
+    if (!is.null(pop.levels)) {
+      if (length(levels(factor(input$POP_ID))) != length(pop.levels)) {
+        stop("The number of groups in your POP_ID column must match the number of groups in pop.levels")
+      }
+    }
     
     # Pop select
     if (!is.null(pop.select)) {
@@ -1155,11 +1192,11 @@ tidy_genomic_data <- function(
   
   # Arrange the id and create a strata after pop select ------------------------
   input$INDIVIDUALS <- stri_replace_all_fixed(
-        str = input$INDIVIDUALS, 
-        pattern = c("_", ":"), 
-        replacement = c("-", "-"),
-        vectorize_all = FALSE
-    )
+    str = input$INDIVIDUALS, 
+    pattern = c("_", ":"), 
+    replacement = c("-", "-"),
+    vectorize_all = FALSE
+  )
   
   strata.df <- input %>%
     ungroup() %>%

@@ -1,3 +1,6 @@
+# stackr v.0.3.3
+* `tidy_genomic_data`: added a check to throw an error when pop.levels != the pop.id in strata
+
 # stackr v.0.3.2
 * `genomic_converter` including all the `vcf2...` function can now use phase/unphase genotypes.
 Some **pyRAD** vcf (e.g. v.3.0.64) have a mix of GT format with `/` and `|`. 
