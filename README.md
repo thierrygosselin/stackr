@@ -94,6 +94,11 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.3.4**
+* updated documentation
+* bug fix in `summary_haplotypes` introduced by the new version of `dplyr::distinct` (v.0.5.0)
+* calculations of Pi is done in parallel inside `summary_haplotypes`
+
 **v.0.3.3**
 * `tidy_genomic_data`: added a check that throws an error when pop.levels != the pop.id in strata
 
