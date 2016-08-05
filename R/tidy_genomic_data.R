@@ -1116,13 +1116,21 @@ tidy_genomic_data <- function(
   if (data.type == "genind.file") { # DATA FRAME OF GENOTYPES
     # data = skipjack.genind
     input <- adegenet::genind2df(data) %>% 
-      add_rownames("INDIVIDUALS") %>% 
+      tibble::rownames_to_column("INDIVIDUALS") %>% 
       rename(POP_ID = pop)
     
     message("Tidying the genind object ...")
+    # scan for the number of character coding the allele
+    allele.sep <- input %>% select(-INDIVIDUALS, -POP_ID)
+    allele.sep <- unique(nchar(allele.sep[!is.na(allele.sep)]))
+
+    if (length(allele.sep) > 1) {
+      stop("The number of character/integer string coding the allele is not identical accross markers")
+    }
+
     input <- input %>% 
       tidyr::gather(key = LOCUS, value = GT, -c(INDIVIDUALS, POP_ID)) %>% 
-      tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 1, remove = TRUE, extra = "drop") %>% 
+      tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = allele.sep/2, remove = TRUE, extra = "drop") %>% 
       mutate(
         A1 = stri_pad_left(str = A1, pad = "0", width = 3),
         A2 = stri_pad_left(str = A2, pad = "0", width = 3)
