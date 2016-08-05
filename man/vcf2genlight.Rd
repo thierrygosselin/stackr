@@ -19,12 +19,12 @@ vcf2genlight(data, output, filename = NULL, blacklist.id = NULL,
 plink, stacks haplotype file, genind, genepop, 
 and a data frame in wide format. \emph{See details}.}
 
-\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop, 
+\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop,
 structure, hierfstat, gtypes, betadiv. Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 output formats generated. The tidy format is generated automatically.}
 
-\item{filename}{(optional) The filename prefix for the objet in the global environment 
+\item{filename}{(optional) The filename prefix for the objet in the global environment
 or the working directory. Default: \code{filename = NULL}. A default name will be used,
 customized with the output file(s) selected.}
 

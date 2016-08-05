@@ -19,12 +19,12 @@ genomic_converter(data, output, filename = NULL, blacklist.id = NULL,
 plink, stacks haplotype file, genind, genepop, 
 and a data frame in wide format. \emph{See details}.}
 
-\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop, 
+\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop,
 structure, hierfstat, gtypes, betadiv. Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 output formats generated. The tidy format is generated automatically.}
 
-\item{filename}{(optional) The filename prefix for the objet in the global environment 
+\item{filename}{(optional) The filename prefix for the objet in the global environment
 or the working directory. Default: \code{filename = NULL}. A default name will be used,
 customized with the output file(s) selected.}
 
@@ -178,9 +178,9 @@ OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 If not selected \code{detectCores()-1} is used as default.}
 }
 \value{
-The function returns an object (list). The content of the object 
+The function returns an object (list). The content of the object
 can be listed with \code{names(object)} and use \code{$} to isolate specific
-object (see examples). Some output format will write the output file in the 
+object (see examples). Some output format will write the output file in the
 working directory. The tidy genomic data frame is generated automatically.
 }
 \description{
@@ -189,7 +189,7 @@ reality of GBS/RADseq data while maintaining a reproducible workflow.
 
 \itemize{
   \item \strong{Input file:} various file formats are supported (see \code{data} argument below)
-  \item \strong{Filters:} genotypes, markers, individuals and populations can be 
+  \item \strong{Filters:} genotypes, markers, individuals and populations can be
   filtered and/or selected in several ways using blacklist,
   whitelist and other arguments
   \item \strong{Imputations:} Map-independent imputation of missing genotype/alleles
@@ -201,7 +201,7 @@ reality of GBS/RADseq data while maintaining a reproducible workflow.
 \details{
 \strong{Input files:}
 \enumerate{
-\item VCF file (e.g. \code{data = "batch_1.vcf"}). 
+\item VCF file (e.g. \code{data = "batch_1.vcf"}).
 To make the VCF population ready, you need the \code{strata} argument.
 
 \item haplotype file created in STACKS (e.g. \code{data = "batch_1.haplotypes.tsv"}).
@@ -214,39 +214,39 @@ Tab delimitted.
 6 characters WITH an allele separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
 The separator can be any of these: \code{"/", ":", "_", "-", "."}.
 Missing alleles are coded \code{000}.
-To discriminate the long from the wide format, 
-the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-for columns number, > 20 for wide 
+To discriminate the long from the wide format,
+the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches
+for columns number, > 20 for wide
 (i.e. don't use less than 10 markers in wide format, the function was not designed for that).
 
 Data Frame wide format:
 The wide format cannot store metadata info.
-The wide format contains starts with these 2 id columns: 
-\code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
+The wide format contains starts with these 2 id columns:
+\code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals),
 the remaining columns are the markers in separate columns storing genotypes.
 This format requires column numbers to be larger than 20.
 Data frame long/tidy format:
 This format requires column numbers to be within the range: 4 min - 20 max.
-The long format is considered to be a tidy data frame and can store metadata info. 
+The long format is considered to be a tidy data frame and can store metadata info.
 (e.g. from a VCF see \pkg{stackr} \code{\link[stackr]{tidy_genomic_data}}). The 4 columns
-required in the long format are: \code{INDIVIDUALS}, \code{POP_ID}, 
+required in the long format are: \code{INDIVIDUALS}, \code{POP_ID},
 \code{MARKERS} and \code{GENOTYPE or GT}.
 
-Note that the \code{POP_ID} column can be any hierarchical grouping. 
-See the argument \code{strata} for other means of controlling grouping used 
+Note that the \code{POP_ID} column can be any hierarchical grouping.
+See the argument \code{strata} for other means of controlling grouping used
 in the assignment.
 
-\item PLINK file in 
-\code{tped/tfam} format (e.g. \code{data =  "data.assignment.tped"}). 
-The first 2 columns of the \code{tfam} file will be used for the 
-\code{strata} argument below, unless a new one is provided. 
-Columns 1, 3 and 4 of the \code{tped} are discarded. The remaining columns 
-correspond to the genotype in the format \code{01/04} 
-where \code{A = 01, C = 02, G = 03 and T = 04}. For \code{A/T} format, use 
+\item PLINK file in
+\code{tped/tfam} format (e.g. \code{data =  "data.assignment.tped"}).
+The first 2 columns of the \code{tfam} file will be used for the
+\code{strata} argument below, unless a new one is provided.
+Columns 1, 3 and 4 of the \code{tped} are discarded. The remaining columns
+correspond to the genotype in the format \code{01/04}
+where \code{A = 01, C = 02, G = 03 and T = 04}. For \code{A/T} format, use
 PLINK or bash to convert.
-Use \href{http://vcftools.sourceforge.net/}{VCFTOOLS} with \code{--plink-tped} 
-to convert very large VCF file. For \code{.ped} file conversion to 
-\code{.tped} use \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK} 
+Use \href{http://vcftools.sourceforge.net/}{VCFTOOLS} with \code{--plink-tped}
+to convert very large VCF file. For \code{.ped} file conversion to
+\code{.tped} use \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK}
 with \code{--recode transpose},
 
 \item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
@@ -258,8 +258,8 @@ alleles encoded with 3 digits.
 \strong{Imputations details:}
 The imputations using Random Forest requires more time to compute and can take several
 minutes and hours depending on the size of the dataset and polymorphism of
-the species used. e.g. with a low polymorphic taxa, and a data set 
-containing 30\% missing data, 5 000 haplotypes loci and 500 individuals 
+the species used. e.g. with a low polymorphic taxa, and a data set
+containing 30\% missing data, 5 000 haplotypes loci and 500 individuals
 will require 15 min.
 }
 \examples{
@@ -280,28 +280,28 @@ snowcrab <- genomic_converter(
 
 #Get the content of the object created using:
 names(snowcrab)
-#To isolate the genlight object (without imputation): 
+#To isolate the genlight object (without imputation):
 genlight.no.imputation <- snowcrab$genlight.no.imputation
 }
 }
 \author{
-Thierry Gosselin \email{thierrygosselin@icloud.com} and 
+Thierry Gosselin \email{thierrygosselin@icloud.com} and
 Laura Benestan \email{laura.benestan@icloud.com} (for betadiv)
 }
 \references{
-Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
-Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
+Catchen JM, Amores A, Hohenlohe PA et al. (2011)
+Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences.
 G3, 1, 171-182.
 
-Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
-Stacks: an analysis tool set for population genomics. 
+Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013)
+Stacks: an analysis tool set for population genomics.
 Molecular Ecology, 22, 3124-3140.
 
 Jombart T (2008) adegenet: a R package for the multivariate
 analysis of genetic markers. Bioinformatics, 24, 1403-1405.
 
-Jombart T, Ahmed I (2011) adegenet 1.3-1: 
-new tools for the analysis of genome-wide SNP data. 
+Jombart T, Ahmed I (2011) adegenet 1.3-1:
+new tools for the analysis of genome-wide SNP data.
 Bioinformatics, 27, 3070-3071.
 
 Ishwaran H. and Kogalur U.B. (2015). Random Forests for Survival,
@@ -313,33 +313,33 @@ for R. R News 7(2), 25-31.
 Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008).
 Random survival forests. Ann. Appl. Statist. 2(3), 841-860.
 
-Lamy T, Legendre P, Chancerelle Y, Siu G, Claudet J (2015) 
-Understanding the Spatio-Temporal Response of Coral Reef Fish Communities to 
-Natural Disturbances: Insights from Beta-Diversity Decomposition. 
+Lamy T, Legendre P, Chancerelle Y, Siu G, Claudet J (2015)
+Understanding the Spatio-Temporal Response of Coral Reef Fish Communities to
+Natural Disturbances: Insights from Beta-Diversity Decomposition.
 PLoS ONE, 10, e0138696.
 
 Danecek P, Auton A, Abecasis G et al. (2011)
 The variant call format and VCFtools.
 Bioinformatics, 27, 2156-2158.
 
-Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR, 
-Bender D, et al. 
-PLINK: a tool set for whole-genome association and population-based linkage 
-analyses. 
+Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR,
+Bender D, et al.
+PLINK: a tool set for whole-genome association and population-based linkage
+analyses.
 American Journal of Human Genetics. 2007; 81: 559–575. doi:10.1086/519795
 
-Goudet, J. (1995) FSTAT (Version 1.2): A computer program to 
+Goudet, J. (1995) FSTAT (Version 1.2): A computer program to
 calculate F- statistics. Journal of Heredity, 86, 485-486.
 
 Goudet, J. (2005) hierfstat, a package for r to compute and test hierarchical F-statistics. Molecular Ecology Notes, 5, 184-186.
 
-Eric Archer, Paula Adams and Brita Schneiders (2016). 
+Eric Archer, Paula Adams and Brita Schneiders (2016).
 strataG: Summaries and Population Structure Analyses of
 Genetic Data. R package version 1.0.5. https://CRAN.R-project.org/package=strataG
 }
 \seealso{
-\code{beta.div} is available on Pierre Legendre web site \url{http://adn.biol.umontreal.ca/~numericalecology/Rcode/} 
-\code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/} 
+\code{beta.div} is available on Pierre Legendre web site \url{http://adn.biol.umontreal.ca/~numericalecology/Rcode/}
+\code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/}
 and github \url{https://github.com/ehrlinger/randomForestSRC}
 }
 
