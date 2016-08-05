@@ -788,7 +788,7 @@ dart2df_genind_plink <- function(
         facet_grid(~GROUP)
       
     }
-    if(!(plot.call.rate)) {
+    if (!(plot.call.rate)) {
       plot.cr <- "not selected"
     }
     input <- filter
