@@ -159,8 +159,19 @@ summary_haplotypes <- function(
     na.strings = "-"
   ) %>% 
     as_data_frame() %>% 
-    select(-Cnt) %>% 
-    rename(LOCUS = `Catalog ID`)
+    select(-Cnt)
+  
+  if (tibble::has_name(haplotype, "# Catalog ID") || tibble::has_name(haplotype, "Catalog ID")) {
+    colnames(haplotype) <- stri_replace_all_fixed(
+      str = colnames(haplotype), 
+      pattern = c("# Catalog ID", "Catalog ID"), replacement = c("LOCUS", "LOCUS"), vectorize_all = FALSE
+      )
+  }
+  
+  if (tibble::has_name(haplotype, "Seg Dist")) {
+    haplotype <- select(.data = haplotype, -`Seg Dist`)
+  }
+  
   
   haplotype <- data.table::melt.data.table(
     data = data.table::as.data.table(haplotype), 

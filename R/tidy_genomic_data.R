@@ -311,7 +311,7 @@ tidy_genomic_data <- function(
   }
   
   # File type detection----------------------------------------------------------
-  if(is.genind(data)){
+  if (is.genind(data)) {
     data.type <- "genind.file"
     # message("File type: genind object")
   } else {
@@ -327,7 +327,7 @@ tidy_genomic_data <- function(
         stop("Missing tfam file with the same prefix as your tped")
       }
     } 
-    if (stri_detect_fixed(str = data.type, pattern = "POP_ID") | stri_detect_fixed(str = data.type, pattern = "INDIVIDUALS") | stri_detect_fixed(str = data.type, pattern = "MARKERS")| stri_detect_fixed(str = data.type, pattern = "LOCUS")) {
+    if (stri_detect_fixed(str = data.type, pattern = "POP_ID") | stri_detect_fixed(str = data.type, pattern = "INDIVIDUALS") | stri_detect_fixed(str = data.type, pattern = "MARKERS") | stri_detect_fixed(str = data.type, pattern = "LOCUS")) {
       data.type <- "df.file"
       # message("File type: data frame of genotypes")
     }
@@ -347,7 +347,7 @@ tidy_genomic_data <- function(
     } 
   } # end file type detection
   
-  if(data.type == "haplo.file") {
+  if (data.type == "haplo.file") {
     message("With stacks haplotype file the maf.approach is automatically set to: haplotype")
     maf.approach <- "SNP"
     # confusing, but because the haplotpe file doesn't have snp info, only locus info
@@ -370,7 +370,7 @@ tidy_genomic_data <- function(
   # Import whitelist of markers-------------------------------------------------
   if (is.null(whitelist.markers)) { # no Whitelist
     # message("Whitelist of markers: no")
-  } else { # with Whitelist of markers
+  } else {# with Whitelist of markers
     # message("Whitelist of markers: yes")
     whitelist.markers <- read_tsv(whitelist.markers, col_names = TRUE)
     columns.names.whitelist <- colnames(whitelist.markers)
@@ -393,7 +393,7 @@ tidy_genomic_data <- function(
   # Import blacklist id --------------------------------------------------------
   if (is.null(blacklist.id)) { # No blacklist of ID
     # message("Blacklisted individuals: no")
-  } else { # With blacklist of ID
+  } else {# With blacklist of ID
     # message("Blacklisted individuals: yes")
     blacklist.id <- read_tsv(blacklist.id, col_names = TRUE)
   }
@@ -504,7 +504,7 @@ tidy_genomic_data <- function(
       vectorize_all = FALSE
     )
     
-    input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
+    input <- left_join(x = input, y = strata.df, by = "INDIVIDUALS")
     
     # Pop select
     if (!is.null(pop.select)) {
@@ -534,7 +534,7 @@ tidy_genomic_data <- function(
         input <- input %>% 
           rename(READ_DEPTH = DP) %>% 
           mutate(
-            READ_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all=FALSE))),
+            READ_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all = FALSE))),
             READ_DEPTH = ifelse(GT == "./.", NA, READ_DEPTH)
           )
       } # end cleaning READ_DEPTH (DP) column
@@ -562,7 +562,7 @@ tidy_genomic_data <- function(
     input <- input %>%
       tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE) %>%
       mutate(
-        REF= stri_replace_all_fixed(
+        REF = stri_replace_all_fixed(
           str = REF, 
           pattern = c("A", "C", "G", "T"), 
           replacement = c("001", "002", "003", "004"), 
@@ -700,7 +700,7 @@ tidy_genomic_data <- function(
       stringsAsFactors = FALSE,
       verbose = FALSE,
       select = c(1,2),
-      colClasses=list(character = c(1,2)),
+      colClasses = list(character = c(1,2)),
       col.names = c("POP_ID", "INDIVIDUALS"),
       showProgress = TRUE, 
       data.table = FALSE) %>% 
@@ -837,7 +837,7 @@ tidy_genomic_data <- function(
     # population levels and strata
     message("Integrating the tfam/strata file...")
     
-    input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
+    input <- left_join(x = input, y = strata.df, by = "INDIVIDUALS")
     
     # Pop select
     if (!is.null(pop.select)) {
@@ -868,6 +868,19 @@ tidy_genomic_data <- function(
     remove.missing.gt <- NULL
     
   } # End import PLINK
+  
+  # Import genepop--------------------------------------------------------------
+  if (data.type == "genepop.file") {
+    message("Tidying the genepop file ...")
+    
+    # data <- "/Users/thierry/Dropbox/esturgeon_dropbox/stacks_populations_2015/01_stacks_populations/populations_8pop/sturgeon.test.gen"
+    data <- stackr::tidy_genepop(data = data, tidy = TRUE)
+    
+    # data <- adegenet::read.genepop(data, ncode = 3, quiet = TRUE)
+    # data.type <- "genind.file"
+    # genind.type <- "genepop"
+    data.type <- "df.file"
+  }
   
   # Import DF-------------------------------------------------------------------
   if (data.type == "df.file") { # DATA FRAME OF GENOTYPES
@@ -924,7 +937,7 @@ tidy_genomic_data <- function(
       pattern = " ", 
       replacement = "_", 
       vectorize_all = FALSE
-      )
+    )
     
     # Check with strata and pop.levels/pop.labels
     if (!is.null(pop.levels)) {
@@ -952,15 +965,25 @@ tidy_genomic_data <- function(
       sep = "\t", 
       header = TRUE, 
       stringsAsFactors = FALSE,
-      colClasses=list(character=1:number.columns),
+      colClasses = list(character = 1:number.columns),
       verbose = FALSE,
       showProgress = TRUE,
       data.table = FALSE, 
       na.strings = "-"
     ) %>% 
       as_data_frame() %>% 
-      select(-Cnt) %>% 
-      rename(LOCUS = `Catalog ID`)
+      select(-Cnt)
+    
+    if (tibble::has_name(input, "# Catalog ID") || tibble::has_name(input, "Catalog ID")) {
+      colnames(input) <- stri_replace_all_fixed(
+        str = colnames(input), 
+        pattern = c("# Catalog ID", "Catalog ID"), replacement = c("LOCUS", "LOCUS"), vectorize_all = FALSE
+      )
+    }
+    
+    if (tibble::has_name(input, "Seg Dist")) {
+      input <- select(.data = input, -`Seg Dist`)
+    }
     
     input <- data.table::melt.data.table(
       data = as.data.table(input), 
@@ -1012,7 +1035,7 @@ tidy_genomic_data <- function(
       vectorize_all = FALSE
     )
     
-    input <- left_join(x= input, y = strata.df, by = "INDIVIDUALS")
+    input <- left_join(x = input, y = strata.df, by = "INDIVIDUALS")
     
     # Pop select
     if (!is.null(pop.select)) {
@@ -1031,9 +1054,9 @@ tidy_genomic_data <- function(
     
     message(stri_paste("Number of genotypes with more than 2 alleles: ", length(blacklist.paralogs$LOCUS), sep = ""))
     
-    if (length(blacklist.paralogs$LOCUS) > 0){
+    if (length(blacklist.paralogs$LOCUS) > 0) {
       input <- input %>% 
-        mutate(GT = ifelse(POLYMORPHISM >1, NA, GT)) %>% 
+        mutate(GT = ifelse(POLYMORPHISM > 1, NA, GT)) %>% 
         select(-POLYMORPHISM)
       
       write_tsv(blacklist.paralogs, "blacklist.genotypes.paralogs.tsv")
@@ -1050,7 +1073,7 @@ tidy_genomic_data <- function(
           col = GT, into = c("A1", "A2"), sep = "/", extra = "drop", remove = TRUE
         ) %>%
         mutate(A2 = ifelse(is.na(A2), A1, A2)) %>% 
-        tidyr::gather(data = ., key = ALLELES, value = GT, -c(LOCUS, POP_ID, INDIVIDUALS))%>% 
+        tidyr::gather(data = ., key = ALLELES, value = GT, -c(LOCUS, POP_ID, INDIVIDUALS)) %>% 
         tidyr::spread(data = ., key = LOCUS, value = GT)
     )
     
@@ -1088,16 +1111,6 @@ tidy_genomic_data <- function(
     # change the filename and strata.df here
   } # End import haplotypes file
   
-  # Import genepop--------------------------------------------------------------
-  if (data.type == "genepop.file") {
-    message("Tidying the genepop file ...")
-    
-    # data <- "/Users/thierry/Documents/skipjack/skipjack.filtered_imputed.gen"
-    data <- adegenet::read.genepop(data, ncode = 3, quiet = TRUE)
-    data.type <- "genind.file"
-    genind.type <- "genepop"
-  }
-  
   # Import GENIND--------------------------------------------------------------
   # load("/Users/thierry/Documents/skipjack/fst.test.RData")
   if (data.type == "genind.file") { # DATA FRAME OF GENOTYPES
@@ -1106,22 +1119,16 @@ tidy_genomic_data <- function(
       add_rownames("INDIVIDUALS") %>% 
       rename(POP_ID = pop)
     
-    if (genind.type == "genepop") {
-      input <- tidyr::gather(
-        data = input, key = LOCUS, value = GT, -c(INDIVIDUALS, POP_ID)
-      )
-    } else {
-      message("Tidying the genind object ...")
-      input <- input %>% 
-        tidyr::gather(key = LOCUS, value = GT, -c(INDIVIDUALS, POP_ID)) %>% 
-        tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 1, remove = TRUE, extra = "drop") %>% 
-        mutate(
-          A1 = stri_pad_left(str= A1, pad = "0", width = 3),
-          A2 = stri_pad_left(str= A2, pad = "0", width = 3)
-        ) %>% 
-        tidyr::unite(data = ., col = GT, A1, A2, sep = "") %>% 
-        mutate(GT = replace(GT, which(GT == "NANA"), "000000"))
-    }
+    message("Tidying the genind object ...")
+    input <- input %>% 
+      tidyr::gather(key = LOCUS, value = GT, -c(INDIVIDUALS, POP_ID)) %>% 
+      tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 1, remove = TRUE, extra = "drop") %>% 
+      mutate(
+        A1 = stri_pad_left(str = A1, pad = "0", width = 3),
+        A2 = stri_pad_left(str = A2, pad = "0", width = 3)
+      ) %>% 
+      tidyr::unite(data = ., col = GT, A1, A2, sep = "") %>% 
+      mutate(GT = replace(GT, which(GT == "NANA"), "000000"))
     
     # remove unwanted sep in id and pop.id names
     input <- input %>% 
@@ -1240,7 +1247,7 @@ tidy_genomic_data <- function(
       blacklist.genotype <- blacklist.genotype
       message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
       # updating the whitelist of markers to have all columns that id markers
-      if (data.type == "vcf.file"){
+      if (data.type == "vcf.file") {
         whitelist.markers.ind <- input %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
       } else {
         whitelist.markers.ind <- input %>% distinct(LOCUS, INDIVIDUALS)
@@ -1271,9 +1278,9 @@ tidy_genomic_data <- function(
   
   
   # population levels --------------------------------------------------------
-  if(is.null(pop.levels)) { # no pop.levels
+  if (is.null(pop.levels)) { # no pop.levels
     input <- mutate(.data = input, POP_ID = factor(POP_ID))
-  } else { # with pop.levels
+  } else {# with pop.levels
     input <- mutate(
       .data = input,
       POP_ID = factor(
@@ -1413,9 +1420,9 @@ tidy_genomic_data <- function(
     # Remove the markers from the dataset
     message(paste0("Number of monomorphic markers removed = ", n_distinct(mono.markers$MARKERS)))
     
-    if (length(mono.markers$MARKERS)>0) {
+    if (length(mono.markers$MARKERS) > 0) {
       input <- anti_join(input, mono.markers, by = "MARKERS")
-      if(data.type == "haplo.file") mono.markers <- rename(.data = mono.markers, LOCUS = MARKERS)
+      if (data.type == "haplo.file") mono.markers <- rename(.data = mono.markers, LOCUS = MARKERS)
       write_tsv(mono.markers, "blacklist.momorphic.markers.tsv")
     }
   }
@@ -1532,7 +1539,7 @@ tidy_genomic_data <- function(
           select(LOCUS) %>%
           left_join(input, by = "LOCUS") %>%
           arrange(LOCUS, POP_ID)
-      } else { # AND operator between local and global maf
+      } else {# AND operator between local and global maf
         vcf.maf <- vcf.maf %>%
           group_by(LOCUS, POP_ID) %>%
           summarise(
@@ -1565,7 +1572,7 @@ tidy_genomic_data <- function(
           select(MARKERS) %>%
           left_join(input, by = "MARKERS") %>%
           arrange(MARKERS, POP_ID)
-      } else { # AND operator between local and global maf
+      } else {# AND operator between local and global maf
         vcf.maf <- maf.data %>%
           group_by(MARKERS, POP_ID) %>%
           summarise(
@@ -1584,7 +1591,7 @@ tidy_genomic_data <- function(
     
     
     message(stri_join("The number of MARKERS removed by the MAF filters = ", 
-                      n_distinct(input$MARKERS)-n_distinct(vcf.maf$MARKERS), "\n", 
+                      n_distinct(input$MARKERS) - n_distinct(vcf.maf$MARKERS), "\n", 
                       "The number of MARKERS before -> after the MAF filters: ", 
                       n_distinct(input$MARKERS)," -> ", n_distinct(vcf.maf$MARKERS), 
                       " MARKERS"))
