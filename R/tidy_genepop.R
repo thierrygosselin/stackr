@@ -338,4 +338,4 @@ tidy_genepop <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
   }
   
   return(data)
-} # end stackr_read_genepop
+} # end tidy_genepop
