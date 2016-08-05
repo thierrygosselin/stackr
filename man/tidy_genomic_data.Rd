@@ -36,10 +36,10 @@ Default: \code{monomorphic.out = TRUE}.}
 \item{blacklist.genotype}{(optional) Useful to erase genotype with below 
 average quality, e.g. genotype with more than 2 alleles in diploid likely 
 sequencing errors or genotypes with poor genotype likelihood or coverage. 
-The blacklist as a minimum of 2 column headers (markers and individuals). 
+The blacklist has a minimum of 2 column headers (markers and individuals). 
 Markers can be 1 column (CHROM or LOCUS or POS), 
 a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
-all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
+all 3 (CHROM, LOCUS, POS). The markers columns must be designated: CHROM (character
 or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
 INDIVIDUALS (character) columns header. The blacklist must be in the working 
 directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
