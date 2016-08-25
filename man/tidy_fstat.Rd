@@ -47,7 +47,7 @@ several other filtering options.
 }
 \examples{
 \dontrun{
-We will use the genepop dataset provided with adegenet package
+We will use the fstat dataset provided with adegenet package
 if (!require("hierfstat")) install.packages("hierfstat")
 
 The simplest form of the function:
