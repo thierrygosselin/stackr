@@ -38,11 +38,8 @@ using Random Forest or the most frequent category.
 To try out the dev version of **stackr**, copy/paste the code below:
 
 ```r
-# Install or load the package **devtools**
 if (!require("devtools")) install.packages("devtools") # to install
 library(devtools) # to load
-# Install **stackr**
-# devtools::install_github("thierrygosselin/stackr") # to install without vignettes
 devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to install WITH vignettes
 library(stackr) # to load
 ```
@@ -93,6 +90,10 @@ citation("stackr")
 
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
+
+**v.0.3.5**
+* updated tidy_genepop to read other flavors of the famous file format
+* extracted a code block to create a new function called `tidy_fstat`
 
 **v.0.3.4**
 * updated documentation

@@ -13,7 +13,7 @@ tidy_genomic_data(data, vcf.metadata = TRUE, whitelist.markers = NULL,
 }
 \arguments{
 \item{data}{6 options: vcf (to make vcf population ready, see details below),
-plink, stacks haplotype file, genind, genepop, 
+plink, stacks haplotype file, genind, genlight, genepop, 
 and a data frame in wide format. \emph{See details}.}
 
 \item{vcf.metadata}{(optional, logical) For the VCF file, with \code{vcf.metadata = FALSE}, 

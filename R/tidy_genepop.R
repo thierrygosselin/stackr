@@ -166,15 +166,28 @@ tidy_genepop <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
       skip = 1, # removes genepop header
       sep = "?",
       stringsAsFactors = FALSE,
-      col.names = "data"
-    )
+      col.names = "data",
+      strip.white = TRUE
+    ) %>% as_data_frame
   } else {
     data <- data.table::as.data.table(data) %>%
       dplyr::rename(data = V1) %>%
-      dplyr::slice(-1) # removes genepop header
+      dplyr::slice(-1) %>% # removes genepop header
+      as_data_frame
   }
   
-  # Pop indices ----------------------------------------------------------------
+  # Replace white space with only 1 space
+  data$data <- stringi::stri_replace_all_regex(
+    str = data$data,
+    pattern = "\\s+",
+    replacement = " ",
+    vectorize_all = FALSE
+  )
+  
+  # Remove unnecessary spaces
+  data$data <- stringi::stri_trim_right(str = data$data, pattern = "\\P{Wspace}")
+
+    # Pop indices ----------------------------------------------------------------
   pop.indices <- which(data$data %in% c("Pop", "pop", "POP"))
   npop <- length(pop.indices)
   

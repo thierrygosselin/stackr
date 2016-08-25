@@ -136,7 +136,7 @@ write_genind <- function(data) {
     select(-MARKERS, -ALLELES) %>% 
     mutate(
       POP_ID = as.character(POP_ID), # required to be able to do xvalDapc with adegenet.
-      POP_ID = factor(POP_ID) # xvalDapc does accept pop as ordered factor
+      POP_ID = factor(POP_ID) # xvalDapc doesn't accept pop as ordered factor
     )
   
   genind.prep <- data.table::dcast.data.table(

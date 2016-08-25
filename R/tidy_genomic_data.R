@@ -11,9 +11,8 @@
 #' and \href{https://github.com/thierrygosselin/assigner}{assigner}
 #' and might be of interest for users.
 
-
 #' @param data 6 options: vcf (to make vcf population ready, see details below),
-#' plink, stacks haplotype file, genind, genepop, 
+#' plink, stacks haplotype file, genind, genlight, genepop, 
 #' and a data frame in wide format. \emph{See details}.
 
 #' @param vcf.metadata (optional, logical) For the VCF file, with \code{vcf.metadata = FALSE}, 

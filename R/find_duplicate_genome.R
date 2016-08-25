@@ -97,7 +97,7 @@
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 # required to pass the R CMD check and have 'no visible binding for global variable'
-if (getRversion() >= "2.15.1"){
+if (getRversion() >= "2.15.1") {
   utils::globalVariables(
     c("ID1", "ID2", "IDENTICAL_GT", "IDENTICAL", "DIFFERENT", 
       "TOTAL_MARKERS_GENOTYPED", "PROP_IDENTICAL", "PAIRWISE", "DISTANCE", 
@@ -108,7 +108,7 @@ if (getRversion() >= "2.15.1"){
 find_duplicate_genome <- function(data,
                               distance.method = "manhattan",
                               genome = FALSE,
-                              parallel.core = detectCores()-1) {
+                              parallel.core = detectCores() - 1) {
   cat("###############################################################################\n")
   cat("######################## stackr: find_duplicate_genome ########################\n")
   cat("###############################################################################\n")
@@ -132,18 +132,19 @@ find_duplicate_genome <- function(data,
   
   # Functions -------------------------------------------------------------------
   # distance method
-  distance_individuals <- function (x, distance.method, parallel.core) {
+  distance_individuals <- function(x, distance.method, parallel.core) {
     if (!requireNamespace("tibble")) warning("tibble not installed")
     
     # Prep data 
-    dist.computation <- x %>% 
-      select(MARKERS, INDIVIDUALS, GT) %>%
-      group_by(INDIVIDUALS) %>% 
-      tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
-      ungroup %>% 
-      tibble::remove_rownames(.) %>% 
-      tibble::column_to_rownames(df = ., var = "INDIVIDUALS")
-    
+    dist.computation <- suppressWarnings(
+      x %>% 
+        select(MARKERS, INDIVIDUALS, GT) %>%
+        group_by(INDIVIDUALS) %>% 
+        tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
+        ungroup %>% 
+        tibble::remove_rownames(.) %>% 
+        tibble::column_to_rownames(df = ., var = "INDIVIDUALS")
+    )    
     
     # compute distance
     # gain in speed between the 2 is very small on small data set
@@ -293,12 +294,12 @@ find_duplicate_genome <- function(data,
     res$violin.plot.distance <- ggplot(
       data = dist.computation, 
       aes(x = PAIRWISE, y = DISTANCE, na.rm = TRUE)
-    )+
-      geom_violin(trim = TRUE)+
-      geom_boxplot(width = 0.1, fill = "black", outlier.colour = "black")+
-      stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
-      labs(y = "Distance\n <- close     distant ->")+
-      labs(x = "Pairwise comparisons")+
+    ) +
+      geom_violin(trim = TRUE) +
+      geom_boxplot(width = 0.1, fill = "black", outlier.colour = "black") +
+      stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
+      labs(y = "Distance\n <- close     distant ->") +
+      labs(x = "Pairwise comparisons") +
       theme(
         # legend.position = "none",
         panel.grid.minor.x = element_blank(),
@@ -313,12 +314,12 @@ find_duplicate_genome <- function(data,
     # Jitter plot
     res$jitter.plot.distance <- ggplot(data = dist.computation, aes(x = PAIRWISE, y = DISTANCE, colour = POP_COMP)) + 
       geom_jitter(alpha = 0.3) + 
-      labs(y = "Distance\n <- distant     close ->")+
-      labs(x = "Pairwise comparisons")+
+      labs(y = "Distance\n <- distant     close ->") +
+      labs(x = "Pairwise comparisons") +
       labs(colour = "Population comparisons") +
-      scale_colour_manual(values = c("#0571b0", "black"))+
-      scale_y_reverse()+
-      theme_light()+
+      scale_colour_manual(values = c("#0571b0", "black")) +
+      scale_y_reverse() +
+      theme_light() +
       theme(
         # legend.position = "none",
         panel.grid.minor.x = element_blank(),
@@ -408,12 +409,12 @@ find_duplicate_genome <- function(data,
     res$violin.plot.genome <- ggplot(
       data = pairwise.genome.similarity, 
       aes(x = PAIRWISE, y = PROP_IDENTICAL, na.rm = TRUE)
-    )+
-      geom_violin(trim = TRUE)+
-      geom_boxplot(width = 0.1, fill = "black", outlier.colour = "black")+
-      stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
-      labs(y = "Genome similarity (proportion)")+
-      labs(x = "Pairwise comparison")+
+    ) +
+      geom_violin(trim = TRUE) +
+      geom_boxplot(width = 0.1, fill = "black", outlier.colour = "black") +
+      stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
+      labs(y = "Genome similarity (proportion)") +
+      labs(x = "Pairwise comparison") +
       theme(
         # legend.position = "none",
         panel.grid.minor.x = element_blank(),
@@ -430,11 +431,11 @@ find_duplicate_genome <- function(data,
       aes(x = PAIRWISE, y = PROP_IDENTICAL, colour = POP_COMP)
     ) + 
       geom_jitter(alpha = 0.3) + 
-      labs(y = "Genome similarity (proportion)")+
-      labs(x = "Pairwise comparisons")+
+      labs(y = "Genome similarity (proportion)") +
+      labs(x = "Pairwise comparisons") +
       labs(colour = "Population comparisons") +
-      scale_colour_manual(values = c("#0571b0", "black"))+
-      theme_light()+
+      scale_colour_manual(values = c("#0571b0", "black")) +
+      theme_light() +
       theme(
         # legend.position = "none",
         panel.grid.minor.x = element_blank(),
@@ -448,7 +449,7 @@ find_duplicate_genome <- function(data,
   } # end genome method
   
   # RESULTS --------------------------------------------------------------------
-  if(genome) message("A table: pairwise.genome.similarity.tsv was written in the working directory")
+  if (genome) message("A table: pairwise.genome.similarity.tsv was written in the working directory")
   "individuals.pairwise.dist.tsv"
   cat("################################### RESULTS ###################################\n")
   message("Object in the list (if all arguments are selected):\n
