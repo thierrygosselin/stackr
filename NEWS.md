@@ -1,3 +1,19 @@
+# stackr v.0.3.6
+* fixed a bug in `vcf_imputation`, the function now calls `genomic_converter` 
+with all the bells and whistles of that function (updated vcf import and imputations modules)
+
+
+# stackr v.0.3.5
+* updated tidy_genepop to read other flavors of the famous file format
+* extracted a code block to create a new function called `tidy_fstat`
+
+# stackr v.0.3.4
+* updated documentation
+* bug fix in `summary_haplotypes` introduced by the new version of `dplyr::distinct` (v.0.5.0)
+* calculations of Pi is done in parallel inside `summary_haplotypes`
+
+
+
 # stackr v.0.3.3
 * `tidy_genomic_data`: added a check to throw an error when pop.levels != the pop.id in strata
 

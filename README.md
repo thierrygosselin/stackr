@@ -91,6 +91,11 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.3.6**
+* fixed a bug in `vcf_imputation`, the function now calls `genomic_converter` 
+with all the bells and whistles of that function (updated vcf import and imputations modules)
+
+
 **v.0.3.5**
 * updated tidy_genepop to read other flavors of the famous file format
 * extracted a code block to create a new function called `tidy_fstat`

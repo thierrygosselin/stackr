@@ -56,7 +56,7 @@ vcf2genepop <- function(
   iteration.rf = 10,
   split.number = 100,
   verbose = FALSE,
-  parallel.core = detectCores()-1
+  parallel.core = detectCores() - 1
 ) {
   
   res <- genomic_converter(
