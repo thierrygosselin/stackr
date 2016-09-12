@@ -13,7 +13,8 @@ if (getRversion() >= "2.15.1") {
       "FASTA_REF", "BP", "Chr", "Locus", "Locus ID", "Col", "PP", "ALLELE_GROUP",
       "PROBLEM", "IND_LEVEL_POLYMORPHISM", "HOM", "HET", "N_GENOT", "DIPLO",
       "FREQ_ALLELES", "HOM_E", "HOM_O", "FH", "HET_O", "HET_E", "PI", "pi",
-      "MONOMORPHIC", "POLYMORPHIC", "CONSENSUS", "PARALOGS", "Seg Dist")
+      "MONOMORPHIC", "POLYMORPHIC", "CONSENSUS", "PARALOGS", "Seg Dist", 
+      "REF.x", "ALT.x", "REF.y", "ALT.y")
   )
 }
 # 'GL', 'GL_MAX', 'GL_MIN', 'MIN_REF', 'MIN_ALT', 'READ_DEPTH_MAX', 

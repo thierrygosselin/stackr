@@ -79,6 +79,13 @@ write_vcf <- function(data, pop.info = FALSE, filename = NULL) {
     input <- left_join(input, ref.alt.alleles.change, by = c("MARKERS", "INDIVIDUALS"))
   }
   
+  # remove duplicate REF/ALT column
+  if (tibble::has_name(input, "REF.x")) {
+    input <- input %>% select(-c(REF.x, ALT.x)) %>% 
+      rename(REF = REF.y, ALT = ALT.y)
+  }
+  
+  
   # Include CHROM, LOCUS, POS --------------------------------------------------
   if (!tibble::has_name(input, "CHROM")) {
     input <- mutate(
@@ -90,7 +97,7 @@ write_vcf <- function(data, pop.info = FALSE, filename = NULL) {
   }
   
   # Remove the POP_ID column ---------------------------------------------------
-  if (tibble::has_name(input, "POP_ID") & (!pop.info)) {
+  if (tibble::has_name(input, "POP_ID") || (!pop.info)) {
     input <- select(.data = input, -POP_ID)
   }
   
@@ -137,6 +144,22 @@ write_vcf <- function(data, pop.info = FALSE, filename = NULL) {
     )
   }
   
+  # Transform the REF/ALT format back to A/C/G/T
+  output <- output %>% 
+    mutate(
+      REF = stringi::stri_replace_all_fixed(
+        str = REF,
+        pattern = c("001", "002", "003", "004"),
+        replacement = c("A", "C", "G", "T"),
+        vectorize_all = FALSE),
+      ALT = stringi::stri_replace_all_fixed(
+        str = ALT,
+        pattern = c("001", "002", "003", "004"),
+        replacement = c("A", "C", "G", "T"),
+        vectorize_all = FALSE)
+    )
+  
+  # Keep the required columns
   output <- output %>% 
     arrange(CHROM, LOCUS, POS) %>%
     ungroup() %>%

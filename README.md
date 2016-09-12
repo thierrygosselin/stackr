@@ -91,6 +91,13 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.3.7**
+* fixed a bug in `write_vcf`, the function was using REF/ALT coding in integer 
+not character format. This function is used inside `vcf_imputation` and 
+sometimes inside `genomic_converter`. Thanks to @jeansebastienmoore for 
+highlighting the problem.
+
+
 **v.0.3.6**
 * fixed a bug in `vcf_imputation`, the function now calls `genomic_converter` 
 with all the bells and whistles of that function (updated vcf import and imputations modules)
