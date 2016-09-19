@@ -91,6 +91,12 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.3.8**
+* fixed a bug in `filter_genotype_likelihood`, since the updated function to the 
+interactive mode, some old code where still present in if/else sentences, breaking 
+the code. Thanks to Jacomir Guzinski for the bug report.
+
+
 **v.0.3.7**
 * fixed a bug in `write_vcf`, the function was using REF/ALT coding in integer 
 not character format. This function is used inside `vcf_imputation` and 

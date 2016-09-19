@@ -114,8 +114,9 @@
 #' disequilibrium pruning, see details below.
 #' Default: \code{snp.ld = NULL}.
 
-#' @param common.markers (optional) Logical. Default: \code{common.markers = TRUE}, 
+#' @param common.markers (optional) Logical. With \code{common.markers = TRUE},
 #' will only keep markers in common (genotyped) between all the populations.
+#' Default: \code{common.markers = FALSE}
 
 #' @param max.marker An optional integer useful to subsample marker number in 
 #' large PLINK file. e.g. if the data set 
@@ -213,17 +214,8 @@
 #' bg <- beluga.vcf.tidy.gl$blacklist.genotypes
 #' }
 
-# required to pass the R CMD check and have 'no visible binding for global variable'
-if (getRversion() >= "2.15.1"){
-  utils::globalVariables(
-    c('GL', 'GL_MAX', 'GL_MIN', 'MIN_REF', 'MIN_ALT', 'READ_DEPTH_MAX', 
-      'GL_MEAN', 'GL_DIFF', 'POP_ID', 'BLACKLIST', '..scaled..', 
-      'GENOTYPE_LIKELIHOOD_GROUP', 'VALUE', 'ALLELE_COVERAGE_RATIO', 
-      "ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH")
-  )
-}
 
-filter_genotype_likelihood <- function (
+filter_genotype_likelihood <- function(
   data,
   interactive.filter = TRUE,
   strata = NULL, 
@@ -243,7 +235,7 @@ filter_genotype_likelihood <- function (
   monomorphic.out = TRUE, 
   max.marker = NULL,
   snp.ld = NULL, 
-  common.markers = NULL,
+  common.markers = FALSE,
   filename = NULL
 ) {
   
@@ -256,7 +248,7 @@ filter_genotype_likelihood <- function (
   if (missing(data)) stop("missing input file")
   
   # Message about steps taken during the process ---------------------------------
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message("With the interactive mode turn on, we will go through 4 steps to visualize and filter the data based on genotype likelihood")
     message("Step 1. gl_individuals_populations: Inspecting the genotype likelihood at the individuals and populations levels")
     message("Step 2. blacklist_genotypes: blacklisting (erasing) or not individual genotypes based on low quality GL")
@@ -278,7 +270,7 @@ filter_genotype_likelihood <- function (
   # Filter parameter file ------------------------------------------------------
   message("Parameters used in this run will be store in a file")
   filters.parameters <- list.files(path = getwd(), pattern = "filters_parameters.tsv", full.names = TRUE)
-  if(length(filters.parameters) == 0) {
+  if (length(filters.parameters) == 0) {
     filters.parameters <- data_frame(FILTERS = as.character(), PARAMETERS = as.character(), VALUES = as.integer(), BEFORE = as.character(), AFTER = as.character(), BLACKLIST = as.integer(), UNITS = as.character(), COMMENTS = as.character())
     write_tsv(x = filters.parameters, path = "filters_parameters.tsv", append = FALSE, col_names = TRUE)
     message("Created a file to store filters parameters: filters_parameters.tsv")
@@ -287,9 +279,9 @@ filter_genotype_likelihood <- function (
   }
   
   # File type detection ********************************************************
-  if(is.genind(data)) stop("vcf file with GL information is necessary with this function")
+  if (is.genind(data)) stop("vcf file with GL information is necessary with this function")
   if (stri_detect_fixed(str = data, pattern = ".tped")) stop("vcf file with GL information is necessary with this function")
-  if (stri_detect_fixed(str = data.type, pattern = "Catalog")) stop("vcf file with GL information is necessary with this function")
+  if (stri_detect_fixed(str = data, pattern = "Catalog")) stop("vcf file with GL information is necessary with this function")
   if (stri_detect_fixed(str = data, pattern = ".gen")) stop("vcf file with GL information is necessary with this function")
   
   data.type <- readChar(con = data, nchars = 16L, useBytes = TRUE)
@@ -304,7 +296,7 @@ filter_genotype_likelihood <- function (
   
   
   # import data ----------------------------------------------------------------
-  if (is.vector(data)){
+  if (is.vector(data)) {
     message("Using input file in your directory")
     
     input <- stackr::tidy_genomic_data(
@@ -343,16 +335,16 @@ filter_genotype_likelihood <- function (
   }
   
   # pop number
-  pop.number <- n_distinct(data$POP_ID) # get the number of population
+  pop.number <- n_distinct(input$POP_ID) # get the number of population
   
   # function--------------------------------------------------------------------
-  plot_violinplot_genotype_likelihood_individuals<- function(data) {
-    plot <- ggplot(data, aes(x = factor(POP_ID), y = GL, na.rm = TRUE))+
-      geom_violin(trim = TRUE)+
-      geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA)+
-      stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white")+
-      labs(x = "Sampling sites")+
-      labs(y = "Genotype likelihood of individuals")+
+  plot_violinplot_genotype_likelihood_individuals <- function(data) {
+    plot <- ggplot(data, aes(x = factor(POP_ID), y = GL, na.rm = TRUE)) +
+      geom_violin(trim = TRUE) +
+      geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA) +
+      stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
+      labs(x = "Sampling sites") +
+      labs(y = "Genotype likelihood of individuals") +
       theme(
         legend.position = "none",
         axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
@@ -367,7 +359,7 @@ filter_genotype_likelihood <- function (
   
   
   ## Step 1: gl_individuals_populations ----------------------------------------
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message("Step 1. gl_individuals_populations: Inspecting the genotype likelihood at the individuals and populations levels")
     path.folder.step1 <- stri_paste(path.folder, "/01_gl_individuals_populations")
     dir.create(path.folder.step1)
@@ -376,7 +368,7 @@ filter_genotype_likelihood <- function (
   
   
   # plot_1: Violin plot GL individuals and pop
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message("Show the violin plot of individuals genotype likelihood (y/n)): ")
     violinplot <- as.character(readLines(n = 1))
     if (violinplot == "y") {
@@ -392,7 +384,7 @@ filter_genotype_likelihood <- function (
   }
   ## Step 2: blacklist_genotypes -------------------------------------------------
   # Erasing genotypes below threshold
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message("Step 2. blacklist_genotypes: blacklisting (erasing) or not individual genotypes based on low quality GL")
     message("Do you want to erase genotypes below a defined threshold (y/n) ?" )
     erase.genotype <- readLines(n = 1)
@@ -405,11 +397,11 @@ filter_genotype_likelihood <- function (
   }
   
   if (is.null(gl.ind.threshold)) {
-    data.filter.gl.individuals <- data
+    data.filter.gl.individuals <- input
     blacklist.genotypes <- NULL
   } else {
     
-    data.filter.gl.individuals <- data %>% 
+    data.filter.gl.individuals <- input %>% 
       mutate(
         BLACKLIST = ifelse(GL < gl.ind.threshold, "erase", "keep"),
         BLACKLIST = stri_replace_na(str = BLACKLIST, replacement = "keep")
@@ -426,15 +418,15 @@ filter_genotype_likelihood <- function (
           GL = as.numeric(ifelse(BLACKLIST == "erase", "NA", GL)),
           READ_DEPTH = as.numeric(ifelse(BLACKLIST == "erase", "NA", READ_DEPTH)),
           ALLELE_REF_DEPTH = as.numeric(ifelse(BLACKLIST == "erase", "NA", ALLELE_REF_DEPTH)),
-          ALLELE_ALT_DEPTH = as.numeric(ifelse(BLACKLIST == "erase", "NA", ALLELE_ALT_DEPTH)),
-          ALLELE_COVERAGE_RATIO = as.numeric(ifelse(BLACKLIST == "erase", "NA", ALLELE_COVERAGE_RATIO))
+          ALLELE_ALT_DEPTH = as.numeric(ifelse(BLACKLIST == "erase", "NA", ALLELE_ALT_DEPTH))
+          # ALLELE_COVERAGE_RATIO = as.numeric(ifelse(BLACKLIST == "erase", "NA", ALLELE_COVERAGE_RATIO))
         ) %>% 
         select(-BLACKLIST)
     )
     
     # interesting stats.
     erased.genotype.number <- length(blacklist.genotypes$INDIVIDUALS)
-    total.genotype.number <- length(data$GT[data$GT != "./."])
+    total.genotype.number <- length(input$GT[input$GT != "./."])
     percentage <- paste(round(((erased.genotype.number/total.genotype.number)*100), 6), "%", sep = " ")
     cat("######################## ERASING GENOTYPES ############################\n")
     message(stri_paste("Total number of genotypes: ", total.genotype.number))
@@ -447,11 +439,20 @@ filter_genotype_likelihood <- function (
     
     # Update filters.parameters
     message("Updating the file storing the filters parameters: filters_parameters.tsv")
-    filters.parameters <- data_frame(FILTERS = as.character("Genotype likelihood"), PARAMETERS = as.character("gl.ind.threshold"), VALUES = as.integer(gl.ind.threshold), BEFORE = as.character(total.genotype.number), AFTER = as.character(total.genotype.number-erased.genotype.number), BLACKLIST = erased.genotype.number, UNITS = "genotypes", COMMENTS = as.character("NA"))
+    filters.parameters <- data_frame(
+      FILTERS = as.character("Genotype likelihood"), 
+      PARAMETERS = as.character("gl.ind.threshold"), 
+      VALUES = as.integer(gl.ind.threshold), 
+      BEFORE = as.character(total.genotype.number), 
+      AFTER = as.character(total.genotype.number - erased.genotype.number), 
+      BLACKLIST = erased.genotype.number, 
+      UNITS = "genotypes", 
+      COMMENTS = as.character("NA")
+      )
     write_tsv(x = filters.parameters, path = "filters_parameters.tsv", append = TRUE, col_names = FALSE)
   }
   
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message("Create summary and show the violin plot of updated individuals genotype likelihood,\ni.e. after erasing lower quality genotypes (y/n)): ")
     summary.blacklist.genotypes <- as.character(readLines(n = 1))
     if (summary.blacklist.genotypes == "y") {
@@ -472,7 +473,7 @@ filter_genotype_likelihood <- function (
     combined.plot <- as.character(readLines(n = 1))
     if (combined.plot == "y") {
       data.combined <- bind_rows(
-        data.select <- data %>% 
+        data.select <- input %>% 
           select(POP_ID, INDIVIDUALS, GL) %>% 
           mutate(GROUP = rep("before", n())),
         data.filter.gl.individuals.select <- data.filter.gl.individuals %>% 
@@ -495,7 +496,7 @@ filter_genotype_likelihood <- function (
   
   ## Step 3: gl_markers -------------------------------------------------------
   # We inspect at the locus level, by pop and generate the figures
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message("Step 3. gl_markers: Inspecting the genotype likelihood at the marker level")
     path.folder.step3 <- stri_paste(path.folder, "/03_gl_markers")
     dir.create(path.folder.step3)
@@ -524,8 +525,8 @@ filter_genotype_likelihood <- function (
     }
   }
   
-  if (interactive.filter == FALSE){
-    if (approach == "haplotype"){
+  if (interactive.filter == FALSE) {
+    if (approach == "haplotype") {
       message("Approach selected for GL statistics: haplotype")
       data.sum <- data.filter.gl.individuals %>%
         group_by(LOCUS, POP_ID) %>% # at the population level
@@ -548,8 +549,8 @@ filter_genotype_likelihood <- function (
           GL_DIFF = GL_MAX - GL_MIN
         ) %>% group_by(LOCUS, POS, POP_ID)
     }
-  } else { # interactive
-    if (approach == "haplotype"){
+  } else {# interactive
+    if (approach == "haplotype") {
       data.sum <- summary.blacklist.genotypes$gl.summary.marker.pop %>%
         group_by(LOCUS, POP_ID) %>% 
         tidyr::spread(data = ., key = GENOTYPE_LIKELIHOOD_GROUP, value = VALUE)
@@ -562,7 +563,7 @@ filter_genotype_likelihood <- function (
   
   ## Step 4: blacklist_markers ---------------------------------------------------
   # At this point interactive or not, we have the same input data
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message("Step 4. blacklist_markers: Blacklisting (erasing) or not markers genotypes based on low quality GL found at the marker level")
     message("Enter the population threshold (proportion, percentage or fixed) to keep the marker\ni.e. that whatever the locus GL statistics, it will need to pass in x (proportion, percentage or fixed) pop to be kept:")
     pop.threshold <- as.numeric(readLines(n = 1))
@@ -571,12 +572,12 @@ filter_genotype_likelihood <- function (
   }
   
   # percent ?
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message("Is the pop.threshold entered above a percentage (TRUE/FALSE) ?")
     percent <- as.character(readLines(n = 1))
   }
   
-  if(stri_detect_fixed(pop.threshold, ".") & pop.threshold < 1) {
+  if (stri_detect_fixed(pop.threshold, ".") & pop.threshold < 1) {
     multiplication.number <- 1/pop.number
     message(stri_paste("Using a proportion threshold of , ", pop.threshold))
     threshold.id <- "proportion"
@@ -591,7 +592,7 @@ filter_genotype_likelihood <- function (
   }
   
   # gl.mean.threshold
-  if (interactive.filter == TRUE){  
+  if (interactive.filter == TRUE) {  
     message(stri_paste("Enter the mean genotype likelihood threshold number.\ni.e. markers with gl.mean.threshold >= threshold value in ", pop.threshold, " (", threshold.id, ") ", "pop, will be kept"))
     message("To turn off this filter, enter: off")
     message("gl.mean.threshold:")
@@ -611,7 +612,7 @@ filter_genotype_likelihood <- function (
   
   
   # gl.min.threshold
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message(stri_paste("Enter the minimum genotype likelihood threshold number.\ni.e. markers with gl.min.threshold >= threshold value in ", pop.threshold, " (", threshold.id, ") ", "pop, will be kept"))
     message("To turn off this filter, enter: off")
     message("gl.min.threshold:")
@@ -630,7 +631,7 @@ filter_genotype_likelihood <- function (
   }
   
   # gl.diff.threshold
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message(stri_paste("Enter the difference between the max and min genotype likelihood threshold number.\ni.e. markers with gl.diff.threshold <= threshold value in ", pop.threshold, " (", threshold.id, ") ", "pop, will be kept"))
     message("To turn off this filter, enter: off")
     message("gl.diff.threshold:")
@@ -649,7 +650,7 @@ filter_genotype_likelihood <- function (
   }
   
   # Filter the data set
-  if (approach == "haplotype"){
+  if (approach == "haplotype") {
     message("Approach selected: haplotype")
     filter <- data.sum %>%
       group_by(LOCUS) %>%
@@ -691,14 +692,14 @@ filter_genotype_likelihood <- function (
   write_tsv(whitelist.markers, "whitelist.markers.gl.tsv", append = FALSE, col_names = TRUE)
   
   # saving blacklist
-  blacklist.markers <- data %>% 
+  blacklist.markers <- input %>% 
     ungroup() %>%
     distinct(CHROM, LOCUS, POS) %>% 
     anti_join(whitelist.markers, by = c("CHROM", "LOCUS", "POS"))
   message("Writing the blacklist of markers based on GL information in your working directory\nblacklist.markers.gl.tsv")
   write_tsv(blacklist.markers, "blacklist.markers.gl.tsv", append = FALSE, col_names = TRUE)
   
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     message("Summary of individuals genotype likelihood, i.e. after filtering the markers")
     summary.blacklist.markers <- summary_genotype_likelihood(tidy.vcf = filter, pop.levels = pop.levels, approach = approach, folder = path.folder.step4)
     
@@ -745,7 +746,7 @@ filter_genotype_likelihood <- function (
   message(stri_paste("LOCUS: ", as.integer(n_distinct(data.filter.gl.individuals$LOCUS)), " -> ", as.integer(n_distinct(filter$LOCUS))))
   cat("#######################################################################\n")
   
-  if (interactive.filter == TRUE){
+  if (interactive.filter == TRUE) {
     res <- list()
     res$gl.summary.individuals <- summary$gl.individuals
     res$gl.summary.marker.pop <- summary$gl.summary.marker.pop

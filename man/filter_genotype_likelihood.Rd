@@ -3,6 +3,16 @@
 \name{filter_genotype_likelihood}
 \alias{filter_genotype_likelihood}
 \title{Genotype likelihood interactive filter}
+\usage{
+filter_genotype_likelihood(data, interactive.filter = TRUE, strata = NULL,
+  pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
+  approach = "haplotype", gl.ind.threshold = NULL,
+  gl.mean.threshold = NULL, gl.min.threshold = NULL,
+  gl.diff.threshold = NULL, pop.threshold = NULL, percent = NULL,
+  blacklist.id = NULL, blacklist.genotype = NULL,
+  whitelist.markers = NULL, monomorphic.out = TRUE, max.marker = NULL,
+  snp.ld = NULL, common.markers = FALSE, filename = NULL)
+}
 \arguments{
 \item{data}{vcf file or a data frame in long/tidy format.
 The function uses 
@@ -75,20 +85,10 @@ Is the pop.threshold argument a percentage? TRUE/FALSE.
 This argument is necessary to distinguish percentage from integer 
 for population threshold, (e.g. 5 percent or 5 populations).}
 
-\item{filename}{(optional) Name of the filtered data set, 
-written to the working directory.}
-
-\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
-or integer) and/or LOCUS (integer) and/or
-POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
-The whitelist is in the working directory (e.g. "whitelist.txt").
-de novo CHROM column with 'un' need to be changed to 1. 
-In the VCF, the column ID is the LOCUS identification.
-Default \code{whitelist.markers = NULL} for no whitelist of markers.}
-
-\item{monomorphic.out}{(optional) Should the monomorphic 
-markers present in the dataset be filtered out ? 
-Default: \code{monomorphic.out = TRUE}.}
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
 
 \item{blacklist.genotype}{(optional) Useful to erase genotype with below 
 average quality, e.g. genotype with more than 2 alleles in diploid likely 
@@ -104,16 +104,17 @@ with 'un' need to be changed to 1.
 Default: \code{blacklist.genotype = NULL} for no blacklist of 
 genotypes to erase.}
 
-\item{snp.ld}{(optional) \strong{For VCF file only}. 
-SNP short distance linkage disequilibrium pruning. With anonymous markers from
-RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
-choosing among these 3 options: \code{"random"} selection, \code{"first"} or
-\code{"last"} SNP on the same short read/haplotype. For long distance linkage
-disequilibrium pruning, see details below.
-Default: \code{snp.ld = NULL}.}
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
+The whitelist is in the working directory (e.g. "whitelist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+In the VCF, the column ID is the LOCUS identification.
+Default \code{whitelist.markers = NULL} for no whitelist of markers.}
 
-\item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE}, 
-will only keep markers in common (genotyped) between all the populations.}
+\item{monomorphic.out}{(optional) Should the monomorphic 
+markers present in the dataset be filtered out ? 
+Default: \code{monomorphic.out = TRUE}.}
 
 \item{max.marker}{An optional integer useful to subsample marker number in 
 large PLINK file. e.g. if the data set 
@@ -122,10 +123,20 @@ subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
 keep specific markers.
 Default: \code{max.marker = NULL}.}
 
-\item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the working directory
-(e.g. "blacklist.txt").
-Default: \code{blacklist.id = NULL}.}
+\item{snp.ld}{(optional) \strong{For VCF file only}. 
+SNP short distance linkage disequilibrium pruning. With anonymous markers from
+RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
+choosing among these 3 options: \code{"random"} selection, \code{"first"} or
+\code{"last"} SNP on the same short read/haplotype. For long distance linkage
+disequilibrium pruning, see details below.
+Default: \code{snp.ld = NULL}.}
+
+\item{common.markers}{(optional) Logical. With \code{common.markers = TRUE},
+will only keep markers in common (genotyped) between all the populations.
+Default: \code{common.markers = FALSE}}
+
+\item{filename}{(optional) Name of the filtered data set, 
+written to the working directory.}
 }
 \value{
 With \code{interactive.filter = FALSE}, the function returns a 
