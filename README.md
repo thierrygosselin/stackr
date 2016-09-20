@@ -94,7 +94,7 @@ Change log, version, new features and bug history now lives in the [NEWS.md file
 **v.0.3.8**
 * fixed a bug in `filter_genotype_likelihood`, since the updated function to the 
 interactive mode, some old code where still present in if/else sentences, breaking 
-the code. Thanks to Jacomir Guzinski for the bug report.
+the code. Thanks to Jaromir Guzinski for the bug report.
 
 
 **v.0.3.7**
