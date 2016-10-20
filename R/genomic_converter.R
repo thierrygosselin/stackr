@@ -15,11 +15,11 @@
 #'   \item \strong{Imputations:} Map-independent imputation of missing genotype/alleles
 #'   using Random Forest or the most frequent category.
 #'   \item \strong{Parallel:} Some parts of the function are designed to be conduncted on multiple CPUs
-#'   \item \strong{Output:} various file formats are supported (see \code{output} argument below)
+#'   \item \strong{Output:} 11 output file formats are supported (see \code{output} argument below)
 #' }
 
 #' @param output Several options: tidy, genind, genlight, vcf, plink, genepop,
-#' structure, hierfstat, gtypes, betadiv. Use a character string,
+#' structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
 #' e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 #' output formats generated. The tidy format is generated automatically.
 
@@ -32,6 +32,7 @@
 #' @inheritParams write_genind
 #' @inheritParams write_genlight
 #' @inheritParams write_structure
+#' @inheritParams write_arlequin
 #' @inheritParams write_plink
 #' @inheritParams write_vcf
 #' @inheritParams write_gtypes
@@ -358,7 +359,7 @@ genomic_converter <- function(
 
 
   # File type detection --------------------------------------------------------
-  if(adegenet::is.genind(data)){
+  if (adegenet::is.genind(data)) {
     data.type <- "genind.file"
     # message("File type: genind object")
   } else {
@@ -420,12 +421,12 @@ genomic_converter <- function(
     filename = NULL
   )
 
-  input$GT <-stri_replace_all_fixed(str = input$GT, pattern = c("/", ":", "_", "-", "."), replacement = c("", "", "", "", ""), vectorize_all = FALSE)
+  input$GT <- stri_replace_all_fixed(str = input$GT, pattern = c("/", ":", "_", "-", "."), replacement = c("", "", "", "", ""), vectorize_all = FALSE)
 
   # create a strata.df
-  strata.df <- input %>%
-    distinct(INDIVIDUALS, POP_ID)
-  # strata <- strata.df
+  # strata.df <- input %>%
+  #   distinct(INDIVIDUALS, POP_ID)
+  # # strata <- strata.df
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
 
@@ -590,6 +591,26 @@ genomic_converter <- function(
       res$betadiv.imputed <- write_betadiv(data = input.imp)
     }
   } # end betadiv output
+  
+  
+  # arlequin --------------------------------------------------------------------
+  if ("arlequin" %in% output) {
+    message("Generating arlequin file without imputation")
+    write_arlequin (
+      data = input,
+      pop.levels = pop.levels,
+      filename = filename
+    )
+    
+    if (!is.null(imputation.method)) {
+      message("Generating arlequin file WITH imputations")
+      write_arlequin (
+        data = input.imp,
+        pop.levels = pop.levels,
+        filename = filename.imp
+      )
+    }
+  } # end arlequin output
 
   # GENIND ---------------------------------------------------------------------
   if ("genind" %in% output) {
