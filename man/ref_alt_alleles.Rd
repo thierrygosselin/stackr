@@ -3,14 +3,18 @@
 \name{ref_alt_alleles}
 \alias{ref_alt_alleles}
 \title{Used internally in stackr to compute the REF and ALT alleles from a 
-genomic tidy data frame}
+biallelic genomic tidy data frame}
 \usage{
-ref_alt_alleles(data)
+ref_alt_alleles(data, monomorphic.out = TRUE)
 }
 \arguments{
-\item{data}{A genomic data set in the working directory or 
+\item{data}{A biallelic genomic data set in the working directory or 
 object in the global environment in wide or long (tidy) formats. 
 See details for more info.}
+
+\item{monomorphic.out}{(optional) Should the monomorphic 
+markers present in the dataset be filtered out ? 
+Default: \code{monomorphic.out = TRUE}.}
 }
 \value{
 A tidy data frame with 6 columns: 
@@ -21,7 +25,7 @@ the coding \code{0, 1, 2, NA} stands for the number of ALT allele in the
 genotype and \code{NA} for missing genotype.
 }
 \description{
-compute the REF and ALT alleles from a 
+compute the REF and ALT alleles from a biallelic
 genomic tidy data frame.
 Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 and might be of interest for users.

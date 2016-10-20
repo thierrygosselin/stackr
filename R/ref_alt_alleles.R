@@ -3,16 +3,20 @@
 #' @name ref_alt_alleles
 
 #' @title Used internally in stackr to compute the REF and ALT alleles from a 
-#' genomic tidy data frame
+#' biallelic genomic tidy data frame
 
-#' @description compute the REF and ALT alleles from a 
+#' @description compute the REF and ALT alleles from a biallelic
 #' genomic tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and might be of interest for users.
 #' 
-#' @param data A genomic data set in the working directory or 
+#' @param data A biallelic genomic data set in the working directory or 
 #' object in the global environment in wide or long (tidy) formats. 
 #' See details for more info. 
+
+#' @param monomorphic.out (optional) Should the monomorphic 
+#' markers present in the dataset be filtered out ? 
+#' Default: \code{monomorphic.out = TRUE}.
 
 #' @return A tidy data frame with 6 columns: 
 #' \code{MARKERS, INDIVIDUALS, REF, ALT, GT_VCF, GT_BIN}.
@@ -52,14 +56,16 @@
 
 #' @export
 #' @rdname ref_alt_alleles
-#' @import reshape2
-#' @import dplyr
-#' @import stringi
+#' @importFrom dplyr select mutate group_by ungroup rename tally filter if_else full_join
+#' @importFrom stringi stri_replace_all_fixed stri_join stri_sub
 #' @importFrom data.table fread
+#' @importFrom tibble has_name
+#' @importFrom tidyr spread gather
+#' @importFrom purrr flatten_chr
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-ref_alt_alleles <- function (data) {
+ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
   
   # Checking for missing and/or default arguments ------------------------------
   if (missing(data)) stop("Input file missing")
@@ -69,68 +75,139 @@ ref_alt_alleles <- function (data) {
   
   # check genotype column naming
   if (tibble::has_name(input, "GENOTYPE")) {
-    colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
-                                              pattern = "GENOTYPE", 
-                                              replacement = "GT", 
-                                              vectorize_all = FALSE)
+    colnames(input) <- stringi::stri_replace_all_fixed(
+      str = colnames(input), 
+      pattern = "GENOTYPE", 
+      replacement = "GT", 
+      vectorize_all = FALSE)
   }
   
   # necessary steps to make sure we work with unique markers and not duplicated LOCUS
-  if (!tibble::has_name(input, "MARKERS") && tibble::has_name(input, "LOCUS")) {
-    input <- rename(.data = input, MARKERS = LOCUS)
+  if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
-  input.select <- input %>%
-    select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
-    #faster than: tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
-    mutate(
-      A1 = stri_sub(str = GT, from = 1, to = 3),
-      A2 = stri_sub(str = GT, from = 4, to = 6)
-    ) %>%
-    select(-GT)
+  # Detecting biallelic markers and removing monomorphic markers ---------------
+  input.genotyped.split <- input %>%
+    dplyr::filter(GT != "000000") %>% 
+    dplyr::select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
+    dplyr::mutate(
+      A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
+      A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
+    ) %>% 
+    dplyr::select(MARKERS, POP_ID, INDIVIDUALS, A1, A2) %>%
+    tidyr::gather(data = ., key = ALLELES_GROUP, value = ALLELES, -c(MARKERS, INDIVIDUALS, POP_ID))
   
-  new.ref.alt.alleles <- tidyr::gather(
-    data = input.select, 
-    key = ALLELES, 
-    value = GT, 
-    -c(MARKERS, INDIVIDUALS, POP_ID)
-  ) %>% # just miliseconds longer than data.table.melt so keeping this one for simplicity
-    filter(GT != "000") %>%  # remove missing "000"
-    group_by(MARKERS, GT) %>%
-    tally %>% 
-    ungroup() %>% 
-    mutate(ALLELE_NUMBER = rep(c("A1", "A2"), each = 1, times = n()/2)) %>% 
-    group_by(MARKERS) %>%
-    mutate(
-      PROBLEM = ifelse(n[ALLELE_NUMBER == "A1"] == n[ALLELE_NUMBER == "A2"], "equal_number", "ok"),
-      GROUP = ifelse(n == max(n), "REF", "ALT")
-    ) %>% 
-    group_by(MARKERS, GT) %>% 
-    mutate(
-      ALLELE = ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A1", "REF", 
-                      ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A2", "ALT", 
-                             GROUP)
-      )
-    ) %>% 
-    select(MARKERS, GT, ALLELE) %>%
-    group_by(MARKERS) %>% 
-    tidyr::spread(data = ., ALLELE, GT) %>% 
-    select(MARKERS, REF, ALT)
+  alleles.old <- dplyr::distinct(.data = input.genotyped.split, MARKERS, ALLELES) %>% 
+    dplyr::arrange(MARKERS, ALLELES)
   
-  ref.alt.alleles.change <- full_join(input.select, new.ref.alt.alleles, by = "MARKERS") %>% 
-    mutate(
-      A1 = replace(A1, which(A1 == "000"), NA),
-      A2 = replace(A2, which(A2 == "000"), NA),
-      GT_VCF_A1 = if_else(A1 == REF, "0", "1", missing = "."),
-      GT_VCF_A2 = if_else(A2 == REF, "0", "1", missing = "."),
-      GT_VCF = stri_paste(GT_VCF_A1, GT_VCF_A2, sep = "/"),
-      GT_BIN = stri_replace_all_fixed(
-        str = GT_VCF, 
-        pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
-        replacement = c("0", "2", "1", "1", NA), 
-        vectorize_all = FALSE
-      )
-    ) %>% 
-    select(MARKERS, INDIVIDUALS, REF, ALT, GT_VCF, GT_BIN)
-  return(ref.alt.alleles.change)
+  marker.type <- input.genotyped.split %>% 
+    dplyr::group_by(MARKERS, ALLELES) %>% 
+    dplyr::tally(.) %>%
+    dplyr::ungroup() %>% 
+    dplyr::select(MARKERS) %>% 
+    dplyr::group_by(MARKERS) %>% 
+    dplyr::tally(.)
+  
+  if (monomorphic.out) {
+    # monomorphic markers 
+    mono.markers <- marker.type %>% 
+      dplyr::filter(n == 1) %>% 
+      dplyr::select(MARKERS)
+  }  
+  
+  # Biallelic marker detection
+  biallelic <- marker.type %>% 
+    dplyr::summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
+    purrr::flatten_chr(.x = .)
+  
+  if (biallelic != 2) {
+    biallelic <- FALSE
+  } else {
+    biallelic <- TRUE
+  }
+  
+  if (biallelic) {
+    alleles.new.ref <- input.genotyped.split %>%   
+      dplyr::group_by(MARKERS, ALLELES) %>%
+      dplyr::tally(.) %>% 
+      dplyr::group_by(MARKERS) %>%
+      dplyr::top_n(1, n) %>% 
+      dplyr::distinct(MARKERS, .keep_all = TRUE) %>% 
+      dplyr::mutate(REF = rep("REF", n())) %>% 
+      dplyr::select(-n) %>% 
+      dplyr::full_join(alleles.old, by = c("MARKERS", "ALLELES")) %>% 
+      dplyr::mutate(REF = dplyr::coalesce(REF, "ALT")) %>% # faster than stri_replace_na
+      dplyr::group_by(MARKERS) %>% 
+      tidyr::spread(data = ., key = REF, value = ALLELES) %>% 
+      dplyr::mutate(ALT = if_else(is.na(ALT), REF, ALT))
+    
+    if (tibble::has_name(input, "REF")) {
+      change.ref <- dplyr::distinct(.data = input, MARKERS, REF, ALT) %>% 
+        dplyr::full_join(
+          alleles.new.ref %>% 
+            dplyr::select(MARKERS, REF_NEW = REF)
+          , by = "MARKERS") %>% 
+        dplyr::mutate(
+          CHANGE = dplyr::if_else(REF == REF_NEW, "identical", "different")
+        ) %>%
+        dplyr::filter(CHANGE == "different") %>% 
+        dplyr::select(MARKERS) %>% 
+        purrr::flatten_chr(.)
+
+      message(stringi::stri_join("Number of markers with REF/ALT change = ", length(change.ref)))
+      
+      #Switch REF\ALT
+      if (length(change.ref) > 0) {
+        input <- input %>% 
+          mutate(
+            REF_NEW = if_else(MARKERS %in% change.ref, ALT, REF),
+            ALT_NEW = if_else(MARKERS %in% change.ref, REF, ALT)
+          ) %>%
+          select(-REF, -ALT) %>% 
+          rename(REF = REF_NEW, ALT = ALT_NEW)
+        
+        # switch ALLELE_REF_DEPTH/ALLELE_ALT_DEPTH
+        if (tibble::has_name(input, "ALLELE_REF_DEPTH")) {
+          input <- input %>% 
+            mutate(
+              ALLELE_REF_DEPTH_NEW = if_else(MARKERS %in% change.ref, ALLELE_ALT_DEPTH, ALLELE_REF_DEPTH),
+              ALLELE_ALT_DEPTH_NEW = if_else(MARKERS %in% change.ref, ALLELE_REF_DEPTH, ALLELE_ALT_DEPTH)
+            ) %>%
+            select(-ALLELE_REF_DEPTH, -ALLELE_ALT_DEPTH) %>% 
+            rename(ALLELE_REF_DEPTH = ALLELE_REF_DEPTH_NEW, ALLELE_ALT_DEPTH = ALLELE_ALT_DEPTH_NEW)
+        }
+      }
+    } else {# biallelic but no REF
+      input <- input %>% #select(-REF, -ALT) %>%
+        dplyr::mutate(
+          A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
+          A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
+        ) %>% 
+        dplyr::full_join(alleles.new.ref, by = "MARKERS") %>%
+        dplyr::mutate(
+          A1 = replace(A1, which(A1 == "000"), NA),
+          A2 = replace(A2, which(A2 == "000"), NA),
+          GT_VCF_A1 = dplyr::if_else(A1 == REF, "0", "1", missing = "."),
+          GT_VCF_A2 = dplyr::if_else(A2 == REF, "0", "1", missing = "."),
+          GT_VCF = stringi::stri_join(GT_VCF_A1, GT_VCF_A2, sep = "/"),
+          GT_BIN = stringi::stri_replace_all_fixed(
+            str = GT_VCF, 
+            pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
+            replacement = c("0", "2", "1", "1", NA), 
+            vectorize_all = FALSE
+          )
+        ) %>% 
+        dplyr::select(-c(A1, A2, GT_VCF_A1, GT_VCF_A2))
+    }
+    
+    # Remove the markers from the dataset
+    if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
+      input <- dplyr::filter(input, !MARKERS %in% mono.markers$MARKERS)
+    }
+
+  } else {
+    stop("WARNING: Markers are not biallelic: cannot attribute REF/ALT alleles")
+  }
+  return(input)
 }
