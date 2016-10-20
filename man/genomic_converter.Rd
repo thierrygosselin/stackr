@@ -20,7 +20,7 @@ plink, stacks haplotype file, genind, genlight, genepop,
 and a data frame in wide format. \emph{See details}.}
 
 \item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop,
-structure, hierfstat, gtypes, betadiv. Use a character string,
+structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 output formats generated. The tidy format is generated automatically.}
 
@@ -195,7 +195,7 @@ reality of GBS/RADseq data while maintaining a reproducible workflow.
   \item \strong{Imputations:} Map-independent imputation of missing genotype/alleles
   using Random Forest or the most frequent category.
   \item \strong{Parallel:} Some parts of the function are designed to be conduncted on multiple CPUs
-  \item \strong{Output:} various file formats are supported (see \code{output} argument below)
+  \item \strong{Output:} 11 output file formats are supported (see \code{output} argument below)
 }
 }
 \details{
