@@ -40,10 +40,11 @@ change_pop_names <- function(data, pop.levels = NULL, pop.labels = NULL) {
   
   
   # the number of pop in data == pop.levels
-  if (dplyr::n_distinct(data$POP_ID) != length(pop.levels)) {
-    stop("The number of groups in your input file doesn't match the number of groups in pop.levels")
+  if (!is.null(pop.levels)) {
+    if (dplyr::n_distinct(data$POP_ID) != length(pop.levels)) {
+      stop("The number of groups in your input file doesn't match the number of groups in pop.levels")
+    }
   }
-  
   # convert POP_ID to factor and change names-----------------------------------
   
   if (is.null(pop.levels)) { # no pop.levels
