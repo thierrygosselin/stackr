@@ -13,16 +13,16 @@
 #' @param pop.levels (optional, string) A character string with your populations ordered.
 #' Default: \code{pop.levels = NULL}.
 
-#' @param markers.line (optional, logical) In the genepop and structure
+#' @param markers.line (optional, logical) In the structure
 #' file, you can write the markers on a single line separated by 
 #' commas \code{markers.line = TRUE}, 
-#' or have markers on a separate line, i.e. in one column, for the genepop file
+#' or have markers on a separate line, i.e. in one column, for the structure file
 #' (not very useful with thousands of markers) and not printed at all for the
 #' structure file.
 #' Default: \code{markers.line = TRUE}.
 
 
-#' @param filename (optional) The file name prefix for the genepop file 
+#' @param filename (optional) The file name prefix for the structure file 
 #' written to the working directory. With default: \code{filename = NULL}, 
 #' the date and time is appended to \code{stackr_structure_}.
 
@@ -64,21 +64,11 @@
 #' @import dplyr
 #' @import stringi
 
+#' @references Pritchard JK, Stephens M, Donnelly P. (2000)
+#' Inference of population structure using multilocus genotype data.
+#' Genetics. Genetics Society of America. 155: 945–959. 
+
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
-
-# to get rid of notes in build check
-# if(getRversion() >= "2.15.1") {
-#   utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", 
-#                            "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", 
-#                            "SAMPLES", "ALLELES", 'A1', 'A2', 'COUNT', 
-#                            "GENOTYPE", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", 
-#                            "POLYMORPHISM", "POLYMORPHISM_MAX", "other", 
-#                            "strata", "hierarchy", "GROUP", ".", 'MARKERS', 
-#                            'MARKERS_ALLELES', 'STRATA'
-#   )
-#   )
-# }
-
 
 write_structure <- function(
   data,
@@ -145,7 +135,7 @@ write_structure <- function(
     file.date <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "", vectorize_all = FALSE)
     file.date <- stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
     file.date <- stri_sub(file.date, from = 1, to = 13)
-    filename <- stri_paste("stackr_structure_", file.date, ".gen")
+    filename <- stri_paste("stackr_structure_", file.date, ".str")
   } else {
     filename <- stri_paste(filename, ".str")
   }

@@ -74,19 +74,6 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-# to get rid of notes in build check
-# if(getRversion() >= "2.15.1") {
-#   utils::globalVariables(c("Catalog ID", "Catalog.ID", "Catalog.ID = LOCUS", 
-#                            "Catalog.ID = `Catalog ID`", "Cnt", "HAPLOTYPES", 
-#                            "SAMPLES", "ALLELES", 'A1', 'A2', 'COUNT', 
-#                            "GT", "NUCLEOTIDES", "INDIVIDUALS", "POP_ID", 
-#                            "POLYMORPHISM", "POLYMORPHISM_MAX", "other", 
-#                            "strata", "hierarchy", "GROUP", ".", 'MARKERS', 
-#                            'MARKERS_ALLELES', 'STRATA'
-#   )
-#   )
-# }
-
 
 write_genepop <- function(
   data,
