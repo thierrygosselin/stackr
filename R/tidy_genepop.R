@@ -187,7 +187,7 @@ tidy_genepop <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
   # Remove unnecessary spaces
   data$data <- stringi::stri_trim_right(str = data$data, pattern = "\\P{Wspace}")
 
-    # Pop indices ----------------------------------------------------------------
+  # Pop indices ----------------------------------------------------------------
   pop.indices <- which(data$data %in% c("Pop", "pop", "POP"))
   npop <- length(pop.indices)
   
