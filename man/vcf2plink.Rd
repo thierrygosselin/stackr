@@ -20,7 +20,7 @@ plink, stacks haplotype file, genind, genlight, genepop,
 and a data frame in wide format. \emph{See details}.}
 
 \item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop,
-structure, hierfstat, gtypes, betadiv. Use a character string,
+structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 output formats generated. The tidy format is generated automatically.}
 

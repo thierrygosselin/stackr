@@ -18,7 +18,7 @@ vcf_imputation(data, output = "vcf", filename = NULL, blacklist.id = NULL,
 \item{data}{A VCF file.}
 
 \item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop,
-structure, hierfstat, gtypes, betadiv. Use a character string,
+structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 output formats generated. The tidy format is generated automatically.}
 
