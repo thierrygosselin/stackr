@@ -64,7 +64,7 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
+read_long_tidy_wide <- function(data, import.metadata = FALSE, ...) {
   
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file argument is missing")
@@ -107,10 +107,11 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
       
       # switch GENOTYPE for GT in colnames if found
       if ("GENOTYPE" %in% colnames(input)) {
-        colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
-                                                  pattern = "GENOTYPE", 
-                                                  replacement = "GT", 
-                                                  vectorize_all = FALSE)
+        colnames(input) <- stri_replace_all_fixed(
+          str = colnames(input), 
+          pattern = "GENOTYPE", 
+          replacement = "GT", 
+          vectorize_all = FALSE)
       }
       
       if (!import.metadata) {
@@ -123,7 +124,7 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
         }
       }
       
-    } else { # wide format
+    } else {# wide format
       input <- data.table::fread(
         input = data,
         sep = "\t",
@@ -143,7 +144,7 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
         ) %>% 
         as_data_frame()
     }
-  } else { # object in global environment
+  } else {# object in global environment
     input <- data
     
     # Determine long (tidy) or wide dataset
@@ -173,7 +174,7 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
         }
       }
       
-    } else { # wide format
+    } else {# wide format
       input <- data.table::melt.data.table(
         data = data.table::as.data.table(input), 
         id.vars = c("POP_ID", "INDIVIDUALS"), 
@@ -186,9 +187,8 @@ read_long_tidy_wide <- function (data, import.metadata = FALSE, ...) {
   }
   
   # unused objects
-  scan.colnames <- NULL
-  import.colnames <- NULL
-  
+  scan.colnames <- import.colnames <- NULL
+
   # Remove unwanted sep in the genotype filed.
   input <- input %>% 
     mutate(
