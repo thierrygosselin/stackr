@@ -209,18 +209,15 @@
 #' @export
 #' @rdname tidy_genomic_data
 #' @import parallel
-#' @import stringi
-#' @import adegenet
-#' @import dplyr
+#' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs
+#' @importFrom adegenet genind2df
+#' @importFrom stringi stri_join stri_replace_all_fixed stri_extract_all_fixed stri_replace_all_regex stri_sub stri_pad_left stri_count_fixed stri_replace_na 
 #' @importFrom stats var median quantile
-#' @importFrom purrr map
-#' @importFrom purrr flatten
-#' @importFrom purrr keep
-#' @importFrom purrr discard
-#' @importFrom data.table fread
-#' @importFrom data.table melt.data.table
-#' @importFrom data.table as.data.table
+#' @importFrom purrr map flatten keep discard
+#' @importFrom data.table fread melt.data.table as.data.table
 #' @importFrom plyr colwise
+#' @importFrom tidyr spread gather unite separate
+#' @importFrom utils count.fields
 
 
 #' @examples
@@ -293,7 +290,7 @@ tidy_genomic_data <- function(
   # POP_ID in gsi_sim does not like spaces, we need to remove space in everything touching POP_ID...
   # pop.levels, pop.labels, pop.select, strata, etc
   if (!is.null(pop.levels) & is.null(pop.labels)) {
-    pop.levels <- stri_replace_all_fixed(pop.levels, pattern = " ", replacement = "_", vectorize_all = FALSE)
+    pop.levels <- stringi::stri_replace_all_fixed(pop.levels, pattern = " ", replacement = "_", vectorize_all = FALSE)
     pop.labels <- pop.levels
   }
   
@@ -301,50 +298,16 @@ tidy_genomic_data <- function(
   
   if (!is.null(pop.labels)) {
     if (length(pop.labels) != length(pop.levels)) stop("pop.labels and pop.levels must have the same length (number of groups)")
-    pop.labels <- stri_replace_all_fixed(pop.labels, pattern = " ", replacement = "_", vectorize_all = FALSE)
+    pop.labels <- stringi::stri_replace_all_fixed(pop.labels, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
   
   
   if (!is.null(pop.select)) {
-    pop.select <- stri_replace_all_fixed(pop.select, pattern = " ", replacement = "_", vectorize_all = FALSE)
+    pop.select <- stringi::stri_replace_all_fixed(pop.select, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
   
   # File type detection----------------------------------------------------------
-  if (is.genind(data)) {
-    data.type <- "genind.file"
-    # message("File type: genind object")
-  } else {
-    data.type <- readChar(con = data, nchars = 16L, useBytes = TRUE)
-    if (identical(data.type, "##fileformat=VCF") | stri_detect_fixed(str = data, pattern = ".vcf")) {
-      data.type <- "vcf.file"
-      # message("File type: VCF")
-    }
-    if (stri_detect_fixed(str = data, pattern = ".tped")) {
-      data.type <- "plink.file"
-      # message("File type: PLINK")
-      if (!file.exists(stri_replace_all_fixed(str = data, pattern = ".tped", replacement = ".tfam", vectorize_all = FALSE))) {
-        stop("Missing tfam file with the same prefix as your tped")
-      }
-    } 
-    if (stri_detect_fixed(str = data.type, pattern = "POP_ID") | stri_detect_fixed(str = data.type, pattern = "INDIVIDUALS") | stri_detect_fixed(str = data.type, pattern = "MARKERS") | stri_detect_fixed(str = data.type, pattern = "LOCUS")) {
-      data.type <- "df.file"
-      # message("File type: data frame of genotypes")
-    }
-    
-    
-    if (stri_detect_fixed(str = data.type, pattern = "Catalog")) {
-      data.type <- "haplo.file"
-      # message("File type: haplotypes from stacks")
-      # if (is.null(blacklist.genotype)) {
-      #   stop("blacklist.genotype file missing. 
-      #        Use stackr's missing_genotypes function to create this blacklist")
-      # }
-    }
-    if (stri_detect_fixed(str = data, pattern = ".gen")) {
-      data.type <- "genepop.file"
-      # message("File type: genepop")
-    } 
-  } # end file type detection
+  data.type <- detect_genomic_format(data)
   
   if (data.type == "haplo.file") {
     message("With stacks haplotype file the maf.approach is automatically set to: haplotype")
@@ -360,6 +323,7 @@ tidy_genomic_data <- function(
            stacks haplotypes file, only. Use the snp approach for the other file types")
     }
   }
+  
   
   # Strata argument required for VCF and haplotypes files-----------------------
   if (data.type == "haplo.file" | data.type == "vcf.file") {
@@ -384,7 +348,7 @@ tidy_genomic_data <- function(
     }
     # haplo.file
     if (data.type == "haplo.file") {
-      whitelist.markers <- select(.data = whitelist.markers, LOCUS)
+      whitelist.markers <- dplyr::select(.data = whitelist.markers, LOCUS)
       columns.names.whitelist <- colnames(whitelist.markers)
     }
   }
@@ -401,13 +365,13 @@ tidy_genomic_data <- function(
   if (!is.null(strata)) {
     if (is.vector(strata)) {
       # message("strata file: yes")
-      number.columns.strata <- max(count.fields(strata, sep = "\t"))
-      col.types <- stri_paste(rep("c", number.columns.strata), collapse = "")
+      number.columns.strata <- max(utils::count.fields(strata, sep = "\t"))
+      col.types <- stringi::stri_join(rep("c", number.columns.strata), collapse = "")
       strata.df <- read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>% 
-        rename(POP_ID = STRATA)
+        dplyr::rename(POP_ID = STRATA)
     } else {
       # message("strata object: yes")
-      colnames(strata) <- stri_replace_all_fixed(
+      colnames(strata) <- stringi::stri_replace_all_fixed(
         str = colnames(strata), 
         pattern = "STRATA", 
         replacement = "POP_ID", 
@@ -418,10 +382,10 @@ tidy_genomic_data <- function(
     
     # filtering the strata if blacklist id available
     if (!is.null(blacklist.id)) {
-      strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
+      strata.df <- dplyr::anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
     }
     # Remove potential whitespace in pop_id
-    strata.df$POP_ID <- stri_replace_all_fixed(strata.df$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
+    strata.df$POP_ID <- stringi::stri_replace_all_fixed(strata.df$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
   
   # Check with strata and pop.levels/pop.labels
@@ -448,35 +412,35 @@ tidy_genomic_data <- function(
       showProgress = TRUE,
       verbose = FALSE
     ) %>% 
-      as_data_frame() %>% 
-      rename(LOCUS = ID, CHROM = `#CHROM`) %>%
-      mutate(
-        CHROM = stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1"),
+      tibble::as_data_frame() %>% 
+      dplyr::rename(LOCUS = ID, CHROM = `#CHROM`) %>%
+      dplyr::mutate(
+        CHROM = stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1"),
         POS = as.character(POS),
         LOCUS = as.character(LOCUS)
       )
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
-      input <- suppressWarnings(semi_join(input, whitelist.markers, by = columns.names.whitelist))
+      input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
     
     # Detect the format fields
-    format.headers <- unlist(stri_split_fixed(str = input$FORMAT[1], pattern = ":"))
-    input <- input %>% select(-FORMAT) # no longer needed
+    format.headers <- unlist(stringi::stri_split_fixed(str = input$FORMAT[1], pattern = ":"))
+    input <- input %>% dplyr::select(-FORMAT) # no longer needed
     
     # Tidying the VCF to make it easy to work on the data for conversion
     message("Making the VCF population wise")
     input <- data.table::melt.data.table(
-      data = as.data.table(input), 
+      data = data.table::as.data.table(input), 
       id.vars = c("CHROM", "LOCUS", "POS", "REF", "ALT"), 
       variable.name = "INDIVIDUALS",
       variable.factor = FALSE,
       value.name = "FORMAT_ID"
     ) %>% 
-      as_data_frame() %>% 
-      mutate(
-        INDIVIDUALS = stri_replace_all_fixed(
+      tibble::as_data_frame() %>% 
+      dplyr::mutate(
+        INDIVIDUALS = stringi::stri_replace_all_fixed(
           str = INDIVIDUALS, 
           pattern = c("_", ":"), 
           replacement = c("-", "-"), 
@@ -485,30 +449,34 @@ tidy_genomic_data <- function(
     
     # filter blacklisted individuals
     if (!is.null(blacklist.id)) {
-      blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
+      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = blacklist.id$INDIVIDUALS, 
         pattern = c("_", ":"), 
         replacement = c("-", "-"), 
         vectorize_all = FALSE
       )
       
-      input <- filter(.data = input, !INDIVIDUALS %in% blacklist.id$INDIVIDUALS)
+      input <- dplyr::filter(.data = input, !INDIVIDUALS %in% blacklist.id$INDIVIDUALS)
     }
     
     # population levels and strata
-    strata.df$INDIVIDUALS <- stri_replace_all_fixed(
+    strata.df$INDIVIDUALS <- stringi::stri_replace_all_fixed(
       str = strata.df$INDIVIDUALS, 
       pattern = c("_", ":"), 
       replacement = c("-", "-"), 
       vectorize_all = FALSE
     )
     
-    input <- left_join(x = input, y = strata.df, by = "INDIVIDUALS")
+    input <- dplyr::left_join(x = input, y = strata.df, by = "INDIVIDUALS")
+    
+    # using pop.levels and pop.labels info if present
+    input <- change_pop_names(data = input, pop.levels = pop.levels, pop.labels = pop.labels)
     
     # Pop select
     if (!is.null(pop.select)) {
-      message(stri_join(length(pop.select), "population(s) selected", sep = " "))
-      input <- suppressWarnings(input %>% filter(POP_ID %in% pop.select))
+      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
+      input$POP_ID <- droplevels(input$POP_ID)
     }
     
     # Tidy VCF
@@ -519,34 +487,34 @@ tidy_genomic_data <- function(
     
     if (vcf.metadata) {
       # GL cleaning
-      if (length(unlist(stri_extract_all_fixed(str = format.headers, pattern = "GL", omit_no_match = TRUE))) > 0) {
+      if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "GL", omit_no_match = TRUE))) > 0) {
         message("Fixing GL column...")
         input <- input %>% 
-          mutate( 
-            GL = suppressWarnings(as.numeric(stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all = FALSE)))
+          dplyr::mutate( 
+            GL = suppressWarnings(as.numeric(stringi::stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all = FALSE)))
           )
       } # end cleaning GL column
       
       # Cleaning DP and changing name to READ_DEPTH
-      if (length(unlist(stri_extract_all_fixed(str = format.headers, pattern = "DP", omit_no_match = TRUE))) > 0) {
+      if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "DP", omit_no_match = TRUE))) > 0) {
         message("Fixing DP (READ_DEPTH) column...")
         input <- input %>% 
-          rename(READ_DEPTH = DP) %>% 
-          mutate(
-            READ_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all = FALSE))),
+          dplyr::rename(READ_DEPTH = DP) %>% 
+          dplyr::mutate(
+            READ_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all = FALSE))),
             READ_DEPTH = ifelse(GT == "./.", NA, READ_DEPTH)
           )
       } # end cleaning READ_DEPTH (DP) column
       
       # Cleaning AD (ALLELES_DEPTH)
-      if (length(unlist(stri_extract_all_fixed(str = format.headers, pattern = "AD", omit_no_match = TRUE))) > 0) {
+      if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "AD", omit_no_match = TRUE))) > 0) {
         message("Splitting AD columns into allele coverage info...")
         input <- input %>% 
           tidyr::separate(AD, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"), sep = ",", extra = "drop") %>% 
-          mutate(
-            ALLELE_REF_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(ALLELE_REF_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
-            ALLELE_ALT_DEPTH = suppressWarnings(as.numeric(stri_replace_all_regex(ALLELE_ALT_DEPTH, "^0$", "NA", vectorize_all = TRUE)))
-            # Mutate coverage ratio for allelic imbalance
+          dplyr::mutate(
+            ALLELE_REF_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(ALLELE_REF_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
+            ALLELE_ALT_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(ALLELE_ALT_DEPTH, "^0$", "NA", vectorize_all = TRUE)))
+            # dplyr::mutate coverage ratio for allelic imbalance
             # ALLELE_COVERAGE_RATIO = suppressWarnings(
             # as.numeric(ifelse(GT == "./." | GT == "0/0" | GT == "1/1", "NA",
             # ((ALLELE_ALT_DEPTH - ALLELE_REF_DEPTH)/(ALLELE_ALT_DEPTH + ALLELE_REF_DEPTH)))))
@@ -554,123 +522,43 @@ tidy_genomic_data <- function(
       } # end cleaning AD column
     } else {
       input <- input %>% 
-        select(CHROM, LOCUS, POS, REF, ALT, POP_ID, INDIVIDUALS, GT)
+        dplyr::select(CHROM, LOCUS, POS, REF, ALT, POP_ID, INDIVIDUALS, GT)
     }# end metadata section
     
     # recoding genotype and creating a new column combining CHROM, LOCUS and POS 
     input <- input %>%
       tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE) %>%
-      mutate(
-        REF = stri_replace_all_fixed(
+      dplyr::mutate(
+        REF = stringi::stri_replace_all_fixed(
           str = REF, 
           pattern = c("A", "C", "G", "T"), 
           replacement = c("001", "002", "003", "004"), 
           vectorize_all = FALSE
         ), # replace nucleotide with numbers
-        ALT = stri_replace_all_fixed(
+        ALT = stringi::stri_replace_all_fixed(
           str = ALT, pattern = c("A", "C", "G", "T"), 
           replacement = c("001", "002", "003", "004"), 
           vectorize_all = FALSE
         ),# replace nucleotide with numbers
-        GT = stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
+        GT = stringi::stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
         GT_VCF = GT,
-        GT = ifelse(GT == "0/0", stri_join(REF, REF, sep = ""),
-                    ifelse(GT == "1/1",  stri_join(ALT, ALT, sep = ""),
-                           ifelse(GT == "0/1", stri_join(REF, ALT, sep = ""),
-                                  ifelse(GT == "1/0", stri_join(ALT, REF, sep = ""), "000000")
+        GT = ifelse(GT == "0/0", stringi::stri_join(REF, REF, sep = ""),
+                    ifelse(GT == "1/1",  stringi::stri_join(ALT, ALT, sep = ""),
+                           ifelse(GT == "0/1", stringi::stri_join(REF, ALT, sep = ""),
+                                  ifelse(GT == "1/0", stringi::stri_join(ALT, REF, sep = ""), "000000")
                            )
                     )
         )
       ) %>% 
-      as_data_frame()
+      tibble::as_data_frame()
     
     # Experimental (for genlight object)
-    input$GT_BIN <- stri_replace_all_fixed(str = input$GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."), replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE)
+    input$GT_BIN <- stringi::stri_replace_all_fixed(str = input$GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."), replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE)
     
     # re-computing the REF/ALT allele
     if (!is.null(pop.select) || !is.null(blacklist.id)) {
       message("Adjusting REF/ALT alleles to account for filters...")
-      
-      input.select <- input %>%
-        select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
-        #faster than: tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
-        mutate(
-          A1 = stri_sub(str = GT, from = 1, to = 3),
-          A2 = stri_sub(str = GT, from = 4, to = 6)
-        ) %>%
-        select(-GT)
-      
-      new.ref.alt.alleles <- input.select %>% 
-        tidyr::gather(
-          data = ., key = ALLELES, 
-          value = GT, 
-          -c(MARKERS, INDIVIDUALS, POP_ID)
-        ) %>% # just miliseconds longer than data.table.melt so keeping this one for simplicity
-        filter(GT != "000") %>%  # remove missing "000"
-        group_by(MARKERS, GT) %>%
-        tally %>% 
-        ungroup() %>% 
-        mutate(ALLELE_NUMBER = rep(c("A1", "A2"), each = 1, times = n()/2)) %>% 
-        group_by(MARKERS) %>%
-        mutate(
-          PROBLEM = ifelse(n[ALLELE_NUMBER == "A1"] == n[ALLELE_NUMBER == "A2"], "equal_number", "ok"),
-          GROUP = ifelse(n == max(n), "REF", "ALT")
-        ) %>% 
-        group_by(MARKERS, GT) %>% 
-        mutate(
-          ALLELE = ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A1", "REF", 
-                          ifelse(PROBLEM == "equal_number" & ALLELE_NUMBER == "A2", "ALT", 
-                                 GROUP)
-          )
-        ) %>% 
-        select(MARKERS, GT, ALLELE) %>%
-        group_by(MARKERS) %>% 
-        tidyr::spread(data = ., ALLELE, GT) %>% 
-        select(MARKERS, REF, ALT)
-      
-      old.ref.alt.alleles <- distinct(.data = input, MARKERS, REF, ALT)
-      
-      ref.alt.alleles <- full_join(
-        old.ref.alt.alleles,
-        new.ref.alt.alleles %>% 
-          rename(REF_NEW = REF, ALT_NEW = ALT)
-        , by = "MARKERS") %>% 
-        mutate(
-          REF_ALT_CHANGE = if_else(REF == REF_NEW, "identical", "different")
-        ) %>% 
-        filter(REF_ALT_CHANGE == "different")
-      
-      message(stri_paste("Number of markers with REF/ALT change = ", length(ref.alt.alleles$MARKERS)))
-      
-      ref.alt.alleles.change <- full_join(input.select, new.ref.alt.alleles, by = "MARKERS") %>% 
-        mutate(
-          A1 = replace(A1, which(A1 == "000"), NA),
-          A2 = replace(A2, which(A2 == "000"), NA),
-          GT_VCF_A1 = if_else(A1 == REF, "0", "1", missing = "."),
-          GT_VCF_A2 = if_else(A2 == REF, "0", "1", missing = "."),
-          GT_VCF = stri_paste(GT_VCF_A1, GT_VCF_A2, sep = "/"),
-          GT_BIN = stri_replace_all_fixed(
-            str = GT_VCF, 
-            pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
-            replacement = c("0", "2", "1", "1", NA), 
-            vectorize_all = FALSE
-          )
-        ) %>% 
-        select(MARKERS, INDIVIDUALS, REF, ALT, GT_VCF, GT_BIN)
-      
-      input <- left_join(
-        input %>% 
-          select(-c(REF, ALT, GT_VCF, GT_BIN)), 
-        ref.alt.alleles.change, 
-        by = c("MARKERS", "INDIVIDUALS")
-      )
-      
-      # remove unused object
-      input.select <- NULL
-      new.ref.alt.alleles <- NULL 
-      old.ref.alt.alleles <- NULL 
-      ref.alt.alleles <- NULL 
-      ref.alt.alleles.change <- NULL 
+      input <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
     } # end re-computing the REF/ALT allele
     
     # Re ordering columns
@@ -682,15 +570,17 @@ tidy_genomic_data <- function(
       input <- input[c(common.colnames, metadata.colnames)]
       
     } else {
-      input <- input %>% select(MARKERS, CHROM, LOCUS, POS, POP_ID, INDIVIDUALS, GT_VCF, GT_BIN, REF, ALT, GT)
+      input <- input %>% dplyr::select(MARKERS, CHROM, LOCUS, POS, POP_ID, INDIVIDUALS, GT_VCF, GT_BIN, REF, ALT, GT)
     }
+    # for other part of the script
+    biallelic <- TRUE
   } # End import VCF
   
   # Import PLINK ---------------------------------------------------------------
   if (data.type == "plink.file") { # PLINK
     message("Importing the PLINK files...")
     tfam <- data.table::fread(
-      input = stri_replace_all_fixed(
+      input = stringi::stri_replace_all_fixed(
         str = data, 
         pattern = ".tped", replacement = ".tfam", vectorize_all = FALSE
       ),
@@ -703,18 +593,20 @@ tidy_genomic_data <- function(
       col.names = c("POP_ID", "INDIVIDUALS"),
       showProgress = TRUE, 
       data.table = FALSE) %>% 
-      as_data_frame() %>%
-      mutate(
+      tibble::as_data_frame() %>%
+      dplyr::mutate(
         # remove unwanted sep in individual name and replace with "-"
-        INDIVIDUALS = stri_replace_all_fixed( str = INDIVIDUALS, 
-                                              pattern = c("_", ":"), 
-                                              replacement = c("-", "-"), 
-                                              vectorize_all = FALSE),
+        INDIVIDUALS = stringi::stri_replace_all_fixed(
+          str = INDIVIDUALS, 
+          pattern = c("_", ":"), 
+          replacement = c("-", "-"), 
+          vectorize_all = FALSE),
         # remove potential whitespace in tfam pop id column
-        POP_ID = stri_replace_all_fixed(POP_ID,
-                                        pattern = " ", 
-                                        replacement = "_", 
-                                        vectorize_all = FALSE)
+        POP_ID = stringi::stri_replace_all_fixed(
+          POP_ID,
+          pattern = " ", 
+          replacement = "_", 
+          vectorize_all = FALSE)
       )
     
     # if no strata tfam = strata.df
@@ -729,7 +621,7 @@ tidy_genomic_data <- function(
       }
     } else {
       # remove unwanted sep in individual name and replace with "-"
-      strata.df$INDIVIDUALS <- stri_replace_all_fixed(
+      strata.df$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = strata.df$INDIVIDUALS, 
         pattern = c("_", ":"), 
         replacement = c("-", "-"),
@@ -738,25 +630,25 @@ tidy_genomic_data <- function(
     }
     
     tped.header.prep <- tfam %>% 
-      select(INDIVIDUALS) %>%
-      mutate(
-        NUMBER = seq(1,n()),
+      dplyr::select(INDIVIDUALS) %>%
+      dplyr::mutate(
+        NUMBER = seq(1, n()),
         ALLELE1 = rep("A1", n()), ALLELE2 = rep("A2", n())
       ) %>%
       tidyr::gather(ALLELES_GROUP, ALLELES, -c(INDIVIDUALS, NUMBER)) %>%
-      arrange(NUMBER) %>% 
-      select(-ALLELES_GROUP) %>% 
+      dplyr::arrange(NUMBER) %>% 
+      dplyr::select(-ALLELES_GROUP) %>% 
       tidyr::unite(INDIVIDUALS_ALLELES, c(INDIVIDUALS, ALLELES), sep = "_", remove = FALSE) %>% 
-      arrange(NUMBER) %>% 
-      mutate(NUMBER = seq(from = (1 + 4), to = n() + 4)) %>% 
-      select(-ALLELES)
+      dplyr::arrange(NUMBER) %>% 
+      dplyr::mutate(NUMBER = seq(from = (1 + 4), to = n() + 4)) %>% 
+      dplyr::select(-ALLELES)
     
     tped.header.names <- c("LOCUS", tped.header.prep$INDIVIDUALS_ALLELES)
     tped.header.integer <- c(2, tped.header.prep$NUMBER)
     
     if (!is.null(blacklist.id)) { # using the blacklist of individuals
       # remove unwanted sep in individual name and replace with "-"
-      blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
+      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = blacklist.id$INDIVIDUALS, 
         pattern = c("_", ":"), 
         replacement = c("-", "-"), 
@@ -764,12 +656,12 @@ tidy_genomic_data <- function(
       )
       
       whitelist.id <- tped.header.prep %>% 
-        anti_join(blacklist.id, by = "INDIVIDUALS") %>% 
-        arrange(NUMBER)
+        dplyr::anti_join(blacklist.id, by = "INDIVIDUALS") %>% 
+        dplyr::arrange(NUMBER)
       tped.header.names <- c("LOCUS", whitelist.id$INDIVIDUALS_ALLELES)
       tped.header.integer <- c(2, whitelist.id$NUMBER)
       
-      strata.df <- anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
+      strata.df <- dplyr::anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
     }
     
     # import PLINK
@@ -783,14 +675,14 @@ tidy_genomic_data <- function(
       col.names = tped.header.names,
       showProgress = TRUE,
       data.table = FALSE) %>% 
-      as_data_frame() %>% 
-      mutate(LOCUS = as.character(LOCUS))
+      tibble::as_data_frame() %>% 
+      dplyr::mutate(LOCUS = as.character(LOCUS))
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
       message("Filtering with whitelist of markers")
       input <- suppressWarnings(
-        semi_join(input, whitelist.markers, by = columns.names.whitelist)
+        dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist)
       )
     }
     
@@ -800,8 +692,8 @@ tidy_genomic_data <- function(
       input <- sample_n(tbl = input, size = max(as.numeric(max.marker)), replace = FALSE)
       
       max.marker.subsample.select <- input %>% 
-        distinct(LOCUS, .keep_all = TRUE) %>% 
-        arrange(LOCUS)
+        dplyr::distinct(LOCUS, .keep_all = TRUE) %>% 
+        dplyr::arrange(LOCUS)
       
       write_tsv(# save results
         x = max.marker.subsample.select, 
@@ -813,85 +705,88 @@ tidy_genomic_data <- function(
     # Filling GT and new separating INDIVIDUALS from ALLELES
     # combining alleles
     input <- data.table::melt.data.table(
-      data = as.data.table(input), 
+      data = data.table::as.data.table(input), 
       id.vars = "LOCUS", 
       variable.name = "INDIVIDUALS_ALLELES", 
       value.name = as.character("GT"), 
       variable.factor = FALSE, 
       value.factor = FALSE
     ) %>% 
-      as_data_frame() %>% 
-      mutate(GT = stri_pad_left(str = GT, width = 3, pad = "0")) %>% 
+      tibble::as_data_frame() %>% 
+      dplyr::mutate(GT = stringi::stri_pad_left(str = GT, width = 3, pad = "0")) %>% 
       tidyr::separate(data = ., col = INDIVIDUALS_ALLELES, into = c("INDIVIDUALS", "ALLELES"), sep = "_")
     
     input <- data.table::dcast.data.table(
-      data = as.data.table(input), 
+      data = data.table::as.data.table(input), 
       formula = LOCUS + INDIVIDUALS ~ ALLELES, 
       value.var = "GT"
     ) %>% 
-      as_data_frame() %>% 
+      tibble::as_data_frame() %>% 
       tidyr::unite(data = ., col = GT, A1, A2, sep = "") %>% 
-      select(LOCUS, INDIVIDUALS, GT)
+      dplyr::select(LOCUS, INDIVIDUALS, GT)
     
     # population levels and strata
     message("Integrating the tfam/strata file...")
     
-    input <- left_join(x = input, y = strata.df, by = "INDIVIDUALS")
+    input <- dplyr::left_join(x = input, y = strata.df, by = "INDIVIDUALS")
+    
+    # using pop.levels and pop.labels info if present
+    input <- change_pop_names(data = input, pop.levels = pop.levels, pop.labels = pop.labels)
     
     # Pop select
     if (!is.null(pop.select)) {
-      message(stri_join(length(pop.select), "population(s) selected", sep = " "))
-      input <- suppressWarnings(input %>% filter(POP_ID %in% pop.select))
+      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
+      input$POP_ID <- droplevels(input$POP_ID)
     }
     
     # removing untyped markers across all-pop
     remove.missing.gt <- input %>%
-      select(LOCUS, GT) %>%
-      filter(GT != "000000")
+      dplyr::select(LOCUS, GT) %>%
+      dplyr::filter(GT != "000000")
     
-    untyped.markers <- n_distinct(input$LOCUS) - n_distinct(remove.missing.gt$LOCUS)
+    untyped.markers <- dplyr::n_distinct(input$LOCUS) - dplyr::n_distinct(remove.missing.gt$LOCUS)
     if (untyped.markers > 0) {
       message(paste0("Number of marker with 100 % missing genotypes: ", untyped.markers))
       input <- suppressWarnings(
-        semi_join(input, 
-                  remove.missing.gt %>% 
-                    distinct(LOCUS, .keep_all = TRUE), 
-                  by = "LOCUS")
+        dplyr::semi_join(input, 
+                         remove.missing.gt %>% 
+                           dplyr::distinct(LOCUS, .keep_all = TRUE), 
+                         by = "LOCUS")
       )
     }
     
     # Unused objects
-    tped.header.prep <- NULL
-    tped.header.integer <- NULL
-    tped.header.names <- NULL
-    remove.missing.gt <- NULL
+    tped.header.prep <- tped.header.integer <- tped.header.names <- remove.missing.gt <- NULL
+    
+    # detect if plink file was biallelic
+    biallelic <- detect_biallelic_markers(input)
+    
+    # give vcf style genotypes
+    if (biallelic) {
+      input <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
+    }
     
   } # End import PLINK
   
   # Import genepop--------------------------------------------------------------
   if (data.type == "genepop.file") {
     message("Tidying the genepop file ...")
-    
-    # data <- "/Users/thierry/Dropbox/esturgeon_dropbox/stacks_populations_2015/01_stacks_populations/populations_8pop/sturgeon.test.gen"
     data <- stackr::tidy_genepop(data = data, tidy = TRUE)
-    
-    # data <- adegenet::read.genepop(data, ncode = 3, quiet = TRUE)
-    # data.type <- "genind.file"
-    # genind.type <- "genepop"
     data.type <- "df.file"
   }
   
   # Import DF-------------------------------------------------------------------
   if (data.type == "df.file") { # DATA FRAME OF GENOTYPES
-    input <- read_long_tidy_wide(data = data)
+    input <- read_long_tidy_wide(data = data, import.metadata = vcf.metadata)
     
-    if ("MARKERS" %in% colnames(input)) {
-      input <- rename(.data = input, LOCUS = MARKERS)
+    # For long tidy format, switch LOCUS to MARKERS column name, if found MARKERS not found
+    if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+      input <- dplyr::rename(.data = input, MARKERS = LOCUS)
     }
     
-    
     # Change individuals names containing special character
-    input$INDIVIDUALS <- stri_replace_all_fixed(
+    input$INDIVIDUALS <- stringi::stri_replace_all_fixed(
       str = input$INDIVIDUALS, 
       pattern = c("_", ":"), 
       replacement = c("-", "-"),
@@ -901,24 +796,24 @@ tidy_genomic_data <- function(
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
       message("Filtering with whitelist of markers")
-      input <- suppressWarnings(semi_join(input, whitelist.markers, by = columns.names.whitelist))
+      input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
     
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       message("Filtering with blacklist of individuals")
-      blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
+      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = blacklist.id$INDIVIDUALS, 
         pattern = c("_", ":"), 
         replacement = c("-", "-"),
         vectorize_all = FALSE
       )
-      input <- suppressWarnings(anti_join(input, blacklist.id, by = "INDIVIDUALS"))
+      input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
     
-    # population levels and strata  --------------------------------------------
+    # population levels and strata
     if (!is.null(strata)) {
-      strata.df$INDIVIDUALS <- stri_replace_all_fixed(
+      strata.df$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = strata.df$INDIVIDUALS, 
         pattern = c("_", ":"), 
         replacement = c("-", "-"),
@@ -926,12 +821,12 @@ tidy_genomic_data <- function(
       )
       
       input <- input %>%
-        select(-POP_ID) %>% 
-        left_join(strata.df, by = "INDIVIDUALS")
+        dplyr::select(-POP_ID) %>% 
+        dplyr::left_join(strata.df, by = "INDIVIDUALS")
     }
     
     # Change potential problematic POP_ID space
-    input$POP_ID = stri_replace_all_fixed(
+    input$POP_ID = stringi::stri_replace_all_fixed(
       input$POP_ID, 
       pattern = " ", 
       replacement = "_", 
@@ -945,19 +840,28 @@ tidy_genomic_data <- function(
       }
     }
     
+    # using pop.levels and pop.labels info if present
+    input <- change_pop_names(data = input, pop.levels = pop.levels, pop.labels = pop.labels)
     
     # Pop select
     if (!is.null(pop.select)) {
-      message(stri_join(length(pop.select), "population(s) selected", sep = " "))
-      input <- suppressWarnings(input %>% filter(POP_ID %in% pop.select))
+      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
     }
     
+    # detect if plink file was biallelic
+    biallelic <- detect_biallelic_markers(input)
+    
+    # give vcf style genotypes
+    if (biallelic) {
+      input <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
+    }
   } # End import data frame of genotypes
   
   # Import haplo---------------------------------------------------------------
   if (data.type == "haplo.file") { # Haplotype file
     message("Importing the stacks haplotype file")
-    number.columns <- max(count.fields(data, sep = "\t"))
+    number.columns <- max(utils::count.fields(data, sep = "\t"))
     
     input <- data.table::fread(
       input = data, 
@@ -970,98 +874,101 @@ tidy_genomic_data <- function(
       data.table = FALSE, 
       na.strings = "-"
     ) %>% 
-      as_data_frame() %>% 
-      select(-Cnt)
+      tibble::as_data_frame() %>% 
+      dplyr::select(-Cnt)
     
     if (tibble::has_name(input, "# Catalog ID") || tibble::has_name(input, "Catalog ID")) {
-      colnames(input) <- stri_replace_all_fixed(
+      colnames(input) <- stringi::stri_replace_all_fixed(
         str = colnames(input), 
         pattern = c("# Catalog ID", "Catalog ID"), replacement = c("LOCUS", "LOCUS"), vectorize_all = FALSE
       )
     }
     
     if (tibble::has_name(input, "Seg Dist")) {
-      input <- select(.data = input, -`Seg Dist`)
+      input <- dplyr::select(.data = input, -`Seg Dist`)
     }
     
     input <- data.table::melt.data.table(
-      data = as.data.table(input), 
+      data = data.table::as.data.table(input), 
       id.vars = "LOCUS", 
       variable.name = "INDIVIDUALS",
       variable.factor = FALSE,
       value.name = "GT"
     ) %>% 
-      as_data_frame()
+      tibble::as_data_frame()
     
     number.columns <- NULL
     
     # remove consensus markers
     message("Scanning for consensus markers")
     consensus.markers <- input %>%
-      filter(GT == "consensus") %>% 
-      distinct(LOCUS, .keep_all = TRUE)
+      dplyr::filter(GT == "consensus") %>% 
+      dplyr::distinct(LOCUS, .keep_all = TRUE)
     
     if (length(consensus.markers$LOCUS) > 0) {
-      input <- suppressWarnings(anti_join(input, consensus.markers, by = "LOCUS"))
+      input <- suppressWarnings(dplyr::anti_join(input, consensus.markers, by = "LOCUS"))
     }
-    message(stri_paste("Consensus markers removed: ", n_distinct(consensus.markers$LOCUS)))
+    message(stringi::stri_join("Consensus markers removed: ", dplyr::n_distinct(consensus.markers$LOCUS)))
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
       message("Filtering with whitelist of markers")
-      input <- suppressWarnings(semi_join(input, whitelist.markers, by = columns.names.whitelist))
+      input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
     
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       message("Filtering with blacklist of individuals")
       
-      blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
+      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = blacklist.id$INDIVIDUALS, 
         pattern = c("_", ":"), 
         replacement = c("-", "-"),
         vectorize_all = FALSE
       )
       
-      input <- suppressWarnings(anti_join(input, blacklist.id, by = "INDIVIDUALS"))
+      input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
     
     # population levels and strata
-    strata.df$INDIVIDUALS = stri_replace_all_fixed(
+    strata.df$INDIVIDUALS = stringi::stri_replace_all_fixed(
       str = strata.df$INDIVIDUALS, 
       pattern = c("_", ":"), 
       replacement = c("-", "-"), 
       vectorize_all = FALSE
     )
     
-    input <- left_join(x = input, y = strata.df, by = "INDIVIDUALS")
+    input <- dplyr::left_join(x = input, y = strata.df, by = "INDIVIDUALS")
+    
+    # using pop.levels and pop.labels info if present
+    input <- change_pop_names(data = input, pop.levels = pop.levels, pop.labels = pop.labels)
     
     # Pop select
     if (!is.null(pop.select)) {
-      message(stri_join(length(pop.select), "population(s) selected", sep = " "))
-      input <- suppressWarnings(input %>% filter(POP_ID %in% pop.select))
+      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
     }
     
-    # removing errors and potential paralogs (GT with > 2 alleles) -------------
+    # removing errors and potential paralogs (GT with > 2 alleles)
     message("Scanning for genotypes with more than 2 alleles")
     input <- input %>%
-      mutate(POLYMORPHISM = stri_count_fixed(GT, "/"))
+      dplyr::mutate(POLYMORPHISM = stringi::stri_count_fixed(GT, "/"))
     
     blacklist.paralogs <- input %>%
-      filter(POLYMORPHISM > 1) %>% 
-      select(LOCUS, INDIVIDUALS)
+      dplyr::filter(POLYMORPHISM > 1) %>% 
+      dplyr::select(LOCUS, INDIVIDUALS)
     
-    message(stri_paste("Number of genotypes with more than 2 alleles: ", length(blacklist.paralogs$LOCUS), sep = ""))
+    message(stringi::stri_join("Number of genotypes with more than 2 alleles: ", length(blacklist.paralogs$LOCUS), sep = ""))
     
     if (length(blacklist.paralogs$LOCUS) > 0) {
       input <- input %>% 
-        mutate(GT = ifelse(POLYMORPHISM > 1, NA, GT)) %>% 
-        select(-POLYMORPHISM)
+        dplyr::mutate(GT = ifelse(POLYMORPHISM > 1, NA, GT)) %>% 
+        dplyr::select(-POLYMORPHISM)
       
       write_tsv(blacklist.paralogs, "blacklist.genotypes.paralogs.tsv")
     }
     
-    tidy.haplo <- input %>% select(LOCUS, INDIVIDUALS, GT_HAPLO = GT)
+    tidy.haplo <- input %>% dplyr::select(LOCUS, INDIVIDUALS, GT_HAPLO = GT)
     
     # recode genotypes
     message("Recoding haplotypes in 6 digits format")
@@ -1071,41 +978,38 @@ tidy_genomic_data <- function(
         tidyr::separate(
           col = GT, into = c("A1", "A2"), sep = "/", extra = "drop", remove = TRUE
         ) %>%
-        mutate(A2 = ifelse(is.na(A2), A1, A2)) %>% 
+        dplyr::mutate(A2 = ifelse(is.na(A2), A1, A2)) %>% 
         tidyr::gather(data = ., key = ALLELES, value = GT, -c(LOCUS, POP_ID, INDIVIDUALS)) %>% 
         tidyr::spread(data = ., key = LOCUS, value = GT)
     )
     
-    input.id.col <- select(.data = input, POP_ID, INDIVIDUALS, ALLELES)
+    input.id.col <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, ALLELES)
     
-    input.variable <- input %>% select(-c(POP_ID, INDIVIDUALS, ALLELES)) %>% 
+    input.variable <- input %>% dplyr::select(-c(POP_ID, INDIVIDUALS, ALLELES)) %>% 
       plyr::colwise(factor, exclude = NA)(.) %>% 
       plyr::colwise(as.numeric)(.)
     
-    input <- bind_cols(input.id.col, input.variable)
+    input <- dplyr::bind_cols(input.id.col, input.variable)
     
     input <- data.table::melt.data.table(
-      data = as.data.table(input), 
+      data = data.table::as.data.table(input), 
       id.vars = c("INDIVIDUALS", "POP_ID", "ALLELES"), 
       variable.name = "LOCUS",
       variable.factor = FALSE,
       value.name = "GT"
     ) %>% 
-      as_data_frame() %>% 
-      mutate(
+      tibble::as_data_frame() %>% 
+      dplyr::mutate(
         GT = as.character(GT),
-        GT = stri_pad_left(str = GT, width = 3, pad = "0"),
-        GT = stri_replace_na(str = GT, replacement = "000")
+        GT = stringi::stri_pad_left(str = GT, width = 3, pad = "0"),
+        GT = stringi::stri_replace_na(str = GT, replacement = "000")
       ) %>% 
       tidyr::spread(data = ., key = ALLELES, value = GT) %>% 
       tidyr::unite(data = ., GT, A1, A2, sep = "") 
     
-    # input <- arrange(.data = input, LOCUS, POP_ID, INDIVIDUALS) %>% filter(GT == "000000")
-    # tidy.haplo <- arrange(.data = tidy.haplo, LOCUS, INDIVIDUALS)
-    
-    input <- inner_join(input, tidy.haplo, by = c("LOCUS", "INDIVIDUALS")) %>%
-      select(LOCUS, POP_ID, INDIVIDUALS, GT, GT_HAPLO) %>%
-      arrange(LOCUS, POP_ID, INDIVIDUALS, GT, GT_HAPLO)
+    input <- dplyr::inner_join(input, tidy.haplo, by = c("LOCUS", "INDIVIDUALS")) %>%
+      dplyr::select(LOCUS, POP_ID, INDIVIDUALS, GT, GT_HAPLO) %>%
+      dplyr::arrange(LOCUS, POP_ID, INDIVIDUALS, GT, GT_HAPLO)
     
     # change the filename and strata.df here
   } # End import haplotypes file
@@ -1116,70 +1020,75 @@ tidy_genomic_data <- function(
     # data = skipjack.genind
     input <- adegenet::genind2df(data) %>% 
       tibble::rownames_to_column("INDIVIDUALS") %>% 
-      rename(POP_ID = pop)
+      dplyr::rename(POP_ID = pop)
     
     message("Tidying the genind object ...")
     # scan for the number of character coding the allele
-    allele.sep <- input %>% select(-INDIVIDUALS, -POP_ID)
+    allele.sep <- input %>% dplyr::select(-INDIVIDUALS, -POP_ID)
     allele.sep <- unique(nchar(allele.sep[!is.na(allele.sep)]))
-
+    
     if (length(allele.sep) > 1) {
       stop("The number of character/integer string coding the allele is not identical accross markers")
     }
-
+    
     input <- input %>% 
       tidyr::gather(key = LOCUS, value = GT, -c(INDIVIDUALS, POP_ID)) %>% 
-      tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = allele.sep/2, remove = TRUE, extra = "drop") %>% 
-      mutate(
-        A1 = stri_pad_left(str = A1, pad = "0", width = 3),
-        A2 = stri_pad_left(str = A2, pad = "0", width = 3)
+      tidyr::separate(
+        data = ., col = GT, into = c("A1", "A2"), 
+        sep = allele.sep/2, remove = TRUE, extra = "drop"
+      ) %>% 
+      dplyr::mutate(
+        A1 = stringi::stri_pad_left(str = A1, pad = "0", width = 3),
+        A2 = stringi::stri_pad_left(str = A2, pad = "0", width = 3)
       ) %>% 
       tidyr::unite(data = ., col = GT, A1, A2, sep = "") %>% 
-      mutate(GT = replace(GT, which(GT == "NANA"), "000000"))
+      dplyr::mutate(GT = replace(GT, which(GT == "NANA"), "000000"))
     
     # remove unwanted sep in id and pop.id names
     input <- input %>% 
-      mutate(
-        INDIVIDUALS = stri_replace_all_fixed( str = INDIVIDUALS, 
-                                              pattern = c("_", ":"), 
-                                              replacement = c("-", "-"), 
-                                              vectorize_all = FALSE),
-        POP_ID = stri_replace_all_fixed(POP_ID,
-                                        pattern = " ", 
-                                        replacement = "_", 
-                                        vectorize_all = FALSE)
+      dplyr::mutate(
+        INDIVIDUALS = stringi::stri_replace_all_fixed(
+          str = INDIVIDUALS, 
+          pattern = c("_", ":"), 
+          replacement = c("-", "-"), 
+          vectorize_all = FALSE),
+        POP_ID = stringi::stri_replace_all_fixed(
+          POP_ID,
+          pattern = " ", 
+          replacement = "_", 
+          vectorize_all = FALSE)
       )
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
       message("Filtering with whitelist of markers")
-      input <- suppressWarnings(semi_join(input, whitelist.markers, by = columns.names.whitelist))
+      input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
     
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       message("Filtering with blacklist of individuals")
       
-      blacklist.id$INDIVIDUALS <- stri_replace_all_fixed(
+      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = blacklist.id$INDIVIDUALS, 
         pattern = c("_", ":"), 
         replacement = c("-", "-"),
         vectorize_all = FALSE
       )
       
-      input <- suppressWarnings(anti_join(input, blacklist.id, by = "INDIVIDUALS"))
+      input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
     
     # population levels and strata
     if (!is.null(strata)) {
       input <- input %>%
-        select(-POP_ID) %>% 
-        mutate(INDIVIDUALS =  as.character(INDIVIDUALS)) %>% 
-        left_join(strata.df, by = "INDIVIDUALS")
+        dplyr::select(-POP_ID) %>% 
+        dplyr::mutate(INDIVIDUALS =  as.character(INDIVIDUALS)) %>% 
+        dplyr::left_join(strata.df, by = "INDIVIDUALS")
     }
     
     # Change potential problematic POP_ID space
-    input$POP_ID = stri_replace_all_fixed(
+    input$POP_ID = stringi::stri_replace_all_fixed(
       input$POP_ID, 
       pattern = " ", 
       replacement = "_", 
@@ -1193,10 +1102,21 @@ tidy_genomic_data <- function(
       }
     }
     
+    # using pop.levels and pop.labels info if present
+    input <- change_pop_names(data = input, pop.levels = pop.levels, pop.labels = pop.labels)
+    
     # Pop select
     if (!is.null(pop.select)) {
-      message(stri_join(length(pop.select), "population(s) selected", sep = " "))
-      input <- suppressWarnings(input %>% filter(POP_ID %in% pop.select))
+      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
+    }
+    
+    # detect if plink file was biallelic
+    biallelic <- detect_biallelic_markers(input)
+    
+    # give vcf style genotypes
+    if (biallelic) {
+      input <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
     }
     
     # Now the genind and genepop are like ordinary data frames
@@ -1205,7 +1125,7 @@ tidy_genomic_data <- function(
   } # End tidy genind
   
   # Arrange the id and create a strata after pop select ------------------------
-  input$INDIVIDUALS <- stri_replace_all_fixed(
+  input$INDIVIDUALS <- stringi::stri_replace_all_fixed(
     str = input$INDIVIDUALS, 
     pattern = c("_", ":"), 
     replacement = c("-", "-"),
@@ -1213,8 +1133,8 @@ tidy_genomic_data <- function(
   )
   
   strata.df <- input %>%
-    ungroup() %>%
-    distinct(POP_ID, INDIVIDUALS)
+    dplyr::ungroup(.) %>%
+    dplyr::distinct(POP_ID, INDIVIDUALS)
   
   # Blacklist genotypes --------------------------------------------------------
   if (is.null(blacklist.genotype)) { # no Whitelist
@@ -1222,8 +1142,8 @@ tidy_genomic_data <- function(
   } else {
     message("Erasing genotype: yes")
     blacklist.genotype <- read_tsv(blacklist.genotype, col_names = TRUE) %>% 
-      mutate(
-        INDIVIDUALS = stri_replace_all_fixed(
+      dplyr::mutate(
+        INDIVIDUALS = stringi::stri_replace_all_fixed(
           str = INDIVIDUALS, 
           pattern = c("_", ":"), 
           replacement = c("-", "-"),
@@ -1240,14 +1160,14 @@ tidy_genomic_data <- function(
     }
     
     if (data.type == "haplo.file") {
-      blacklist.genotype <- select(.data = blacklist.genotype, INDIVIDUALS, LOCUS)
+      blacklist.genotype <- dplyr::select(.data = blacklist.genotype, INDIVIDUALS, LOCUS)
       columns.names.blacklist.genotype <- colnames(blacklist.genotype)
     }
     
     # control check to keep only individuals in the strata.df
     blacklist.genotype <- suppressWarnings(
       blacklist.genotype  %>% 
-        filter(INDIVIDUALS %in% strata.df$INDIVIDUALS)
+        dplyr::filter(INDIVIDUALS %in% strata.df$INDIVIDUALS)
     )
     # control check to keep only whitelisted markers from the blacklist of genotypes
     if (!is.null(whitelist.markers)) {
@@ -1255,13 +1175,13 @@ tidy_genomic_data <- function(
       message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
       # updating the whitelist of markers to have all columns that id markers
       if (data.type == "vcf.file") {
-        whitelist.markers.ind <- input %>% distinct(CHROM, LOCUS, POS, INDIVIDUALS)
+        whitelist.markers.ind <- input %>% dplyr::distinct(CHROM, LOCUS, POS, INDIVIDUALS)
       } else {
-        whitelist.markers.ind <- input %>% distinct(LOCUS, INDIVIDUALS)
+        whitelist.markers.ind <- input %>% dplyr::distinct(LOCUS, INDIVIDUALS)
       }
       
       # updating the blacklist.genotype
-      blacklist.genotype <- suppressWarnings(semi_join(whitelist.markers.ind, blacklist.genotype, by = columns.names.blacklist.genotype))
+      blacklist.genotype <- suppressWarnings(dplyr::semi_join(whitelist.markers.ind, blacklist.genotype, by = columns.names.blacklist.genotype))
       columns.names.blacklist.genotype <- colnames(blacklist.genotype)
     }
     
@@ -1270,91 +1190,77 @@ tidy_genomic_data <- function(
     
     # Add one column that will allow to include the blacklist in the dataset 
     # by x column(s) of markers
-    blacklist.genotype <- mutate(.data = blacklist.genotype, ERASE = rep("erase", n()))
+    blacklist.genotype <- dplyr::mutate(.data = blacklist.genotype, ERASE = rep("erase", n()))
     
     input <- suppressWarnings(
       input %>%
-        full_join(blacklist.genotype, by = columns.names.blacklist.genotype) %>%
-        mutate(ERASE = stri_replace_na(str = ERASE, replacement = "ok"))
+        dplyr::full_join(blacklist.genotype, by = columns.names.blacklist.genotype) %>%
+        dplyr::mutate(ERASE = stringi::stri_replace_na(str = ERASE, replacement = "ok"))
     )
     
     input <- input %>% 
-      mutate(GT = ifelse(ERASE == "erase", "000000", GT)) %>% 
-      select(-ERASE)
+      dplyr::mutate(GT = ifelse(ERASE == "erase", "000000", GT)) %>% 
+      dplyr::select(-ERASE)
   } # End erase genotypes
   
-  
-  # population levels --------------------------------------------------------
-  if (is.null(pop.levels)) { # no pop.levels
-    input <- mutate(.data = input, POP_ID = factor(POP_ID))
-  } else {# with pop.levels
-    input <- mutate(
-      .data = input,
-      POP_ID = factor(
-        stri_replace_all_regex(
-          POP_ID, stri_paste("^", pop.levels, "$", sep = ""), pop.labels, vectorize_all = FALSE),
-        levels = unique(pop.labels), ordered = TRUE
-      )
-    )
-  }
-  
   # dump unused object
-  blacklist.id <- NULL
-  whitelist.markers <- NULL
-  whitelist.markers.ind <- NULL
-  blacklist.genotype <- NULL
+  blacklist.id <- whitelist.markers <- whitelist.markers.ind <- blacklist.genotype <- NULL
   
-  # LD  ------------------------------------------------------------------------
+  # SNP LD  --------------------------------------------------------------------
   if (!is.null(snp.ld)) {
-    if (data.type != "vcf.file") {
+    if (tibble::has_name(input, "POS")) {
       stop("snp.ld is only available for VCF file, use stackr package for 
              haplotype file and create a whitelist, for other file type, use 
              PLINK linkage disequilibrium based SNP pruning option")
     }
     message("Minimizing LD...")
-    snp.locus <- input %>% distinct(LOCUS, POS)
+    snp.locus <- input %>% dplyr::distinct(LOCUS, POS)
+    
     # Random selection
     if (snp.ld == "random") {
       snp.select <- snp.locus %>%
-        group_by(LOCUS) %>%
+        dplyr::group_by(LOCUS) %>%
         sample_n(size = 1, replace = FALSE)
-      message(stri_join("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
+      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
     }
     
     # Fist SNP on the read
     if (snp.ld == "first") {
       snp.select <- snp.locus %>%
-        group_by(LOCUS) %>%
-        summarise(POS = min(POS))
-      message(stri_join("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
+        dplyr::group_by(LOCUS) %>%
+        dplyr::summarise(POS = min(POS))
+      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
     }
     
     # Last SNP on the read
     if (snp.ld == "last") {
       snp.select <- snp.locus %>%
-        group_by(LOCUS) %>%
-        summarise(POS = max(POS))
-      message(stri_join("Number of original SNP = ", n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", n_distinct(snp.locus$POS) - n_distinct(snp.select$POS)))
+        dplyr::group_by(LOCUS) %>%
+        dplyr::summarise(POS = max(POS))
+      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
     }
     
     # filtering the VCF to minimize LD
-    input <- input %>% semi_join(snp.select, by = c("LOCUS", "POS"))
+    input <- input %>% dplyr::semi_join(snp.select, by = c("LOCUS", "POS"))
     message("Filtering the tidy VCF to minimize LD by keeping only 1 SNP per short read/haplotype")
   } # End of snp.ld control
   
-  # Unique markers id ----------------------------------------------------------- --------------------------------------------------------
+  # Unique markers id ----------------------------------------------------------
   # we want to keep LOCUS in the vcf, but not in the other type of input file
-  if (data.type != "vcf.file") {
-    colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
-                                              pattern = "LOCUS", 
-                                              replacement = "MARKERS", 
-                                              vectorize_all = FALSE)
+  # if (data.type != "vcf.file") {
+  if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+    colnames(input) <- stringi::stri_replace_all_fixed(
+      str = colnames(input), 
+      pattern = "LOCUS", 
+      replacement = "MARKERS", 
+      vectorize_all = FALSE
+    )
   }
   
   # Removing special characters in markers id ----------------------------------
   input <- input %>% 
-    mutate(
-      MARKERS = stri_replace_all_fixed(
+    dplyr::mutate(
+      MARKERS = stringi::stri_replace_all_fixed(
         str = as.character(MARKERS), 
         pattern = c("/", ":", "-", "."), 
         replacement = "_", 
@@ -1363,256 +1269,40 @@ tidy_genomic_data <- function(
   
   # Markers in common between all populations (optional) -----------------------
   if (common.markers) { # keep only markers present in all pop
-    message("Using markers common in all populations:")
-    pop.number <- n_distinct(input$POP_ID)
-    
-    pop.filter <- input %>% filter(GT != "000000")
-    
-    pop.filter <- pop.filter %>% 
-      group_by(MARKERS) %>%
-      filter(n_distinct(POP_ID) == pop.number) %>%
-      arrange(MARKERS) %>%
-      distinct(MARKERS)
-    
-    markers.input <- n_distinct(input$MARKERS)
-    markers.in.common <- n_distinct(pop.filter$MARKERS)
-    blacklist.markers.common <- markers.input - markers.in.common
-    
-    message(stri_join("Number of original markers = ", markers.input, 
-                      "\n", "Number of markers present in all the populations = ", 
-                      markers.in.common, "\n", 
-                      "Number of markers removed = ", 
-                      blacklist.markers.common)
-    )
-    
-    if (blacklist.markers.common > 0) {
-      input <- suppressWarnings(input %>% semi_join(pop.filter, by = "MARKERS"))
-    }
-    pop.filter <- NULL # ununsed object
-    markers.input <- NULL
-    markers.in.common <- NULL
-    blacklist.markers.common <- NULL
+    input <- keep_common_markers(input)
   } # End common markers
   
   # Removing monomorphic markers------------------------------------------------
-  if (monomorphic.out) {
+  if (monomorphic.out & !biallelic) {
     message("Removing monomorphic markers: yes")
-    message("Scanning for monomorphic markers...")
-    
-    mono.markers <- input %>%
-      select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
-      mutate(
-        A1 = stri_sub(GT, 1, 3),
-        A2 = stri_sub(GT, 4,6)
-      ) %>% 
-      select(-GT)
-    
-    mono.markers <- data.table::melt.data.table(
-      data = as.data.table(mono.markers), 
-      id.vars = c("MARKERS", "INDIVIDUALS", "POP_ID"), 
-      variable.name = "ALLELES",
-      variable.factor = FALSE,
-      value.name = "GT"
-    ) %>% 
-      as_data_frame() %>% 
-      filter(GT != "000") %>%
-      distinct(MARKERS, GT) %>% 
-      select(MARKERS) %>% 
-      group_by(MARKERS) %>% 
-      tally %>%
-      filter(n == 1) %>%
-      ungroup() %>% 
-      select(MARKERS)
-    
-    # Remove the markers from the dataset
-    message(paste0("Number of monomorphic markers removed = ", n_distinct(mono.markers$MARKERS)))
-    
-    if (length(mono.markers$MARKERS) > 0) {
-      input <- anti_join(input, mono.markers, by = "MARKERS")
-      if (data.type == "haplo.file") mono.markers <- rename(.data = mono.markers, LOCUS = MARKERS)
+    mono.out <- discard_monomorphic_markers(input)
+    mono.markers <- mono.out$blacklist.momorphic.markers
+    if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
+      if (data.type == "haplo.file") mono.markers <- dplyr::rename(.data = mono.markers, LOCUS = MARKERS)
+      input <- mono.out$input
       write_tsv(mono.markers, "blacklist.momorphic.markers.tsv")
     }
-  }
+  } # End monomorphic out
   
   # Minor Allele Frequency filter ----------------------------------------------
   # maf.thresholds <- c(0.05, 0.1) # test
   if (!is.null(maf.thresholds)) { # with MAF
-    maf.local.threshold <- maf.thresholds[1]
-    maf.global.threshold <- maf.thresholds[2]
-    message("MAF filter: yes")
-    
-    if (data.type == "vcf.file") {
-      maf.local <- input %>%
-        filter(GT_VCF != "./.") %>%
-        group_by(MARKERS, POP_ID, REF, ALT) %>%
-        summarise(
-          N = as.numeric(n()),
-          PQ = as.numeric(length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])),
-          QQ = as.numeric(length(GT_VCF[GT_VCF == "1/1"]))
-        ) %>%
-        mutate(MAF_LOCAL = ((QQ * 2) + PQ) / (2 * N))
-      
-      maf.global <- maf.local %>%
-        group_by(MARKERS) %>%
-        summarise_each_(funs(sum), vars = c("N", "PQ", "QQ")) %>%
-        mutate(MAF_GLOBAL = ((QQ * 2) + PQ) / (2 * N)) %>%
-        select(MARKERS, MAF_GLOBAL)
-      
-      maf.data <- maf.global %>%
-        left_join(maf.local, by = c("MARKERS")) %>%
-        select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
-      
-      maf.local <- NULL
-      maf.global <- NULL
-    } # end maf calculations with vcf
-    
-    if (data.type == "plink.file" | data.type == "df.file") {
-      message("Calculating global and local MAF, this may take some time on large data set")
-      
-      # We split the alleles here to prep for MAF
-      maf.data <- input %>%
-        select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
-        mutate(
-          A1 = stri_sub(GT, 1, 3),
-          A2 = stri_sub(GT, 4,6)
-        ) %>% 
-        select(-GT)
-      
-      maf.data <- data.table::melt.data.table(
-        data = as.data.table(maf.data), 
-        id.vars = c("MARKERS", "INDIVIDUALS", "POP_ID"), 
-        variable.name = "ALLELES",
-        variable.factor = FALSE,
-        value.name = "GT"
-      ) %>% 
-        as_data_frame() %>% 
-        filter(GT != "000")
-      
-      maf.data <- maf.data %>%
-        group_by(MARKERS, GT, POP_ID) %>%
-        tally %>%
-        arrange(MARKERS, GT) %>% 
-        group_by(MARKERS, GT) %>%
-        mutate(sum.pop = sum(n)) %>% 
-        group_by(MARKERS) %>%
-        mutate(
-          MAF_GLOBAL = min(sum.pop)/sum(n),
-          ALT = ifelse(min(sum.pop), "alt", "ref")
-        ) %>%
-        group_by(MARKERS, POP_ID) %>%
-        mutate(MAF_LOCAL = n/sum(n)) %>% 
-        arrange(MARKERS, POP_ID, GT) %>% 
-        group_by(MARKERS, POP_ID) %>% 
-        filter(n == min(n)) %>% 
-        distinct(MARKERS, POP_ID, .keep_all = TRUE) %>% 
-        select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
-    }# end maf calculations with PLINK or data frame of genotypes
-    
-    if (data.type == "haplo.file") {
-      stop("MAF filtering is only available for VCF file, use stackr
-             package and update your whitelist")
-    }
-    
-    write_tsv(x = maf.data, 
-              path = "maf.data.tsv",
-              col_names = TRUE, 
-              append = FALSE
+    maf.info <- stackr_maf_module(
+      data = input, 
+      maf.thresholds = maf.thresholds, 
+      maf.pop.num.threshold = maf.pop.num.threshold, 
+      maf.approach = maf.approach, 
+      maf.operator = maf.operator
     )
-    message("The MAF table was written in your folder")
     
-    # # update the vcf with the maf info
-    # input <- full_join(input, maf.data, by = c("MARKERS", "POP_ID"))
-    if (maf.approach == "haplotype") {
-      
-      vcf.maf <- tidyr::separate(data = maf.data, 
-                                 col = MARKERS, 
-                                 into = c("CHROM", "LOCUS", "POS"), 
-                                 sep = "__", 
-                                 remove = FALSE, 
-                                 extra = "warn"
-      )
-      
-      if (maf.operator == "OR") {
-        vcf.maf <- vcf.maf %>%
-          group_by(LOCUS, POP_ID) %>%
-          summarise(
-            MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
-            MAF_LOCAL = min(MAF_LOCAL, na.rm = TRUE)
-          ) %>%
-          filter(MAF_LOCAL >= maf.local.threshold | MAF_GLOBAL >= maf.global.threshold) %>%
-          group_by(LOCUS) %>%
-          tally() %>%
-          filter(n >= maf.pop.num.threshold) %>%
-          select(LOCUS) %>%
-          left_join(input, by = "LOCUS") %>%
-          arrange(LOCUS, POP_ID)
-      } else {# AND operator between local and global maf
-        vcf.maf <- vcf.maf %>%
-          group_by(LOCUS, POP_ID) %>%
-          summarise(
-            MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
-            MAF_LOCAL = min(MAF_LOCAL, na.rm = TRUE)
-          ) %>%
-          filter(MAF_LOCAL >= maf.local.threshold & MAF_GLOBAL >= maf.global.threshold) %>%
-          group_by(LOCUS) %>%
-          tally() %>%
-          filter(n >= maf.pop.num.threshold) %>%
-          select(LOCUS) %>%
-          left_join(input, by = "LOCUS") %>%
-          arrange(LOCUS, POP_ID)
-      }
-      vcf.maf <- vcf.maf %>% select(-c(CHROM, LOCUS, POS))
-    } # end maf haplotype approach
-    
-    if (maf.approach == "SNP") { # SNP approach
-      if (maf.operator == "OR") {
-        vcf.maf <- maf.data %>%
-          group_by(MARKERS, POP_ID) %>%
-          summarise(
-            MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
-            MAF_LOCAL = min(MAF_LOCAL, na.rm = TRUE)
-          ) %>%
-          filter(MAF_LOCAL >= maf.local.threshold | MAF_GLOBAL >= maf.global.threshold) %>%
-          group_by(MARKERS) %>%
-          tally() %>%
-          filter(n >= maf.pop.num.threshold) %>%
-          select(MARKERS) %>%
-          left_join(input, by = "MARKERS") %>%
-          arrange(MARKERS, POP_ID)
-      } else {# AND operator between local and global maf
-        vcf.maf <- maf.data %>%
-          group_by(MARKERS, POP_ID) %>%
-          summarise(
-            MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
-            MAF_LOCAL = min(MAF_LOCAL, na.rm = TRUE)
-          ) %>%
-          filter(MAF_LOCAL >= maf.local.threshold & MAF_GLOBAL >= maf.global.threshold) %>%
-          group_by(MARKERS) %>%
-          tally() %>%
-          filter(n >= maf.pop.num.threshold) %>%
-          select(MARKERS) %>%
-          left_join(input, by = "MARKERS") %>%
-          arrange(MARKERS, POP_ID)
-      }
-    } # end maf snp approach
-    
-    
-    message(stri_join("The number of MARKERS removed by the MAF filters = ", 
-                      n_distinct(input$MARKERS) - n_distinct(vcf.maf$MARKERS), "\n", 
-                      "The number of MARKERS before -> after the MAF filters: ", 
-                      n_distinct(input$MARKERS)," -> ", n_distinct(vcf.maf$MARKERS), 
-                      " MARKERS"))
-    
-    input <- vcf.maf
-    
-    # unused object
-    vcf.maf <- NULL 
-    maf.data <- NULL
+    input <- maf.info$input
+    # maf.data <- maf.info$maf.data
+    maf.info <- NULL
   } # End of MAF filters
   
   # Write to working directory
   if (!is.null(filename)) {
-    message(stri_paste("Writing the tidy data to the working directory: \n"), filename)
+    message(stringi::stri_join("Writing the tidy data to the working directory: \n"), filename)
     write_tsv(x = input, path = filename, col_names = TRUE)
   }
   
