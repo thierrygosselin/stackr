@@ -114,7 +114,7 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
     mono.markers <- marker.type %>% 
       dplyr::filter(n == 1) %>% 
       dplyr::select(MARKERS)
-  }  
+  }
   
   # Biallelic marker detection
   biallelic <- marker.type %>% 
@@ -154,28 +154,28 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
         dplyr::filter(CHANGE == "different") %>% 
         dplyr::select(MARKERS) %>% 
         purrr::flatten_chr(.)
-
+      
       message(stringi::stri_join("Number of markers with REF/ALT change = ", length(change.ref)))
       
       #Switch REF\ALT
       if (length(change.ref) > 0) {
         input <- input %>% 
-          mutate(
+          dplyr::mutate(
             REF_NEW = if_else(MARKERS %in% change.ref, ALT, REF),
             ALT_NEW = if_else(MARKERS %in% change.ref, REF, ALT)
           ) %>%
-          select(-REF, -ALT) %>% 
-          rename(REF = REF_NEW, ALT = ALT_NEW)
+          dplyr::select(-REF, -ALT) %>% 
+          dplyr::rename(REF = REF_NEW, ALT = ALT_NEW)
         
         # switch ALLELE_REF_DEPTH/ALLELE_ALT_DEPTH
         if (tibble::has_name(input, "ALLELE_REF_DEPTH")) {
           input <- input %>% 
-            mutate(
+            dplyr::mutate(
               ALLELE_REF_DEPTH_NEW = if_else(MARKERS %in% change.ref, ALLELE_ALT_DEPTH, ALLELE_REF_DEPTH),
               ALLELE_ALT_DEPTH_NEW = if_else(MARKERS %in% change.ref, ALLELE_REF_DEPTH, ALLELE_ALT_DEPTH)
             ) %>%
-            select(-ALLELE_REF_DEPTH, -ALLELE_ALT_DEPTH) %>% 
-            rename(ALLELE_REF_DEPTH = ALLELE_REF_DEPTH_NEW, ALLELE_ALT_DEPTH = ALLELE_ALT_DEPTH_NEW)
+            dplyr::select(-ALLELE_REF_DEPTH, -ALLELE_ALT_DEPTH) %>% 
+            dplyr::rename(ALLELE_REF_DEPTH = ALLELE_REF_DEPTH_NEW, ALLELE_ALT_DEPTH = ALLELE_ALT_DEPTH_NEW)
         }
       }
     } else {# biallelic but no REF
@@ -202,10 +202,11 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
     }
     
     # Remove the markers from the dataset
-    if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
-      input <- dplyr::filter(input, !MARKERS %in% mono.markers$MARKERS)
+    if (monomorphic.out) {
+      if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
+        input <- dplyr::filter(input, !MARKERS %in% mono.markers$MARKERS)
+      }
     }
-
   } else {
     stop("WARNING: Markers are not biallelic: cannot attribute REF/ALT alleles")
   }

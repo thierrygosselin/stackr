@@ -17,6 +17,6 @@ if (getRversion() >= "2.15.1") {
       "REF.x", "ALT.x", "REF.y", "ALT.y", "BLACKLIST", "ALLELE_COVERAGE_RATIO",
       "..scaled..", "GENOTYPE_LIKELIHOOD_GROUP", "GL_MAX", "GL_MIN", "VALUE",
       "GL_DIFF", "ALLELE_ALT_DEPTH_NEW", "ALLELE_REF_DEPTH_NEW", "ALT_NEW", 
-      "CHANGE", "n.al.pop", "n.al.tot")
+      "CHANGE", "n.al.pop", "n.al.tot", "TOTAL_READ")
   )
 }

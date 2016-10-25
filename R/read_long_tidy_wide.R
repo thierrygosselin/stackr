@@ -158,10 +158,12 @@ read_long_tidy_wide <- function(data, import.metadata = FALSE, ...) {
     if (long.format) { # long (tidy) format
       # switch GENOTYPE for GT in colnames if found
       if ("GENOTYPE" %in% colnames(input)) {
-      colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
-                                                pattern = "GENOTYPE", 
-                                                replacement = "GT", 
-                                                vectorize_all = FALSE)
+      colnames(input) <- stri_replace_all_fixed(
+        str = colnames(input), 
+        pattern = "GENOTYPE", 
+        replacement = "GT", 
+        vectorize_all = FALSE
+        )
       }
       
       if (!import.metadata) {

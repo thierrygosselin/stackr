@@ -218,6 +218,7 @@
 #' @importFrom plyr colwise
 #' @importFrom tidyr spread gather unite separate
 #' @importFrom utils count.fields
+#' @importFrom readr write_tsv
 
 
 #' @examples
@@ -689,13 +690,13 @@ tidy_genomic_data <- function(
     # To reduce the size of the dataset we subsample the markers with max.marker
     if (!is.null(max.marker)) {
       message("Using the max.marker to reduce the size of the dataset")
-      input <- sample_n(tbl = input, size = max(as.numeric(max.marker)), replace = FALSE)
+      input <- dplyr::sample_n(tbl = input, size = max(as.numeric(max.marker)), replace = FALSE)
       
       max.marker.subsample.select <- input %>% 
         dplyr::distinct(LOCUS, .keep_all = TRUE) %>% 
         dplyr::arrange(LOCUS)
       
-      write_tsv(# save results
+      readr::write_tsv(# save results
         x = max.marker.subsample.select, 
         path = "max.marker.subsample.select.tsv")
     }
@@ -965,7 +966,7 @@ tidy_genomic_data <- function(
         dplyr::mutate(GT = ifelse(POLYMORPHISM > 1, NA, GT)) %>% 
         dplyr::select(-POLYMORPHISM)
       
-      write_tsv(blacklist.paralogs, "blacklist.genotypes.paralogs.tsv")
+      readr::write_tsv(blacklist.paralogs, "blacklist.genotypes.paralogs.tsv")
     }
     
     tidy.haplo <- input %>% dplyr::select(LOCUS, INDIVIDUALS, GT_HAPLO = GT)
@@ -1208,7 +1209,7 @@ tidy_genomic_data <- function(
   
   # SNP LD  --------------------------------------------------------------------
   if (!is.null(snp.ld)) {
-    if (tibble::has_name(input, "POS")) {
+    if (!tibble::has_name(input, "POS")) {
       stop("snp.ld is only available for VCF file, use stackr package for 
              haplotype file and create a whitelist, for other file type, use 
              PLINK linkage disequilibrium based SNP pruning option")
@@ -1280,7 +1281,7 @@ tidy_genomic_data <- function(
     if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
       if (data.type == "haplo.file") mono.markers <- dplyr::rename(.data = mono.markers, LOCUS = MARKERS)
       input <- mono.out$input
-      write_tsv(mono.markers, "blacklist.momorphic.markers.tsv")
+      readr::write_tsv(mono.markers, "blacklist.momorphic.markers.tsv")
     }
   } # End monomorphic out
   
@@ -1303,7 +1304,7 @@ tidy_genomic_data <- function(
   # Write to working directory
   if (!is.null(filename)) {
     message(stringi::stri_join("Writing the tidy data to the working directory: \n"), filename)
-    write_tsv(x = input, path = filename, col_names = TRUE)
+    readr::write_tsv(x = input, path = filename, col_names = TRUE)
   }
   
   res <- input

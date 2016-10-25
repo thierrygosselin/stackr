@@ -226,17 +226,17 @@ genomic_converter <- function(
   verbose = FALSE,
   parallel.core = parallel::detectCores() - 1
 ) {
-
+  
   cat("#######################################################################\n")
   cat("###################### stackr::genomic_converter ######################\n")
   cat("#######################################################################\n")
-
+  
   # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("Input file missing")
   if (missing(output)) stop("At least 1 output format is required")
   if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
-
+  
   message("Function arguments and values:")
   message(stri_join("Working directory: ", getwd()))
   
@@ -251,47 +251,47 @@ genomic_converter <- function(
   } else {
     message(stri_join("Strata: ", strata, ignore_null = FALSE))
   }
-
+  
   if (is.null(pop.levels)) {
     message("Population levels: no")
   } else {
     message(stri_join("Population levels: ", stri_join(pop.levels, collapse = ", ")))
   }
-
+  
   if (is.null(pop.levels)) {
     message("Population labels: no")
   } else {
     message(stri_join("Population labels: ", stri_join(pop.labels, collapse = ", ")))
   }
-
+  
   message(stri_join("Ouput format(s): ", stri_join(output, collapse = ", ")))
-
+  
   if (is.null(filename)) {
     message("Filename prefix: no")
   } else {
     message(stri_join("Filename prefix: ", filename, "\n"))
   }
-
-
+  
+  
   message("Filters: ")
   if (is.null(blacklist.id)) {
     message("Blacklist of individuals: no")
   } else {
     message(stri_join("Blacklist of individuals: ", blacklist.id))
   }
-
+  
   if (is.null(blacklist.genotype)) {
     message("Blacklist of genotypes: no")
   } else {
     message(stri_join("Blacklist of genotypes: ", blacklist.genotype))
   }
-
+  
   if (is.null(whitelist.markers)) {
     message("Whitelist of markers: no")
   } else {
     message(stri_join("Whitelist of markers: ", whitelist.markers))
   }
-
+  
   message(stri_join("monomorphic.out: ", monomorphic.out))
   if (is.null(snp.ld)) {
     message("snp.ld: no")
@@ -304,13 +304,13 @@ genomic_converter <- function(
   } else {
     message(stri_join("max.marker: ", max.marker))
   }
-
+  
   if (is.null(pop.select)) {
     message("pop.select: no")
   } else {
     message(stri_join("pop.select: ", stri_join(pop.select, collapse = ", ")))
   }
-  if(is.null(maf.thresholds)) {
+  if (is.null(maf.thresholds)) {
     message("maf.thresholds: no")
   } else {
     message(stri_join("maf.thresholds: ", stri_join(maf.thresholds, collapse = ", ")))
@@ -318,9 +318,9 @@ genomic_converter <- function(
     message(stri_join("maf.approach: ", maf.approach))
     message(stri_join("maf.operator: ", maf.operator))
   }
-
+  
   message(stri_join("\n", "Imputations options:"))
-  if(is.null(imputation.method)) {
+  if (is.null(imputation.method)) {
     message("imputation.method: no")
   } else {
     message(stri_join("imputation.method: ", imputation.method))
@@ -333,8 +333,8 @@ genomic_converter <- function(
   }
   message(stri_join("\n", "parallel.core: ", parallel.core, "\n"))
   cat("#######################################################################\n")
-
-
+  
+  
   # Filename -------------------------------------------------------------------
   # Get date and time to have unique filenaming
   if (is.null(filename)) {
@@ -351,9 +351,9 @@ genomic_converter <- function(
       vectorize_all = FALSE
     )
     file.date <- stri_sub(file.date, from = 1, to = 13)
-
+    
     filename <- stri_paste("stackr_data_", file.date)
-
+    
     if (!is.null(imputation.method)) {
       filename.imp <- stri_paste("stackr_data_imputed_", file.date)
     }
@@ -362,53 +362,62 @@ genomic_converter <- function(
       filename.imp <- stri_paste(filename, "_imputed")
     }
   }
-
-
+  
   # File type detection --------------------------------------------------------
   data.type <- detect_genomic_format(data = data)
-
+  
   # Strata argument required for VCF and haplotypes files-----------------------
   if (data.type == "vcf.file" & is.null(strata)) stop("strata argument is required")
   if (data.type == "haplo.file") stop("This function is for biallelic dataset only")
-
+  
   # Import----------------------------------------------------------------------
-  input <- stackr::tidy_genomic_data(
-    data = data,
-    vcf.metadata = FALSE,
-    blacklist.id = blacklist.id,
-    blacklist.genotype = blacklist.genotype,
-    whitelist.markers = whitelist.markers,
-    monomorphic.out = monomorphic.out,
-    max.marker = max.marker,
-    snp.ld = snp.ld,
-    common.markers = common.markers,
-    maf.thresholds = maf.thresholds,
-    maf.pop.num.threshold = maf.pop.num.threshold,
-    maf.approach = maf.approach,
-    maf.operator = maf.operator,
-    strata = strata,
-    pop.levels = pop.levels,
-    pop.labels = pop.labels,
-    pop.select = pop.select,
-    filename = NULL
-  )
-
+  if (data.type == "df.file") {
+    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+    # For long tidy format, switch LOCUS to MARKERS column name, if found MARKERS not found
+    if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+      input <- dplyr::rename(.data = input, MARKERS = LOCUS)
+    }
+  } else {
+    
+    input <- stackr::tidy_genomic_data(
+      data = data,
+      vcf.metadata = FALSE,
+      blacklist.id = blacklist.id,
+      blacklist.genotype = blacklist.genotype,
+      whitelist.markers = whitelist.markers,
+      monomorphic.out = monomorphic.out,
+      max.marker = max.marker,
+      snp.ld = snp.ld,
+      common.markers = common.markers,
+      maf.thresholds = maf.thresholds,
+      maf.pop.num.threshold = maf.pop.num.threshold,
+      maf.approach = maf.approach,
+      maf.operator = maf.operator,
+      strata = strata,
+      pop.levels = pop.levels,
+      pop.labels = pop.labels,
+      pop.select = pop.select,
+      filename = NULL
+    )
+  }
+  
   input$GT <- stri_replace_all_fixed(str = input$GT, pattern = c("/", ":", "_", "-", "."), replacement = c("", "", "", "", ""), vectorize_all = FALSE)
-
+  
   # create a strata.df
   # strata.df <- input %>%
   #   distinct(INDIVIDUALS, POP_ID)
   # # strata <- strata.df
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
-
-
+  
+  
   # prepare output res list
   res <- list()
   res$tidy.data <- input
-
+  
   # Biallelic detection --------------------------------------------------------
-  biallelic <- input %>%
+  biallelic <- input %>% 
+    dplyr::ungroup(.) %>% 
     select(MARKERS, GT) %>%
     mutate(
       A1 = stri_sub(str = GT, from = 1, to = 3),
@@ -422,7 +431,7 @@ genomic_converter <- function(
     tally %>%
     summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
     purrr::flatten_chr(.x = .)
-
+  
   if (biallelic != 2) {
     biallelic <- FALSE
     message(stri_join("Biallelic data: ", biallelic))
@@ -430,13 +439,13 @@ genomic_converter <- function(
     biallelic <- TRUE
     message(stri_join("Biallelic data: ", biallelic))
   }
-
+  
   # overide genind when marker number > 20K ------------------------------------
   if ("genind" %in% output) {
     # detect the number of marker
     marker.number <- n_distinct(input$MARKERS)
     if (marker.number > 20000) {
-
+      
       # When genlight is also selected, remove automatically
       if ("genlight" %in% output) {
         message("Removing the genind output option, the genlight is more suitable with current marker number")
@@ -461,10 +470,10 @@ genomic_converter <- function(
       }
     }
   }
-
+  
   # Imputations-----------------------------------------------------------------
   if (!is.null(imputation.method)) {
-
+    
     input.imp <- stackr::stackr_imputations_module(
       data = input,
       imputation.method = imputation.method,
@@ -477,13 +486,13 @@ genomic_converter <- function(
       parallel.core = parallel.core,
       filename = NULL
     )
-
+    
     res$tidy.data.imp <- input.imp
-
+    
   } # End imputations
-
+  
   # OUTPUT ---------------------------------------------------------------------
-
+  
   # GENEPOP --------------------------------------------------------------------
   if ("genepop" %in% output) {
     message("Generating genepop file without imputation")
@@ -492,7 +501,7 @@ genomic_converter <- function(
       pop.levels = pop.levels,
       filename = filename
     )
-
+    
     if (!is.null(imputation.method)) {
       message("Generating genepop file WITH imputations")
       write_genepop(
@@ -502,7 +511,7 @@ genomic_converter <- function(
       )
     }
   } # end genepop output
-
+  
   # hierfstat --------------------------------------------------------------------
   if ("hierfstat" %in% output) {
     message("Generating hierfstat file without imputation")
@@ -510,7 +519,7 @@ genomic_converter <- function(
       data = input,
       filename = filename
     )
-
+    
     if (!is.null(imputation.method)) {
       message("Generating hierfstat file WITH imputations")
       res$hierfstat.imputed <- write_hierfstat(
@@ -519,18 +528,18 @@ genomic_converter <- function(
       )
     }
   } # end hierfstat output
-
+  
   # strataG --------------------------------------------------------------------
   if ("gtypes" %in% output) {
     message("Generating strataG gtypes object without imputation")
     res$gtypes.no.imputation <- write_gtypes(data = input)
-
+    
     if (!is.null(imputation.method)) {
       message("Generating strataG gtypes object WITH imputations")
       res$gtypes.imputed <- write_gtypes(data = input.imp)
     }
   } # end strataG output
-
+  
   # structure --------------------------------------------------------------------
   if ("structure" %in% output) {
     message("Generating structure file without imputation")
@@ -540,7 +549,7 @@ genomic_converter <- function(
       markers.line = TRUE,
       filename = filename
     )
-
+    
     if (!is.null(imputation.method)) {
       message("Generating structure file WITH imputations")
       write_structure(
@@ -551,13 +560,13 @@ genomic_converter <- function(
       )
     }
   } # end structure output
-
+  
   # betadiv --------------------------------------------------------------------
   if ("betadiv" %in% output) {
     if (!biallelic) stop("betadiv output is currently implemented for biallelic data only")
     message("Generating betadiv object without imputation")
     res$betadiv.no.imputation <- write_betadiv(data = input)
-
+    
     if (!is.null(imputation.method)) {
       message("Generating betadiv object WITH imputations")
       res$betadiv.imputed <- write_betadiv(data = input.imp)
@@ -583,29 +592,29 @@ genomic_converter <- function(
       )
     }
   } # end arlequin output
-
+  
   # GENIND ---------------------------------------------------------------------
   if ("genind" %in% output) {
     message("Generating adegenet genind object without imputation")
     res$genind.no.imputation <- stackr::write_genind(data = input)
-
+    
     if (!is.null(imputation.method)) {
       message("Generating adegenet genind object WITH imputations")
       res$genind.imputed <- stackr::write_genind(data = input.imp)
     }
   } # end genind
-
+  
   # GENLIGHT ---------------------------------------------------------------------
   if ("genlight" %in% output) {
     message("Generating adegenet genlight object without imputation")
     res$genlight.no.imputation <- stackr::write_genlight(data = input)
-
+    
     if (!is.null(imputation.method)) {
       message("Generating adegenet genlight object WITH imputations")
       res$genlight.imputed <- stackr::write_genlight(data = input.imp)
     }
   } # end genlight output
-
+  
   # VCF --------------------------------------------------------------------
   if ("vcf" %in% output) {
     if (!biallelic) stop("vcf output is currently implemented for biallelic data only")
@@ -614,7 +623,7 @@ genomic_converter <- function(
       data = input,
       filename = filename
     )
-
+    
     if (!is.null(imputation.method)) {
       message("Generating VCF file WITH imputations")
       write_vcf(
@@ -623,7 +632,7 @@ genomic_converter <- function(
       )
     }
   } # end vcf output
-
+  
   # PLINK --------------------------------------------------------------------
   if ("plink" %in% output) {
     message("Generating PLINK tped/tfam files without imputation")
@@ -631,7 +640,7 @@ genomic_converter <- function(
       data = input,
       filename = filename
     )
-
+    
     if (!is.null(imputation.method)) {
       message("Generating PLINK tped/tfam files WITH imputations")
       write_plink(
@@ -640,10 +649,10 @@ genomic_converter <- function(
       )
     }
   } # end plink output
-
+  
   # dadi --------------------------------------------------------------------
   # not yet implemented, use vcf2dadi
-
+  
   # outout results -------------------------------------------------------------
   cat("############################## completed ##############################\n")
   return(res)
