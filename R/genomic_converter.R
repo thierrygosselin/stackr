@@ -224,7 +224,7 @@ genomic_converter <- function(
   iteration.rf = 10,
   split.number = 100,
   verbose = FALSE,
-  parallel.core = detectCores()-1
+  parallel.core = parallel::detectCores() - 1
 ) {
 
   cat("#######################################################################\n")
@@ -239,7 +239,13 @@ genomic_converter <- function(
 
   message("Function arguments and values:")
   message(stri_join("Working directory: ", getwd()))
-  message(stri_join("Input file: ", data))
+  
+  if (is.vector(data)) {
+    message(stri_join("Input file: ", data))
+  } else {
+    message("Input file: from global environment")  
+  }
+  
   if (is.null(strata)) {
     message(stri_join("Strata: no"))
   } else {
@@ -359,41 +365,7 @@ genomic_converter <- function(
 
 
   # File type detection --------------------------------------------------------
-  if (adegenet::is.genind(data)) {
-    data.type <- "genind.file"
-    # message("File type: genind object")
-  } else {
-    data.type <- readChar(con = data, nchars = 16L, useBytes = TRUE)
-    if (identical(data.type, "##fileformat=VCF") | stri_detect_fixed(str = data, pattern = ".vcf")) {
-      data.type <- "vcf.file"
-      # message("File type: VCF")
-    }
-    if (stri_detect_fixed(str = data, pattern = ".tped")) {
-      data.type <- "plink.file"
-      # message("File type: PLINK")
-      if (!file.exists(stri_replace_all_fixed(str = data, pattern = ".tped", replacement = ".tfam", vectorize_all = FALSE))) {
-        stop("Missing tfam file with the same prefix as your tped")
-      }
-    }
-    if (stri_detect_fixed(str = data.type, pattern = "POP_ID") | stri_detect_fixed(str = data.type, pattern = "INDIVIDUALS")) {
-      data.type <- "df.file"
-      # message("File type: data frame of genotypes")
-    }
-    if (stri_detect_fixed(str = data.type, pattern = "Catalog")) {
-      # data.type <- "haplo.file"
-      # message("File type: haplotypes from stacks")
-      if (is.null(blacklist.genotype)) {
-        stop("blacklist.genotype file missing.
-             Use stackr's missing_genotypes function to create this blacklist")
-      }
-    }
-    if (stri_detect_fixed(str = data, pattern = ".gen")) {
-      # data.type <- "genepop.file"
-      # message("File type: genepop")
-      # message("Multilocus genepop file won't work, only for biallelic markers")
-    }
-
-  } # end file type detection
+  data.type <- detect_genomic_format(data = data)
 
   # Strata argument required for VCF and haplotypes files-----------------------
   if (data.type == "vcf.file" & is.null(strata)) stop("strata argument is required")
