@@ -99,5 +99,4 @@ output = "genepop"
 \author{
 Eric C. Anderson \email{eric.anderson@noaa.gov}, Greg L. Owens \email{gregory.owens@alumni.ubc.ca} and Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
-\keyword{internal}
 
