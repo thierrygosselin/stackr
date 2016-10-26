@@ -49,7 +49,7 @@
 #' }
 
 
-#@export
+#' @export
 #' @rdname generate_missing
 #' @importFrom dplyr select distinct n_distinct group_by ungroup rename if_else mutate full_join
 #' @importFrom stats rgamma rmultinom
@@ -75,7 +75,8 @@ generate_missing <- function(
   iteration.rf = 10, 
   split.number = 100, 
   verbose = FALSE, 
-  parallel.core = parallel::detectCores() - 1
+  parallel.core = parallel::detectCores() - 1,
+  ...
 ) {
   
   
@@ -88,9 +89,7 @@ generate_missing <- function(
   # input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
   input <- stackr::tidy_genomic_data(
     data = data, 
-    vcf.metadata = FALSE,
-    common.markers = FALSE,
-    monomorphic.out = FALSE
+    ...
   )
   
   # store function call
@@ -207,7 +206,8 @@ generate_missing <- function(
     num.tree = num.tree, 
     iteration.rf = iteration.rf, 
     split.number = split.number, 
-    parallel.core = parallel.core
+    parallel.core = parallel.core,
+    ...
   )
   
   if (is.null(imputation.method)) {

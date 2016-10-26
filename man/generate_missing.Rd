@@ -9,7 +9,7 @@ generate_missing(data, output, filename = NULL, average.read.depth = 10,
   random.seed = NULL, imputation.method = NULL, impute = "genotype",
   imputations.group = "populations", num.tree = 100, iteration.rf = 10,
   split.number = 100, verbose = FALSE,
-  parallel.core = parallel::detectCores() - 1)
+  parallel.core = parallel::detectCores() - 1, ...)
 }
 \arguments{
 \item{data}{6 options: vcf (to make vcf population ready, see details below),
