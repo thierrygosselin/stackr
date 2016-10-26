@@ -55,7 +55,7 @@
 #' @importFrom stats rgamma rmultinom
 #' @importFrom tibble data_frame as_data_frame
 #' @importFrom tidyr unnest
-#' @keywords internal
+# @keywords internal
 
 #' @author Eric C. Anderson \email{eric.anderson@@noaa.gov}, Greg L. Owens \email{gregory.owens@@alumni.ubc.ca} and Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
