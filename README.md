@@ -91,6 +91,10 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.3.9**
+* several performance update
+* couple of bug fix for detecting file formats
+
 **v.0.3.8**
 * fixed a bug in `filter_genotype_likelihood`, since the updated function to the 
 interactive mode, some old code where still present in if/else sentences, breaking 

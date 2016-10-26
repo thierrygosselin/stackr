@@ -1,8 +1,8 @@
 Package: stackr
 Type: Package
 Title: GBS/RADseq Data Exploration, Manipulation and Visualization using R
-Version: 0.3.8
-Date: 2016-09-19
+Version: 0.3.9
+Date: 2016-10-25
 Encoding: UTF-8
 Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
@@ -32,7 +32,8 @@ Imports:
     purrr,
     amap,
     tibble,
-    methods
+    methods,
+    tidyverse
 Suggests:
     pegas,
     hierfstat,
