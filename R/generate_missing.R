@@ -5,7 +5,7 @@
 #' @description
 #' Generate missing genotypes following a compound Dirichlet-multinomial distribution.
 
-#' @param data 6 options: vcf (to make vcf population ready, see details below),
+#' @param data 6 options: vcf (need strata argument),
 #' plink, stacks haplotype file, genind, genlight, genepop, 
 #' and a data frame in wide format. 
 #' \emph{See details} in \code{\link[stackr]{tidy_genomic_data}}.
@@ -32,7 +32,7 @@
 # Use the extension ".tsv" at the end. 
 # Several info will be appended to the name of the file.
 
-#' @param ... (upcomming) other parameters passed to the function \code{\link[stackr]{tidy_genomic_data}} 
+#' @param ... Other parameters passed to the function \code{\link[stackr]{tidy_genomic_data}} 
 #' for the input file and \code{\link[stackr]{genomic_converter}} for the output file parameter.
 
 #' @return In the global environment, a list with the tidy data set, the random.seed and function.call.
@@ -88,7 +88,7 @@ generate_missing <- function(
   
   # input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
   input <- stackr::tidy_genomic_data(
-    data = data, 
+    data = data, vcf.metadata = FALSE,
     ...
   )
   
@@ -195,9 +195,7 @@ generate_missing <- function(
   # output ---------------------------------------------------------------------
   output <- stackr::genomic_converter(
     data = dplyr::select(.data = data.missing, MARKERS, POP_ID, INDIVIDUALS, GT),
-    output = output, 
-    monomorphic.out = FALSE, 
-    common.markers = FALSE, 
+    output = output,
     filename = filename, 
     verbose = FALSE,
     imputation.method = imputation.method,

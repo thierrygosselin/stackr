@@ -12,7 +12,7 @@ generate_missing(data, output, filename = NULL, average.read.depth = 10,
   parallel.core = parallel::detectCores() - 1, ...)
 }
 \arguments{
-\item{data}{6 options: vcf (to make vcf population ready, see details below),
+\item{data}{6 options: vcf (need strata argument),
 plink, stacks haplotype file, genind, genlight, genepop, 
 and a data frame in wide format. 
 \emph{See details} in \code{\link[stackr]{tidy_genomic_data}}.}
@@ -76,7 +76,7 @@ programming of Random Forest imputations. For more info on how to install the
 OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
 If not selected \code{detectCores()-1} is used as default.}
 
-\item{...}{(upcomming) other parameters passed to the function \code{\link[stackr]{tidy_genomic_data}} 
+\item{...}{Other parameters passed to the function \code{\link[stackr]{tidy_genomic_data}} 
 for the input file and \code{\link[stackr]{genomic_converter}} for the output file parameter.}
 }
 \value{
