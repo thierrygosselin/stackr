@@ -33,7 +33,8 @@ Imports:
     amap,
     tibble,
     methods,
-    tidyverse
+    tidyverse,
+    strataG
 Suggests:
     pegas,
     hierfstat,

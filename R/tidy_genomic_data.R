@@ -336,7 +336,7 @@ tidy_genomic_data <- function(
     # message("Whitelist of markers: no")
   } else {# with Whitelist of markers
     # message("Whitelist of markers: yes")
-    suppressWarnings(whitelist.markers <- readr::read_tsv(whitelist.markers, col_names = TRUE))
+    suppressMessages(whitelist.markers <- readr::read_tsv(whitelist.markers, col_names = TRUE))
     columns.names.whitelist <- colnames(whitelist.markers)
     if ("CHROM" %in% columns.names.whitelist) {
       whitelist.markers$CHROM <- as.character(whitelist.markers$CHROM)
@@ -359,7 +359,7 @@ tidy_genomic_data <- function(
     # message("Blacklisted individuals: no")
   } else {# With blacklist of ID
     # message("Blacklisted individuals: yes")
-    suppressWarnings(blacklist.id <- readr::read_tsv(blacklist.id, col_names = TRUE))
+    suppressMessages(blacklist.id <- readr::read_tsv(blacklist.id, col_names = TRUE))
   }
   
   # population levels and strata------------------------------------------------
@@ -368,7 +368,7 @@ tidy_genomic_data <- function(
       # message("strata file: yes")
       number.columns.strata <- max(utils::count.fields(strata, sep = "\t"))
       col.types <- stringi::stri_join(rep("c", number.columns.strata), collapse = "")
-      suppressWarnings(strata.df <- readr::read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>% 
+      suppressMessages(strata.df <- readr::read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>% 
         dplyr::rename(POP_ID = STRATA))
     } else {
       # message("strata object: yes")
@@ -1142,7 +1142,7 @@ tidy_genomic_data <- function(
     message("Erasing genotype: no")
   } else {
     message("Erasing genotype: yes")
-    suppressWarnings(
+    suppressMessages(
       blacklist.genotype <- readr::read_tsv(blacklist.genotype, col_names = TRUE) %>% 
         dplyr::mutate(
           INDIVIDUALS = stringi::stri_replace_all_fixed(

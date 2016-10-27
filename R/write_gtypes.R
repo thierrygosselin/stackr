@@ -42,11 +42,11 @@
 #' in a tidy data frame.
 #' @export
 #' @rdname write_gtypes
-#' @import reshape2
-#' @import dplyr
-#' @import stringi
+#' @importFrom tidyr gather unite spread 
 #' @importFrom data.table fread
 #' @importFrom methods new
+#' @importFrom stringi stri_replace_all_fixed stri_sub
+#' @importFrom dplyr select arrange rename
 
 
 #' @seealso \code{strataG.devel} is available on github \url{https://github.com/EricArcher/}
@@ -66,22 +66,23 @@ write_gtypes <- function(data) {
   # Import data ---------------------------------------------------------------
   input <- stackr::read_long_tidy_wide(data = data)
   
-  colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
-                                            pattern = "GENOTYPE", 
-                                            replacement = "GT", 
-                                            vectorize_all = FALSE)
+  colnames(input) <- stringi::stri_replace_all_fixed(
+    str = colnames(input), 
+    pattern = "GENOTYPE", 
+    replacement = "GT", 
+    vectorize_all = FALSE)
   
   # Switch colnames LOCUS to MARKERS if found
-  if ("LOCUS" %in% colnames(input)) input <- rename(.data = input, MARKERS = LOCUS)
+  if ("LOCUS" %in% colnames(input)) input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   
   input <- input %>% 
-    select(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
-    arrange(MARKERS, POP_ID, INDIVIDUALS) %>% 
-    mutate(
-      `1` = stri_sub(str = GT, from = 1, to = 3),
-      `2` = stri_sub(str = GT, from = 4, to = 6)
+    dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
+    dplyr::arrange(MARKERS, POP_ID, INDIVIDUALS) %>% 
+    dplyr::mutate(
+      `1` = stringi::stri_sub(str = GT, from = 1, to = 3),
+      `2` = stringi::stri_sub(str = GT, from = 4, to = 6)
     ) %>%
-    select(-GT) %>% 
+    dplyr::select(-GT) %>% 
     tidyr::gather(
       data = ., 
       key = ALLELES, 
@@ -90,9 +91,7 @@ write_gtypes <- function(data) {
     ) %>% 
     tidyr::unite(data = ., MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>% 
     tidyr::spread(data = ., key = MARKERS_ALLELES, value = GT) %>% 
-    mutate(
-      POP_ID = as.character(POP_ID)
-    )
+    dplyr::mutate(POP_ID = as.character(POP_ID))
   
   res <- suppressWarnings(
     methods::new("gtypes", gen.data = input[, -(1:2)], ploidy = 2, ind.names = input$INDIVIDUALS, 
