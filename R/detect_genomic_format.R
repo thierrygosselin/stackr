@@ -8,6 +8,7 @@
 #' @importFrom stringi stri_detect_fixed stri_replace_all_fixed
 #' @importFrom adegenet is.genind
 #' @importFrom tibble has_name
+#' @importFrom strataG is.gtypes
 # @keywords internal
 #' @export
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
