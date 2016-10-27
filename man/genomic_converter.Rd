@@ -16,8 +16,9 @@ genomic_converter(data, output, filename = NULL, blacklist.id = NULL,
   parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
-\item{data}{6 options: vcf (to make vcf population ready, see details below),
-plink, stacks haplotype file, genind, genlight, genepop, 
+\item{data}{7 options: vcf (to make vcf population ready, see details below),
+plink, stacks haplotype file, genind (library(adegenet)), 
+genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 and a data frame in wide format. \emph{See details}.}
 
 \item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop,

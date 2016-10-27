@@ -91,53 +91,10 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
-**v.0.4.1**
-* update `missing_visualization` function to include more PCoA plots
-
-**v.0.4.0**
-* couple of bug fix for detecting file formats
-
-**v.0.3.9**
-* several performance update
-* couple of bug fix for detecting file formats
-
-**v.0.3.8**
-* fixed a bug in `filter_genotype_likelihood`, since the updated function to the 
-interactive mode, some old code where still present in if/else sentences, breaking 
-the code. Thanks to Jaromir Guzinski for the bug report.
-
-
-**v.0.3.7**
-* fixed a bug in `write_vcf`, the function was using REF/ALT coding in integer 
-not character format. This function is used inside `vcf_imputation` and 
-sometimes inside `genomic_converter`. Thanks to @jeansebastienmoore for 
-highlighting the problem.
-
-
-**v.0.3.6**
-* fixed a bug in `vcf_imputation`, the function now calls `genomic_converter` 
-with all the bells and whistles of that function (updated vcf import and imputations modules)
-
-
-**v.0.3.5**
-* updated tidy_genepop to read other flavors of the famous file format
-* extracted a code block to create a new function called `tidy_fstat`
-
-**v.0.3.4**
-* updated documentation
-* bug fix in `summary_haplotypes` introduced by the new version of `dplyr::distinct` (v.0.5.0)
-* calculations of Pi is done in parallel inside `summary_haplotypes`
-
-**v.0.3.3**
-* `tidy_genomic_data`: added a check that throws an error when pop.levels != the pop.id in strata
-
-**v.0.3.2**
-* `genomic_converter` including all the `vcf2...` function can now use phase/unphase genotypes.
-Some **pyRAD** vcf (e.g. v.3.0.64) have a mix of GT format with `/` and `|`. 
-e.g. missing GT  = `./.` and genotyped individuals = `0|0`. 
-I'm not sure it follows [VCF specification](http://samtools.github.io/hts-specs/VCFv4.2.pdf), 
-but **stackr** can now read those vcf files.
-* `vcf2dadi` is more user-friendly for scientist with in- and out-group metadata, using STACKS or not.
+**v.0.4.2**
+* `gtypes` object from [strataG] (https://github.com/EricArcher/strataG) package
+can now be read/write in/out of **Stackr** using the `tidy_genomic_data` and 
+`genomic_converter` functions.
 
 For previous news:
 [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)

@@ -11,8 +11,9 @@
 #' and \href{https://github.com/thierrygosselin/assigner}{assigner}
 #' and might be of interest for users.
 
-#' @param data 6 options: vcf (to make vcf population ready, see details below),
-#' plink, stacks haplotype file, genind, genlight, genepop, 
+#' @param data 7 options: vcf (to make vcf population ready, see details below),
+#' plink, stacks haplotype file, genind (library(adegenet)), 
+#' genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 #' and a data frame in wide format. \emph{See details}.
 
 #' @param vcf.metadata (optional, logical) For the VCF file, with \code{vcf.metadata = FALSE}, 
@@ -198,6 +199,8 @@
 #' 
 #' \item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
 #' 
+#' \item \code{\link[strataG]{gtypes}} object from \code{\link[strataG]{strataG}}.
+#' 
 #' \item genepop data file (e.g. \code{data = "kiwi_data.gen"}). Here, the function can only use
 #' alleles encoded with 3 digits.
 #' }
@@ -260,6 +263,10 @@
 #' GENEPOP (version 1.2): population genetics software for exact tests 
 #' and ecumenicism. 
 #' J. Heredity, 86:248-249
+#' @references Archer FI, Adams PE, Schneiders BB. 
+#' strataG: An r package for manipulating, summarizing and analysing population
+#' genetic data.
+#' Molecular Ecology Resources. 2016. doi:10.1111/1755-0998.12559
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
@@ -1016,7 +1023,6 @@ tidy_genomic_data <- function(
   } # End import haplotypes file
   
   # Import GENIND--------------------------------------------------------------
-  # load("/Users/thierry/Documents/skipjack/fst.test.RData")
   if (data.type == "genind.file") { # DATA FRAME OF GENOTYPES
     # data = skipjack.genind
     input <- adegenet::genind2df(data) %>% 
@@ -1125,6 +1131,102 @@ tidy_genomic_data <- function(
     
   } # End tidy genind
   
+  # Import STRATAG gtypes ------------------------------------------------------
+  if (data.type == "gtypes") { # DATA FRAME OF GENOTYPES
+    message("Tidying the gtypes object ...")
+    input <- strataG::as.data.frame(
+      x = data, 
+      one.col = TRUE, 
+      sep = "",
+      ids = TRUE,
+      strata = TRUE
+    ) %>% 
+      tibble::remove_rownames(df = .) %>% 
+      dplyr::rename(INDIVIDUALS = ids, POP_ID = strata) %>% 
+      dplyr::mutate_all(.tbl = ., .funs = as.character) %>% 
+      tidyr::gather(data = ., key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID))
+    
+    
+    # remove unwanted sep in id and pop.id names
+    input <- input %>% 
+      dplyr::mutate(
+        INDIVIDUALS = stringi::stri_replace_all_fixed(
+          str = INDIVIDUALS, 
+          pattern = c("_", ":"), 
+          replacement = c("-", "-"), 
+          vectorize_all = FALSE),
+        POP_ID = stringi::stri_replace_all_fixed(
+          POP_ID,
+          pattern = " ", 
+          replacement = "_", 
+          vectorize_all = FALSE)
+      )
+    
+    # Filter with whitelist of markers
+    if (!is.null(whitelist.markers)) {
+      message("Filtering with whitelist of markers")
+      input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
+    }
+    
+    # Filter with blacklist of individuals
+    if (!is.null(blacklist.id)) {
+      message("Filtering with blacklist of individuals")
+      
+      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
+        str = blacklist.id$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"),
+        vectorize_all = FALSE
+      )
+      
+      input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
+    }
+    
+    # population levels and strata
+    if (!is.null(strata)) {
+      input <- input %>%
+        dplyr::select(-POP_ID) %>% 
+        dplyr::mutate(INDIVIDUALS =  as.character(INDIVIDUALS)) %>% 
+        dplyr::left_join(strata.df, by = "INDIVIDUALS")
+    }
+    
+    # Change potential problematic POP_ID space
+    input$POP_ID = stringi::stri_replace_all_fixed(
+      input$POP_ID, 
+      pattern = " ", 
+      replacement = "_", 
+      vectorize_all = FALSE
+    )
+    
+    # Check with strata and pop.levels/pop.labels
+    if (!is.null(pop.levels)) {
+      if (length(levels(factor(input$POP_ID))) != length(pop.levels)) {
+        stop("The number of groups in your POP_ID column must match the number of groups in pop.levels")
+      }
+    }
+    
+    # using pop.levels and pop.labels info if present
+    input <- change_pop_names(data = input, pop.levels = pop.levels, pop.labels = pop.labels)
+    
+    # Pop select
+    if (!is.null(pop.select)) {
+      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
+    }
+    
+    # detect if biallelic
+    biallelic <- detect_biallelic_markers(input)
+    
+    # give vcf style genotypes
+    if (biallelic) {
+      input <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
+    }
+    
+    # Now the gtypes are like ordinary data frames
+    data.type <- "df.file" # for subsequent steps
+    
+  } # End tidy gtypes
+
   # Arrange the id and create a strata after pop select ------------------------
   input$INDIVIDUALS <- stringi::stri_replace_all_fixed(
     str = input$INDIVIDUALS, 

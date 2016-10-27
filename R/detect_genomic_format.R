@@ -21,7 +21,9 @@ detect_genomic_format <- function(data){
       if (adegenet::is.genind(data)) {
         data.type <- "genind.file"
         # message("File type: genind object")
-      } else {
+      } else if (strataG::is.gtypes(data)) {
+        data.type <- "gtypes"
+        } else {
         stop("Input file not recognised")
       }
     }

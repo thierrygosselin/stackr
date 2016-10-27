@@ -1,3 +1,29 @@
+# stackr v.0.4.2
+* `gtypes` object from [strataG] (https://github.com/EricArcher/strataG) package
+can now be read/write in/out of **Stackr** using the `tidy_genomic_data` and 
+`genomic_converter` functions.
+
+# stackr v.0.4.1
+* update `missing_visualization` function to include more PCoA plots
+
+# stackr v.0.4.0
+* couple of bug fix for detecting file formats
+
+# stackr v.0.3.9
+* several performance update
+* couple of bug fix for detecting file formats
+
+# stackr v.0.3.8
+* fixed a bug in `filter_genotype_likelihood`, since the updated function to the 
+interactive mode, some old code where still present in if/else sentences, breaking 
+the code. Thanks to Jaromir Guzinski for the bug report.
+
+# stackr v.0.3.7
+* fixed a bug in `write_vcf`, the function was using REF/ALT coding in integer 
+not character format. This function is used inside `vcf_imputation` and 
+sometimes inside `genomic_converter`. Thanks to @jeansebastienmoore for 
+highlighting the problem.
+
 # stackr v.0.3.6
 * fixed a bug in `vcf_imputation`, the function now calls `genomic_converter` 
 with all the bells and whistles of that function (updated vcf import and imputations modules)
@@ -11,8 +37,6 @@ with all the bells and whistles of that function (updated vcf import and imputat
 * updated documentation
 * bug fix in `summary_haplotypes` introduced by the new version of `dplyr::distinct` (v.0.5.0)
 * calculations of Pi is done in parallel inside `summary_haplotypes`
-
-
 
 # stackr v.0.3.3
 * `tidy_genomic_data`: added a check to throw an error when pop.levels != the pop.id in strata

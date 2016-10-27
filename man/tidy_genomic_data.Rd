@@ -12,8 +12,9 @@ tidy_genomic_data(data, vcf.metadata = TRUE, whitelist.markers = NULL,
   strata = NULL, pop.select = NULL, filename = NULL)
 }
 \arguments{
-\item{data}{6 options: vcf (to make vcf population ready, see details below),
-plink, stacks haplotype file, genind, genlight, genepop, 
+\item{data}{7 options: vcf (to make vcf population ready, see details below),
+plink, stacks haplotype file, genind (library(adegenet)), 
+genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 and a data frame in wide format. \emph{See details}.}
 
 \item{vcf.metadata}{(optional, logical) For the VCF file, with \code{vcf.metadata = FALSE}, 
@@ -211,6 +212,8 @@ with \code{--recode transpose},
 
 \item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
 
+\item \code{\link[strataG]{gtypes}} object from \code{\link[strataG]{strataG}}.
+
 \item genepop data file (e.g. \code{data = "kiwi_data.gen"}). Here, the function can only use
 alleles encoded with 3 digits.
 }
@@ -263,5 +266,10 @@ Raymond M. & Rousset F, (1995).
 GENEPOP (version 1.2): population genetics software for exact tests 
 and ecumenicism. 
 J. Heredity, 86:248-249
+
+Archer FI, Adams PE, Schneiders BB. 
+strataG: An r package for manipulating, summarizing and analysing population
+genetic data.
+Molecular Ecology Resources. 2016. doi:10.1111/1755-0998.12559
 }
 
