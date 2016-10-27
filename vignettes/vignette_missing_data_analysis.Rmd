@@ -31,14 +31,14 @@ More options are available, see function documentation.
 ## Prepare your R workspace
 1. Clean your desk and load the required libraries (copy/paste in one block):
 ```r
-rm(list=ls())
+rm(list = ls())
 if (!require("pacman")) install.packages("pacman")
 library("pacman")
 pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
 # repeat to load libraries that were just installed 
 pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
 if (!require("stackr")){
-  install_github("thierrygosselin/stackr", build_vignettes = TRUE)
+  devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)
   library("stackr")
 }
 ```

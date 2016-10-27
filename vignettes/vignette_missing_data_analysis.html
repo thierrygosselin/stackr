@@ -12,7 +12,7 @@
 
 <meta name="author" content="Thierry Gosselin" />
 
-<meta name="date" content="2016-07-14" />
+<meta name="date" content="2016-10-27" />
 
 <title>stackr missing data visualization analysis</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">stackr missing data visualization analysis</h1>
 <h4 class="author"><em>Thierry Gosselin</em></h4>
-<h4 class="date"><em>2016-07-14</em></h4>
+<h4 class="date"><em>2016-10-27</em></h4>
 
 
 
@@ -85,14 +85,14 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h2>Prepare your R workspace</h2>
 <ol style="list-style-type: decimal">
 <li><p>Clean your desk and load the required libraries (copy/paste in one block):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list =</span> <span class="kw">ls</span>())
 if (!<span class="kw">require</span>(<span class="st">&quot;pacman&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;pacman&quot;</span>)
 <span class="kw">library</span>(<span class="st">&quot;pacman&quot;</span>)
 pacman::<span class="kw">p_load</span>(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
 <span class="co"># repeat to load libraries that were just installed </span>
 pacman::<span class="kw">p_load</span>(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
 if (!<span class="kw">require</span>(<span class="st">&quot;stackr&quot;</span>)){
-  <span class="kw">install_github</span>(<span class="st">&quot;thierrygosselin/stackr&quot;</span>, <span class="dt">build_vignettes =</span> <span class="ot">TRUE</span>)
+  devtools::<span class="kw">install_github</span>(<span class="st">&quot;thierrygosselin/stackr&quot;</span>, <span class="dt">build_vignettes =</span> <span class="ot">TRUE</span>)
   <span class="kw">library</span>(<span class="st">&quot;stackr&quot;</span>)
 }</code></pre></div></li>
 <li><p>Set your working directory</p>
@@ -231,13 +231,6 @@ heatmap </code></pre></div></li>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">table.ind &lt;-<span class="st"> </span>ibm$missing.genotypes.ind</code></pre></div></li>
 </ol>
 <table>
-<colgroup>
-<col width="33%"></col>
-<col width="11%"></col>
-<col width="25%"></col>
-<col width="20%"></col>
-<col width="9%"></col>
-</colgroup>
 <thead>
 <tr class="header">
 <th align="left">INDIVIDUALS</th>

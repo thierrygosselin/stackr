@@ -165,22 +165,16 @@
 
 #' @export
 #' @rdname missing_visualization
-#' @import dplyr
-#' @import readr
-#' @import stringi
-#' @importFrom data.table fread
-#' @importFrom data.table melt.data.table
-#' @importFrom data.table as.data.table
+#' @import ggplot2
+#' @importFrom dplyr distinct rename arrange mutate select summarise group_by ungroup filter inner_join left_join
+#' @importFrom stringi stri_join stri_replace_all_fixed stri_replace_all_regex
+#' @importFrom utils count.fields
+#' @importFrom readr read_tsv write_tsv
+#' @importFrom data.table fread melt.data.table as.data.table
 #' @importFrom ape pcoa
 #' @importFrom stats dist
+#' @importFrom tibble data_frame
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
-
-# required to pass the R CMD check and have 'no visible binding for global variable'
-if (getRversion() >= "2.15.1") {
-  utils::globalVariables(
-    c("V1", "V2", "Missingness", "MISSING_GENOTYPE", "INDIVIDUALS_NUMBER", "PERC")
-  )
-}
 
 missing_visualization <- function(
   data,
@@ -212,7 +206,7 @@ missing_visualization <- function(
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
   
   # import data ----------------------------------------------------------------
-  if (is.vector(data)){
+  if (is.vector(data)) {
     message("Using input file in your directory")
     
     input <- stackr::tidy_genomic_data(
@@ -231,79 +225,72 @@ missing_visualization <- function(
     )
   } else {
     message("Using input file from your global environment")
-    input <- read_long_tidy_wide(data = data)
+    input <- stackr::read_long_tidy_wide(data = data)
   }
   
   if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
-    input <- rename(.data = input, MARKERS = LOCUS)
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
   # strata.df --------------------------------------------------------
   message("Including the strata file")
   
   strata.df <- input %>% 
-    distinct(INDIVIDUALS, POP_ID) %>% 
-    arrange(POP_ID, INDIVIDUALS)
+    dplyr::distinct(INDIVIDUALS, POP_ID) %>% 
+    dplyr::arrange(POP_ID, INDIVIDUALS)
   
   if (!is.null(strata)) {
     if (is.vector(strata)) {
-      number.columns.strata <- max(count.fields(strata, sep = "\t"))
-      col.types <- stri_paste(rep("c", number.columns.strata), collapse = "")
-      strata.df <- read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>% 
-        rename(POP_ID = STRATA)
+      number.columns.strata <- max(utils::count.fields(strata, sep = "\t"))
+      col.types <- stringi::stri_join(rep("c", number.columns.strata), collapse = "")
+      strata.df <- readr::read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>% 
+        dplyr::rename(POP_ID = STRATA)
     } else {
-      colnames(strata) <- stri_replace_all_fixed(str = colnames(strata), 
-                                                 pattern = "STRATA", 
-                                                 replacement = "POP_ID", 
-                                                 vectorize_all = FALSE
+      colnames(strata) <- stringi::stri_replace_all_fixed(
+        str = colnames(strata), 
+        pattern = "STRATA", 
+        replacement = "POP_ID", 
+        vectorize_all = FALSE
       )
     }
   }
+  
+  # remove unwanted separators
   strata.df <- strata.df %>% 
-    mutate(
-      INDIVIDUALS = stri_replace_all_fixed(
+    dplyr::mutate(
+      INDIVIDUALS = stringi::stri_replace_all_fixed(
         str = INDIVIDUALS, 
         pattern = c("_", ":"), 
         replacement = c("-", "-"),
         vectorize_all = FALSE
       ),
-      POP_ID = stri_replace_all_fixed(POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
+      POP_ID = stringi::stri_replace_all_fixed(POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
     )
-  input <- suppressWarnings(left_join(x= input, y = strata.df, by = c("INDIVIDUALS", "POP_ID")))
   
-  if(is.null(pop.levels)) { # no pop.levels
-    input <- mutate(.data = input, POP_ID = factor(POP_ID))
-  } else { # with pop.levels
-    message("reordering your populations based on pop.levels...")
-    input <- mutate(
-      .data = input,
-      POP_ID = factor(
-        stri_replace_all_regex(
-          POP_ID, stri_paste("^", pop.levels, "$", sep = ""), pop.labels, vectorize_all = FALSE),
-        levels = unique(pop.labels), ordered = TRUE
-      )
-    )
-  }
+  # join with dataset
+  input <- suppressWarnings(dplyr::left_join(x = input, y = strata.df, by = c("INDIVIDUALS", "POP_ID")))
+  
+  # population names if pop.levels/pop.labels were request
+  input <- stackr::change_pop_names(data = input, pop.levels = pop.labels, pop.labels = pop.labels)
   
   # create an empty list to store results
   res <- list()
-  
   
   # Identity-by-missingness (IBM) analysis -------------------------------------
   # MultiDimensional Scaling analysis (MDS) - Principal Coordinates Analysis (PCoA)
   message("Principal Coordinate Analysis (PCoA)...")
   
   input.prep <- input %>% 
-    mutate(GT = ifelse(GT == "000000", "0", "1"), GT = as.numeric(GT))
+    dplyr::mutate(GT = ifelse(GT == "000000", "0", "1"), GT = as.numeric(GT))
   
   input.pcoa <- input.prep %>% 
-    select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
-    group_by(POP_ID, INDIVIDUALS) %>% 
+    dplyr::select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
+    dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
     tidyr::spread(data = ., key = MARKERS, value = GT)
   
   # we need rownames for this
-  rownames(input.pcoa) <- input.pcoa$INDIVIDUALS
-  input.pcoa <- input.pcoa %>% ungroup() %>% select(-POP_ID, -INDIVIDUALS)
+  suppressWarnings(rownames(input.pcoa) <- input.pcoa$INDIVIDUALS)
+  input.pcoa <- input.pcoa %>% dplyr::ungroup(.) %>% dplyr::select(-POP_ID, -INDIVIDUALS)
   
   # euclidean distances between the rows
   # distance.method <- "euclidean"
@@ -314,6 +301,19 @@ missing_visualization <- function(
   
   # for metric PCoA/MDS
   ibm <- ape::pcoa(D = d) # With Legendre's ape
+  # ibm$correction # test
+  # ibm$note # test
+  # ibm$values # test
+  # ibm$vectors # test
+  # ibm$trace # test
+
+  # Should broken_stick values be reported?
+  
+  # variance
+  # v <- ibm$values$Eigenvalues
+  # va <- var(v)
+  # v[1]/va
+  # v[2]/va
   
   # alternative tested giving the same results:
   # ibm <- stats::cmdscale(d, eig = TRUE, k = 2) 
@@ -328,27 +328,19 @@ missing_visualization <- function(
   
   # prep the data for figure:
   # for MASS::isoMDS and stats::cmdscale
-  # pcoa.df <- data_frame(INDIVIDUALS = rownames(ibm$points), V1 = ibm$points[,1], V2 = ibm$points[,2]) %>% 
-  #   inner_join(strata.df, by = "INDIVIDUALS")
+  # pcoa.df <- tibble::data_frame(INDIVIDUALS = rownames(ibm$points), V1 = ibm$points[,1], V2 = ibm$points[,2]) %>% 
+  #   dplyr::inner_join(strata.df, by = "INDIVIDUALS")
+  # pcoa.df <- tibble::data_frame(INDIVIDUALS = rownames(ibm$vectors), V1 = ibm$vectors[,1], V2 = ibm$vectors[,2]) %>% 
+  # dplyr::inner_join(strata.df, by = "INDIVIDUALS")
   
   # with vegan and ape
-  pcoa.df <- data_frame(INDIVIDUALS = rownames(ibm$vectors), V1 = ibm$vectors[,1], V2 = ibm$vectors[,2]) %>% 
-    inner_join(strata.df, by = "INDIVIDUALS")
-  
-  if (!is.null(pop.levels)) {
-    pcoa.df <- pcoa.df %>% 
-      mutate(
-        POP_ID = factor(
-          stri_replace_all_regex(
-            POP_ID, 
-            stri_paste("^", pop.levels, "$", sep = ""), 
-            pop.labels, 
-            vectorize_all = FALSE),
-          levels = unique(pop.labels), ordered = TRUE
-        )
-      ) %>% 
-      arrange(POP_ID)
-  }
+  pcoa.df <- dplyr::inner_join(
+    strata.df, 
+    tibble::rownames_to_column(df = data.frame(ibm$vectors), var = "INDIVIDUALS")
+    , by = "INDIVIDUALS"
+  )
+  # adjust pop_id
+  pcoa.df <- stackr::change_pop_names(data = pcoa.df, pop.levels = pop.labels, pop.labels = pop.labels)
   
   message("Generating Identity by missingness plot")
   # strata.select <- c("POP_ID", "WATERSHED", "BARRIER", "LANES")
@@ -356,34 +348,79 @@ missing_visualization <- function(
     # i <- "WATERSHED"
     # IBM Figures
     
-    ibm.plot <- ggplot(pcoa.df, aes(x = V1, y = V2), environment = environment())+
-      geom_point(aes_string(colour = i))+
-      labs(title = stri_paste("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i))+
-      labs(x = "PC1")+
-      labs(y = "PC2")+
+    ibm.plot.pco1.pco2 <- ggplot(pcoa.df, aes(x = Axis.1, y = Axis.2), environment = environment()) +
+      geom_point(aes_string(colour = i)) +
+      labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
+      labs(x = "PCo1") +
+      labs(y = "PCo2") +
       theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
             axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
             legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
             legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
             strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
       )
-    ibm_plot_name <- stri_paste("ibm.plot.strata.", i)
-    res[[ibm_plot_name]] <- ibm.plot
+    ibm_plot_name <- stringi::stri_join("ibm.plot.pco1.pco2.strata.", i)
+    res[[ibm_plot_name]] <- ibm.plot.pco1.pco2
+    
+    # with axis 1 and 3
+    ibm.plot.pco1.pco3 <- ggplot(pcoa.df, aes(x = Axis.1, y = Axis.3), environment = environment()) +
+      geom_point(aes_string(colour = i)) +
+      labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
+      labs(x = "PCo1") +
+      labs(y = "PCo3") +
+      theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
+            axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
+            legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
+            legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
+            strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+      )
+    ibm_plot_name <- stringi::stri_join("ibm.plot.pco1.pco3.strata.", i)
+    res[[ibm_plot_name]] <- ibm.plot.pco1.pco3
+    
+    # with axis 2 and 3
+    ibm.plot.pco2.pco3 <- ggplot(pcoa.df, aes(x = Axis.2, y = Axis.3), environment = environment()) +
+      geom_point(aes_string(colour = i)) +
+      labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
+      labs(x = "PCo2") +
+      labs(y = "PCo3") +
+      theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
+            axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
+            legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
+            legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
+            strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+      )
+    ibm_plot_name <- stringi::stri_join("ibm.plot.pco2.pco3.strata.", i)
+    res[[ibm_plot_name]] <- ibm.plot.pco2.pco3
+    
+    # with axis 3 and 4
+    ibm.plot.pco3.pco4 <- ggplot(pcoa.df, aes(x = Axis.3, y = Axis.4), environment = environment()) +
+      geom_point(aes_string(colour = i)) +
+      labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
+      labs(x = "PCo3") +
+      labs(y = "PCo4") +
+      theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
+            axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
+            legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
+            legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
+            strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+      )
+    ibm_plot_name <- stringi::stri_join("ibm.plot.pco3.pco4.strata.", i)
+    res[[ibm_plot_name]] <- ibm.plot.pco3.pco4
   }
   
   # Heatmap --------------------------------------------------------------------
   heatmap.data <- input.prep %>% 
-    mutate(
+    dplyr::mutate(
       GT = as.character(GT),
-      Missingness = stri_replace_all_regex(GT, pattern = c("^0$", "^1$"), replacement = c("missing", "genotyped"), vectorize_all = FALSE)
+      Missingness = stringi::stri_replace_all_regex(GT, pattern = c("^0$", "^1$"), replacement = c("missing", "genotyped"), vectorize_all = FALSE)
     )
   
   heatmap <- ggplot(heatmap.data,(aes(y = MARKERS, x = as.character(INDIVIDUALS)))) +
     geom_tile(aes(fill = Missingness)) +
-    scale_fill_manual(values = c("grey", "black"))+
-    labs(y = "Markers")+
-    labs(x = "Individuals")+
-    theme_bw()+
+    scale_fill_manual(values = c("grey", "black")) +
+    labs(y = "Markers") +
+    labs(x = "Individuals") +
+    theme_bw() +
     theme(
       panel.grid.minor.x = element_blank(), 
       panel.grid.major.y = element_blank(), 
@@ -400,24 +437,24 @@ missing_visualization <- function(
   # Individuals-----------------------------------------------------------------
   message("Missingness per individuals")
   missing.genotypes.ind <- input.prep %>% 
-    select(MARKERS, INDIVIDUALS, POP_ID, GT) %>% 
-    group_by(INDIVIDUALS, POP_ID) %>% 
-    summarise(
+    dplyr::select(MARKERS, INDIVIDUALS, POP_ID, GT) %>% 
+    dplyr::group_by(INDIVIDUALS, POP_ID) %>% 
+    dplyr::summarise(
       MISSING_GENOTYPE = length(GT[GT == 0]),
       MARKER_NUMBER = length(MARKERS),
       PERC = round((MISSING_GENOTYPE/MARKER_NUMBER)*100, 2)
     ) %>% 
-    ungroup() %>% 
-    arrange(POP_ID, INDIVIDUALS)
+    dplyr::ungroup(.) %>% 
+    dplyr::arrange(POP_ID, INDIVIDUALS)
   
   
   # Figure Individuals
   missing.genotypes.ind.plot <- ggplot(data = missing.genotypes.ind, aes(x = INDIVIDUALS, y = PERC, colour = POP_ID)) + 
     geom_point() + 
-    labs(y = "Missing genotypes (percent)")+
-    labs(x = "Individuals")+
+    labs(y = "Missing genotypes (percent)") +
+    labs(x = "Individuals") +
     labs(colour = "Populations") +
-    # theme_bw()+
+    # theme_bw() +
     theme(
       panel.grid.minor.x = element_blank(), 
       panel.grid.major.y = element_blank(), 
@@ -433,29 +470,29 @@ missing_visualization <- function(
   for (i in ind.missing.geno.threshold) {
     # i <- 30
     blacklist.id.missing.geno <- missing.genotypes.ind %>% 
-      filter(PERC >= i) %>%
-      ungroup() %>% 
-      select(INDIVIDUALS)
+      dplyr::filter(PERC >= i) %>%
+      dplyr::ungroup(.) %>% 
+      dplyr::select(INDIVIDUALS)
     if (length(blacklist.id.missing.geno$INDIVIDUALS) > 0) {
-      blacklist_name <- stri_paste("blacklist.id.missing.", i)
+      blacklist_name <- stringi::stri_join("blacklist.id.missing.", i)
       res[[blacklist_name]] <- blacklist.id.missing.geno
-      write_tsv(blacklist.id.missing.geno, stri_paste(blacklist_name, ".tsv"))
+      readr::write_tsv(blacklist.id.missing.geno, stringi::stri_join(blacklist_name, ".tsv"))
     }
   }
   
   # Populations-----------------------------------------------------------------
   message("Missingness per populations")
   missing.genotypes.pop <- missing.genotypes.ind %>% 
-    select(INDIVIDUALS, POP_ID, PERC) %>% 
-    group_by(POP_ID) %>% 
-    summarise(PERC = round(mean(PERC, na.rm = TRUE), 2))
+    dplyr::select(INDIVIDUALS, POP_ID, PERC) %>% 
+    dplyr::group_by(POP_ID) %>% 
+    dplyr::summarise(PERC = round(mean(PERC, na.rm = TRUE), 2))
   
   # Figure Populations
   missing.genotypes.pop.plot <- ggplot(data = missing.genotypes.ind, aes(x = POP_ID, y = PERC)) + 
-    geom_boxplot()+
-    labs(y = "Missing genotypes (percent)")+
-    labs(x = "Populations")+
-    # theme_bw()+
+    geom_boxplot() +
+    labs(y = "Missing genotypes (percent)") +
+    labs(x = "Populations") +
+    # theme_bw() +
     theme(
       panel.grid.minor.x = element_blank(), 
       panel.grid.major.y = element_blank(), 
@@ -470,21 +507,21 @@ missing_visualization <- function(
   message("Missingness per markers")
   
   missing.genotypes.markers <- input.prep %>% 
-    select(MARKERS, INDIVIDUALS, GT) %>% 
-    group_by(MARKERS) %>% 
-    summarise(
+    dplyr::select(MARKERS, INDIVIDUALS, GT) %>% 
+    dplyr::group_by(MARKERS) %>% 
+    dplyr::summarise(
       MISSING_GENOTYPE = length(GT[GT == 0]),
       INDIVIDUALS_NUMBER = length(INDIVIDUALS),
       PERC = round((MISSING_GENOTYPE/INDIVIDUALS_NUMBER)*100, 2)
     ) %>% 
-    ungroup() %>% 
-    arrange(MARKERS)
+    dplyr::ungroup(.) %>% 
+    dplyr::arrange(MARKERS)
   
   # Figure markers
   missing.genotypes.markers.plot <- ggplot(data = missing.genotypes.markers, aes(x = PERC)) + 
-    geom_histogram()+
-    labs(x = "Missing genotypes (percent)")+
-    labs(y = "Markers (number")+
+    geom_histogram() +
+    labs(x = "Missing genotypes (percent)") +
+    labs(y = "Markers (number") +
     theme(
       legend.position = "none",
       axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
@@ -497,7 +534,7 @@ missing_visualization <- function(
   # Results --------------------------------------------------------------------
   res$tidy.data <- input
   res$tidy.data.binary <- input.prep
-  res$vectors <- ibm$vectors
+  res$vectors <- pcoa.df
   res$heatmap <- heatmap
   res$missing.genotypes.ind <- missing.genotypes.ind
   res$missing.genotypes.ind.plot <- missing.genotypes.ind.plot

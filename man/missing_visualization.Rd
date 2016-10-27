@@ -3,6 +3,15 @@
 \name{missing_visualization}
 \alias{missing_visualization}
 \title{Visualize missing genotypes in genomic data set.}
+\usage{
+missing_visualization(data, vcf.metadata = FALSE, strata = NULL,
+  strata.select = "POP_ID", distance.method = "euclidean",
+  ind.missing.geno.threshold = c(10, 20, 30, 40, 50, 60, 70),
+  pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
+  blacklist.id = NULL, blacklist.genotype = NULL,
+  whitelist.markers = NULL, monomorphic.out = TRUE, max.marker = NULL,
+  snp.ld = NULL, common.markers = FALSE, filename = NULL)
+}
 \arguments{
 \item{data}{7 options: vcf, plink, stacks haplotype file, genind, genepop, 
 and a data frame in wide or long/tidy format. 
@@ -67,17 +76,10 @@ Default: \code{pop.labels = NULL}. If you find this too complicated, there is al
 the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
 and \code{ONT} population samples (out of 20 pops).}
 
-\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
-or integer) and/or LOCUS (integer) and/or
-POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
-The whitelist is in the working directory (e.g. "whitelist.txt").
-de novo CHROM column with 'un' need to be changed to 1. 
-In the VCF, the column ID is the LOCUS identification.
-Default \code{whitelist.markers = NULL} for no whitelist of markers.}
-
-\item{monomorphic.out}{(optional) Should the monomorphic 
-markers present in the dataset be filtered out ? 
-Default: \code{monomorphic.out = TRUE}.}
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
 
 \item{blacklist.genotype}{(optional) Useful to erase genotype with below 
 average quality, e.g. genotype with more than 2 alleles in diploid likely 
@@ -93,6 +95,25 @@ with 'un' need to be changed to 1.
 Default: \code{blacklist.genotype = NULL} for no blacklist of 
 genotypes to erase.}
 
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
+The whitelist is in the working directory (e.g. "whitelist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+In the VCF, the column ID is the LOCUS identification.
+Default \code{whitelist.markers = NULL} for no whitelist of markers.}
+
+\item{monomorphic.out}{(optional) Should the monomorphic 
+markers present in the dataset be filtered out ? 
+Default: \code{monomorphic.out = TRUE}.}
+
+\item{max.marker}{An optional integer useful to subsample marker number in 
+large PLINK file. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
+subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
+keep specific markers.
+Default: \code{max.marker = NULL}.}
+
 \item{snp.ld}{(optional) \strong{For VCF file only}. 
 SNP short distance linkage disequilibrium pruning. With anonymous markers from
 RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
@@ -103,18 +124,6 @@ Default: \code{snp.ld = NULL}.}
 
 \item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE}, 
 will only keep markers in common (genotyped) between all the populations.}
-
-\item{max.marker}{An optional integer useful to subsample marker number in 
-large PLINK file. e.g. if the data set 
-contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
-subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
-keep specific markers.
-Default: \code{max.marker = NULL}.}
-
-\item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the working directory
-(e.g. "blacklist.txt").
-Default: \code{blacklist.id = NULL}.}
 
 \item{filename}{(optional) Name of the tidy data set, 
 written to the working directory.}
