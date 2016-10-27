@@ -33,13 +33,13 @@ Imports:
     amap,
     tibble,
     methods,
-    tidyverse,
-    strataG
+    tidyverse
 Suggests:
     pegas,
     hierfstat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    strataG
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr
