@@ -538,7 +538,7 @@ tidy_genomic_data <- function(
     input <- input %>%
       tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE) %>%
       dplyr::mutate(
-        REF = stringi::stri_replace_all_fixed(
+        REF = stri_replace_all_fixed(
           str = REF, 
           pattern = c("A", "C", "G", "T"), 
           replacement = c("001", "002", "003", "004"), 
@@ -552,7 +552,7 @@ tidy_genomic_data <- function(
         GT = stringi::stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
         GT_VCF = GT,
         GT = ifelse(GT == "0/0", stringi::stri_join(REF, REF, sep = ""),
-                    ifelse(GT == "1/1",  stringi::stri_join(ALT, ALT, sep = ""),
+                    ifelse(GT == "1/1", stringi::stri_join(ALT, ALT, sep = ""),
                            ifelse(GT == "0/1", stringi::stri_join(REF, ALT, sep = ""),
                                   ifelse(GT == "1/0", stringi::stri_join(ALT, REF, sep = ""), "000000")
                            )

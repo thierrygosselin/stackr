@@ -78,7 +78,6 @@
 #' @importFrom data.table fread melt.data.table as.data.table
 #' @importFrom randomForestSRC impute.rfsrc
 #' @importFrom plyr colwise
-#' @importFrom parallel mclapply
 #' @importFrom stringi stri_replace_all_fixed stri_replace_na stri_join
 #' @importFrom tibble has_name
 
@@ -226,7 +225,7 @@ stackr_imputations_module <- function(
       } # End impute_rf_pop
       
       input.imp <- list()
-      input.imp <- parallel::mclapply(
+      input.imp <- mclapply(
         X = pop.list, 
         FUN = impute_rf_pop, 
         mc.preschedule = FALSE, 
