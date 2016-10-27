@@ -72,14 +72,19 @@
 #' @export
 #' @rdname stackr_imputations_module
 #' @import parallel
-#' @import stringi
-#' @import dplyr
-#' @importFrom purrr map
-#' @importFrom purrr flatten
-#' @importFrom purrr keep
-#' @importFrom data.table fread
-#' @importFrom data.table melt.data.table
-#' @importFrom data.table as.data.table
+#' @importFrom dplyr rename distinct select mutate group_by ungroup arrange left_join bind_rows
+#' @importFrom tidyr spread gather separate
+#' @importFrom purrr map flatten keep
+#' @importFrom data.table fread melt.data.table as.data.table
+#' @importFrom randomForestSRC impute.rfsrc
+#' @importFrom plyr colwise
+#' @importFrom parallel mclapply
+#' @importFrom stringi stri_replace_all_fixed stri_replace_na stri_join
+#' @importFrom tibble has_name
+
+
+
+
 
 #' @examples
 #' \dontrun{
@@ -116,7 +121,7 @@ stackr_imputations_module <- function(
   iteration.rf = 10,
   split.number = 100,
   verbose = FALSE,
-  parallel.core = detectCores()-1,
+  parallel.core = detectCores() - 1,
   filename = NULL,
   ...
   ) {
@@ -129,12 +134,12 @@ stackr_imputations_module <- function(
   
   # necessary steps to make sure we work with unique markers and not duplicated LOCUS
   if (!tibble::has_name(input, "MARKERS") && tibble::has_name(input, "LOCUS")) {
-    input <- rename(.data = input, MARKERS = LOCUS)
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
   # scan for the columnn CHROM and keep the info to include it after imputations
   if (tibble::has_name(input, "CHROM")) {
-    marker.meta <- distinct(.data = input, MARKERS, CHROM, LOCUS, POS)
+    marker.meta <- dplyr::distinct(.data = input, MARKERS, CHROM, LOCUS, POS)
   } else {
     marker.meta <- NULL
   }
@@ -147,7 +152,7 @@ stackr_imputations_module <- function(
   }
   
   # select the column for the imputations
-  input <- select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT)
+  input <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT)
   
   # Imputations ----------------------------------------------------------------
   message("Preparing the data for imputations")
@@ -155,32 +160,32 @@ stackr_imputations_module <- function(
   # prepare the data in working with genotype or alleles
   if (impute == "genotype") {
     input.prep <- input %>%
-      mutate(
-        GT = stri_replace_all_fixed(GT, pattern = "000000", replacement = "NA", vectorize_all = FALSE),
+      dplyr::mutate(
+        GT = stringi::stri_replace_all_fixed(GT, pattern = "000000", replacement = "NA", vectorize_all = FALSE),
         GT = replace(GT, which(GT == "NA"), NA)
       ) %>%
-      group_by(INDIVIDUALS, POP_ID) %>% 
+      dplyr::group_by(INDIVIDUALS, POP_ID) %>% 
       tidyr::spread(data = ., key = MARKERS, value = GT) %>%
-      ungroup() %>% 
-      arrange(POP_ID, INDIVIDUALS)
+      dplyr::ungroup(.) %>% 
+      dplyr::arrange(POP_ID, INDIVIDUALS)
   }
   if (impute == "allele") {
     input.prep <- input %>%
       tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
       tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%  
-      mutate(
-        GT = stri_replace_all_fixed(GT, pattern = "000", replacement = "NA", vectorize_all = FALSE),
+      dplyr::mutate(
+        GT = stringi::stri_replace_all_fixed(GT, pattern = "000", replacement = "NA", vectorize_all = FALSE),
         GT = replace(GT, which(GT == "NA"), NA)
       ) %>%
-      group_by(INDIVIDUALS, POP_ID, ALLELES) %>% 
+      dplyr::group_by(INDIVIDUALS, POP_ID, ALLELES) %>% 
       tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
-      ungroup() %>% 
-      arrange(POP_ID, INDIVIDUALS)
+      dplyr::ungroup(.) %>% 
+      dplyr::arrange(POP_ID, INDIVIDUALS)
   }
   
   # keep stratification
   strata.df.impute <- input.prep %>% 
-    distinct(INDIVIDUALS, POP_ID)
+    dplyr::distinct(INDIVIDUALS, POP_ID)
   
   # Imputation with Random Forest  ---------------------------------------------
   if (imputation.method == "rf") {
@@ -202,7 +207,7 @@ stackr_imputations_module <- function(
       message("Imputations computed by populations, take a break...")
       df.split.pop <- split(x = input.prep, f = input.prep$POP_ID) # slip data frame by population
       pop.list <- names(df.split.pop) # list the pop
-      imputed.dataset <-list() # create empty list
+      imputed.dataset <- list() # create empty list
       
       # Function to go through the populations
       impute_rf_pop <- function(pop.list, ...){
@@ -232,7 +237,7 @@ stackr_imputations_module <- function(
       
       # Compiling the results
       message("Compiling imputations results")
-      input.imp <- suppressWarnings(bind_rows(input.imp))
+      input.imp <- suppressWarnings(dplyr::bind_rows(input.imp))
       
       # Second round of imputations (globally) to remove introduced NA 
       # In case that some pop don't have the markers
@@ -242,12 +247,12 @@ stackr_imputations_module <- function(
       
       # reintroduce the stratification
       input.imp <- suppressWarnings(
-        left_join(strata.df.impute, 
+        dplyr::left_join(strata.df.impute, 
                   input.imp %>% 
-                    select(-POP_ID)
+                    dplyr::select(-POP_ID)
                   , by = "INDIVIDUALS") %>% 
-          arrange(POP_ID, INDIVIDUALS) %>% 
-          ungroup()
+          dplyr::arrange(POP_ID, INDIVIDUALS) %>% 
+          dplyr::ungroup(.)
       )
       
       # dump unused objects
@@ -268,12 +273,12 @@ stackr_imputations_module <- function(
       
       # reintroduce the stratification
       input.imp <- suppressWarnings(
-        left_join(strata.df.impute, 
+        dplyr::left_join(strata.df.impute, 
                   input.imp %>% 
-                    select(-POP_ID)
+                    dplyr::select(-POP_ID)
                   , by = "INDIVIDUALS") %>% 
-          arrange(POP_ID, INDIVIDUALS) %>% 
-          ungroup()
+          dplyr::arrange(POP_ID, INDIVIDUALS) %>% 
+          dplyr::ungroup(.)
       )
       input.prep <- NULL # remove unused object
     } # End imputation RF global
@@ -298,36 +303,36 @@ stackr_imputations_module <- function(
     if (imputations.group == "populations") {
       message("Imputations computed by populations")
       
-      if (impute == "genotype"){
+      if (impute == "genotype") {
         input.imp <- suppressWarnings(
           input.prep %>%
             tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
-            group_by(MARKERS, POP_ID) %>%
-            mutate(
-              GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
+            dplyr::group_by(MARKERS, POP_ID) %>%
+            dplyr::mutate(
+              GT = stringi::stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
               GT = replace(GT, which(GT == "NA"), NA)
             ) %>%
             # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
             # will take the global observed values by markers for those cases.
-            group_by(MARKERS) %>%
-            mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
-            ungroup()
+            dplyr::group_by(MARKERS) %>%
+            dplyr::mutate(GT = stringi::stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
+            dplyr::ungroup(.)
         )
       }
-      if (impute == "allele"){
+      if (impute == "allele") {
         input.imp <- suppressWarnings(
           input.prep %>%
             tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
-            group_by(MARKERS, POP_ID) %>%
-            mutate(
-              GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
+            dplyr::group_by(MARKERS, POP_ID) %>%
+            dplyr::mutate(
+              GT = stringi::stri_replace_na(GT, replacement = max(GT, na.rm = TRUE)),
               GT = replace(GT, which(GT == "NA"), NA)
             ) %>%
             # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
             # will take the global observed values by markers for those cases.
-            group_by(MARKERS) %>%
-            mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
-            ungroup()
+            dplyr::group_by(MARKERS) %>%
+            dplyr::mutate(GT = stringi::stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
+            dplyr::ungroup(.)
         )
       }
       input.prep <- NULL # remove unused object
@@ -335,23 +340,23 @@ stackr_imputations_module <- function(
     if (imputations.group == "global") {
       # Globally (not by pop_id)
       message("Imputations computed globally")
-      if (impute == "genotype"){
+      if (impute == "genotype") {
         input.imp <- suppressWarnings(
           input.prep %>%
             tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID)) %>%
-            group_by(MARKERS) %>%
-            mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
-            ungroup()
+            dplyr::group_by(MARKERS) %>%
+            dplyr::mutate(GT = stringi::stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
+            dplyr::ungroup(.)
         )
       }
       
-      if (impute == "allele"){
+      if (impute == "allele") {
         input.imp <- suppressWarnings(
           input.prep %>%
             tidyr::gather(MARKERS, GT, -c(INDIVIDUALS, POP_ID, ALLELES)) %>%
-            group_by(MARKERS) %>%
-            mutate(GT = stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
-            ungroup()
+            dplyr::group_by(MARKERS) %>%
+            dplyr::mutate(GT = stringi::stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
+            dplyr::ungroup(.)
         )
       }
       
@@ -373,20 +378,19 @@ stackr_imputations_module <- function(
   # REF/ALT might have change depending on prop of missing values
   if (ref.column) {
     message("Adjusting REF/ALT alleles to account for imputations...")
-    ref.alt.alleles.change <- ref_alt_alleles(data = input.imp)
-    input.imp <- left_join(input.imp, ref.alt.alleles.change, by = c("MARKERS", "INDIVIDUALS"))
+    input.imp <- ref_alt_alleles(data = input.imp)
   } # end computing REF/ALT
   
   # Integrate marker.meta columns
   if (!is.null(marker.meta)) {
-    input.imp <- left_join(input.imp, marker.meta, by = "MARKERS") %>% 
-      select(MARKERS, CHROM, LOCUS, POS, REF, ALT, POP_ID, INDIVIDUALS, GT, GT_VCF, GT_BIN)
+    input.imp <- dplyr::left_join(input.imp, marker.meta, by = "MARKERS") %>% 
+      dplyr::select(MARKERS, CHROM, LOCUS, POS, REF, ALT, POP_ID, INDIVIDUALS, GT, GT_VCF, GT_BIN)
   }
   
   # Write to working directory
   if (!is.null(filename)) {
-  message(stri_paste("Writing the imputed tidy data to the working directory: \n"), filename)
-  write_tsv(x = input.imp, path = filename, col_names = TRUE)
+  message(stringi::stri_join("Writing the imputed tidy data to the working directory: \n"), filename)
+  readr::write_tsv(x = input.imp, path = filename, col_names = TRUE)
   }
   return(input.imp)
 } # End imputations
