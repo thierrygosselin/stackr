@@ -42,6 +42,7 @@
 #' in a tidy data frame.
 #' @export
 #' @rdname write_gtypes
+#' @import strataG
 #' @importFrom tidyr gather unite spread 
 #' @importFrom data.table fread
 #' @importFrom methods new

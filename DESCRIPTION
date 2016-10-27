@@ -12,6 +12,8 @@ Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: stackr: an R package for the analysis of GBS/RADseq data.
 Depends:
     R (>= 3.2.3),
+    strataG,
+    adegenet
 Imports:
     data.table,
     plyr,
@@ -23,7 +25,6 @@ Imports:
     tidyr,
     lazyeval,
     ape,
-    adegenet,
     randomForestSRC,
     stringdist,
     foreach,
@@ -33,8 +34,7 @@ Imports:
     amap,
     tibble,
     methods,
-    tidyverse,
-    strataG
+    tidyverse
 Suggests:
     pegas,
     hierfstat,
