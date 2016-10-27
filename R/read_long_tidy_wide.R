@@ -27,7 +27,7 @@
 #' @export
 #' @rdname read_long_tidy_wide
 #' @importFrom stringi stri_replace_all_fixed stri_pad_left
-#' @importFromdplyr mutate select
+#' @importFrom dplyr mutate select
 #' @importFrom data.table fread melt.data.table as.data.table
 
 #' @details \strong{Input data:}

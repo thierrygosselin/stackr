@@ -17,7 +17,8 @@ if (getRversion() >= "2.15.1") {
       "REF.x", "ALT.x", "REF.y", "ALT.y", "BLACKLIST", "ALLELE_COVERAGE_RATIO",
       "..scaled..", "GENOTYPE_LIKELIHOOD_GROUP", "GL_MAX", "GL_MIN", "VALUE",
       "GL_DIFF", "ALLELE_ALT_DEPTH_NEW", "ALLELE_REF_DEPTH_NEW", "ALT_NEW", 
-      "CHANGE", "n.al.pop", "n.al.tot", "TOTAL_READ", "V1", "V2", "Missingness",
-      "MISSING_GENOTYPE", "INDIVIDUALS_NUMBER", "PERC")
+      "CHANGE", "n.al.pop", "n.al.tot", "TOTAL_READ", "Missingness",
+      "MISSING_GENOTYPE", "INDIVIDUALS_NUMBER", "PERC", "Axis.1", "Axis.2", "V1",
+      "Axis.3", "Axis.4")
   )
 }
