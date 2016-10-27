@@ -113,10 +113,11 @@
 #' @export
 #' @rdname genomic_converter
 # @importFrom adegenet df2genind
-#' @import dplyr
-#' @import stringi
+#' @importFrom dplyr n_distinct summarise group_by ungroup mutate select tally distinct summarise
+#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub
 #' @importFrom data.table fread
 #' @importFrom purrr flatten_chr
+#' @importFrom tidyr gather
 #' @import parallel
 
 #' @examples
@@ -188,9 +189,6 @@
 #' strataG: Summaries and Population Structure Analyses of
 #' Genetic Data. R package version 1.0.5. https://CRAN.R-project.org/package=strataG
 
-
-
-
 #' @seealso \code{beta.div} is available on Pierre Legendre web site \url{http://adn.biol.umontreal.ca/~numericalecology/Rcode/}
 #' \code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/}
 #' and github \url{https://github.com/ehrlinger/randomForestSRC}
@@ -238,38 +236,38 @@ genomic_converter <- function(
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
   
   message("Function arguments and values:")
-  message(stri_join("Working directory: ", getwd()))
+  message(stringi::stri_join("Working directory: ", getwd()))
   
   if (is.vector(data)) {
-    message(stri_join("Input file: ", data))
+    message(stringi::stri_join("Input file: ", data))
   } else {
     message("Input file: from global environment")  
   }
   
   if (is.null(strata)) {
-    message(stri_join("Strata: no"))
+    message(stringi::stri_join("Strata: no"))
   } else {
-    message(stri_join("Strata: ", strata, ignore_null = FALSE))
+    message(stringi::stri_join("Strata: ", strata, ignore_null = FALSE))
   }
   
   if (is.null(pop.levels)) {
     message("Population levels: no")
   } else {
-    message(stri_join("Population levels: ", stri_join(pop.levels, collapse = ", ")))
+    message(stringi::stri_join("Population levels: ", stringi::stri_join(pop.levels, collapse = ", ")))
   }
   
   if (is.null(pop.levels)) {
     message("Population labels: no")
   } else {
-    message(stri_join("Population labels: ", stri_join(pop.labels, collapse = ", ")))
+    message(stringi::stri_join("Population labels: ", stringi::stri_join(pop.labels, collapse = ", ")))
   }
   
-  message(stri_join("Ouput format(s): ", stri_join(output, collapse = ", ")))
+  message(stringi::stri_join("Ouput format(s): ", stringi::stri_join(output, collapse = ", ")))
   
   if (is.null(filename)) {
     message("Filename prefix: no")
   } else {
-    message(stri_join("Filename prefix: ", filename, "\n"))
+    message(stringi::stri_join("Filename prefix: ", filename, "\n"))
   }
   
   
@@ -277,89 +275,89 @@ genomic_converter <- function(
   if (is.null(blacklist.id)) {
     message("Blacklist of individuals: no")
   } else {
-    message(stri_join("Blacklist of individuals: ", blacklist.id))
+    message(stringi::stri_join("Blacklist of individuals: ", blacklist.id))
   }
   
   if (is.null(blacklist.genotype)) {
     message("Blacklist of genotypes: no")
   } else {
-    message(stri_join("Blacklist of genotypes: ", blacklist.genotype))
+    message(stringi::stri_join("Blacklist of genotypes: ", blacklist.genotype))
   }
   
   if (is.null(whitelist.markers)) {
     message("Whitelist of markers: no")
   } else {
-    message(stri_join("Whitelist of markers: ", whitelist.markers))
+    message(stringi::stri_join("Whitelist of markers: ", whitelist.markers))
   }
   
-  message(stri_join("monomorphic.out: ", monomorphic.out))
+  message(stringi::stri_join("monomorphic.out: ", monomorphic.out))
   if (is.null(snp.ld)) {
     message("snp.ld: no")
   } else {
-    message(stri_join("snp.ld: ", snp.ld))
+    message(stringi::stri_join("snp.ld: ", snp.ld))
   }
-  message(stri_join("common.markers: ", common.markers))
+  message(stringi::stri_join("common.markers: ", common.markers))
   if (is.null(max.marker)) {
     message("max.marker: no")
   } else {
-    message(stri_join("max.marker: ", max.marker))
+    message(stringi::stri_join("max.marker: ", max.marker))
   }
   
   if (is.null(pop.select)) {
     message("pop.select: no")
   } else {
-    message(stri_join("pop.select: ", stri_join(pop.select, collapse = ", ")))
+    message(stringi::stri_join("pop.select: ", stringi::stri_join(pop.select, collapse = ", ")))
   }
   if (is.null(maf.thresholds)) {
     message("maf.thresholds: no")
   } else {
-    message(stri_join("maf.thresholds: ", stri_join(maf.thresholds, collapse = ", ")))
-    message(stri_join("maf.pop.num.threshold: ", maf.pop.num.threshold))
-    message(stri_join("maf.approach: ", maf.approach))
-    message(stri_join("maf.operator: ", maf.operator))
+    message(stringi::stri_join("maf.thresholds: ", stringi::stri_join(maf.thresholds, collapse = ", ")))
+    message(stringi::stri_join("maf.pop.num.threshold: ", maf.pop.num.threshold))
+    message(stringi::stri_join("maf.approach: ", maf.approach))
+    message(stringi::stri_join("maf.operator: ", maf.operator))
   }
   
-  message(stri_join("\n", "Imputations options:"))
+  message(stringi::stri_join("\n", "Imputations options:"))
   if (is.null(imputation.method)) {
     message("imputation.method: no")
   } else {
-    message(stri_join("imputation.method: ", imputation.method))
-    message(stri_join("impute: ", impute))
-    message(stri_join("imputations.group: ", imputations.group))
-    message(stri_join("num.tree: ", num.tree))
-    message(stri_join("iteration.rf: ", iteration.rf))
-    message(stri_join("split.number: ", split.number))
-    message(stri_join("verbose: ", verbose))
+    message(stringi::stri_join("imputation.method: ", imputation.method))
+    message(stringi::stri_join("impute: ", impute))
+    message(stringi::stri_join("imputations.group: ", imputations.group))
+    message(stringi::stri_join("num.tree: ", num.tree))
+    message(stringi::stri_join("iteration.rf: ", iteration.rf))
+    message(stringi::stri_join("split.number: ", split.number))
+    message(stringi::stri_join("verbose: ", verbose))
   }
-  message(stri_join("\n", "parallel.core: ", parallel.core, "\n"))
+  message(stringi::stri_join("\n", "parallel.core: ", parallel.core, "\n"))
   cat("#######################################################################\n")
   
   
   # Filename -------------------------------------------------------------------
   # Get date and time to have unique filenaming
   if (is.null(filename)) {
-    file.date <- stri_replace_all_fixed(
+    file.date <- stringi::stri_replace_all_fixed(
       Sys.time(),
       pattern = " EDT",
       replacement = "",
       vectorize_all = FALSE
     )
-    file.date <- stri_replace_all_fixed(
+    file.date <- stringi::stri_replace_all_fixed(
       file.date,
       pattern = c("-", " ", ":"),
       replacement = c("", "@", ""),
       vectorize_all = FALSE
     )
-    file.date <- stri_sub(file.date, from = 1, to = 13)
+    file.date <- stringi::stri_sub(file.date, from = 1, to = 13)
     
-    filename <- stri_paste("stackr_data_", file.date)
+    filename <- stringi::stri_join("stackr_data_", file.date)
     
     if (!is.null(imputation.method)) {
-      filename.imp <- stri_paste("stackr_data_imputed_", file.date)
+      filename.imp <- stringi::stri_join("stackr_data_imputed_", file.date)
     }
   } else {
     if (!is.null(imputation.method)) {
-      filename.imp <- stri_paste(filename, "_imputed")
+      filename.imp <- stringi::stri_join(filename, "_imputed")
     }
   }
   
@@ -401,7 +399,7 @@ genomic_converter <- function(
     )
   }
   
-  input$GT <- stri_replace_all_fixed(str = input$GT, pattern = c("/", ":", "_", "-", "."), replacement = c("", "", "", "", ""), vectorize_all = FALSE)
+  input$GT <- stringi::stri_replace_all_fixed(str = input$GT, pattern = c("/", ":", "_", "-", "."), replacement = c("", "", "", "", ""), vectorize_all = FALSE)
   
   # create a strata.df
   # strata.df <- input %>%
@@ -418,49 +416,49 @@ genomic_converter <- function(
   # Biallelic detection --------------------------------------------------------
   biallelic <- input %>% 
     dplyr::ungroup(.) %>% 
-    select(MARKERS, GT) %>%
-    mutate(
-      A1 = stri_sub(str = GT, from = 1, to = 3),
-      A2 = stri_sub(str = GT, from = 4, to = 6)
+    dplyr::select(MARKERS, GT) %>%
+    dplyr::mutate(
+      A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
+      A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
     ) %>%
-    select(-GT) %>%
+    dplyr::select(-GT) %>%
     tidyr::gather(data = ., key = ALLELES, value = GT, -MARKERS) %>%
-    filter(GT != "000") %>%
-    distinct(MARKERS, GT) %>%
-    group_by(MARKERS) %>%
-    tally %>%
-    summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
+    dplyr::filter(GT != "000") %>%
+    dplyr::distinct(MARKERS, GT) %>%
+    dplyr::group_by(MARKERS) %>%
+    dplyr::tally(.) %>%
+    dplyr::summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
     purrr::flatten_chr(.x = .)
   
-  if (biallelic != 2) {
+  if (biallelic > 4) {# potentially 4 allelic states
     biallelic <- FALSE
-    message(stri_join("Biallelic data: ", biallelic))
+    message(stringi::stri_join("Biallelic data: ", biallelic))
   } else {
     biallelic <- TRUE
-    message(stri_join("Biallelic data: ", biallelic))
+    message(stringi::stri_join("Biallelic data: ", biallelic))
   }
   
   # overide genind when marker number > 20K ------------------------------------
   if ("genind" %in% output) {
     # detect the number of marker
-    marker.number <- n_distinct(input$MARKERS)
+    marker.number <- dplyr::n_distinct(input$MARKERS)
     if (marker.number > 20000) {
       
       # When genlight is also selected, remove automatically
       if ("genlight" %in% output) {
         message("Removing the genind output option, the genlight is more suitable with current marker number")
-        output <- stri_replace_all_fixed(
+        output <- stringi::stri_replace_all_fixed(
           str = output,
           pattern = "genind",
           replacement = "",
           vectorize_all = FALSE
         )
       } else {
-        message(stri_join("IMPORTANT: you have > 20 000 markers (", marker.number, ")",
+        message(stringi::stri_join("IMPORTANT: you have > 20 000 markers (", marker.number, ")",
                           "\nDo you want the more suitable genlight object instead of the current genind? (y/n):"))
         overide.genind <- as.character(readLines(n = 1))
         if (overide.genind == "y") {
-          output <- stri_replace_all_fixed(
+          output <- stringi::stri_replace_all_fixed(
             str = output,
             pattern = "genind",
             replacement = "genlight",
@@ -496,7 +494,7 @@ genomic_converter <- function(
   # GENEPOP --------------------------------------------------------------------
   if ("genepop" %in% output) {
     message("Generating genepop file without imputation")
-    write_genepop(
+    stackr::write_genepop(
       data = input,
       pop.levels = pop.levels,
       filename = filename
@@ -504,7 +502,7 @@ genomic_converter <- function(
     
     if (!is.null(imputation.method)) {
       message("Generating genepop file WITH imputations")
-      write_genepop(
+      stackr::write_genepop(
         data = input.imp,
         pop.levels = pop.levels,
         filename = filename.imp
@@ -515,14 +513,14 @@ genomic_converter <- function(
   # hierfstat --------------------------------------------------------------------
   if ("hierfstat" %in% output) {
     message("Generating hierfstat file without imputation")
-    res$hierfstat.no.imputation <- write_hierfstat(
+    res$hierfstat.no.imputation <- stackr::write_hierfstat(
       data = input,
       filename = filename
     )
     
     if (!is.null(imputation.method)) {
       message("Generating hierfstat file WITH imputations")
-      res$hierfstat.imputed <- write_hierfstat(
+      res$hierfstat.imputed <- stackr::write_hierfstat(
         data = input.imp,
         filename = filename.imp
       )
@@ -532,18 +530,18 @@ genomic_converter <- function(
   # strataG --------------------------------------------------------------------
   if ("gtypes" %in% output) {
     message("Generating strataG gtypes object without imputation")
-    res$gtypes.no.imputation <- write_gtypes(data = input)
+    res$gtypes.no.imputation <- stackr::write_gtypes(data = input)
     
     if (!is.null(imputation.method)) {
       message("Generating strataG gtypes object WITH imputations")
-      res$gtypes.imputed <- write_gtypes(data = input.imp)
+      res$gtypes.imputed <- stackr::write_gtypes(data = input.imp)
     }
   } # end strataG output
   
   # structure --------------------------------------------------------------------
   if ("structure" %in% output) {
     message("Generating structure file without imputation")
-    write_structure(
+    stackr::write_structure(
       data = input,
       pop.levels = pop.levels,
       markers.line = TRUE,
@@ -552,7 +550,7 @@ genomic_converter <- function(
     
     if (!is.null(imputation.method)) {
       message("Generating structure file WITH imputations")
-      write_structure(
+      stackr::write_structure(
         data = input.imp,
         pop.levels = pop.levels,
         markers.line = TRUE,
@@ -565,11 +563,11 @@ genomic_converter <- function(
   if ("betadiv" %in% output) {
     if (!biallelic) stop("betadiv output is currently implemented for biallelic data only")
     message("Generating betadiv object without imputation")
-    res$betadiv.no.imputation <- write_betadiv(data = input)
+    res$betadiv.no.imputation <- stackr::write_betadiv(data = input)
     
     if (!is.null(imputation.method)) {
       message("Generating betadiv object WITH imputations")
-      res$betadiv.imputed <- write_betadiv(data = input.imp)
+      res$betadiv.imputed <- stackr::write_betadiv(data = input.imp)
     }
   } # end betadiv output
   
@@ -577,7 +575,7 @@ genomic_converter <- function(
   # arlequin --------------------------------------------------------------------
   if ("arlequin" %in% output) {
     message("Generating arlequin file without imputation")
-    write_arlequin (
+    stackr::write_arlequin(
       data = input,
       pop.levels = pop.levels,
       filename = filename
@@ -585,7 +583,7 @@ genomic_converter <- function(
     
     if (!is.null(imputation.method)) {
       message("Generating arlequin file WITH imputations")
-      write_arlequin (
+      stackr::write_arlequin(
         data = input.imp,
         pop.levels = pop.levels,
         filename = filename.imp
@@ -619,14 +617,14 @@ genomic_converter <- function(
   if ("vcf" %in% output) {
     if (!biallelic) stop("vcf output is currently implemented for biallelic data only")
     message("Generating VCF file without imputation")
-    write_vcf(
+    stackr::write_vcf(
       data = input,
       filename = filename
     )
     
     if (!is.null(imputation.method)) {
       message("Generating VCF file WITH imputations")
-      write_vcf(
+      stackr::write_vcf(
         data = input.imp,
         filename = filename.imp
       )
@@ -636,14 +634,14 @@ genomic_converter <- function(
   # PLINK --------------------------------------------------------------------
   if ("plink" %in% output) {
     message("Generating PLINK tped/tfam files without imputation")
-    write_plink(
+    stackr::write_plink(
       data = input,
       filename = filename
     )
     
     if (!is.null(imputation.method)) {
       message("Generating PLINK tped/tfam files WITH imputations")
-      write_plink(
+      stackr::write_plink(
         data = input.imp,
         filename = filename.imp
       )

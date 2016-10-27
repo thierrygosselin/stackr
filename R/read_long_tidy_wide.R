@@ -26,11 +26,9 @@
 #' @return A tidy data frame in the global environment.
 #' @export
 #' @rdname read_long_tidy_wide
-#' @import dplyr
-#' @import stringi
-#' @importFrom data.table fread
-#' @importFrom data.table melt.data.table
-#' @importFrom data.table as.data.table
+#' @importFrom stringi stri_replace_all_fixed stri_pad_left
+#' @importFromdplyr mutate select
+#' @importFrom data.table fread melt.data.table as.data.table
 
 #' @details \strong{Input data:}
 #'  
@@ -107,7 +105,7 @@ read_long_tidy_wide <- function(data, import.metadata = FALSE, ...) {
       
       # switch GENOTYPE for GT in colnames if found
       if ("GENOTYPE" %in% colnames(input)) {
-        colnames(input) <- stri_replace_all_fixed(
+        colnames(input) <- stringi::stri_replace_all_fixed(
           str = colnames(input), 
           pattern = "GENOTYPE", 
           replacement = "GT", 
@@ -116,11 +114,11 @@ read_long_tidy_wide <- function(data, import.metadata = FALSE, ...) {
       
       if (!import.metadata) {
         if ("MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
-          input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS = MARKERS, GT)
+          input <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, LOCUS = MARKERS, GT)
         } else if ("MARKERS" %in% colnames(input) & !"LOCUS" %in% colnames(input)) {
-          input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS = MARKERS, GT)
+          input <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, LOCUS = MARKERS, GT)
         } else {
-          input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS, GT)
+          input <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, LOCUS, GT)
         }
       }
       
@@ -158,7 +156,7 @@ read_long_tidy_wide <- function(data, import.metadata = FALSE, ...) {
     if (long.format) { # long (tidy) format
       # switch GENOTYPE for GT in colnames if found
       if ("GENOTYPE" %in% colnames(input)) {
-      colnames(input) <- stri_replace_all_fixed(
+      colnames(input) <- stringi::stri_replace_all_fixed(
         str = colnames(input), 
         pattern = "GENOTYPE", 
         replacement = "GT", 
@@ -168,11 +166,11 @@ read_long_tidy_wide <- function(data, import.metadata = FALSE, ...) {
       
       if (!import.metadata) {
         if ("MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
-          input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS = MARKERS, GT)
+          input <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, LOCUS = MARKERS, GT)
         } else if ("MARKERS" %in% colnames(input) & !"LOCUS" %in% colnames(input)) {
-          input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS = MARKERS, GT)
+          input <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, LOCUS = MARKERS, GT)
         } else {
-          input <- select(.data = input, POP_ID, INDIVIDUALS, LOCUS, GT)
+          input <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, LOCUS, GT)
         }
       }
       
@@ -193,13 +191,13 @@ read_long_tidy_wide <- function(data, import.metadata = FALSE, ...) {
 
   # Remove unwanted sep in the genotype filed.
   input <- input %>% 
-    mutate(
-      GT = stri_replace_all_fixed(
+    dplyr::mutate(
+      GT = stringi::stri_replace_all_fixed(
         str = as.character(GT), 
         pattern = c("/", ":", "_", "-", "."), 
         replacement = "", 
         vectorize_all = FALSE),
-      GT = stri_pad_left(str = as.character(GT), pad = "0", width = 6)
+      GT = stringi::stri_pad_left(str = as.character(GT), pad = "0", width = 6)
     )
   return(input)
 }

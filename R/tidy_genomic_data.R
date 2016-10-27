@@ -218,7 +218,7 @@
 #' @importFrom plyr colwise
 #' @importFrom tidyr spread gather unite separate
 #' @importFrom utils count.fields
-#' @importFrom readr write_tsv
+#' @importFrom readr write_tsv read_tsv
 
 
 #' @examples
@@ -336,7 +336,7 @@ tidy_genomic_data <- function(
     # message("Whitelist of markers: no")
   } else {# with Whitelist of markers
     # message("Whitelist of markers: yes")
-    whitelist.markers <- read_tsv(whitelist.markers, col_names = TRUE)
+    suppressWarnings(whitelist.markers <- readr::read_tsv(whitelist.markers, col_names = TRUE))
     columns.names.whitelist <- colnames(whitelist.markers)
     if ("CHROM" %in% columns.names.whitelist) {
       whitelist.markers$CHROM <- as.character(whitelist.markers$CHROM)
@@ -359,7 +359,7 @@ tidy_genomic_data <- function(
     # message("Blacklisted individuals: no")
   } else {# With blacklist of ID
     # message("Blacklisted individuals: yes")
-    blacklist.id <- read_tsv(blacklist.id, col_names = TRUE)
+    suppressWarnings(blacklist.id <- readr::read_tsv(blacklist.id, col_names = TRUE))
   }
   
   # population levels and strata------------------------------------------------
@@ -368,8 +368,8 @@ tidy_genomic_data <- function(
       # message("strata file: yes")
       number.columns.strata <- max(utils::count.fields(strata, sep = "\t"))
       col.types <- stringi::stri_join(rep("c", number.columns.strata), collapse = "")
-      strata.df <- read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>% 
-        dplyr::rename(POP_ID = STRATA)
+      suppressWarnings(strata.df <- readr::read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>% 
+        dplyr::rename(POP_ID = STRATA))
     } else {
       # message("strata object: yes")
       colnames(strata) <- stringi::stri_replace_all_fixed(
@@ -1142,23 +1142,25 @@ tidy_genomic_data <- function(
     message("Erasing genotype: no")
   } else {
     message("Erasing genotype: yes")
-    blacklist.genotype <- read_tsv(blacklist.genotype, col_names = TRUE) %>% 
-      dplyr::mutate(
-        INDIVIDUALS = stringi::stri_replace_all_fixed(
-          str = INDIVIDUALS, 
-          pattern = c("_", ":"), 
-          replacement = c("-", "-"),
-          vectorize_all = FALSE
+    suppressWarnings(
+      blacklist.genotype <- readr::read_tsv(blacklist.genotype, col_names = TRUE) %>% 
+        dplyr::mutate(
+          INDIVIDUALS = stringi::stri_replace_all_fixed(
+            str = INDIVIDUALS, 
+            pattern = c("_", ":"), 
+            replacement = c("-", "-"),
+            vectorize_all = FALSE
+          )
         )
       )
-    blacklist.genotype <- suppressWarnings(
-      plyr::colwise(as.character, exclude = NA)(blacklist.genotype)
-    )
-    columns.names.blacklist.genotype <- colnames(blacklist.genotype)
-    
-    if ("CHROM" %in% columns.names.blacklist.genotype) {
-      columns.names.blacklist.genotype$CHROM <- as.character(columns.names.blacklist.genotype$CHROM)
-    }
+      blacklist.genotype <- suppressWarnings(
+        plyr::colwise(as.character, exclude = NA)(blacklist.genotype)
+      )
+      columns.names.blacklist.genotype <- colnames(blacklist.genotype)
+      
+      if ("CHROM" %in% columns.names.blacklist.genotype) {
+        columns.names.blacklist.genotype$CHROM <- as.character(columns.names.blacklist.genotype$CHROM)
+      }
     
     if (data.type == "haplo.file") {
       blacklist.genotype <- dplyr::select(.data = blacklist.genotype, INDIVIDUALS, LOCUS)
