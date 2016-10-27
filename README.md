@@ -91,6 +91,12 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.4.1**
+* update `missing_visualization` function to include more PCoA plots
+
+**v.0.4.0**
+* couple of bug fix for detecting file formats
+
 **v.0.3.9**
 * several performance update
 * couple of bug fix for detecting file formats
