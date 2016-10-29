@@ -82,9 +82,6 @@
 #' @importFrom tibble has_name
 
 
-
-
-
 #' @examples
 #' \dontrun{
 #' # The simplest form:

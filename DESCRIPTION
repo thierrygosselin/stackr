@@ -34,7 +34,9 @@ Imports:
     amap,
     tibble,
     methods,
-    tidyverse
+    tidyverse,
+    copula, 
+    gsl
 Suggests:
     pegas,
     hierfstat,

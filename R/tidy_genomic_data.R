@@ -398,11 +398,11 @@ tidy_genomic_data <- function(
   }
   
   # Check with strata and pop.levels/pop.labels
-  if (!is.null(strata) & !is.null(pop.levels)) {
-    if (length(levels(factor(strata.df$POP_ID))) != length(pop.levels)) {
-      stop("The number of groups in your strata file must match the number of groups in pop.levels")
-    }
-  }
+  # if (!is.null(strata) & !is.null(pop.levels)) {
+  #   if (length(levels(factor(strata.df$POP_ID))) != length(pop.levels)) {
+  #     stop("The number of groups in your strata file must match the number of groups in pop.levels")
+  #   }
+  # }
   
   
   # Import VCF-------------------------------------------------------------------
@@ -489,11 +489,13 @@ tidy_genomic_data <- function(
     }
     
     # Tidy VCF
+    # todo: for GATK vcf this should be done per markers and not in one shot.
     message("Tidying the vcf...")
-    input <- tidyr::separate(
-      data = input, FORMAT_ID, format.headers, sep = ":", extra = "drop"
-    )
-    
+    suppressWarnings(
+      input <- tidyr::separate(
+        data = input, FORMAT_ID, format.headers, sep = ":", extra = "drop"
+      )
+    )    
     if (vcf.metadata) {
       # GL cleaning
       if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "GL", omit_no_match = TRUE))) > 0) {
