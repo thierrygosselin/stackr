@@ -148,33 +148,49 @@ Currently under construction. Come back soon!
 
 
 **Step 1 Quality** Ask yourself these questions: 
-* DNA quality ?
-* Libraries quality ?
-* Sequencing lanes ? Here, stop thinking in millions of reads returned, but in actual quality of sequencing using metrics available e.g. in fastqc.
-* Individual's fastqc ? No outlier samples in terms of reads ?
+* DNA quality, libraries quality, sequencing lanes quality ? 
+* Please stop thinking in terms of quantity (e.g. millions of reads returned), and start thinking about actual quality of your new data.
+* Use quality metrics inside available software (e.g. fastqc)
+* After lane metrics is established, how about the the individual's metrics? Any outliers ?
 
 **Step 2 Duplicated samples**
-* You have removed replicates ?
+* Remove replicates
 * Use `find_duplicate_genome` to remove potential duplicated samples that went off your radar
 
 **Step 3 Pattern of missingness**
-* Create a blacklist of genotypes from `summary_haplotypes` to remove **de novo** assembly artifact
+* Remove **de novo** assembly artifact, by creating blacklist of genotypes with `summary_haplotypes`. 
 * Use `missing_visualization` with and without the blacklist of genotypes to examine patterns of missingness in you dataset (there is a vignette for this step)
 * The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
 * Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
 * If you have heterozygote defeciency, have you used an optimal mismatch threshold during your **de novo** assembly?
 
 **Step 4-5 Coverage and Genotype Likelihood**
+* Coverage is an individual metric. With most software you'll find allele and genotype coverage info.
+* Genotype likelihood is usually a metric based on coverage of the different genotypes found in all of your data.
+* Good allele coverage is required for reliable genotypes.
+* Reliable genotypes is required for reliable downstream summary statistics.
+
 **Step 6 Prop. Genotyped**
+* Do you have enough individuals in each sampling sites and enough putative populations for each markers ?
+* Use blacklist of individuals with different thresholds
+* Use `common.markers` argument inside most of stackr functions to test the impact of vetting loci based on shared markers.
+* Use imputation methods provided by stackr to assess the impact of lowering or increasing threshold that impact missing data.
 
 **Step 7 SNP number/reads**
+* Is this metric a **de novo** artefact or a reliable signal of biological polymorphism?
+* Should the statistic you are interested be consistent throughout the read ?
+* Will you consider haplotype or snp level statistics?
+* Use `snp.ld` argument in several of stackr functions to test consistensies of SNPs among haplotype
 
-**Step 8 HET**
-**Step 9 Fis**
+
+**Step 8-9 HET and Fis**
+* Individual's mean heterozygosity will highlight putative outliers representing mixed samples.
+* Overall and/or per populations mean markers heterozygosity will reveal genotyping or biological problem.
+* Is departure from HWE a problem for the analysis you will be conducting ?
+* Extremes values of Fis could reveal genotyping problem
+
 **Step 10 MAF**
-
-We need to modify the data to play with it efficiently in R. To have reliable summary statistics, you first need good coverage of your alleles to call your genotypes, good genotype likelihood, enough individuals in each sampling sites and enough putative populations with your markers... 
-
-Step 2 is where the actual work is done to remove artifactual and uninformative markers based on summary statistics of your markers.
+* Remove artifactual and uninformative markers.
+* Use MAF arguments inside several of stackr functions to tailor MAF to your analysis tolerance to minor allelel frequencies.
 
 
