@@ -142,8 +142,8 @@ Currently under construction. Come back soon!
 | Genotype Likelihood | | |x| | | | | |
 | Prop. Genotyped | | | |x|x|x|x|x|
 | HET | | | |x|x| |x| |
-| FIS | | | | | | |x| |
-| MAF | | | | | |x|x|x|
+| FIS | | | | |x| |x| |
+| MAF | | | | |x|x|x|x|
 | Pattern of missingness |x|x|x|x|x|x|x|x|
 
 
@@ -159,6 +159,10 @@ Currently under construction. Come back soon!
     * outlier markers with extreme number of SNP/read or haplotype
 * Remove potential duplicated samples that went off your radar, try `find_duplicate_genome`.
 * Highlight outliers individual's heterozygosity that might represent mixed samples with `filter_individual_het`.
+* The metric you're using: a *de novo* artefact or a reliable signal of biological polymorphism?
+* Should the statistic you are interested in be consistent throughout the read ?
+* Will you consider haplotype or snp level statistics?
+* Use `snp.ld` argument in several of stackr functions to test consistensies of SNPs among haplotype
 * Any other outliers with different individual's or markers metrics (reads/sample, etc) ?
 
 **Step 3 Pattern of missingness**
@@ -179,23 +183,17 @@ Currently under construction. Come back soon!
 * Use `common.markers` argument inside most of stackr functions to test the impact of vetting loci based on shared markers.
 * Use imputation methods provided by stackr to assess the impact of lowering or increasing threshold that impact missing data.
 
-**Step 7 SNP number/reads**
-* Is this metric a *de novo* artefact or a reliable signal of biological polymorphism?
-* Should the statistic you are interested be consistent throughout the read ?
-* Will you consider haplotype or snp level statistics?
-* Use `snp.ld` argument in several of stackr functions to test consistensies of SNPs among haplotype
-
-**Step 8-9 HET and Fis**
+**Step 7-8 HET and Fis**
 * Overall and/or per populations heterozygosity or Fis statistics can highlight: 
 *de novo* assembly problems (oversplitting/undermerging), genotyping problems or
 biological problems.
 * Is departure from HWE a problem for the analysis ?
 
-**Step 10 MAF**
+**Step 9 MAF**
 * Remove artifactual and uninformative markers.
 * Use MAF arguments inside several of stackr functions to tailor MAF to your analysis tolerance to minor allelel frequencies.
 
-**Step 11 Pattern of missingness, again**
+**Step 10 Pattern of missingness, again**
 * Use `missing_visualization` with your new blacklists (e.g. of genotypes, individuals) and with your whitelist of markers to examine patterns of missingness in your dataset after filtering (there is a vignette for this step)
 * The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
 * Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
