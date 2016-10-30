@@ -133,7 +133,7 @@ Currently under construction. Come back soon!
 
 **Table 1: Quality control and filtering RAD/GBS data**
 
-| Parameter | Libraries/Seq.Lanes | Allele | Genotype | Individual | Markers | Sampling sites | Populations | Globally |
+| Parameter | Libraries & Seq.Lanes | Allele | Genotype | Individual | Markers | Sampling sites | Populations | Globally |
 |:----|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
 | Quality |x| | |x| | | | |
 | Outliers | |x|x|x|x| | | |
