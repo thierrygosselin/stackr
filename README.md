@@ -137,17 +137,43 @@ Currently under construction. Come back soon!
 |:----|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
 | Quality |x| | |x| | | |
 | Duplicated samples | | | |x| | | |
-| Pattern of missingness |x| | |x|x|x|x|
+| Pattern of missingness |x|x|x|x|x|x|x|
 | Coverage | |x|x| | | | |
 | Genotype Likelihood | | |x| | | | |
 | Prop. Genotyped | | | |x|x|x|x|
-| MAF | | | | |x|x|x|
+| SNP number/reads | | | | | | |x|
 | HET | | | |x| |x| |
 | FIS | | | | | |x| |
-| SNP number/reads | | | | | | |x|
+| MAF | | | | |x|x|x|
 
 
-Step 1 as a quality insurance step. We need to modify the data to play with it efficiently in R. To have reliable summary statistics, you first need good coverage of your alleles to call your genotypes, good genotype likelihood, enough individuals in each sampling sites and enough putative populations with your markers... 
+**Step 1 Quality** Ask yourself these questions: 
+* DNA quality ?
+* Libraries quality ?
+* Sequencing lanes ? Here, stop thinking in millions of reads returned, but in actual quality of sequencing using metrics available e.g. in fastqc.
+* Individual's fastqc ? No outlier samples in terms of reads ?
+
+**Step 2 Duplicated samples**
+* You have removed replicates ?
+* Use `find_duplicate_genome` to remove potential duplicated samples that went off your radar
+
+**Step 3 Pattern of missingness**
+* Create a blacklist of genotypes from `summary_haplotypes` to remove **de novo** assembly artifact
+* Use `missing_visualization` with and without the blacklist of genotypes to examine patterns of missingness in you dataset (there is a vignette for this step)
+* The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
+* Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
+* If you have heterozygote defeciency, have you used an optimal mismatch threshold during your **de novo** assembly?
+
+**Step 4-5 Coverage and Genotype Likelihood**
+**Step 6 Prop. Genotyped**
+
+**Step 7 SNP number/reads**
+
+**Step 8 HET**
+**Step 9 Fis**
+**Step 10 MAF**
+
+We need to modify the data to play with it efficiently in R. To have reliable summary statistics, you first need good coverage of your alleles to call your genotypes, good genotype likelihood, enough individuals in each sampling sites and enough putative populations with your markers... 
 
 Step 2 is where the actual work is done to remove artifactual and uninformative markers based on summary statistics of your markers.
 
