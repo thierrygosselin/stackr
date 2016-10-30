@@ -154,9 +154,9 @@ Currently under construction. Come back soon!
 
 **Step 2 Outliers**
 * Remove replicates (I hope you have some).
-* Remove *de novo* assembly artifact, by creating blacklist of genotypes with `summary_haplotypes` or using `filter_snp_number`
-    * individuals with more than 2 alleles
-    * outlier markers with extreme number of SNP/read or haplotype
+* Remove *de novo* assembly artifact, by creating blacklist of genotypes or whitelist of markers:
+    * individuals with more than 2 alleles (use `summary_haplotypes`)
+    * outlier markers with extreme number of SNP/read or haplotype (use `filter_snp_number`)
 * Remove potential duplicated samples that went off your radar, try `find_duplicate_genome`.
 * Highlight outliers individual's heterozygosity that might represent mixed samples with `filter_individual_het`.
 * The metric you're using: a *de novo* artefact or a reliable signal of biological polymorphism?
