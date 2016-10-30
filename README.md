@@ -136,7 +136,7 @@ Currently under construction. Come back soon!
 | Parameter | Libraries/Seq.Lanes | Allele | Genotype | Individual | Sampling sites | Populations | Globally |
 |:----|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
 | Quality |x| | |x| | | |
-| Outliers | | | |x| | | |
+| Outliers | |x|x|x| | | |
 | Pattern of missingness |x|x|x|x|x|x|x|
 | Coverage | |x|x| | | | |
 | Genotype Likelihood | | |x| | | | |
@@ -145,6 +145,7 @@ Currently under construction. Come back soon!
 | HET | | | |x| |x| |
 | FIS | | | | | |x| |
 | MAF | | | | |x|x|x|
+| Pattern of missingness |x|x|x|x|x|x|x|
 
 
 **Step 1 Quality** Ask yourself these questions: 
@@ -153,16 +154,17 @@ Currently under construction. Come back soon!
 * Use quality metrics inside available software (e.g. fastqc)
 
 **Step 2 Outliers**
-* Remove replicates
-* Individual's metrics? Any outliers ?
-* Use `find_duplicate_genome` to remove potential duplicated samples that went off your radar.
-* Use `filter_individual_het` to highlight outliers individual's heterozygosity that might represent mixed samples.
+* Remove replicates (I hope you have some).
+* Remove *de novo* assembly artifact, e.g. individuals with more than 2 alleles, by creating blacklist of genotypes with `summary_haplotypes`. 
+* Remove potential duplicated samples that went off your radar, try `find_duplicate_genome`.
+* Highlight outliers individual's heterozygosity that might represent mixed samples with `filter_individual_het`.
+* Any other outliers with different individual's or markers metrics (reads/sample, etc) ?
 
 **Step 3 Pattern of missingness**
-* Remove *de novo* assembly artifact, by creating blacklist of genotypes with `summary_haplotypes`. 
-* Use `missing_visualization` with and without the blacklist of genotypes to examine patterns of missingness in you dataset (there is a vignette for this step)
+* Use `missing_visualization` with/without your new blacklists (e.g. of genotypes, individuals) and with/without whitelist of markers to examine patterns of missingness in you dataset before more extensive filtering (there is a vignette for this step)
 * The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
 * Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
+* Do you need more sequencing? Do you have to re-run some lanes? 
 
 **Step 4-5 Coverage and Genotype Likelihood**
 * Coverage is an individual metric. With most software you'll find allele and genotype coverage info.
@@ -191,5 +193,10 @@ biological problems.
 **Step 10 MAF**
 * Remove artifactual and uninformative markers.
 * Use MAF arguments inside several of stackr functions to tailor MAF to your analysis tolerance to minor allelel frequencies.
+
+**Step 11 Pattern of missingness, again**
+* Use `missing_visualization` with your new blacklists (e.g. of genotypes, individuals) and with your whitelist of markers to examine patterns of missingness in your dataset after filtering (there is a vignette for this step)
+* The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
+* Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
 
 
