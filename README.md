@@ -136,7 +136,7 @@ Currently under construction. Come back soon!
 | Parameter | Libraries/Seq.Lanes | Allele | Genotype | Individual | Sampling sites | Populations | Globally |
 |:----|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
 | Quality |x| | |x| | | |
-| Duplicated samples | | | |x| | | |
+| Outliers | | | |x| | | |
 | Pattern of missingness |x|x|x|x|x|x|x|
 | Coverage | |x|x| | | | |
 | Genotype Likelihood | | |x| | | | |
@@ -151,18 +151,19 @@ Currently under construction. Come back soon!
 * DNA quality, libraries quality, sequencing lanes quality ? 
 * Please stop thinking in terms of quantity (e.g. millions of reads returned), and start thinking about actual quality of your new data.
 * Use quality metrics inside available software (e.g. fastqc)
-* After lane metrics is established, how about the the individual's metrics? Any outliers ?
 
-**Step 2 Duplicated samples**
+**Step 2 Outliers**
 * Remove replicates
-* Use `find_duplicate_genome` to remove potential duplicated samples that went off your radar
+* Individual's metrics? Any outliers ?
+* Use `find_duplicate_genome` to remove potential duplicated samples that went off your radar.
+* Use `filter_individual_het` to highlight outliers individual's heterozygosity that might represent mixed samples.
 
 **Step 3 Pattern of missingness**
-* Remove **de novo** assembly artifact, by creating blacklist of genotypes with `summary_haplotypes`. 
+* Remove *de novo* assembly artifact, by creating blacklist of genotypes with `summary_haplotypes`. 
 * Use `missing_visualization` with and without the blacklist of genotypes to examine patterns of missingness in you dataset (there is a vignette for this step)
 * The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
 * Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
-* If you have heterozygote defeciency, have you used an optimal mismatch threshold during your **de novo** assembly?
+* If you have heterozygote defeciency, have you used an optimal mismatch threshold during your *de novo* assembly?
 
 **Step 4-5 Coverage and Genotype Likelihood**
 * Coverage is an individual metric. With most software you'll find allele and genotype coverage info.
@@ -177,14 +178,13 @@ Currently under construction. Come back soon!
 * Use imputation methods provided by stackr to assess the impact of lowering or increasing threshold that impact missing data.
 
 **Step 7 SNP number/reads**
-* Is this metric a **de novo** artefact or a reliable signal of biological polymorphism?
+* Is this metric a *de novo* artefact or a reliable signal of biological polymorphism?
 * Should the statistic you are interested be consistent throughout the read ?
 * Will you consider haplotype or snp level statistics?
 * Use `snp.ld` argument in several of stackr functions to test consistensies of SNPs among haplotype
 
 
 **Step 8-9 HET and Fis**
-* Individual's mean heterozygosity will highlight putative outliers representing mixed samples.
 * Overall and/or per populations mean markers heterozygosity will reveal genotyping or biological problem.
 * Is departure from HWE a problem for the analysis you will be conducting ?
 * Extremes values of Fis could reveal genotyping problem
