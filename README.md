@@ -133,19 +133,18 @@ Currently under construction. Come back soon!
 
 **Table 1: Quality control and filtering RAD/GBS data**
 
-| Parameter | Libraries/Seq.Lanes | Allele | Genotype | Individual | Sampling sites | Populations | Globally |
-|:----|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
-| Quality |x| | |x| | | |
-| Outliers | |x|x|x| | | |
-| Pattern of missingness |x|x|x|x|x|x|x|
-| Coverage | |x|x| | | | |
-| Genotype Likelihood | | |x| | | | |
-| Prop. Genotyped | | | |x|x|x|x|
-| SNP number/reads | | | | | | |x|
-| HET | | | |x| |x| |
-| FIS | | | | | |x| |
-| MAF | | | | |x|x|x|
-| Pattern of missingness |x|x|x|x|x|x|x|
+| Parameter | Libraries/Seq.Lanes | Allele | Genotype | Individual | Markers | Sampling sites | Populations | Globally |
+|:----|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+| Quality |x| | |x| | | | |
+| Outliers | |x|x|x|x| | | |
+| Pattern of missingness |x|x|x|x|x|x|x|x|
+| Coverage | |x|x| | | | | |
+| Genotype Likelihood | | |x| | | | | |
+| Prop. Genotyped | | | |x|x|x|x|x|
+| HET | | | |x|x| |x| |
+| FIS | | | | | | |x| |
+| MAF | | | | | |x|x|x|
+| Pattern of missingness |x|x|x|x|x|x|x|x|
 
 
 **Step 1 Quality** Ask yourself these questions: 
@@ -155,7 +154,9 @@ Currently under construction. Come back soon!
 
 **Step 2 Outliers**
 * Remove replicates (I hope you have some).
-* Remove *de novo* assembly artifact, e.g. individuals with more than 2 alleles, by creating blacklist of genotypes with `summary_haplotypes`. 
+* Remove *de novo* assembly artifact, by creating blacklist of genotypes with `summary_haplotypes` or using `filter_snp_number`
+    * individuals with more than 2 alleles
+    * outlier markers with extreme number of SNP/read or haplotype
 * Remove potential duplicated samples that went off your radar, try `find_duplicate_genome`.
 * Highlight outliers individual's heterozygosity that might represent mixed samples with `filter_individual_het`.
 * Any other outliers with different individual's or markers metrics (reads/sample, etc) ?
