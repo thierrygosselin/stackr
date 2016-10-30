@@ -135,14 +135,16 @@ Currently under construction. Come back soon!
 
 | Parameter | Libraries/Seq.Lanes | Allele | Genotype | Individual | Sampling sites | Populations | Globally |
 |:----|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
-| Quality | x | | | | | | |
-| Coverage | | x | x | | | | |
-| Genotype Likelihood | | | x | | | | |
-| Prop. Genotyped | | | | x | x | x | x |
-| MAF | | | | | x | x | x |
-| HET | | | | | | x | |
-| FIS | | | | | | x | |
-| SNP number/reads | | | | | | | x |
+| Quality |x| | |x| | | |
+| Duplicated samples | | | |x| | | |
+| Pattern of missingness |x| | |x|x|x|x|
+| Coverage | |x|x| | | | |
+| Genotype Likelihood | | |x| | | | |
+| Prop. Genotyped | | | |x|x|x|x|
+| MAF | | | | |x|x|x|
+| HET | | | |x| |x| |
+| FIS | | | | | |x| |
+| SNP number/reads | | | | | | |x|
 
 
 Step 1 as a quality insurance step. We need to modify the data to play with it efficiently in R. To have reliable summary statistics, you first need good coverage of your alleles to call your genotypes, good genotype likelihood, enough individuals in each sampling sites and enough putative populations with your markers... 
