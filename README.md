@@ -163,7 +163,6 @@ Currently under construction. Come back soon!
 * Use `missing_visualization` with and without the blacklist of genotypes to examine patterns of missingness in you dataset (there is a vignette for this step)
 * The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
 * Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
-* If you have heterozygote defeciency, have you used an optimal mismatch threshold during your *de novo* assembly?
 
 **Step 4-5 Coverage and Genotype Likelihood**
 * Coverage is an individual metric. With most software you'll find allele and genotype coverage info.
@@ -183,11 +182,11 @@ Currently under construction. Come back soon!
 * Will you consider haplotype or snp level statistics?
 * Use `snp.ld` argument in several of stackr functions to test consistensies of SNPs among haplotype
 
-
 **Step 8-9 HET and Fis**
-* Overall and/or per populations mean markers heterozygosity will reveal genotyping or biological problem.
-* Is departure from HWE a problem for the analysis you will be conducting ?
-* Extremes values of Fis could reveal genotyping problem
+* Overall and/or per populations heterozygosity or Fis statistics can highlight: 
+*de novo* assembly problems (oversplitting/undermerging), genotyping problems or
+biological problems.
+* Is departure from HWE a problem for the analysis ?
 
 **Step 10 MAF**
 * Remove artifactual and uninformative markers.
