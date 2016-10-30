@@ -162,7 +162,7 @@ Currently under construction. Come back soon!
 * The metric you're using: a *de novo* artefact or a reliable signal of biological polymorphism?
 * Should the statistic you are interested in be consistent throughout the read ?
 * Will you consider haplotype or snp level statistics?
-* Use `snp.ld` argument in several of stackr functions to test consistensies of SNPs among haplotype
+* The consistensies of SNPs statistics among haplotype can be throughly tested by using `snp.ld` argument in several stackr functions.
 * Any other outliers with different individual's or markers metrics (reads/sample, etc) ?
 
 **Step 3 Pattern of missingness**
