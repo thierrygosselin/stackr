@@ -151,6 +151,7 @@ Currently under construction. Come back soon!
 * DNA quality, libraries quality, sequencing lanes quality ? 
 * Please stop thinking in terms of quantity (e.g. millions of reads returned), and start thinking about actual quality of your new data.
 * Use quality metrics inside available software (e.g. fastqc)
+* After this step, *de novo* assembly and genotyping with stacks, pyrad, ddocent, GATK, etc.
 
 **Step 2 Outliers**
 * Remove replicates (I hope you have some).
@@ -176,22 +177,29 @@ Currently under construction. Come back soon!
 * Genotype likelihood is usually a metric based on coverage of the different genotypes found in all of your data.
 * Good allele coverage is required for reliable genotypes.
 * Reliable genotypes is required for reliable downstream summary statistics.
+* Explore filtering options in `filter_coverage` and `filter_genotype_likelihood`.
 
 **Step 6 Prop. Genotyped**
-* Do you have enough individuals in each sampling sites and enough putative populations for each markers ?
-* Use blacklist of individuals with different thresholds
+* Do you have enough individuals in each sampling sites (`filter_individual`) 
+and enough putative populations (`filter_population`) for each markers ?
+* Use blacklist of individuals with different thresholds.
+* Keep different whitelist of markers.
 * Use `common.markers` argument inside most of stackr functions to test the impact of vetting loci based on shared markers.
-* Use imputation methods provided by stackr to assess the impact of lowering or increasing threshold that impact missing data.
+* Use imputation methods provided by stackr (inside `tidy_genomic_data` or `genomic_converter`, as a separate module: `stackr_impuations_module`) to assess the impact of lowering or increasing threshold that impact missing data.
 
-**Step 7-8 HET and Fis**
+**Step 7-8 HET, Fis, HWE**
 * Overall and/or per populations heterozygosity or Fis statistics can highlight: 
 *de novo* assembly problems (oversplitting/undermerging), genotyping problems or
 biological problems.
 * Is departure from HWE a problem for the analysis ?
+* Choose your threshold wisely and test impact on pipeline.
+* Use `filter_het`, `filter_fis`, `filter_hwe` and look again 
+at the individual's heterozygosity (`filter_individual_het`) for outliers.
 
 **Step 9 MAF**
 * Remove artifactual and uninformative markers.
 * Use MAF arguments inside several of stackr functions to tailor MAF to your analysis tolerance to minor allelel frequencies.
+* There is also a separate filter in stackr: `filter_maf`
 
 **Step 10 Pattern of missingness, again**
 * Use `missing_visualization` with your new blacklists (e.g. of genotypes, individuals) and with your whitelist of markers to examine patterns of missingness in your dataset after filtering (there is a vignette for this step)
