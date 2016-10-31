@@ -189,7 +189,7 @@ and enough putative populations (`filter_population`) for each markers ?
 * Use blacklist of individuals with different thresholds.
 * Keep different whitelist of markers.
 * Use `common.markers` argument inside most of stackr functions to test the impact of vetting loci based on shared markers.
-* Use imputation methods provided by stackr (inside `tidy_genomic_data` or `genomic_converter`, as a separate module: `stackr_impuations_module`) to assess the impact of lowering or increasing threshold that impact missing data.
+* Use imputation methods provided by stackr (inside `tidy_genomic_data` or `genomic_converter`, as a separate module: `stackr_imputations_module`) to assess the impact of lowering or increasing threshold that impact missing data.
 
 **Step 8 HET, Fis, HWE**
 * Overall and/or per populations heterozygosity or Fis statistics can highlight: 
