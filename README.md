@@ -136,13 +136,13 @@ Currently under construction. Come back soon!
 | Parameter | Libraries & Seq.Lanes | Allele | Genotype | Individual | Markers | Sampling sites | Populations | Globally |
 |:----|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
 | Quality |x| | |x| | | | |
+| Assembly and genotyping |x| | | | | | | |
 | Outliers | |x|x|x|x| | | |
 | Pattern of missingness |x|x|x|x|x|x|x|x|
 | Coverage | |x|x| | | | | |
 | Genotype Likelihood | | |x| | | | | |
 | Prop. Genotyped | | | |x|x|x|x|x|
-| HET | | | |x|x| |x| |
-| FIS | | | | |x| |x| |
+| HET & FIS & HWE | | | |x|x| |x| |
 | MAF | | | | |x|x|x|x|
 | Pattern of missingness |x|x|x|x|x|x|x|x|
 
@@ -151,9 +151,13 @@ Currently under construction. Come back soon!
 * DNA quality, libraries quality, sequencing lanes quality ? 
 * Please stop thinking in terms of quantity (e.g. millions of reads returned), and start thinking about actual quality of your new data.
 * Use quality metrics inside available software (e.g. fastqc)
-* After this step, *de novo* assembly and genotyping with stacks, pyrad, ddocent, GATK, etc.
 
-**Step 2 Outliers**
+**Step 2 *de novo* assembly and genotyping** 
+* This is conducted outside stackr
+* Integrated software pipelines include: [STACKS](http://catchenlab.life.illinois.edu/stacks/), [pyRAD](http://dereneaton.com/software/), [dDocent](https://ddocent.wordpress.com), [AftrRAD](http://u.osu.edu/sovic.1/downloads/). If you want to develop your own pipeline, 
+there are a multitude of approaches, good luck. 
+
+**Step 3 Outliers**
 * Remove replicates (I hope you have some).
 * Remove *de novo* assembly artifact, by creating blacklist of genotypes or whitelist of markers:
     * individuals with more than 2 alleles (use `summary_haplotypes`)
@@ -166,20 +170,20 @@ Currently under construction. Come back soon!
 * The consistensies of SNPs statistics among haplotype can be throughly tested by using `snp.ld` argument in several stackr functions.
 * Any other outliers with different individual's or markers metrics (reads/sample, etc) ?
 
-**Step 3 Pattern of missingness**
+**Step 4 Pattern of missingness**
 * Use `missing_visualization` with/without your new blacklists (e.g. of genotypes, individuals) and with/without whitelist of markers to examine patterns of missingness in you dataset before more extensive filtering (there is a vignette for this step)
 * The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
 * Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
 * Do you need more sequencing? Do you have to re-run some lanes? 
 
-**Step 4-5 Coverage and Genotype Likelihood**
+**Step 5-6 Coverage and Genotype Likelihood**
 * Coverage is an individual metric. With most software you'll find allele and genotype coverage info.
 * Genotype likelihood is usually a metric based on coverage of the different genotypes found in all of your data.
 * Good allele coverage is required for reliable genotypes.
 * Reliable genotypes is required for reliable downstream summary statistics.
 * Explore filtering options in `filter_coverage` and `filter_genotype_likelihood`.
 
-**Step 6 Prop. Genotyped**
+**Step 7 Prop. Genotyped**
 * Do you have enough individuals in each sampling sites (`filter_individual`) 
 and enough putative populations (`filter_population`) for each markers ?
 * Use blacklist of individuals with different thresholds.
@@ -187,7 +191,7 @@ and enough putative populations (`filter_population`) for each markers ?
 * Use `common.markers` argument inside most of stackr functions to test the impact of vetting loci based on shared markers.
 * Use imputation methods provided by stackr (inside `tidy_genomic_data` or `genomic_converter`, as a separate module: `stackr_impuations_module`) to assess the impact of lowering or increasing threshold that impact missing data.
 
-**Step 7-8 HET, Fis, HWE**
+**Step 8 HET, Fis, HWE**
 * Overall and/or per populations heterozygosity or Fis statistics can highlight: 
 *de novo* assembly problems (oversplitting/undermerging), genotyping problems or
 biological problems.
