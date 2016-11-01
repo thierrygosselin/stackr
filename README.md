@@ -91,6 +91,11 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file] (https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.4.3**
+* bug fix in `summary_haplotypes` stemming from a new `readr` version
+* `artifacts` replace `paralogs` in `summary_haplotypes`
+
+
 **v.0.4.2**
 * `gtypes` object from [strataG] (https://github.com/EricArcher/strataG) package
 can now be read/write in/out of **Stackr** using the `tidy_genomic_data` and 
@@ -192,10 +197,10 @@ and enough putative populations (`filter_population`) for each markers ?
 * Use imputation methods provided by stackr (inside `tidy_genomic_data` or `genomic_converter`, as a separate module: `stackr_imputations_module`) to assess the impact of lowering or increasing threshold that impact missing data.
 
 **Step 8 HET, Fis, HWE**
-* Overall and/or per populations heterozygosity or Fis statistics can highlight: 
+* Overall and/or per populations hwe, heterozygosity and Fis statistics can highlight: 
 *de novo* assembly problems (oversplitting/undermerging), genotyping problems or
 biological problems.
-* Is departure from HWE a problem for the analysis ?
+* Is departure from HWE a problem for your analysis ?
 * Choose your threshold wisely and test impact on pipeline.
 * Use `filter_het`, `filter_fis`, `filter_hwe` and look again 
 at the individual's heterozygosity (`filter_individual_het`) for outliers.

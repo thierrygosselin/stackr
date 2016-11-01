@@ -142,6 +142,11 @@
 #' Default: \code{filename = NULL}, the tidy data is 
 #' in the global environment only (i.e. not written in the working directory).
 
+#' @param verbose (optional, logical) When \code{verbose = TRUE} 
+#' the function is a little more chatty during execution.
+#' Default: \code{verbose = FALSE}.
+
+
 #' @details 
 #' \strong{Long distance SNP linkage disequilibrium pruning}
 #' #' If you have markers position on a genome or a linkage map,
@@ -289,9 +294,16 @@ tidy_genomic_data <- function(
   pop.labels = NULL,
   strata = NULL,
   pop.select = NULL,
-  filename = NULL
+  filename = NULL,
+  verbose = FALSE
 ) {
   
+  if (verbose) {
+    cat("#######################################################################\n")
+    cat("##################### stackr::tidy_genomic_data #######################\n")
+    cat("#######################################################################\n")
+    timing <- proc.time()
+  }
   
   # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("Input file missing")
@@ -377,7 +389,7 @@ tidy_genomic_data <- function(
       number.columns.strata <- max(utils::count.fields(strata, sep = "\t"))
       col.types <- stringi::stri_join(rep("c", number.columns.strata), collapse = "")
       suppressMessages(strata.df <- readr::read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>% 
-        dplyr::rename(POP_ID = STRATA))
+                         dplyr::rename(POP_ID = STRATA))
     } else {
       # message("strata object: yes")
       colnames(strata) <- stringi::stri_replace_all_fixed(
@@ -434,15 +446,15 @@ tidy_genomic_data <- function(
       input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
     
-    # Detect the format fields
-    format.headers <- unlist(stringi::stri_split_fixed(str = input$FORMAT[1], pattern = ":"))
-    input <- input %>% dplyr::select(-FORMAT) # no longer needed
+    # # Detect the format fields
+    # format.headers <- unlist(stringi::stri_split_fixed(str = input$FORMAT[1], pattern = ":"))
+    # input <- input %>% dplyr::select(-FORMAT) # no longer needed
     
     # Tidying the VCF to make it easy to work on the data for conversion
     message("Making the VCF population wise")
     input <- data.table::melt.data.table(
       data = data.table::as.data.table(input), 
-      id.vars = c("CHROM", "LOCUS", "POS", "REF", "ALT"), 
+      id.vars = c("CHROM", "LOCUS", "POS", "REF", "ALT", "FORMAT"), 
       variable.name = "INDIVIDUALS",
       variable.factor = FALSE,
       value.name = "FORMAT_ID"
@@ -489,38 +501,44 @@ tidy_genomic_data <- function(
     }
     
     # Tidy VCF
-    # todo: for GATK vcf this should be done per markers and not in one shot.
     message("Tidying the vcf...")
-    suppressWarnings(
-      input <- tidyr::separate(
-        data = input, FORMAT_ID, format.headers, sep = ":", extra = "drop"
-      )
-    )    
+    
+    # Function to separate FORMAT field
+    separate_format <- function (data){
+      format.fields <- stringi::stri_split_fixed(str = unique(data$FORMAT), pattern = ":")[[1]]
+      tidyr::separate(
+        data = data, 
+        col = FORMAT_ID, 
+        into = format.fields,
+        sep = ":", 
+        extra = "drop", 
+        remove = TRUE)
+    }
+    
+    input <- split(x = input, f = input$FORMAT) %>% 
+      purrr::map(., separate_format) %>% 
+      dplyr::bind_rows(.)
+    
     if (vcf.metadata) {
-      # GL cleaning
-      if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "GL", omit_no_match = TRUE))) > 0) {
-        message("Fixing GL column...")
-        input <- input %>% 
-          dplyr::mutate( 
-            GL = suppressWarnings(as.numeric(stringi::stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all = FALSE)))
-          )
-      } # end cleaning GL column
+      # detect if several format fields
+      format.fields <- unique(unlist(stringi::stri_split_fixed(str = unique(input$FORMAT), pattern = ":")))
       
-      # Cleaning DP and changing name to READ_DEPTH
-      if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "DP", omit_no_match = TRUE))) > 0) {
-        message("Fixing DP (READ_DEPTH) column...")
-        input <- input %>% 
-          dplyr::rename(READ_DEPTH = DP) %>% 
-          dplyr::mutate(
-            READ_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all = FALSE))),
-            READ_DEPTH = ifelse(GT == "./.", NA, READ_DEPTH)
-          )
-      } # end cleaning READ_DEPTH (DP) column
+      # Fast cleaning columns
+      replace_by_na <- function(data) {
+        replace(data, which(data == "."), NA)
+      }
       
+      input <-  mutate_at(
+        .tbl = input, 
+        .cols = format.fields, 
+        .funs =  replace_by_na
+      )
       # Cleaning AD (ALLELES_DEPTH)
-      if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "AD", omit_no_match = TRUE))) > 0) {
-        message("Splitting AD columns into allele coverage info...")
-        input <- input %>% 
+      if (tibble::has_name(input, "AD")) {
+        # if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "AD", omit_no_match = TRUE))) > 0) {
+        message("AD column: splitting coverage info into ALLELE_REF_DEPTH and ALLELE_ALT_DEPTH")
+        input <- input %>%
+          dplyr::mutate(AD = dplyr::if_else(GT == "./.", NA_character_, AD)) %>% 
           tidyr::separate(AD, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"), sep = ",", extra = "drop") %>% 
           dplyr::mutate(
             ALLELE_REF_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(ALLELE_REF_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
@@ -531,6 +549,51 @@ tidy_genomic_data <- function(
             # ((ALLELE_ALT_DEPTH - ALLELE_REF_DEPTH)/(ALLELE_ALT_DEPTH + ALLELE_REF_DEPTH)))))
           )
       } # end cleaning AD column
+      
+      # Cleaning DP and changing name to READ_DEPTH
+      if (tibble::has_name(input, "DP")) {
+        message("DP column: cleaning and renaming to READ_DEPTH")
+        input <- dplyr::rename(.data = input, READ_DEPTH = DP) %>% 
+          dplyr::mutate(
+            READ_DEPTH = dplyr::if_else(GT == "./.", as.numeric(NA_character_), as.numeric(READ_DEPTH))
+          )
+      # READ_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all = FALSE))),
+      }
+      
+      
+      # PL for biallelic as 3 values:
+      if (tibble::has_name(input, "PL")) {
+        message("PL column (normalized, phred-scaled likelihoods for genotypes): separating into PROB_HOM_REF, PROB_HET and PROB_HOM_ALT")
+        # Value 1: probability that the site is homozgyous REF
+        # Value 2: probability that the sample is heterzygous
+        # Value 2: probability that it is homozygous ALT
+        input <- input %>% 
+          dplyr::mutate(PL = dplyr::if_else(GT == "./.", NA_character_, PL)) %>% 
+          tidyr::separate(data = ., PL, c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"), sep = ",", extra = "drop", remove = FALSE) %>%
+          dplyr::mutate_at(.tbl = ., .cols = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"), .funs = as.numeric) 
+      }
+      
+      # GL cleaning
+      if (tibble::has_name(input, "GL")) {
+      # if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "GL", omit_no_match = TRUE))) > 0) {
+        message("GL column: Genotype Likelihood")
+        input <- input %>% 
+          dplyr::mutate( 
+            GL = suppressWarnings(as.numeric(stringi::stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all = FALSE)))
+          )
+      } # end cleaning GL column
+      
+      # GQ
+      if (tibble::has_name(input, "GQ")) {
+        message("GQ column: Genotype Quality")
+        input <- dplyr::mutate(
+          input, 
+          GQ = dplyr::if_else(GT == "./.", as.numeric(NA_character_), as.numeric(GQ))
+          )
+      }
+      
+      # remove FORMAT column
+      input <- dplyr::select(input, -FORMAT)
     } else {
       input <- input %>% 
         dplyr::select(CHROM, LOCUS, POS, REF, ALT, POP_ID, INDIVIDUALS, GT)
@@ -875,14 +938,14 @@ tidy_genomic_data <- function(
     number.columns <- max(utils::count.fields(data, sep = "\t"))
     
     input <- data.table::fread(
-      input = data, 
-      sep = "\t", 
-      header = TRUE, 
+      input = data,
+      sep = "\t",
+      header = TRUE,
       stringsAsFactors = FALSE,
       colClasses = list(character = 1:number.columns),
       verbose = FALSE,
       showProgress = TRUE,
-      data.table = FALSE, 
+      data.table = FALSE,
       na.strings = "-"
     ) %>% 
       tibble::as_data_frame() %>% 
@@ -1229,7 +1292,7 @@ tidy_genomic_data <- function(
     data.type <- "df.file" # for subsequent steps
     
   } # End tidy gtypes
-
+  
   # Arrange the id and create a strata after pop select ------------------------
   input$INDIVIDUALS <- stringi::stri_replace_all_fixed(
     str = input$INDIVIDUALS, 
@@ -1257,15 +1320,15 @@ tidy_genomic_data <- function(
             vectorize_all = FALSE
           )
         )
-      )
-      blacklist.genotype <- suppressWarnings(
-        plyr::colwise(as.character, exclude = NA)(blacklist.genotype)
-      )
-      columns.names.blacklist.genotype <- colnames(blacklist.genotype)
-      
-      if ("CHROM" %in% columns.names.blacklist.genotype) {
-        columns.names.blacklist.genotype$CHROM <- as.character(columns.names.blacklist.genotype$CHROM)
-      }
+    )
+    blacklist.genotype <- suppressWarnings(
+      plyr::colwise(as.character, exclude = NA)(blacklist.genotype)
+    )
+    columns.names.blacklist.genotype <- colnames(blacklist.genotype)
+    
+    if ("CHROM" %in% columns.names.blacklist.genotype) {
+      columns.names.blacklist.genotype$CHROM <- as.character(columns.names.blacklist.genotype$CHROM)
+    }
     
     if (data.type == "haplo.file") {
       blacklist.genotype <- dplyr::select(.data = blacklist.genotype, INDIVIDUALS, LOCUS)
@@ -1408,12 +1471,37 @@ tidy_genomic_data <- function(
     maf.info <- NULL
   } # End of MAF filters
   
-  # Write to working directory
+  # Write to working directory -------------------------------------------------
   if (!is.null(filename)) {
     message(stringi::stri_join("Writing the tidy data to the working directory: \n"), filename)
     readr::write_tsv(x = input, path = filename, col_names = TRUE)
   }
+  # messages -------------------------------------------------------------------
+  n.markers <- dplyr::n_distinct(input$MARKERS)
+  if (tibble::has_name(input, "CHROM")) {
+    n.chromosome <- dplyr::n_distinct(input$CHROM)
+  } else {
+    n.chromosome <- "no chromosome info"
+  }
+  n.individuals <- dplyr::n_distinct(input$INDIVIDUALS)
+  n.pop <- dplyr::n_distinct(input$POP_ID)
   
+  if (verbose) {
+    cat("############################### RESULTS ###############################\n")
+    message("Tidy data in your global environment")
+    if (!is.null(filename)) {
+      message(stringi::stri_join("Tidy data written to your working directory: ", getwd()))
+    }
+    message(stringi::stri_join("Data format: ", data.type))
+    message(stringi::stri_join("Biallelic data ? ", biallelic))
+    message(stringi::stri_join("Number of markers: ", n.markers))
+    message(stringi::stri_join("Number of chromosome: ", n.chromosome))
+    message(stringi::stri_join("Number of individuals ", n.individuals))
+    message(stringi::stri_join("Number of populations ", n.pop))
+    timing <- proc.time() - timing
+    message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
+    cat("############################## completed ##############################\n")
+  }
   res <- input
   return(res)
 } # tidy genomic data

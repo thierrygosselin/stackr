@@ -6,7 +6,7 @@
 \usage{
 summary_haplotypes(data, strata, whitelist.markers = NULL,
   blacklist.id = NULL, pop.levels = NULL, pop.labels = NULL, read.length,
-  parallel.core = detectCores() - 1)
+  parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{data}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -50,8 +50,8 @@ Default: \code{parallel.core = detectCores() - 1}.}
 The function returns a list with:
 \enumerate{
 \item $summary
-\item $paralogs.pop
-\item $paralogs.loci
+\item $artifacts.pop
+\item $artifacts.loci
 \item $consensus.pop
 \item $consensus.loci
 \item $fh.pi.individuals: the individual's info for FH and Pi
@@ -64,16 +64,15 @@ Also in the list 3 plots:
 }
 use $ to access each #' objects in the list.
 The function potentially write 3 files in the working directory:
-blacklist of unique putative paralogs and unique consensus loci 
+blacklist of unique loci with assembly artifacts and/or sequencing errors and unique consensus loci 
 and a summary of the haplotypes file by population.
 }
 \description{
 STACKS batch_x.haplotypes.tsv file summary.
 The output of the function is a summary table for populations with:
 \enumerate{
-\item putative sequencing errors: loci with > 2 alleles and/or potential 
-paralogs. Genotypes with more than 2 alleles are 
-erased before estimating the subsequent statistics.
+\item assembly artifacts and/or sequencing errors: loci with > 2 alleles.
+Genotypes with more than 2 alleles are erased before estimating the subsequent statistics.
 \item consensus loci
 \item monomorphic loci
 \item polymorphic loci

@@ -9,7 +9,7 @@ tidy_genomic_data(data, vcf.metadata = TRUE, whitelist.markers = NULL,
   common.markers = TRUE, maf.thresholds = NULL, maf.pop.num.threshold = 1,
   maf.approach = "SNP", maf.operator = "OR", max.marker = NULL,
   blacklist.id = NULL, pop.levels = NULL, pop.labels = NULL,
-  strata = NULL, pop.select = NULL, filename = NULL)
+  strata = NULL, pop.select = NULL, filename = NULL, verbose = FALSE)
 }
 \arguments{
 \item{data}{7 options: vcf (to make vcf population ready, see details below),
@@ -140,6 +140,10 @@ Default: \code{pop.select = NULL}}
 written to the working directory.
 Default: \code{filename = NULL}, the tidy data is 
 in the global environment only (i.e. not written in the working directory).}
+
+\item{verbose}{(optional, logical) When \code{verbose = TRUE} 
+the function is a little more chatty during execution.
+Default: \code{verbose = FALSE}.}
 }
 \value{
 The output in your global environment is a tidy data frame. 

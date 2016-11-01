@@ -1,3 +1,7 @@
+# stackr v.0.4.3
+* bug fix in `summary_haplotypes` stemming from a new `readr` version
+* `artifacts` replace `paralogs` in `summary_haplotypes`
+
 # stackr v.0.4.2
 * `gtypes` object from [strataG] (https://github.com/EricArcher/strataG) package
 can now be read/write in/out of **Stackr** using the `tidy_genomic_data` and 

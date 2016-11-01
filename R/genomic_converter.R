@@ -228,6 +228,7 @@ genomic_converter <- function(
   cat("#######################################################################\n")
   cat("###################### stackr::genomic_converter ######################\n")
   cat("#######################################################################\n")
+  timing <- proc.time()
   
   # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("Input file missing")
@@ -613,7 +614,7 @@ genomic_converter <- function(
     }
   } # end genlight output
   
-  # VCF --------------------------------------------------------------------
+  # VCF ------------------------------------------------------------------------
   if ("vcf" %in% output) {
     if (!biallelic) stop("vcf output is currently implemented for biallelic data only")
     message("Generating VCF file without imputation")
@@ -652,6 +653,8 @@ genomic_converter <- function(
   # not yet implemented, use vcf2dadi
   
   # outout results -------------------------------------------------------------
+  timing <- proc.time() - timing
+  message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
   cat("############################## completed ##############################\n")
   return(res)
 } # end genomic_converter

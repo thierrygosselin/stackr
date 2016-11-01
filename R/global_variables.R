@@ -19,6 +19,6 @@ if (getRversion() >= "2.15.1") {
       "GL_DIFF", "ALLELE_ALT_DEPTH_NEW", "ALLELE_REF_DEPTH_NEW", "ALT_NEW", 
       "CHANGE", "n.al.pop", "n.al.tot", "TOTAL_READ", "Missingness",
       "MISSING_GENOTYPE", "INDIVIDUALS_NUMBER", "PERC", "Axis.1", "Axis.2", "V1",
-      "Axis.3", "Axis.4", "ids")
+      "Axis.3", "Axis.4", "ids", "GQ", "PL", "ARTIFACTS")
   )
 }
