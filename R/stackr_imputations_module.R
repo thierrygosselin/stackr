@@ -122,6 +122,9 @@ stackr_imputations_module <- function(
   ...
   ) {
   
+  # for timing
+  timing <- proc.time()
+  
   # Checking for missing and/or default arguments ------------------------------
   if (missing(data)) stop("Input file missing")
   
@@ -235,11 +238,15 @@ stackr_imputations_module <- function(
       message("Compiling imputations results")
       input.imp <- suppressWarnings(dplyr::bind_rows(input.imp))
       
-      # Second round of imputations (globally) to remove introduced NA 
+      # Second round of imputations (globally) to remove introduced NA --------
+      
+      # section commented because this introduces a huge bias when entire 
+      # population are not genotyped
+      
       # In case that some pop don't have the markers
-      input.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(input.imp)) # Make the columns factor
-      input.imp <- impute_genotype_rf(input.imp) # impute globally
-      input.imp <- plyr::colwise(as.character, exclude = NA)(input.imp)
+      # input.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(input.imp)) # Make the columns factor
+      # input.imp <- impute_genotype_rf(input.imp) # impute globally
+      # input.imp <- plyr::colwise(as.character, exclude = NA)(input.imp)
       
       # reintroduce the stratification
       input.imp <- suppressWarnings(
@@ -310,8 +317,8 @@ stackr_imputations_module <- function(
             ) %>%
             # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
             # will take the global observed values by markers for those cases.
-            dplyr::group_by(MARKERS) %>%
-            dplyr::mutate(GT = stringi::stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
+            # dplyr::group_by(MARKERS) %>%
+            # dplyr::mutate(GT = stringi::stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
             dplyr::ungroup(.)
         )
       }
@@ -326,8 +333,8 @@ stackr_imputations_module <- function(
             ) %>%
             # the next 2 steps are necessary to remove introduced NA if some pop don't have the markers
             # will take the global observed values by markers for those cases.
-            dplyr::group_by(MARKERS) %>%
-            dplyr::mutate(GT = stringi::stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
+            # dplyr::group_by(MARKERS) %>%
+            # dplyr::mutate(GT = stringi::stri_replace_na(GT, replacement = max(GT, na.rm = TRUE))) %>%
             dplyr::ungroup(.)
         )
       }
@@ -370,6 +377,9 @@ stackr_imputations_module <- function(
       tidyr::unite(data = ., GT, A1, A2, sep = "")
   }
   
+  # Replace NA by 000000 in GT column
+  input.imp$GT <- stringi::stri_replace_na(str = input.imp$GT, replacement = "000000")
+  
   # Compute REF/ALT allele
   # REF/ALT might have change depending on prop of missing values
   if (ref.column) {
@@ -388,5 +398,9 @@ stackr_imputations_module <- function(
   message(stringi::stri_join("Writing the imputed tidy data to the working directory: \n"), filename)
   readr::write_tsv(x = input.imp, path = filename, col_names = TRUE)
   }
+  
+  # for timing
+  timing <- proc.time() - timing
+  message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
   return(input.imp)
 } # End imputations
