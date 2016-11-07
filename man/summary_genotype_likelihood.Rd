@@ -4,7 +4,7 @@
 \alias{summary_genotype_likelihood}
 \title{Genotype likelihood summary}
 \usage{
-summary_genotype_likelihood(tidy.vcf, pop.levels, approach, folder)
+summary_genotype_likelihood(tidy.vcf, pop.levels, gl.approach, folder)
 }
 \arguments{
 \item{tidy.vcf}{A tidy vcf object or file (using ".tsv"), 
@@ -12,9 +12,9 @@ created with tidy_genomic_data.}
 
 \item{pop.levels}{(optional) Character string defining your ordered populations.}
 
-\item{approach}{Character. By \code{"SNP"} or by \code{"haplotype"}. 
+\item{gl.approach}{Character. By \code{"SNP"} or by \code{"haplotype"}. 
 The function will consider the SNP or haplotype GL statistics to filter the marker. 
-Default: \code{approach = "haplotype"}.}
+Default: \code{gl.approach = "haplotype"}.}
 
 \item{folder}{(optional) Path to folder where results will be saved. 
 Default: \code{folder = NULL}, the working directory is used.}

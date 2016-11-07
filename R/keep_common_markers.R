@@ -91,11 +91,10 @@ keep_common_markers <- function(data) {
   
   message(
     stringi::stri_join(
-      "Number of original markers = ", markers.input, 
-      "\n", "Number of markers present in all the populations = ", 
-      markers.in.common, "\n", 
-      "Number of markers removed = ", 
-      blacklist.markers.common
+      "Number of original markers = ", markers.input,
+      "\n", "Number of markers removed = ", blacklist.markers.common, "\n",
+      "Number of markers present in all the populations = ",
+      markers.in.common
     )
   )
   

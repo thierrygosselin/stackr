@@ -55,26 +55,6 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 
 summary_stats_vcf_tidy <- function(data, filename) {
   
-  
-  GT <- NULL
-  GL <- NULL
-  INDIVIDUALS <- NULL
-  POP_ID <- NULL
-  N <- NULL
-  HET_O <- NULL
-  HOM_O <- NULL
-  HET_E <- NULL
-  HOM_E <- NULL
-  FREQ_ALT <- NULL
-  FREQ_REF <- NULL
-  GLOBAL_MAF <- NULL
-  PP <- NULL
-  PQ <- NULL
-  QQ <- NULL
-  
-  
-  
-  
   vcf.summary <- data %>%
     filter(GT != "./.") %>%
     group_by(LOCUS, POS, POP_ID) %>%
@@ -432,9 +412,9 @@ Written in the directory:
 #' @param tidy.vcf A tidy vcf object or file (using ".tsv"), 
 #' created with tidy_genomic_data.
 #' @param pop.levels (optional) Character string defining your ordered populations.
-#' @param approach Character. By \code{"SNP"} or by \code{"haplotype"}. 
+#' @param gl.approach Character. By \code{"SNP"} or by \code{"haplotype"}. 
 #' The function will consider the SNP or haplotype GL statistics to filter the marker. 
-#' Default: \code{approach = "haplotype"}.
+#' Default: \code{gl.approach = "haplotype"}.
 #' @param folder (optional) Path to folder where results will be saved. 
 #' Default: \code{folder = NULL}, the working directory is used.
 
@@ -456,7 +436,7 @@ Written in the directory:
 #' @rdname summary_genotype_likelihood
 #' @export
 
-summary_genotype_likelihood <- function(tidy.vcf, pop.levels, approach, folder){
+summary_genotype_likelihood <- function(tidy.vcf, pop.levels, gl.approach, folder){
   
   POP_ID <- NULL
   GL <- NULL
@@ -467,9 +447,9 @@ summary_genotype_likelihood <- function(tidy.vcf, pop.levels, approach, folder){
   
   
   if (missing(pop.levels)) pop.levels <- NULL
-  if (missing(approach)) approach <- "haplotype"
+  if (missing(gl.approach)) gl.approach <- "haplotype"
   
-  if (approach == "haplotype"){
+  if (gl.approach == "haplotype"){
     message("Approach: haplotype")
   } else {
     message("Approach: SNP")
@@ -532,7 +512,7 @@ summary_genotype_likelihood <- function(tidy.vcf, pop.levels, approach, folder){
   
   # summary by locus and pop
   message("Summarising GL info: marker and pop")
-  if (approach == "haplotype"){ # by haplotype
+  if (gl.approach == "haplotype"){ # by haplotype
     gl.summary.marker.pop <- data %>%
       ungroup() %>% 
       group_by(LOCUS, POP_ID) %>%

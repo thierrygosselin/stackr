@@ -138,18 +138,18 @@ Currently under construction. Come back soon!
 
 **Table 1: Quality control and filtering RAD/GBS data**
 
-| Parameter | Libraries & Seq.Lanes | Allele | Genotype | Individual | Markers | Sampling sites | Populations | Globally |
+| Parameters | Libraries & Seq.Lanes | Alleles | Genotypes | Individuals | Markers | Sampling sites | Populations | Globally |
 |:----|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
 | Quality |x| | |x| | | | |
 | Assembly and genotyping |x| | | | | | | |
 | Outliers | |x|x|x|x| | | |
-| Pattern of missingness |x|x|x|x|x|x|x|x|
-| Coverage | |x|x| | | | | |
+| Missingness |x|x|x|x|x|x|x|x|
+| Coverage | |x|x| |x| | | |
 | Genotype Likelihood | | |x| | | | | |
 | Prop. Genotyped | | | |x|x|x|x|x|
 | HET & FIS & HWE | | | |x|x| |x| |
 | MAF | | | | |x|x|x|x|
-| Pattern of missingness |x|x|x|x|x|x|x|x|
+| Missingness |x|x|x|x|x|x|x|x|
 
 
 **Step 1 Quality** Ask yourself these questions: 
@@ -200,7 +200,8 @@ and enough putative populations (`filter_population`) for each markers ?
 * Overall and/or per populations hwe, heterozygosity and Fis statistics can highlight: 
 *de novo* assembly problems (oversplitting/undermerging), genotyping problems or
 biological problems.
-* Is departure from HWE a problem for your analysis ?
+* These filters allows to test rapidly if departure from realistic expectations
+are a problem for downstream analysis ?
 * Choose your threshold wisely and test impact on pipeline.
 * Use `filter_het`, `filter_fis`, `filter_hwe` and look again 
 at the individual's heterozygosity (`filter_individual_het`) for outliers.
