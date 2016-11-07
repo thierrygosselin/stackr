@@ -12,7 +12,7 @@ This is the development page of the **stackr**, if you want to help, see [contri
 Use stackr to: import, explore, manipulate, filter, impute, visualize and export your GBS/RADseq data
 -----------------------------------------------------------------------------------------------------
 
--   **Import/Export** your GBS/RADseq data with the various supported genomic file formats: *tidy*, *wide*, *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *hierfstat*, *gtypes*, *betadiv*, *dadi* and the haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/). Easy integration with other software or R packages like \[adegenet\] (<https://github.com/thibautjombart/adegenet>), \[strataG\] (<https://github.com/EricArcher/strataG>), \[hierfstat\] (<https://github.com/jgx65/hierfstat>), \[pegas\] (<https://github.com/emmanuelparadis/pegas>), \[poppr\] (<https://github.com/grunwaldlab/poppr>) and [assigner](https://github.com/thierrygosselin/assigner). Conversion functions are integrated with important filters, blacklist and whitelist.
+-   **Import/Export** your GBS/RADseq data with the various supported genomic file formats: *tidy*, *wide*, *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *hierfstat*, *gtypes*, *betadiv*, *dadi* and the haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/). Easy integration with other software or R packages like [adegenet](https://github.com/thibautjombart/adegenet), [strataG](https://github.com/EricArcher/strataG), [hierfstat](https://github.com/jgx65/hierfstat), [pegas](https://github.com/emmanuelparadis/pegas), [poppr](https://github.com/grunwaldlab/poppr) and [assigner](https://github.com/thierrygosselin/assigner). Conversion functions are integrated with important filters, blacklist and whitelist.
 
 -   **Explore** and **filter** important variables caracteristics and statistics:
     -   missing data,
@@ -74,13 +74,13 @@ citation("stackr")
 New features
 ------------
 
-Change log, version, new features and bug history now lives in the \[NEWS.md file\] (<https://github.com/thierrygosselin/stackr/blob/master/NEWS.md>)
+Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
 **v.0.4.3** \* bug fix in `summary_haplotypes` stemming from a new `readr` version \* `artifacts` replace `paralogs` in `summary_haplotypes`
 
-**v.0.4.2** \* `gtypes` object from \[strataG\] (<https://github.com/EricArcher/strataG>) package can now be read/write in/out of **Stackr** using the `tidy_genomic_data` and `genomic_converter` functions.
+**v.0.4.2** \* `gtypes` object from [strataG](https://github.com/EricArcher/strataG) package can now be read/write in/out of **Stackr** using the `tidy_genomic_data` and `genomic_converter` functions.
 
-For previous news: \[NEWS.md file\] (<https://github.com/thierrygosselin/stackr/blob/master/NEWS.md>)
+For previous news: [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
 Roadmap of future developments:
 -------------------------------
@@ -106,7 +106,7 @@ New to pull request on github ? The process is very easy:
 GBS workflow
 ------------
 
-The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using \[STACKS\] (<http://catchenlab.life.illinois.edu/stacks/>) and other software. You can use the \[STACKS\] (<http://catchenlab.life.illinois.edu/stacks/>) workflow \[used in the Bernatchez lab\] (<https://github.com/enormandeau/stacks_workflow>). ![](vignettes/GBS_workflow.png)
+The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS](http://catchenlab.life.illinois.edu/stacks/) and other software. You can use the [STACKS](http://catchenlab.life.illinois.edu/stacks/) workflow [used in the Bernatchez lab](https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
 
 stackr workflow
 ---------------
