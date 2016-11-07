@@ -24,8 +24,9 @@ be interactive. With the default, the user is asked to see figures of
 distribution before making decisions for filtering with heterozygosity statistics.
 Default: \code{interactive.filter == TRUE}.}
 
-\item{ind.heterozygosity.threshold}{(double, optional) Proportion. 
-Blacklist individuals based on the mean observed heterozygosity.
+\item{ind.heterozygosity.threshold}{(double, optional)
+Blacklist individuals based on observed heterozygosity of individuals 
+(averaged across markers).
 The value for the threshold is a proportion (0 to 1, where 1 will turn off 
 the filter).
 Individuals with mean heterozygosity higher (>) than the threshold
