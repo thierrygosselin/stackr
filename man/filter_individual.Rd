@@ -3,39 +3,40 @@
 \name{filter_individual}
 \alias{filter_individual}
 \title{Individual filter}
+\usage{
+filter_individual(data, vcf.metadata = FALSE, interactive.filter = TRUE,
+  ind.approach = "pop", ind.threshold = 0.5, prob.pop.threshold = 0,
+  percent = FALSE, filename = NULL, blacklist.id = NULL,
+  blacklist.genotype = NULL, whitelist.markers = NULL,
+  monomorphic.out = TRUE, max.marker = NULL, snp.ld = NULL,
+  common.markers = FALSE, strata = NULL, pop.levels = NULL,
+  pop.labels = NULL, pop.select = NULL)
+}
 \arguments{
-\item{data}{6 options: vcf, plink, genind, genepop, 
-and a data frame in wide or long/tidy format.
-The function uses 
-\href{https://github.com/thierrygosselin/stackr}{stackr} 
-\code{\link[stackr]{read_long_tidy_wide}} and 
-\code{\link[stackr]{tidy_genomic_data}}.}
+\item{data}{8 options: vcf (to make vcf population ready, see details below),
+plink, stacks haplotype file, genind (library(adegenet)), 
+genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
+and a data frame in wide format. \emph{See details}.}
 
-\item{vcf.metadata}{(optional, logical) For the VCF file, with 
-default: \code{vcf.metadata = FALSE}, 
+\item{vcf.metadata}{(optional, logical) For the VCF file, with \code{vcf.metadata = FALSE}, 
 only the genotype information is kept.
-\code{vcf.metadata = TRUE}, the metadata contained in the 
+With default: \code{vcf.metadata = TRUE}, the metadata contained in the 
 \code{FORMAT} field will be kept in the tidy data file.}
 
 \item{interactive.filter}{(optional, logical) Do you want the filtering session to 
 be interactive. With default: \code{interactive.filter == TRUE}, the user is 
 asked to see figures of distribution before making decisions for filtering.}
 
-\item{approach}{(character). 
+\item{ind.approach}{(character). 
 The approach to filter a marker, is it based on the overall number of 
 genotyped individuals (no concept of populations here), 
-\code{approach = "overall"}, or 
-the number of genotyped individuals per population \code{approach = "pop"}.
-Default: \code{approach = "pop"}.}
+\code{ind.approach = "overall"}, or 
+the number of genotyped individuals per population \code{ind.approach = "pop"}.
+Default: \code{ind.approach = "pop"}.}
 
 \item{ind.threshold}{The individual threshold, proportion, percentage or 
 number e.g. 0.70, 70, 15.
 Default: \code{ind.threshold = 0.5}.}
-
-\item{percent}{Is the threshold a percentage? TRUE or FALSE.
-This argument is necessary to distinguish percentage from integer individual
-threshold (e.g. 70 percent or 70 individuals).
-Default: \code{percent = FALSE}.}
 
 \item{prob.pop.threshold}{(integer, optional) Useful to incorporate problematic 
 populations dragging down polymorphism discovery, but still wanted for analysis.
@@ -45,22 +46,36 @@ the \code{ind.threshold} argument. e.g. with \code{prob.pop.threshold = 2},
 you tolerate a maximum of 2 populations failing to pass the 
 \code{ind.threshold}. Manage after the problematic populations 
 downstream with blacklist of individuals and/or missing data imputations. This
-argument is not necessary with \code{approach = "overall"}.
+argument is not necessary with \code{ind.approach = "overall"}.
 Default: \code{prob.pop.threshold = 0}. See details for more info.}
+
+\item{percent}{Is the threshold a percentage? TRUE or FALSE.
+This argument is necessary to distinguish percentage from integer individual
+threshold (e.g. 70 percent or 70 individuals).
+Default: \code{percent = FALSE}.}
 
 \item{filename}{(optional) Name of the filtered tidy data frame file 
 written to the working directory (ending with \code{.tsv})
 Default: \code{filename = NULL}.}
 
-\item{strata}{(optional for data frame and PLINK files, 
-required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
-\code{INDIVIDUALS} and \code{STRATA}. With a 
-data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
-PLINK files, the \code{tfam} first 2 columns are used. 
-If a \code{strata} file is specified, the strata file will have
-precedence. The \code{STRATA} column can be any hierarchical grouping. 
-To create a strata file see \code{\link[stackr]{individuals2strata}}.
-Default: \code{strata = NULL}.}
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
+
+\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
+average quality, e.g. genotype with more than 2 alleles in diploid likely 
+sequencing errors or genotypes with poor genotype likelihood or coverage. 
+The blacklist has a minimum of 2 column headers (markers and individuals). 
+Markers can be 1 column (CHROM or LOCUS or POS), 
+a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
+all 3 (CHROM, LOCUS, POS). The markers columns must be designated: CHROM (character
+or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
+INDIVIDUALS (character) columns header. The blacklist must be in the working 
+directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
+with 'un' need to be changed to 1. 
+Default: \code{blacklist.genotype = NULL} for no blacklist of 
+genotypes to erase.}
 
 \item{whitelist.markers}{(optional) A whitelist containing CHROM (character
 or integer) and/or LOCUS (integer) and/or
@@ -74,19 +89,12 @@ Default \code{whitelist.markers = NULL} for no whitelist of markers.}
 markers present in the dataset be filtered out ? 
 Default: \code{monomorphic.out = TRUE}.}
 
-\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
-average quality, e.g. genotype with more than 2 alleles in diploid likely 
-sequencing errors or genotypes with poor genotype likelihood or coverage. 
-The blacklist as a minimum of 2 column headers (markers and individuals). 
-Markers can be 1 column (CHROM or LOCUS or POS), 
-a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
-all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
-or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
-INDIVIDUALS (character) columns header. The blacklist must be in the working 
-directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
-with 'un' need to be changed to 1. 
-Default: \code{blacklist.genotype = NULL} for no blacklist of 
-genotypes to erase.}
+\item{max.marker}{An optional integer useful to subsample marker number in 
+large PLINK file. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
+subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
+keep specific markers.
+Default: \code{max.marker = NULL}.}
 
 \item{snp.ld}{(optional) \strong{For VCF file only}. 
 SNP short distance linkage disequilibrium pruning. With anonymous markers from
@@ -96,21 +104,22 @@ choosing among these 3 options: \code{"random"} selection, \code{"first"} or
 disequilibrium pruning, see details below.
 Default: \code{snp.ld = NULL}.}
 
-\item{common.markers}{(optional) Logical. \code{common.markers = TRUE}, 
-will only keep markers in common (genotyped) between all the populations. 
-Default: \code{common.markers = FALSE}}
+\item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE}, 
+will only keep markers in common (genotyped) between all the populations.}
 
-\item{max.marker}{An optional integer useful to subsample marker number in 
-large PLINK file. e.g. if the data set 
-contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
-subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
-keep specific markers.
-Default: \code{max.marker = NULL}.}
-
-\item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the working directory
-(e.g. "blacklist.txt").
-Default: \code{blacklist.id = NULL}.}
+\item{strata}{(optional for data frame and PLINK files, 
+required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. With a 
+data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+PLINK files, the \code{tfam} first 2 columns are used. 
+If a \code{strata} file is specified, the strata file will have
+precedence. The \code{STRATA} column can be any hierarchical grouping. 
+To create a strata file see \code{\link[stackr]{individuals2strata}}.
+If you have already run 
+\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
+the strata file is similar to a stacks `population map file`, make sure you 
+have the required column names  (\code{INDIVIDUALS} and \code{STRATA}).
+Default: \code{strata = NULL}.}
 
 \item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
 case, the id of the pop.
@@ -133,7 +142,8 @@ Default: \code{pop.labels = NULL}. If you find this too complicated, there is al
 
 \item{pop.select}{(string, optional) Selected list of populations for 
 the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
-and \code{ONT} population samples (out of 20 pops).}
+and \code{ONT} population samples (out of 20 pops).
+Default: \code{pop.select = NULL}}
 }
 \value{
 With \code{interactive.filter = FALSE}, a list in the global environment,
@@ -180,10 +190,10 @@ Step 2. Choose the filtering approach and thresholds
 
 \strong{prob.pop.threshold}
 
-Used to my functions... then you've seen the \code{pop.num.threshold} here and there.
-\code{prob.pop.threshold}, is different because the number of populations 
-genotyped vary across markers, which make difficult the use 
-of \code{pop.num.threshold}. 
+If your a regular stackr user, you've seen the \code{pop.num.threshold}.
+\code{prob.pop.threshold}, is a bit different and requires more thinking,
+because the number of populations genotyped potentially vary across markers,
+which make difficult, sometimes, the use of \code{pop.num.threshold}. 
 e.g. If only 2 populations out of 10 are genotyped for a marker and you use 
 \code{pop.num.threshold = 0.6} this could lead to inconsistensis. Thus,
 it's easier to use the number of population you are willing to accept 
@@ -194,7 +204,7 @@ failling to conform to the threshold.
 turtle.ind <- filter_individual(
 data = "turtle.vcf",
 strata = "turtle.strata.tsv",
-approach = "pop",
+ind.approach = "pop",
 ind.thresholds = 50,
 percent = TRUE,
 prob.pop.threshold = 2,

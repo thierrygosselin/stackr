@@ -6,7 +6,7 @@
 \usage{
 filter_genotype_likelihood(data, interactive.filter = TRUE, strata = NULL,
   pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
-  approach = "haplotype", gl.ind.threshold = NULL,
+  gl.approach = "haplotype", gl.ind.threshold = NULL,
   gl.mean.threshold = NULL, gl.min.threshold = NULL,
   gl.diff.threshold = NULL, pop.threshold = NULL, percent = NULL,
   blacklist.id = NULL, blacklist.genotype = NULL,
@@ -14,11 +14,10 @@ filter_genotype_likelihood(data, interactive.filter = TRUE, strata = NULL,
   snp.ld = NULL, common.markers = FALSE, filename = NULL)
 }
 \arguments{
-\item{data}{vcf file or a data frame in long/tidy format.
-The function uses 
-\href{https://github.com/thierrygosselin/stackr}{stackr} 
-\code{\link[stackr]{read_long_tidy_wide}} and 
-\code{\link[stackr]{tidy_genomic_data}}.}
+\item{data}{8 options: vcf (to make vcf population ready, see details below),
+plink, stacks haplotype file, genind (library(adegenet)), 
+genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
+and a data frame in wide format. \emph{See details}.}
 
 \item{interactive.filter}{(optional, logical) Do you want the filtering session to 
 be interactive. With default: \code{interactive.filter == TRUE}, the user is 
@@ -33,6 +32,10 @@ PLINK files, the \code{tfam} first 2 columns are used.
 If a \code{strata} file is specified, the strata file will have
 precedence. The \code{STRATA} column can be any hierarchical grouping. 
 To create a strata file see \code{\link[stackr]{individuals2strata}}.
+If you have already run 
+\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
+the strata file is similar to a stacks `population map file`, make sure you 
+have the required column names  (\code{INDIVIDUALS} and \code{STRATA}).
 Default: \code{strata = NULL}.}
 
 \item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
@@ -56,12 +59,13 @@ Default: \code{pop.labels = NULL}. If you find this too complicated, there is al
 
 \item{pop.select}{(string, optional) Selected list of populations for 
 the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
-and \code{ONT} population samples (out of 20 pops).}
+and \code{ONT} population samples (out of 20 pops).
+Default: \code{pop.select = NULL}}
 
-\item{approach}{Character. By \code{approach = "SNP"} or 
-by \code{approach = "haplotype"}. 
+\item{gl.approach}{Character. By \code{gl.approach = "SNP"} or 
+by \code{gl.approach = "haplotype"}. 
 The function will consider the SNP or haplotype GL statistics to filter the marker. 
-Default: \code{approach = "haplotype"}.}
+Default: \code{gl.approach = "haplotype"}.}
 
 \item{gl.ind.threshold}{(Integer, optional if interactive session) 
 Threshold number of individual's genotype likelihood.}
@@ -93,10 +97,10 @@ Default: \code{blacklist.id = NULL}.}
 \item{blacklist.genotype}{(optional) Useful to erase genotype with below 
 average quality, e.g. genotype with more than 2 alleles in diploid likely 
 sequencing errors or genotypes with poor genotype likelihood or coverage. 
-The blacklist as a minimum of 2 column headers (markers and individuals). 
+The blacklist has a minimum of 2 column headers (markers and individuals). 
 Markers can be 1 column (CHROM or LOCUS or POS), 
 a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
-all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
+all 3 (CHROM, LOCUS, POS). The markers columns must be designated: CHROM (character
 or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
 INDIVIDUALS (character) columns header. The blacklist must be in the working 
 directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
@@ -131,9 +135,8 @@ choosing among these 3 options: \code{"random"} selection, \code{"first"} or
 disequilibrium pruning, see details below.
 Default: \code{snp.ld = NULL}.}
 
-\item{common.markers}{(optional) Logical. With \code{common.markers = TRUE},
-will only keep markers in common (genotyped) between all the populations.
-Default: \code{common.markers = FALSE}}
+\item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE}, 
+will only keep markers in common (genotyped) between all the populations.}
 
 \item{filename}{(optional) Name of the filtered data set, 
 written to the working directory.}
@@ -190,7 +193,7 @@ If I have 10 populations, the 3 examples below will give the same output results
 beluga.vcf.tidy.gl <- filter_genotype_likelihood(
 data = "beluga.vcf", 
 interactive.filter = TRUE,
-approach = "haplotype", 
+gl.approach = "haplotype", 
 gl.ind.threshold = 0,
 gl.mean.threshold = 10, 
 gl.min.threshold = 0, 
@@ -201,7 +204,7 @@ percent = TRUE)
 beluga.vcf.tidy.gl <- filter_genotype_likelihood(
 data = "beluga.vcf", 
 interactive.filter = FALSE,
-approach = "haplotype",
+gl.approach = "haplotype",
 gl.ind.threshold = 0,
 gl.mean.threshold = 10, 
 gl.min.threshold = 0, 
@@ -211,7 +214,7 @@ percent = FALSE)
 
 beluga.vcf.tidy.gl <- filter_genotype_likelihood(
 data = "beluga.vcf", 
-approach = "haplotype", 
+gl.approach = "haplotype", 
 gl.ind.threshold = 0,
 gl.mean.threshold = 10, 
 gl.min.threshold = 0, 

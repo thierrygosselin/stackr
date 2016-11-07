@@ -4,30 +4,221 @@
 \alias{filter_het}
 \title{Heterozygosity filter}
 \usage{
-filter_het(data, approach = "haplotype", het.threshold, het.diff.threshold,
-  pop.threshold, percent, filename)
+filter_het(data, interactive.filter = TRUE,
+  ind.heterozygosity.threshold = 1, het.approach = c("haplotype",
+  "overall"), het.threshold = 1, het.dif.threshold = 1,
+  outlier.pop.threshold = 1, helper.tables = FALSE, filename = NULL,
+  vcf.metadata = FALSE, blacklist.id = NULL, blacklist.genotype = NULL,
+  whitelist.markers = NULL, monomorphic.out = TRUE, max.marker = NULL,
+  snp.ld = NULL, common.markers = FALSE, strata = NULL,
+  pop.levels = NULL, pop.labels = NULL, pop.select = NULL)
 }
 \arguments{
-\item{data}{A data frame object or file (using ".tsv")
-of class sumstats or a tidy VCF summarised.}
+\item{data}{8 options: vcf (to make vcf population ready, see details below),
+plink, stacks haplotype file, genind (library(adegenet)), 
+genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
+and a data frame in wide format. \emph{See details}.}
 
-\item{approach}{Character. By \code{"SNP"} or by \code{"haplotype"}. 
-The function will consider the SNP or haplotype MAF statistics to filter the marker. 
-Default by \code{"haplotype"}.}
+\item{interactive.filter}{(optional, logical) Do you want the filtering session to 
+be interactive. With the default, the user is asked to see figures of 
+distribution before making decisions for filtering with heterozygosity statistics.
+Default: \code{interactive.filter == TRUE}.}
 
-\item{het.threshold}{Number (0 - 0.5)}
+\item{ind.heterozygosity.threshold}{(double, optional) Proportion. 
+Blacklist individuals based on the mean observed heterozygosity.
+The value for the threshold is a proportion (0 to 1, where 1 will turn off 
+the filter).
+Individuals with mean heterozygosity higher (>) than the threshold
+will be blacklisted.
+Default: \code{ind.heterozygosity.threshold = 1}.}
 
-\item{het.diff.threshold}{Number (0 - 1).}
+\item{het.approach}{(Character string). First value, \code{"SNP"} or
+\code{"haplotype"}. The haplotype approach considers the statistic
+consistency on the read (locus/haplotype). The major difference: 
+the haplotype approach results in blacklisting the entire locus/haplotype
+with all the SNPs on the read.
+With the SNP approach, SNPs are independently analyzed and blacklisted.
+The second value, will use the statistics by population \code{"pop"} or 
+will consider the data overall, as 1 large group \code{"overall"}.
+Default: \code{het.approach = c("SNP", "overall")}.}
 
-\item{pop.threshold}{Fixed number of pop required to keep the locus.}
+\item{het.threshold}{Number Biallelic markers usually max 0.5. But departure
+from this value is common. The higher the proportion threshold, the more relaxed
+the filter is. With default there is no filtering.
+Default: \code{het.threshold = 1}.}
 
-\item{percent}{Is the threshold a percentage ? TRUE or FALSE.}
+\item{het.dif.threshold}{Number (0 - 1). For \code{het.approach = "haplotype"} only.
+You can set a threshold for the difference in het along your read. 
+Set the number your willing to tolerate on the same read/haplotype. 
+e.g. if you have 2 SNP on a read/haplotype and on as a het of 0.9 and the other
+0.1 and you set \code{het.dif.threshold = 0.3}, this markers will be blacklisted.
+You should strive to have similar statistics along short read like RAD.
+The higher the proportion threshold, the more relaxed the filter is.
+With default, there is no filtering and all the range of differences are allowed.
+Default: \code{het.dif.threshold = 1}.}
 
-\item{filename}{Name of the file written to the working directory (optional).}
+\item{outlier.pop.threshold}{(integer, optional) Useful to incorporate problematic 
+populations dragging down polymorphism discovery, but still wanted for analysis.
+Use this threshold to allow variance in the number of populations passing 
+the thresholds described above.
+e.g. with \code{outlier.pop.threshold = 2},
+you tolerate a maximum of 2 populations failing the 
+\code{het.threshold} and/or \code{het.dif.threshold}.
+Manage outlier markers, individuals and populations 
+downstream with blacklists and whitelists produced by the function.
+Default: \code{outlier.pop.threshold = 1}. See details for more info.}
+
+\item{helper.tables}{(logical) Output tables that show
+the number of markers blacklisted or whitelisted based on a series of 
+automatic thresholds to guide decisions. When \code{interactive.filter == TRUE},
+helper tables are written to the directory.
+Default: \code{helper.tables = FALSE}.}
+
+\item{filename}{Name of the tidy data set written to the working directory (optional).
+e.g. "tasmanian.devil.tidy.het.tsv". 
+Default: \code{filename = NULL}}
+
+\item{vcf.metadata}{(optional, logical) For the VCF file, with \code{vcf.metadata = FALSE}, 
+only the genotype information is kept.
+With default: \code{vcf.metadata = TRUE}, the metadata contained in the 
+\code{FORMAT} field will be kept in the tidy data file.}
+
+\item{blacklist.id}{(optional) A blacklist with individual ID and
+a column header 'INDIVIDUALS'. The blacklist is in the working directory
+(e.g. "blacklist.txt").
+Default: \code{blacklist.id = NULL}.}
+
+\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
+average quality, e.g. genotype with more than 2 alleles in diploid likely 
+sequencing errors or genotypes with poor genotype likelihood or coverage. 
+The blacklist has a minimum of 2 column headers (markers and individuals). 
+Markers can be 1 column (CHROM or LOCUS or POS), 
+a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
+all 3 (CHROM, LOCUS, POS). The markers columns must be designated: CHROM (character
+or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
+INDIVIDUALS (character) columns header. The blacklist must be in the working 
+directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
+with 'un' need to be changed to 1. 
+Default: \code{blacklist.genotype = NULL} for no blacklist of 
+genotypes to erase.}
+
+\item{whitelist.markers}{(optional) A whitelist containing CHROM (character
+or integer) and/or LOCUS (integer) and/or
+POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
+The whitelist is in the working directory (e.g. "whitelist.txt").
+de novo CHROM column with 'un' need to be changed to 1. 
+In the VCF, the column ID is the LOCUS identification.
+Default \code{whitelist.markers = NULL} for no whitelist of markers.}
+
+\item{monomorphic.out}{(optional) Should the monomorphic 
+markers present in the dataset be filtered out ? 
+Default: \code{monomorphic.out = TRUE}.}
+
+\item{max.marker}{An optional integer useful to subsample marker number in 
+large PLINK file. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
+subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
+keep specific markers.
+Default: \code{max.marker = NULL}.}
+
+\item{snp.ld}{(optional) \strong{For VCF file only}. 
+SNP short distance linkage disequilibrium pruning. With anonymous markers from
+RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
+choosing among these 3 options: \code{"random"} selection, \code{"first"} or
+\code{"last"} SNP on the same short read/haplotype. For long distance linkage
+disequilibrium pruning, see details below.
+Default: \code{snp.ld = NULL}.}
+
+\item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE}, 
+will only keep markers in common (genotyped) between all the populations.}
+
+\item{strata}{(optional for data frame and PLINK files, 
+required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+\code{INDIVIDUALS} and \code{STRATA}. With a 
+data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
+PLINK files, the \code{tfam} first 2 columns are used. 
+If a \code{strata} file is specified, the strata file will have
+precedence. The \code{STRATA} column can be any hierarchical grouping. 
+To create a strata file see \code{\link[stackr]{individuals2strata}}.
+If you have already run 
+\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
+the strata file is similar to a stacks `population map file`, make sure you 
+have the required column names  (\code{INDIVIDUALS} and \code{STRATA}).
+Default: \code{strata = NULL}.}
+
+\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
+case, the id of the pop.
+Use this argument to have the pop ordered your way instead of the default 
+alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
+instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+Default: \code{pop.levels = NULL}.}
+
+\item{pop.labels}{(optional, string) Use this argument to rename/relabel
+your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
+into a new pop called \code{"NEW"}:
+(1) First, define the levels for your pop with \code{pop.levels} argument: 
+\code{pop.levels = c("QUE", "ONT", "ALB")}. 
+(2) then, use \code{pop.labels} argument: 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+To rename \code{"QUE"} to \code{"TAS"}:
+\code{pop.labels = c("TAS", "ONT", "ALB")}.
+Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
+\code{strata} argument that can do the same thing, see below.}
+
+\item{pop.select}{(string, optional) Selected list of populations for 
+the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
+and \code{ONT} population samples (out of 20 pops).
+Default: \code{pop.select = NULL}}
 }
 \description{
-Observed heterozygosity filter from a sumstats prepared file
-or a tidy VCF file.
+Observed Heterozygosity based filtering. 
+The filter arguments of \code{filter_het} allows you to test rapidly,
+with the use of blacklists of markers and individuals and whitelists of markers,
+if departure from realistic expectations of heterozygosity statistics 
+are a problem in downstream analysis.
+\enumerate{
+\item Highlight outliers individual's heterozygosity for a quick
+diagnostic of mixed samples. 
+
+\item The observed heterozygosity in the dataset: an assembly artefact, 
+a genotyping problem, a problem of population groupings 
+or a reliable signal of biological polymorphism? 
+Detect assembly artifact or genotyping problem (e.g. under/over-splitting loci)
+by looking at marker's observed heterozygosity statistics by population 
+or overall.
+
+\item Use haplotype or snp level statistics. When the haplotype approach
+is selected, consistencies of heterozygosity statistics along the read are 
+highlighted.
+
+\item Interactive approach help by visualizing the data before making
+a decision on thresholds.
+}
+}
+\details{
+\strong{Interactive version}
+
+There are 4 steps in the interactive version to visualize and filter
+the data based heterozygosity statistics:
+
+Step 1. Individual's heterozygosity: outliers that might represent mixed samples
+Step 2. Blacklist outliers based on a proportion threshold of mean heterozygosity
+Step 3. Observed heterozygosity statistics per populations and overall
+Step 4: Blacklist markers based on observed heterozygosity
+
+
+
+\strong{outlier.pop.threshold}
+
+If your a regular stackr user, you've seen the \code{pop.num.threshold}.
+\code{outlier.pop.threshold}, is different and requires more thinking,
+because the number of populations genotyped potentially vary across markers,
+which makes the use of \code{pop.num.threshold} less optimal.
+e.g. If only 4 populations out of 10 are genotyped, for a marker you want 
+to keep, using \code{pop.num.threshold = 0.6} will lead to unwanted results
+and inconsistensis.
+It's easier to tolerate outliers with this new approach: 
+\code{outlier.pop.threshold = 2}.
 }
 \seealso{
 \link{plot_density_distribution_het}
