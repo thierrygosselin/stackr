@@ -15,7 +15,7 @@ vcf2betadiv(data, output, filename = NULL, blacklist.id = NULL,
   split.number = 100, verbose = FALSE, parallel.core = detectCores() - 1)
 }
 \arguments{
-\item{data}{7 options: vcf (to make vcf population ready, see details below),
+\item{data}{8 options: vcf (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 and a data frame in wide format. \emph{See details}.}

@@ -19,6 +19,18 @@ if (getRversion() >= "2.15.1") {
       "GL_DIFF", "ALLELE_ALT_DEPTH_NEW", "ALLELE_REF_DEPTH_NEW", "ALT_NEW", 
       "CHANGE", "n.al.pop", "n.al.tot", "TOTAL_READ", "Missingness",
       "MISSING_GENOTYPE", "INDIVIDUALS_NUMBER", "PERC", "Axis.1", "Axis.2", "V1",
-      "Axis.3", "Axis.4", "ids", "GQ", "PL", "ARTIFACTS")
+      "Axis.3", "Axis.4", "ids", "GQ", "PL", "ARTIFACTS", "GENOTYPED", 
+      "IND_THRESHOLD", "N_IND", "PERCENT", "POP_GENOTYPED", "PROB_POP", "LOCUS",
+      "HET_DIFF", "HET_O", "HET_MAX", "GT", "GL", "INDIVIDUALS", "POP_ID", "N",
+      "HET_O", "HOM_O", "HET_E", "HOM_E", "FREQ_ALT", "FREQ_REF", 
+      "GLOBAL_MAF", "PP", "PQ", "QQ", "AND", "OR", "filters.parameters",
+      "het.global.summary", "het.global.threshold",
+      "plot.distribution.het.local", "violinplot.het.global",
+      "violinplot.het.local", "HET_GROUP", "HET_MIN",
+      "HET_THRESHOLD", "POP_THRESHOLD", "PROP", "0.4", "0.9","DIF_0.1", "DIF_0.9", 
+      "DIF_OUTLIERS", "DIF_THRESHOLD", "HET_DIF", "HET_MEAN", "MAX_0.4", 
+      "MAX_0.9", "MAX_DIF_OUTLIERS", "MAX_DIF_THRESHOLD", "MAX_OUTLIERS", 
+      "MAX_THRESHOLD", "OUTLIERS", "THRESHOLD", "WHITELIST", "het.dif.threshold"
+    )
   )
 }

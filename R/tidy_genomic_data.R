@@ -11,7 +11,7 @@
 #' and \href{https://github.com/thierrygosselin/assigner}{assigner}
 #' and might be of interest for users.
 
-#' @param data 7 options: vcf (to make vcf population ready, see details below),
+#' @param data 8 options: vcf (to make vcf population ready, see details below),
 #' plink, stacks haplotype file, genind (library(adegenet)), 
 #' genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 #' and a data frame in wide format. \emph{See details}.
@@ -149,7 +149,7 @@
 
 #' @details 
 #' \strong{Long distance SNP linkage disequilibrium pruning}
-#' #' If you have markers position on a genome or a linkage map,
+#' If you have markers position on a genome or a linkage map,
 #' you can go further in removing linked markers by using \pkg{SNPRelate} or
 #' \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK}, \emph{linkage 
 #' disequilibrium based SNP pruning} option.
@@ -202,13 +202,21 @@
 #' \code{.tped} use \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK} 
 #' with \code{--recode transpose},
 #' 
-#' \item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
+#' \item \code{\link[adegenet]{genind}} and \code{\link[adegenet]{genlight}} 
+#' object from \code{\link[adegenet]{adegenet}}.
 #' 
 #' \item \code{\link[strataG]{gtypes}} object from \code{\link[strataG]{strataG}}.
 #' 
 #' \item genepop data file (e.g. \code{data = "kiwi_data.gen"}). Here, the function can only use
 #' alleles encoded with 3 digits.
 #' }
+#' 
+#' 
+#' \strong{GATK VCF files:} Some VCF have an \code{ID} column filled with \code{.},
+#' the LOCUS information is all contained in the \code{CHROM} column. To make it
+#' work with \href{https://github.com/thierrygosselin/stackr}{stackr}, 
+#' the \code{ID} column is filled with the \code{CHROM} column info.
+
 
 #' @return The output in your global environment is a tidy data frame. 
 #' If \code{filename} is provided, the tidy data frame is also 
@@ -321,7 +329,6 @@ tidy_genomic_data <- function(
     if (length(pop.labels) != length(pop.levels)) stop("pop.labels and pop.levels must have the same length (number of groups)")
     pop.labels <- stringi::stri_replace_all_fixed(pop.labels, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
-  
   
   if (!is.null(pop.select)) {
     pop.select <- stringi::stri_replace_all_fixed(pop.select, pattern = " ", replacement = "_", vectorize_all = FALSE)
@@ -436,10 +443,15 @@ tidy_genomic_data <- function(
       tibble::as_data_frame() %>% 
       dplyr::rename(LOCUS = ID, CHROM = `#CHROM`) %>%
       dplyr::mutate(
-        CHROM = stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1"),
-        POS = as.character(POS),
-        LOCUS = as.character(LOCUS)
-      )
+        CHROM = stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1")
+        ) %>% 
+      dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character)
+    
+    # GATK VCF file sometimes have "." in the LOCUS column, replace with 1
+    if (length(unique(input$LOCUS)) <= 1) {
+      input$LOCUS <- input$CHROM
+        # dplyr::mutate(input, LOCUS = rep("1", n())) #test
+    }
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
@@ -1210,7 +1222,8 @@ tidy_genomic_data <- function(
       tibble::remove_rownames(df = .) %>% 
       dplyr::rename(INDIVIDUALS = ids, POP_ID = strata) %>% 
       dplyr::mutate_all(.tbl = ., .funs = as.character) %>% 
-      tidyr::gather(data = ., key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID))
+      tidyr::gather(data = ., key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID)) %>% 
+      dplyr::mutate(GT = replace(GT, which(is.na(GT)), "000000"))
     
     
     # remove unwanted sep in id and pop.id names

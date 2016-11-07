@@ -12,7 +12,7 @@ tidy_genomic_data(data, vcf.metadata = TRUE, whitelist.markers = NULL,
   strata = NULL, pop.select = NULL, filename = NULL, verbose = FALSE)
 }
 \arguments{
-\item{data}{7 options: vcf (to make vcf population ready, see details below),
+\item{data}{8 options: vcf (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 and a data frame in wide format. \emph{See details}.}
@@ -162,7 +162,7 @@ and might be of interest for users.
 }
 \details{
 \strong{Long distance SNP linkage disequilibrium pruning}
-#' If you have markers position on a genome or a linkage map,
+If you have markers position on a genome or a linkage map,
 you can go further in removing linked markers by using \pkg{SNPRelate} or
 \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK}, \emph{linkage 
 disequilibrium based SNP pruning} option.
@@ -214,13 +214,20 @@ to convert very large VCF file. For \code{.ped} file conversion to
 \code{.tped} use \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK} 
 with \code{--recode transpose},
 
-\item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
+\item \code{\link[adegenet]{genind}} and \code{\link[adegenet]{genlight}} 
+object from \code{\link[adegenet]{adegenet}}.
 
 \item \code{\link[strataG]{gtypes}} object from \code{\link[strataG]{strataG}}.
 
 \item genepop data file (e.g. \code{data = "kiwi_data.gen"}). Here, the function can only use
 alleles encoded with 3 digits.
 }
+
+
+\strong{GATK VCF files:} Some VCF have an \code{ID} column filled with \code{.},
+the LOCUS information is all contained in the \code{CHROM} column. To make it
+work with \href{https://github.com/thierrygosselin/stackr}{stackr}, 
+the \code{ID} column is filled with the \code{CHROM} column info.
 }
 \examples{
 \dontrun{

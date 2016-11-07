@@ -456,7 +456,7 @@ genomic_converter <- function(
         )
       } else {
         message(stringi::stri_join("IMPORTANT: you have > 20 000 markers (", marker.number, ")",
-                          "\nDo you want the more suitable genlight object instead of the current genind? (y/n):"))
+                                   "\nDo you want the more suitable genlight object instead of the current genind? (y/n):"))
         overide.genind <- as.character(readLines(n = 1))
         if (overide.genind == "y") {
           output <- stringi::stri_replace_all_fixed(
@@ -653,6 +653,24 @@ genomic_converter <- function(
   # not yet implemented, use vcf2dadi
   
   # outout results -------------------------------------------------------------
+  n.markers <- dplyr::n_distinct(input$MARKERS)
+  if (tibble::has_name(input, "CHROM")) {
+    n.chromosome <- dplyr::n_distinct(input$CHROM)
+  } else {
+    n.chromosome <- "no chromosome info"
+  }
+  n.individuals <- dplyr::n_distinct(input$INDIVIDUALS)
+  n.pop <- dplyr::n_distinct(input$POP_ID)
+  
+  cat("############################### RESULTS ###############################\n")
+  message("Tidy data in your global environment")
+  message("Depending on output selected, check the list in your global environment and your working directory")
+  message(stringi::stri_join("Data format of input: ", data.type))
+  message(stringi::stri_join("Biallelic data ? ", biallelic))
+  message(stringi::stri_join("Number of markers: ", n.markers))
+  message(stringi::stri_join("Number of chromosome: ", n.chromosome))
+  message(stringi::stri_join("Number of individuals ", n.individuals))
+  message(stringi::stri_join("Number of populations ", n.pop))
   timing <- proc.time() - timing
   message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
   cat("############################## completed ##############################\n")
