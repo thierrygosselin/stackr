@@ -112,7 +112,7 @@ New to pull request on github ? The process is very easy:
 GBS workflow
 ------------
 
-The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS](http://catchenlab.life.illinois.edu/stacks/) and other software. You can use the [STACKS](http://catchenlab.life.illinois.edu/stacks/) workflow [used in the Bernatchez lab](https://github.com/enormandeau/stacks_workflow). ![](vignettes/GBS_workflow.png)
+The **stackr** package fits currently at the end of the GBS workflow. Below, a flow chart using [STACKS](http://catchenlab.life.illinois.edu/stacks/) and other software. ![](vignettes/GBS_workflow.png)
 
 stackr workflow
 ---------------
