@@ -55,12 +55,18 @@ Prerequisite - Suggestions - Troubleshooting
 Vignettes and examples
 ----------------------
 
-From a browser: \* [installation problems](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd) \* [parallel computing during imputations](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) \* [vcf2dadi](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_vcf2dadi.Rmd) \* [haplo2genind](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_haplo2genind.Rmd) \* [Missing data visualization and analysis](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_missing_data_analysis.Rmd) Inside R:
+From a browser:
 
-``` r
-browseVignettes("stackr") # To browse vignettes
-vignette("vignette_vcf2dadi") # To open specific vignette
-```
+-   [installation problems](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
+-   [parallel computing during imputations](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd)
+-   [vcf2dadi](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_vcf2dadi.Rmd)
+-   [haplo2genind](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_haplo2genind.Rmd)
+-   [Missing data visualization and analysis](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_missing_data_analysis.Rmd) Inside R:
+
+    ``` r
+    browseVignettes("stackr") # To browse vignettes
+    vignette("vignette_vcf2dadi") # To open specific vignette
+    ```
 
 Vignettes are in development, check periodically for updates.
 
@@ -89,8 +95,6 @@ Roadmap of future developments:
 
 -   Until publication **stackr** will change rapidly (see contributions below for bug reports).
 -   Updated filters: more efficient, interactive and visualization included: *in progress*
--   Better integration with other GBS/RADseq approaches, beside [STACKS](http://catchenlab.life.illinois.edu/stacks/): *in progress*
--   Integrated converter function to input and output several file formats: *done*
 -   Workflow tutorial that links functions and points to specific vignettes to further explore some problems: *in progress*
 -   Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database.
 -   Use Shiny and ggvis when subplots or facets becomes available...
