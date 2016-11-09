@@ -79,10 +79,12 @@ Default: \code{helper.tables = FALSE}.}
 e.g. "tasmanian.devil.tidy.het.tsv". 
 Default: \code{filename = NULL}}
 
-\item{vcf.metadata}{(optional, logical) For the VCF file, with \code{vcf.metadata = FALSE}, 
-only the genotype information is kept.
+\item{vcf.metadata}{(optional, logical) For the VCF file, 
+with \code{vcf.metadata = FALSE}, only the genotype information is kept.
 With default: \code{vcf.metadata = TRUE}, the metadata contained in the 
-\code{FORMAT} field will be kept in the tidy data file.}
+\code{FORMAT} field will be kept in the tidy data file. Currently keeping only
+those metadata: \code{"DP", "AD", "GL", "PL"}. If you need different one, submit
+a request.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
 a column header 'INDIVIDUALS'. The blacklist is in the working directory

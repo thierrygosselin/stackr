@@ -36,7 +36,8 @@ Imports:
     methods,
     tidyverse,
     copula, 
-    gsl
+    gsl,
+    vcfR
 Suggests:
     pegas,
     hierfstat,

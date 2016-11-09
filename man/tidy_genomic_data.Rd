@@ -17,10 +17,12 @@ plink, stacks haplotype file, genind (library(adegenet)),
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 and a data frame in wide format. \emph{See details}.}
 
-\item{vcf.metadata}{(optional, logical) For the VCF file, with \code{vcf.metadata = FALSE}, 
-only the genotype information is kept.
+\item{vcf.metadata}{(optional, logical) For the VCF file, 
+with \code{vcf.metadata = FALSE}, only the genotype information is kept.
 With default: \code{vcf.metadata = TRUE}, the metadata contained in the 
-\code{FORMAT} field will be kept in the tidy data file.}
+\code{FORMAT} field will be kept in the tidy data file. Currently keeping only
+those metadata: \code{"DP", "AD", "GL", "PL"}. If you need different one, submit
+a request.}
 
 \item{whitelist.markers}{(optional) A whitelist containing CHROM (character
 or integer) and/or LOCUS (integer) and/or

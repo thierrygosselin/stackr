@@ -30,7 +30,8 @@ if (getRversion() >= "2.15.1") {
       "HET_THRESHOLD", "POP_THRESHOLD", "PROP", "0.4", "0.9","DIF_0.1", "DIF_0.9", 
       "DIF_OUTLIERS", "DIF_THRESHOLD", "HET_DIF", "HET_MEAN", "MAX_0.4", 
       "MAX_0.9", "MAX_DIF_OUTLIERS", "MAX_DIF_THRESHOLD", "MAX_OUTLIERS", 
-      "MAX_THRESHOLD", "OUTLIERS", "THRESHOLD", "WHITELIST", "het.dif.threshold"
+      "MAX_THRESHOLD", "OUTLIERS", "THRESHOLD", "WHITELIST", "het.dif.threshold",
+      "ALT2", "REF2"
     )
   )
 }

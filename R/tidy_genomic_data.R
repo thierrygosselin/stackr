@@ -16,10 +16,12 @@
 #' genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 #' and a data frame in wide format. \emph{See details}.
 
-#' @param vcf.metadata (optional, logical) For the VCF file, with \code{vcf.metadata = FALSE}, 
-#' only the genotype information is kept.
+#' @param vcf.metadata (optional, logical) For the VCF file, 
+#' with \code{vcf.metadata = FALSE}, only the genotype information is kept.
 #' With default: \code{vcf.metadata = TRUE}, the metadata contained in the 
-#' \code{FORMAT} field will be kept in the tidy data file. 
+#' \code{FORMAT} field will be kept in the tidy data file. Currently keeping only
+#' those metadata: \code{"DP", "AD", "GL", "PL"}. If you need different one, submit
+#' a request.
 
 #' @param whitelist.markers (optional) A whitelist containing CHROM (character
 #' or integer) and/or LOCUS (integer) and/or
@@ -236,7 +238,7 @@
 #' @importFrom tidyr spread gather unite separate
 #' @importFrom utils count.fields
 #' @importFrom readr write_tsv read_tsv
-
+#' @importFrom vcfR read.vcfR extract.gt vcf_field_names
 
 #' @examples
 #' \dontrun{
@@ -424,33 +426,87 @@ tidy_genomic_data <- function(
   # }
   
   
-  # Import VCF-------------------------------------------------------------------
+  # Import VCF------------------------------------------------------------------
   if (data.type == "vcf.file") { # VCF
-    message("Importing the VCF...")
+    message("Importing and tidying the VCF...")
     
-    input <- data.table::fread(
-      input = data,
-      sep = "\t",
-      stringsAsFactors = FALSE, 
-      header = TRUE,
-      # Automatically filter with blacklist of id
-      # drop = c("QUAL", "FILTER", "INFO", blacklist.id$INDIVIDUALS),
-      drop = c("QUAL", "FILTER", "INFO"),
-      skip = "CHROM",
-      showProgress = TRUE,
-      verbose = FALSE
-    ) %>% 
-      tibble::as_data_frame() %>% 
-      dplyr::rename(LOCUS = ID, CHROM = `#CHROM`) %>%
+    # import vcf
+    suppressMessages(
+      vcf.data <- vcfR::read.vcfR(
+        file = data,
+        verbose = FALSE
+      )
+    )
+    
+    # change names of columns and CHROM column modif
+    input <- tibble::as_data_frame(vcf.data@fix) %>%
+      dplyr::select(-QUAL, -FILTER, -INFO) %>%
+      dplyr::rename(LOCUS = ID) %>% 
       dplyr::mutate(
         CHROM = stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1")
-        ) %>% 
-      dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character)
+      )
     
     # GATK VCF file sometimes have "." in the LOCUS column, replace with 1
     if (length(unique(input$LOCUS)) <= 1) {
       input$LOCUS <- input$CHROM
-        # dplyr::mutate(input, LOCUS = rep("1", n())) #test
+    }
+    
+    # Isolate the fix section of vcf
+    input <- input %>% 
+      dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>% 
+      tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
+    
+    
+    #function to parse the format field and tidy the results
+    parse_genomic <- function(x, gather.data = FALSE) {
+      format.name <- x
+      message(paste("Parsing and tidying: ", format.name))
+      x <- tibble::as_data_frame(vcfR::extract.gt(x = vcf.data, element = x))
+      
+      if (gather.data) {
+        x <- dplyr::mutate(x, ID = seq(1, n()))
+        x <- data.table::melt.data.table(
+          data = data.table::as.data.table(x), 
+          id.vars = c("ID"), 
+          variable.name = "INDIVIDUALS",
+          variable.factor = FALSE,
+          value.name = format.name
+        ) %>% 
+          tibble::as_data_frame() %>% 
+          dplyr::select(-ID, -INDIVIDUALS)
+      }
+      return(x)
+    }
+    
+    # GT field only
+    input <- dplyr::bind_cols(
+      input,
+      purrr::map(.x = list("GT"), parse_genomic) %>% 
+        dplyr::bind_cols(.)
+    )
+    input <- data.table::melt.data.table(
+      data = data.table::as.data.table(input), 
+      id.vars = c("MARKERS", "CHROM", "LOCUS", "POS", "REF", "ALT"), 
+      variable.name = "INDIVIDUALS",
+      variable.factor = FALSE,
+      value.name = "GT"
+    ) %>% 
+      tibble::as_data_frame()
+    
+    # metadata
+    if (vcf.metadata) {
+      message("Keeping vcf metadata: yes")
+      # detect FORMAT fields available
+      have <- vcfR::vcf_field_names(vcf.data, tag = "FORMAT")$ID
+      want <- c("DP", "AD", "GL", "PL")
+      parse.format.list <- purrr::keep(.x = have, .p = have %in% want)
+      
+      input <- bind_cols(
+        input, 
+        purrr::map(parse.format.list, parse_genomic, gather.data = TRUE) %>% 
+          dplyr::bind_cols(.))
+    } else {
+      message("Keeping vcf metadata: no")
     }
     
     # Filter with whitelist of markers
@@ -458,29 +514,15 @@ tidy_genomic_data <- function(
       input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
     
-    # # Detect the format fields
-    # format.headers <- unlist(stringi::stri_split_fixed(str = input$FORMAT[1], pattern = ":"))
-    # input <- input %>% dplyr::select(-FORMAT) # no longer needed
+    # Clean the individuals names
+    input$INDIVIDUALS <- stringi::stri_replace_all_fixed(
+      str = input$INDIVIDUALS, 
+      pattern = c("_", ":"), 
+      replacement = c("-", "-"), 
+      vectorize_all = FALSE
+    )
     
-    # Tidying the VCF to make it easy to work on the data for conversion
-    message("Making the VCF population wise")
-    input <- data.table::melt.data.table(
-      data = data.table::as.data.table(input), 
-      id.vars = c("CHROM", "LOCUS", "POS", "REF", "ALT", "FORMAT"), 
-      variable.name = "INDIVIDUALS",
-      variable.factor = FALSE,
-      value.name = "FORMAT_ID"
-    ) %>% 
-      tibble::as_data_frame() %>% 
-      dplyr::mutate(
-        INDIVIDUALS = stringi::stri_replace_all_fixed(
-          str = INDIVIDUALS, 
-          pattern = c("_", ":"), 
-          replacement = c("-", "-"), 
-          vectorize_all = FALSE)
-      )
-    
-    # filter blacklisted individuals
+    # Filter blacklisted individuals
     if (!is.null(blacklist.id)) {
       blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = blacklist.id$INDIVIDUALS, 
@@ -488,11 +530,12 @@ tidy_genomic_data <- function(
         replacement = c("-", "-"), 
         vectorize_all = FALSE
       )
-      
-      input <- dplyr::filter(.data = input, !INDIVIDUALS %in% blacklist.id$INDIVIDUALS)
+      input <- dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS")
+      n_distinct(input$INDIVIDUALS)
     }
     
-    # population levels and strata
+    # Population levels and strata
+    message("Making the vcf population-wise...")
     strata.df$INDIVIDUALS <- stringi::stri_replace_all_fixed(
       str = strata.df$INDIVIDUALS, 
       pattern = c("_", ":"), 
@@ -502,7 +545,7 @@ tidy_genomic_data <- function(
     
     input <- dplyr::left_join(x = input, y = strata.df, by = "INDIVIDUALS")
     
-    # using pop.levels and pop.labels info if present
+    # Using pop.levels and pop.labels info if present
     input <- change_pop_names(data = input, pop.levels = pop.levels, pop.labels = pop.labels)
     
     # Pop select
@@ -511,29 +554,14 @@ tidy_genomic_data <- function(
       input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
       input$POP_ID <- droplevels(input$POP_ID)
     }
-    
-    # Tidy VCF
-    message("Tidying the vcf...")
-    
-    # Function to separate FORMAT field
-    separate_format <- function (data){
-      format.fields <- stringi::stri_split_fixed(str = unique(data$FORMAT), pattern = ":")[[1]]
-      tidyr::separate(
-        data = data, 
-        col = FORMAT_ID, 
-        into = format.fields,
-        sep = ":", 
-        extra = "drop", 
-        remove = TRUE)
-    }
-    
-    input <- split(x = input, f = input$FORMAT) %>% 
-      purrr::map(., separate_format) %>% 
-      dplyr::bind_rows(.)
-    
+
+
+    # check, parse and cleane FORMAT columns
     if (vcf.metadata) {
-      # detect if several format fields
-      format.fields <- unique(unlist(stringi::stri_split_fixed(str = unique(input$FORMAT), pattern = ":")))
+      # Detect the columns that need a check, parsing and cleaning
+      have <- colnames(input)
+      want <- c("DP", "AD", "GL", "PL")
+      clean.columns <- purrr::keep(.x = have, .p = have %in% want)
       
       # Fast cleaning columns
       replace_by_na <- function(data) {
@@ -542,9 +570,10 @@ tidy_genomic_data <- function(
       
       input <-  mutate_at(
         .tbl = input, 
-        .cols = format.fields, 
+        .cols = clean.columns, 
         .funs =  replace_by_na
       )
+      
       # Cleaning AD (ALLELES_DEPTH)
       if (tibble::has_name(input, "AD")) {
         # if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "AD", omit_no_match = TRUE))) > 0) {
@@ -569,7 +598,7 @@ tidy_genomic_data <- function(
           dplyr::mutate(
             READ_DEPTH = dplyr::if_else(GT == "./.", as.numeric(NA_character_), as.numeric(READ_DEPTH))
           )
-      # READ_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all = FALSE))),
+        # READ_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all = FALSE))),
       }
       
       
@@ -587,10 +616,10 @@ tidy_genomic_data <- function(
       
       # GL cleaning
       if (tibble::has_name(input, "GL")) {
-      # if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "GL", omit_no_match = TRUE))) > 0) {
-        message("GL column: Genotype Likelihood")
+        message("GL column: cleaning Genotype Likelihood column")
         input <- input %>% 
-          dplyr::mutate( 
+          dplyr::mutate(
+            GL = dplyr::if_else(GT == "./.", NA_character_, GL),
             GL = suppressWarnings(as.numeric(stringi::stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all = FALSE)))
           )
       } # end cleaning GL column
@@ -601,46 +630,43 @@ tidy_genomic_data <- function(
         input <- dplyr::mutate(
           input, 
           GQ = dplyr::if_else(GT == "./.", as.numeric(NA_character_), as.numeric(GQ))
-          )
+        )
       }
-      
-      # remove FORMAT column
-      input <- dplyr::select(input, -FORMAT)
-    } else {
-      input <- input %>% 
-        dplyr::select(CHROM, LOCUS, POS, REF, ALT, POP_ID, INDIVIDUALS, GT)
-    }# end metadata section
-    
+      # test <- input %>% filter(GT == "./.")
+      # range(test$GL)
+    }# end cleaning columns
+
     # recoding genotype and creating a new column combining CHROM, LOCUS and POS 
     input <- input %>%
-      tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE) %>%
       dplyr::mutate(
-        REF = stri_replace_all_fixed(
+        REF2 = stri_replace_all_fixed(
           str = REF, 
           pattern = c("A", "C", "G", "T"), 
           replacement = c("001", "002", "003", "004"), 
           vectorize_all = FALSE
         ), # replace nucleotide with numbers
-        ALT = stringi::stri_replace_all_fixed(
+        ALT2 = stringi::stri_replace_all_fixed(
           str = ALT, pattern = c("A", "C", "G", "T"), 
           replacement = c("001", "002", "003", "004"), 
           vectorize_all = FALSE
         ),# replace nucleotide with numbers
+        # Replace phased info to the regular unphased GT, not useful here
         GT = stringi::stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
         GT_VCF = GT,
-        GT = ifelse(GT == "0/0", stringi::stri_join(REF, REF, sep = ""),
-                    ifelse(GT == "1/1", stringi::stri_join(ALT, ALT, sep = ""),
-                           ifelse(GT == "0/1", stringi::stri_join(REF, ALT, sep = ""),
-                                  ifelse(GT == "1/0", stringi::stri_join(ALT, REF, sep = ""), "000000")
-                           )
-                    )
-        )
+        # Experimental (for genlight object)
+        GT_BIN = stringi::stri_replace_all_fixed(
+          str = GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."),
+          replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE
+          ),
+        GT = dplyr::if_else(GT == "0/0", stringi::stri_join(REF2, REF2, sep = ""),
+                            dplyr::if_else(GT == "1/1", stringi::stri_join(ALT2, ALT2, sep = ""),
+                                           dplyr::if_else(GT == "0/1", stringi::stri_join(REF2, ALT2, sep = ""),
+                                                          dplyr::if_else(GT == "1/0", stringi::stri_join(ALT2, REF2, sep = ""),
+                                                                         dplyr::if_else(GT == "./.", "000000", GT)))))
       ) %>% 
+      dplyr::select(-REF2, -ALT2) %>% 
       tibble::as_data_frame()
-    
-    # Experimental (for genlight object)
-    input$GT_BIN <- stringi::stri_replace_all_fixed(str = input$GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."), replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE)
-    
+
     # re-computing the REF/ALT allele
     if (!is.null(pop.select) || !is.null(blacklist.id)) {
       message("Adjusting REF/ALT alleles to account for filters...")
@@ -1518,3 +1544,4 @@ tidy_genomic_data <- function(
   res <- input
   return(res)
 } # tidy genomic data
+
