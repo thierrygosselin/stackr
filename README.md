@@ -9,22 +9,24 @@ stackr: an R package for the analysis of GBS/RADseq data
 
 This is the development page of the **stackr**, if you want to help, see [contributions section](https://github.com/thierrygosselin/stackr#contributions)
 
-Use stackr to: import, explore, manipulate, filter, impute, visualize and export your GBS/RADseq data
+Use stackr to: import, explore, manipulate, visualize, filter, impute and export your GBS/RADseq data
 -----------------------------------------------------------------------------------------------------
 
--   **Import/Export** your GBS/RADseq data with the various supported genomic file formats: *tidy*, *wide*, *VCF*, *PLINK* , *genepop*, *genind*, *genlight*, *hierfstat*, *gtypes*, *betadiv*, *dadi* and the haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/). Easy integration with other software or R packages like [adegenet](https://github.com/thibautjombart/adegenet), [strataG](https://github.com/EricArcher/strataG), [hierfstat](https://github.com/jgx65/hierfstat), [pegas](https://github.com/emmanuelparadis/pegas), [poppr](https://github.com/grunwaldlab/poppr) and [assigner](https://github.com/thierrygosselin/assigner). Conversion functions are integrated with important filters, blacklist and whitelist.
-
--   **Explore** and **filter** important variables caracteristics and statistics:
-    -   missing data,
+-   **Import/Export** various supported genomic file formats:
+    -   *VCF*, *PLINK* , *genlight*, *genind*, *genepop*, *hierfstat*, *gtypes*, *betadiv*, *dadi*, *tidy*, *wide* and the haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/).
+    -   easy integration with other software or R packages like [adegenet](https://github.com/thibautjombart/adegenet), [strataG](https://github.com/EricArcher/strataG), [hierfstat](https://github.com/jgx65/hierfstat), [pegas](https://github.com/emmanuelparadis/pegas), [poppr](https://github.com/grunwaldlab/poppr) and [assigner](https://github.com/thierrygosselin/assigner).
+    -   conversion functions are integrated with important filters, blacklist and whitelist.
+-   **Explore** and **filter** important variables caracteristics and statistics. Most genomic analysis look for patterns and trends with various statistics. Bias, noise and outliers can have bounded influence on estimators and interfere with polymorphism discovery. Avoid bad data exploration and control the impact of filters on your downstream genetic analysis:
+    -   alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways.
+    -   visualize patterns of missing data,
     -   read depth (coverage) of alleles and genotypes,
     -   genotype likelihood,
     -   genotyped individuals and populations,
     -   minor allele frequency (local and global MAF),
-    -   observed heterozygosity (Het obs) and inbreeding coefficient (Fis),
-    -   find duplicate individual and mixed samples.
--   **Filter**: Most genomic analysis look for patterns and trends with various statistics. Bias, noise and outliers can have bounded influence on estimators and interfere with polymorphism discovery. Avoid bad data exploration and control the impact of filters on your downstream genetic analysis. Alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways.
-
--   **Map-independent imputation** of missing genotype/alleles using Random Forest or the most frequent category.
+    -   observed heterozygosity (Het obs), inbreeding coefficient (Fis) and Hardy-Weinberg Equilibrium expectations (HWE)
+    -   find duplicate individuals
+    -   detect potentially mixed samples
+-   **Map-independent imputation** of missing genotypes using Random Forest or the most frequent genotype.
 
 -   **Visualization:** `ggplot2`-based plotting for publication-ready figures.
 
