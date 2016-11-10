@@ -31,7 +31,12 @@ if (getRversion() >= "2.15.1") {
       "DIF_OUTLIERS", "DIF_THRESHOLD", "HET_DIF", "HET_MEAN", "MAX_0.4", 
       "MAX_0.9", "MAX_DIF_OUTLIERS", "MAX_DIF_THRESHOLD", "MAX_OUTLIERS", 
       "MAX_THRESHOLD", "OUTLIERS", "THRESHOLD", "WHITELIST", "het.dif.threshold",
-      "ALT2", "REF2"
+      "ALT2", "REF2", "#CHROM", "A1", "A2", "ALLELES", "ALLELES_GROUP", "ALT",
+      "COL1", "COL3", "COL4", "COUNT", "ERASE", "FILTER", "FORMAT", "FORMAT_ID",
+      "INDIVIDUALS_ALLELES", "INFO", "KEEPER", "MAF_GLOBAL", "MAF_LOCAL",
+      "MARKERS", "MARKERS_ALLELES", "MARKER_NUMBER", "MAX_COUNT_MARKERS",
+      "NUMBER", "QUAL", "READ_DEPTH", "REF", "STRATA", "TOTAL",
+      "path.folder.step1", "path.folder.step2", "sum.pop"
     )
   )
 }

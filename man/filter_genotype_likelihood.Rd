@@ -5,10 +5,10 @@
 \title{Genotype likelihood interactive filter}
 \usage{
 filter_genotype_likelihood(data, interactive.filter = TRUE, strata = NULL,
-  pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
   gl.approach = "haplotype", gl.ind.threshold = NULL,
   gl.mean.threshold = NULL, gl.min.threshold = NULL,
   gl.diff.threshold = NULL, pop.threshold = NULL, percent = NULL,
+  pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
   blacklist.id = NULL, blacklist.genotype = NULL,
   whitelist.markers = NULL, monomorphic.out = TRUE, max.marker = NULL,
   snp.ld = NULL, common.markers = FALSE, filename = NULL)
@@ -38,30 +38,6 @@ the strata file is similar to a stacks `population map file`, make sure you
 have the required column names  (\code{INDIVIDUALS} and \code{STRATA}).
 Default: \code{strata = NULL}.}
 
-\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
-case, the id of the pop.
-Use this argument to have the pop ordered your way instead of the default 
-alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
-instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
-Default: \code{pop.levels = NULL}.}
-
-\item{pop.labels}{(optional, string) Use this argument to rename/relabel
-your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
-into a new pop called \code{"NEW"}:
-(1) First, define the levels for your pop with \code{pop.levels} argument: 
-\code{pop.levels = c("QUE", "ONT", "ALB")}. 
-(2) then, use \code{pop.labels} argument: 
-\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
-To rename \code{"QUE"} to \code{"TAS"}:
-\code{pop.labels = c("TAS", "ONT", "ALB")}.
-Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
-\code{strata} argument that can do the same thing, see below.}
-
-\item{pop.select}{(string, optional) Selected list of populations for 
-the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
-and \code{ONT} population samples (out of 20 pops).
-Default: \code{pop.select = NULL}}
-
 \item{gl.approach}{Character. By \code{gl.approach = "SNP"} or 
 by \code{gl.approach = "haplotype"}. 
 The function will consider the SNP or haplotype GL statistics to filter the marker. 
@@ -88,6 +64,30 @@ or fixed number e.g. 0.50, 50 or 5.}
 Is the pop.threshold argument a percentage? TRUE/FALSE.
 This argument is necessary to distinguish percentage from integer 
 for population threshold, (e.g. 5 percent or 5 populations).}
+
+\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
+case, the id of the pop.
+Use this argument to have the pop ordered your way instead of the default 
+alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
+instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+Default: \code{pop.levels = NULL}.}
+
+\item{pop.labels}{(optional, string) Use this argument to rename/relabel
+your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
+into a new pop called \code{"NEW"}:
+(1) First, define the levels for your pop with \code{pop.levels} argument: 
+\code{pop.levels = c("QUE", "ONT", "ALB")}. 
+(2) then, use \code{pop.labels} argument: 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+To rename \code{"QUE"} to \code{"TAS"}:
+\code{pop.labels = c("TAS", "ONT", "ALB")}.
+Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
+\code{strata} argument that can do the same thing, see below.}
+
+\item{pop.select}{(string, optional) Selected list of populations for 
+the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
+and \code{ONT} population samples (out of 20 pops).
+Default: \code{pop.select = NULL}}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
 a column header 'INDIVIDUALS'. The blacklist is in the working directory

@@ -4,7 +4,7 @@
 \alias{summary_stats_vcf_tidy}
 \title{Summary statistics of a tidy VCF by population and markers}
 \usage{
-summary_stats_vcf_tidy(data, filename)
+summary_stats_vcf_tidy(data, filename = NULL)
 }
 \arguments{
 \item{data}{The tidy VCF file created with \link{tidy_genomic_data}.}

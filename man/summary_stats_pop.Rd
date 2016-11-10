@@ -4,7 +4,7 @@
 \alias{summary_stats_pop}
 \title{Summary statistics of a tidy VCF by population}
 \usage{
-summary_stats_pop(data, filename)
+summary_stats_pop(data, filename = NULL)
 }
 \arguments{
 \item{data}{The tidy VCF file created with tidy_genomic_data.}

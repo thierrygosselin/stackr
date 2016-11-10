@@ -138,9 +138,6 @@ filter_genotype_likelihood <- function(
   data,
   interactive.filter = TRUE,
   strata = NULL, 
-  pop.levels = NULL, 
-  pop.labels = NULL, 
-  pop.select = NULL,
   gl.approach = "haplotype",
   gl.ind.threshold = NULL,
   gl.mean.threshold = NULL,
@@ -148,6 +145,9 @@ filter_genotype_likelihood <- function(
   gl.diff.threshold = NULL,
   pop.threshold = NULL,
   percent = NULL,
+  pop.levels = NULL, 
+  pop.labels = NULL, 
+  pop.select = NULL,
   blacklist.id = NULL, 
   blacklist.genotype = NULL, 
   whitelist.markers = NULL, 
@@ -187,19 +187,19 @@ filter_genotype_likelihood <- function(
     message("Step 2. blacklist_genotypes: blacklisting (erasing) or not individual genotypes based on low quality GL")
     message("Step 3. gl_markers: Inspecting the genotype likelihood at the marker level")
     message("Step 4. blacklist_markers: Blacklisting (erasing) or not markers genotypes based on low quality GL found at the marker level")
-    
-    # Folder -------------------------------------------------------------------
-    # Get date and time to have unique filenaming
-    file.date <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
-    file.date <- stringi::stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
-    file.date <- stringi::stri_sub(file.date, from = 1, to = 13)
-    
-    path.folder <- stringi::stri_join(getwd(),"/", "filter_gl_", file.date, sep = "")
-    dir.create(file.path(path.folder))
-    
-    message(stringi::stri_join("Folder created: ", path.folder))
-    file.date <- NULL #unused object
   }
+  # Folder -------------------------------------------------------------------
+  # Get date and time to have unique filenaming
+  file.date <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
+  file.date <- stringi::stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
+  file.date <- stringi::stri_sub(file.date, from = 1, to = 13)
+  
+  path.folder <- stringi::stri_join(getwd(),"/", "filter_gl_", file.date, sep = "")
+  dir.create(file.path(path.folder))
+  
+  message(stringi::stri_join("Folder created: ", path.folder))
+  file.date <- NULL #unused object
+  
   # Filter parameter file ------------------------------------------------------
   message("Parameters used in this run will be store in a file")
   filters.parameters <- list.files(path = getwd(), pattern = "filters_parameters.tsv", full.names = TRUE)
@@ -213,10 +213,6 @@ filter_genotype_likelihood <- function(
   
   # File type detection----------------------------------------------------------
   data.type <- stackr::detect_genomic_format(data)
-  
-  if (!data.type %in% c("df.file", "vcf.file")) {
-    stop("data frame of genotypes or vcf file with GL or PL information is necessary for filter_genotype_likelihood") 
-  }
   
   # import data ----------------------------------------------------------------
   message("Importing data ...")
@@ -245,7 +241,6 @@ filter_genotype_likelihood <- function(
   strata.df <- input %>% 
     dplyr::select(INDIVIDUALS, POP_ID) %>% 
     dplyr::distinct(INDIVIDUALS, .keep_all = TRUE)
-  strata <- strata.df
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
   
@@ -276,9 +271,14 @@ filter_genotype_likelihood <- function(
   ## Step 1: gl_individuals_populations ----------------------------------------
   if (interactive.filter) {
     message("Step 1. gl_individuals_populations: Inspecting the genotype likelihood at the individuals and populations levels")
-    path.folder.step1 <- stringi::stri_join(path.folder, "/01_gl_individuals_populations")
-    dir.create(path.folder.step1)
-    summary <- summary_genotype_likelihood(tidy.vcf = data, pop.levels = pop.levels, gl.approach = gl.approach, folder = path.folder.step1)
+    # path.folder.step1 <- stringi::stri_join(path.folder, "/01_gl_individuals_populations")
+    # dir.create(path.folder.step1)
+    summary <- summary_genotype_likelihood(
+      data = input, 
+      pop.levels = pop.levels, 
+      gl.approach = gl.approach, 
+      folder = path.folder
+    )
   }
   
   
@@ -289,14 +289,47 @@ filter_genotype_likelihood <- function(
     if (violinplot == "y") {
       message("Generating violin plot may take some time...")
       # plot
-      genotype.likelihood.violin.plot.individuals <- plot_violinplot_genotype_likelihood_individuals(data = data)
+      genotype.likelihood.violin.plot.individuals <- plot_violinplot_genotype_likelihood_individuals(data = input)
       print(genotype.likelihood.violin.plot.individuals)
       # save
-      ggsave(stringi::stri_join(path.folder.step1, "/genotype.likelihood.violin.plot.individuals.pdf"), width = pop.number, height = 10, dpi = 600, units = "cm", useDingbats = F)
-      ggsave(stringi::stri_join(path.folder.step1, "/genotype.likelihood.violin.plot.individuals.png"), width = pop.number, height = 10, dpi = 300, units = "cm")
+      ggsave(stringi::stri_join(path.folder, "/genotype.likelihood.violin.plot.individuals.pdf"), width = pop.number, height = 10, dpi = 600, units = "cm", useDingbats = F)
+      ggsave(stringi::stri_join(path.folder, "/genotype.likelihood.violin.plot.individuals.png"), width = pop.number, height = 10, dpi = 300, units = "cm")
       message(stringi::stri_join("2 versions (pdf and png) of the plot (genotype.likelihood.violin.plot.individuals) were saved in this directory: ", path.folder.step1))
     }
   }
+  
+  
+  #manhattan plot
+  # manhanttan.ind <- ggplot(data = summary$gl.individuals, aes(x = POP_ID, y = GL_MEAN, colour = POP_ID)) + 
+  #   geom_jitter() + 
+  #   labs(y = "Individual's Mean Genotype Likelihood") +
+  #   labs(x = "Populations") +
+  #   labs(colour = "Populations") +
+  #   # scale_y_continuous(name = , breaks = )
+  #   theme(
+  #     legend.position = "none",
+  #     axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
+  #     axis.text.x = element_text(size = 10, family = "Helvetica"),
+  #     axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
+  #     axis.text.y = element_text(size = 8, family = "Helvetica")
+  #   )
+  # manhanttan.ind
+  
+  manhanttan.makers.pop <- ggplot(data = input, aes(x = POP_ID, y = GL, colour = POP_ID)) + 
+    geom_jitter() + 
+    labs(y = "Individual's Mean Genotype Likelihood") +
+    labs(x = "Populations") +
+    labs(colour = "Populations") +
+    # scale_y_continuous(name = , breaks = )
+    theme(
+      legend.position = "none",
+      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.x = element_text(size = 10, family = "Helvetica"),
+      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = element_text(size = 8, family = "Helvetica")
+    )
+  manhanttan.makers.pop
+  
   ## Step 2: blacklist_genotypes -------------------------------------------------
   # Erasing genotypes below threshold
   if (interactive.filter) {
@@ -306,8 +339,6 @@ filter_genotype_likelihood <- function(
     if (erase.genotype == "y") {
       message("Enter the genotype likelihood threshold values, below this threshold (GL < threshold), genotypes are erased:")
       gl.ind.threshold <- as.integer(readLines(n = 1))
-      path.folder.step2 <- stringi::stri_join(path.folder, "/02_blacklist_genotypes")
-      dir.create(path.folder.step2)
     }
   }
   
@@ -318,8 +349,8 @@ filter_genotype_likelihood <- function(
     
     data.filter.gl.individuals <- input %>% 
       dplyr::mutate(
-        BLACKLIST = ifelse(GL < gl.ind.threshold, "erase", "keep"),
-        BLACKLIST = stri_replace_na(str = BLACKLIST, replacement = "keep")
+        BLACKLIST = dplyr::if_else(GL < gl.ind.threshold, "erase", "keep"),
+        BLACKLIST = stringi::stri_replace_na(str = BLACKLIST, replacement = "keep")
       )
     
     blacklist.genotypes <- data.filter.gl.individuals %>% 
@@ -329,15 +360,23 @@ filter_genotype_likelihood <- function(
     data.filter.gl.individuals <- suppressWarnings(
       data.filter.gl.individuals %>% 
         dplyr::mutate(
-          GT = ifelse(BLACKLIST == "erase", "./.", GT),
-          GL = as.numeric(ifelse(BLACKLIST == "erase", "NA", GL)),
-          READ_DEPTH = as.numeric(ifelse(BLACKLIST == "erase", "NA", READ_DEPTH)),
-          ALLELE_REF_DEPTH = as.numeric(ifelse(BLACKLIST == "erase", "NA", ALLELE_REF_DEPTH)),
-          ALLELE_ALT_DEPTH = as.numeric(ifelse(BLACKLIST == "erase", "NA", ALLELE_ALT_DEPTH))
-          # ALLELE_COVERAGE_RATIO = as.numeric(ifelse(BLACKLIST == "erase", "NA", ALLELE_COVERAGE_RATIO))
-        ) %>% 
-        dplyr::select(-BLACKLIST)
+          GT = if_else(BLACKLIST == "erase", "000000", GT),
+          GL = if_else(BLACKLIST == "erase", as.numeric(NA_character_), GL),
+          READ_DEPTH = if_else(BLACKLIST == "erase", as.numeric(NA_character_), READ_DEPTH),
+          ALLELE_REF_DEPTH = if_else(BLACKLIST == "erase", as.numeric(NA_character_), ALLELE_REF_DEPTH),
+          ALLELE_ALT_DEPTH = if_else(BLACKLIST == "erase", as.numeric(NA_character_), ALLELE_ALT_DEPTH)
+        )
     )
+    
+    if (tibble::has_name(data.filter.gl.individuals, "GT_VCF")) {
+      data.filter.gl.individuals <- data.filter.gl.individuals %>% 
+        dplyr::mutate(GT_VCF = if_else(BLACKLIST == "erase", "./.", GT_VCF))
+    }
+    
+    if (tibble::has_name(data.filter.gl.individuals, "GT_BIN")) {
+      data.filter.gl.individuals <- data.filter.gl.individuals %>% 
+        dplyr::mutate(GT_BIN = if_else(BLACKLIST == "erase", NA_character_, GT_BIN))
+    }
     
     # interesting stats.
     erased.genotype.number <- length(blacklist.genotypes$INDIVIDUALS)
@@ -372,7 +411,7 @@ filter_genotype_likelihood <- function(
     summary.blacklist.genotypes <- as.character(readLines(n = 1))
     if (summary.blacklist.genotypes == "y") {
       # updated summary
-      summary.blacklist.genotypes <- summary_genotype_likelihood(tidy.vcf = data.filter.gl.individuals, pop.levels = pop.levels, gl.approach = gl.approach, folder = path.folder.step2)
+      summary.blacklist.genotypes <- summary_genotype_likelihood(data = data.filter.gl.individuals, pop.levels = pop.levels, gl.approach = gl.approach, folder = path.folder)
       
       # plot_2: updated plot after erasing genotypes
       message("Generating the updated violin plot may take some time...")
@@ -615,7 +654,7 @@ filter_genotype_likelihood <- function(
   
   if (interactive.filter) {
     message("Summary of individuals genotype likelihood, i.e. after filtering the markers")
-    summary.blacklist.markers <- summary_genotype_likelihood(tidy.vcf = filter, pop.levels = pop.levels, gl.approach = gl.approach, folder = path.folder.step4)
+    summary.blacklist.markers <- summary_genotype_likelihood(data = filter, pop.levels = pop.levels, gl.approach = gl.approach, folder = path.folder.step4)
     
     
     # before and after figure

@@ -4,7 +4,7 @@
 \alias{summary_coverage}
 \title{Coverage summary}
 \usage{
-summary_coverage(data, pop.levels, filename)
+summary_coverage(data, pop.levels = NULL, filename = NULL)
 }
 \arguments{
 \item{data}{A tidy vcf object or file (using ".tsv"), 

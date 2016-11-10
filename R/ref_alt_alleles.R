@@ -2,8 +2,7 @@
 
 #' @name ref_alt_alleles
 
-#' @title Used internally in stackr to compute the REF and ALT alleles from a 
-#' biallelic genomic tidy data frame
+#' @title Compute the REF and ALT alleles
 
 #' @description compute the REF and ALT alleles from a biallelic
 #' genomic tidy data frame.
@@ -121,7 +120,7 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
     dplyr::summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
     purrr::flatten_chr(.x = .)
   
-  if (biallelic != 2) {
+  if (biallelic > 4 ) {
     biallelic <- FALSE
   } else {
     biallelic <- TRUE
@@ -149,6 +148,11 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
             dplyr::select(MARKERS, REF_NEW = REF)
           , by = "MARKERS") %>% 
         dplyr::mutate(
+          REF_NEW = stringi::stri_replace_all_fixed(
+            str = REF_NEW, 
+            pattern = c("001", "002", "003", "004"), 
+            replacement = c("A", "C", "G", "T"),
+            vectorize_all = FALSE),
           CHANGE = dplyr::if_else(REF == REF_NEW, "identical", "different")
         ) %>%
         dplyr::filter(CHANGE == "different") %>% 
@@ -157,29 +161,23 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
       
       message(stringi::stri_join("Number of markers with REF/ALT change = ", length(change.ref)))
       
-      #Switch REF\ALT
-      if (length(change.ref) > 0) {
+      # switch ALLELE_REF_DEPTH/ALLELE_ALT_DEPTH
+      if (length(change.ref) > 0 & tibble::has_name(input, "ALLELE_REF_DEPTH")) {
         input <- input %>% 
           dplyr::mutate(
-            REF_NEW = if_else(MARKERS %in% change.ref, ALT, REF),
-            ALT_NEW = if_else(MARKERS %in% change.ref, REF, ALT)
+            ALLELE_REF_DEPTH_NEW = dplyr::if_else(MARKERS %in% change.ref, ALLELE_ALT_DEPTH, ALLELE_REF_DEPTH),
+            ALLELE_ALT_DEPTH_NEW = dplyr::if_else(MARKERS %in% change.ref, ALLELE_REF_DEPTH, ALLELE_ALT_DEPTH)
           ) %>%
-          dplyr::select(-REF, -ALT) %>% 
-          dplyr::rename(REF = REF_NEW, ALT = ALT_NEW)
-        
-        # switch ALLELE_REF_DEPTH/ALLELE_ALT_DEPTH
-        if (tibble::has_name(input, "ALLELE_REF_DEPTH")) {
-          input <- input %>% 
-            dplyr::mutate(
-              ALLELE_REF_DEPTH_NEW = if_else(MARKERS %in% change.ref, ALLELE_ALT_DEPTH, ALLELE_REF_DEPTH),
-              ALLELE_ALT_DEPTH_NEW = if_else(MARKERS %in% change.ref, ALLELE_REF_DEPTH, ALLELE_ALT_DEPTH)
-            ) %>%
-            dplyr::select(-ALLELE_REF_DEPTH, -ALLELE_ALT_DEPTH) %>% 
-            dplyr::rename(ALLELE_REF_DEPTH = ALLELE_REF_DEPTH_NEW, ALLELE_ALT_DEPTH = ALLELE_ALT_DEPTH_NEW)
-        }
+          dplyr::select(-ALLELE_REF_DEPTH, -ALLELE_ALT_DEPTH) %>% 
+          dplyr::rename(ALLELE_REF_DEPTH = ALLELE_REF_DEPTH_NEW, ALLELE_ALT_DEPTH = ALLELE_ALT_DEPTH_NEW)
       }
-    } else {# biallelic but no REF
-      input <- input %>% #select(-REF, -ALT) %>%
+    }
+    #Switch REF\ALT
+    if (length(change.ref) > 0 & tibble::has_name(input, "REF") | !tibble::has_name(input, "REF")) {
+      
+      if (tibble::has_name(input, "REF")) input <- dplyr::select(input, -c(REF, ALT))
+      
+      input <- input %>%
         dplyr::mutate(
           A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
           A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
@@ -196,11 +194,20 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
             pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
             replacement = c("0", "2", "1", "1", NA), 
             vectorize_all = FALSE
-          )
+          ),
+          REF = stringi::stri_replace_all_fixed(
+            str = REF, 
+            pattern = c("001", "002", "003", "004"), 
+            replacement = c("A", "C", "G", "T"),
+            vectorize_all = FALSE),
+          ALT = stringi::stri_replace_all_fixed(
+            str = ALT, 
+            pattern = c("001", "002", "003", "004"), 
+            replacement = c("A", "C", "G", "T"),
+            vectorize_all = FALSE)
         ) %>% 
         dplyr::select(-c(A1, A2, GT_VCF_A1, GT_VCF_A2))
     }
-    
     # Remove the markers from the dataset
     if (monomorphic.out) {
       if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {

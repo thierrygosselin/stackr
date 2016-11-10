@@ -3,6 +3,14 @@
 \name{data_pruning}
 \alias{data_pruning}
 \title{Data set pruning}
+\usage{
+data_pruning(data, whitelist.markers = NULL, monomorphic.out = TRUE,
+  blacklist.genotype = NULL, snp.ld = NULL, common.markers = TRUE,
+  maf.thresholds = NULL, maf.pop.num.threshold = 1, maf.approach = "SNP",
+  maf.operator = "OR", max.marker = NULL, blacklist.id = NULL,
+  pop.levels = NULL, pop.labels = NULL, strata = NULL,
+  pop.select = NULL, filename = NULL)
+}
 \arguments{
 \item{data}{6 options: vcf (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind, genepop, 
@@ -52,6 +60,10 @@ of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame
 files.
 Default: \code{maf.thresholds = NULL}.}
 
+\item{maf.pop.num.threshold}{(integer, optional) When maf thresholds are used,
+this argument is for the number of pop required to pass the maf thresholds
+to keep the locus. Default: \code{maf.pop.num.threshold = 1}}
+
 \item{maf.approach}{(character, optional). 
 \code{maf.approach = "haplotype"} : looks at the minimum MAF found on the 
 read/haplotype. Using this option will discard all the markers/snp on 
@@ -67,10 +79,6 @@ default \code{maf.operator = "OR"}.
 When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
-
-\item{maf.pop.num.threshold}{(integer, optional) When maf thresholds are used,
-this argument is for the number of pop required to pass the maf thresholds
-to keep the locus. Default: \code{maf.pop.num.threshold = 1}}
 
 \item{max.marker}{An optional integer useful to subsample marker number in 
 large PLINK file. e.g. if the data set 

@@ -1,12 +1,14 @@
 #' @title Import and summarise the batch_x.hapstats.tsv file
 #' @description Import and summarise the batch_x.hapstats.tsv file.
 #' Necessary preparation for density distribution and box plot figures.
+
 #' @param data The 'batch_x.hapstats.tsv' created by STACKS.
 #' @param pop.num The number of populations analysed.
 #' @param pop.col.types \code{"integer"} or \code{"character"} used in STACKS populations module?
 #' @param pop.integer.equi When Integer was used for your population id,
 #' give the character equivalence
 #' @param pop.levels A character string with your populations in order.
+
 #' @rdname summary_hapstats
 #' @export 
 
@@ -16,29 +18,29 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
   
   skip.lines <- pop.num + 1
   
-  if(pop.col.types == "integer"){
+  if (pop.col.types == "integer") {
     col.types = "iiciiiiddddddc"
   } 
-  if(pop.col.types == "character") {
+  if (pop.col.types == "character") {
     col.types = "iiciciiddddddc"
   } else {
     col.types = NULL
   }
-  hapstats <- read_tsv(data,
-                       na = "NA",
-                       skip = skip.lines,
-                       progress = interactive(),
-                       col_names = c("BATCH_ID", "LOCUS", "CHR", "BP", "POP_ID", "N", "HAPLOTYPE_CNT", "GENE_DIVERSITY", "SMOOTHED_GENE_DIVERSITY", "SMOOTHED_GENE_DIVERSITY_PVALUE", "HAPLOTYPE_DIVERSITY", "SMOOTHED_HAPLOTYPE_DIVERSITY", "SMOOTHED_HAPLOTYPE_DIVERSITY_PVALUE", "HAPLOTYPES"),
-                       col_types = col.types) %>%
-    mutate (
-      POP_ID = stri_replace_all_fixed(POP_ID, seq(from = 1, to = pop.num, by = 1), pop.integer.equi, vectorize_all=F),
-      POP_ID = factor(POP_ID, levels = pop.levels, ordered = T)
+  
+  hapstats <- readr::read_tsv(
+    data,
+    na = "NA",
+    skip = skip.lines,
+    progress = interactive(),
+    col_names = c("BATCH_ID", "LOCUS", "CHR", "BP", "POP_ID", "N", "HAPLOTYPE_CNT", "GENE_DIVERSITY", "SMOOTHED_GENE_DIVERSITY", "SMOOTHED_GENE_DIVERSITY_PVALUE", "HAPLOTYPE_DIVERSITY", "SMOOTHED_HAPLOTYPE_DIVERSITY", "SMOOTHED_HAPLOTYPE_DIVERSITY_PVALUE", "HAPLOTYPES"),
+    col_types = col.types
+  ) %>%
+    dplyr::mutate (
+      POP_ID = stri_replace_all_fixed(POP_ID, seq(from = 1, to = pop.num, by = 1), pop.integer.equi, vectorize_all = FALSE),
+      POP_ID = factor(POP_ID, levels = pop.levels, ordered = TRUE)
     ) %>%
-    arrange(LOCUS, POP_ID)
-}
-
-
-
+    dplyr::arrange(LOCUS, POP_ID)
+}# End summary_hapstats
 
 ## VCF
 #' @title Summary statistics of a tidy VCF by population and markers
@@ -53,46 +55,46 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 #' @rdname summary_stats_vcf_tidy
 #' @export
 
-summary_stats_vcf_tidy <- function(data, filename) {
+summary_stats_vcf_tidy <- function(data, filename = NULL) {
   
   vcf.summary <- data %>%
-    filter(GT != "./.") %>%
-    group_by(LOCUS, POS, POP_ID) %>%
-    summarise(
+    dplyr::filter(GT != "./.") %>%
+    dplyr::group_by(LOCUS, POS, POP_ID) %>%
+    dplyr::summarise(
       N = as.numeric(n()),
       PP = as.numeric(length(GT[GT == "0/0"])),
       PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
       QQ = as.numeric(length(GT[GT == "1/1"]))
     ) %>%
-    mutate(
+    dplyr::mutate(
       FREQ_REF = ((PP*2) + PQ)/(2*N),
       FREQ_ALT = ((QQ*2) + PQ)/(2*N),
       HET_O = PQ/N,
       HET_E = 2 * FREQ_REF * FREQ_ALT,
-      FIS = ifelse(HET_O == 0, 0, round (((HET_E - HET_O) / HET_E), 6))
+      FIS = ifelse(HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6))
     )
   
   global.maf <- vcf.summary %>%
-    group_by(LOCUS, POS) %>%
-    summarise_each_(funs(sum), vars = c("N", "PP", "PQ", "QQ")) %>%
-    mutate(GLOBAL_MAF = (PQ + (2 * QQ)) / (2*N)) %>%
-    select(LOCUS, POS, GLOBAL_MAF)
+    dplyr::group_by(LOCUS, POS) %>%
+    dplyr::summarise_at(.tbl = ., .cols = c("N", "PP", "PQ", "QQ"), .funs = sum) %>%
+    dplyr::mutate(GLOBAL_MAF = (PQ + (2 * QQ)) / (2*N)) %>%
+    dplyr::select(LOCUS, POS, GLOBAL_MAF)
   
   vcf.prep <- global.maf %>%
-    left_join(vcf.summary, by = c("LOCUS", "POS"))
+    dplyr::left_join(vcf.summary, by = c("LOCUS", "POS"))
   
   vcf.prep <- vcf.prep[c("LOCUS", "POS", "POP_ID", "N", "PP", "PQ", "QQ", "FREQ_REF", "FREQ_ALT", "GLOBAL_MAF", "HET_O", "HET_E", "FIS")]
   
-  if (missing(filename) == "FALSE") {
+  if (!is.null(filename)) {
     message("Saving the file in your working directory...")
-    write_tsv(vcf.prep, filename, append = FALSE, col_names = TRUE)
+    readr::write_tsv(vcf.prep, filename, append = FALSE, col_names = TRUE)
     saving <- paste("Saving was selected, the filename:", filename, sep = " ")
   } else {
     saving <- "Saving was not selected"
   }
   
   return(vcf.prep)
-}
+}#End summary_stats_vcf_tidy
 
 #' @title Summary statistics of a tidy VCF by population
 #' @description Summarise the tidy VCF. 
@@ -101,27 +103,21 @@ summary_stats_vcf_tidy <- function(data, filename) {
 #' and the inbreeding coefficient. The Global MAF of Loci, 
 #' with STACKS GBS/RAD loci = read or de novo haplotypes, 
 #' is included and repeated over SNP.
+
 #' @param filename (optional) Name of the file written to the working directory.
 #' @param data The tidy VCF file created with tidy_genomic_data.
+
 #' @rdname summary_stats_pop
 #' @export
 
-summary_stats_pop <- function(data, filename) {
+summary_stats_pop <- function(data, filename = NULL) {
   
   
-  POP_ID <- NULL
-  N <- NULL
-  HET_O <- NULL
-  HET_E <- NULL
-  FREQ_REF <- NULL
-  FIS <- NULL
-  SNP <- NULL
-  LOCUS <- NULL
-  
-  
+  N <- HET_O <- HET_E <- FREQ_REF <- FIS <- NULL
+
   vcf.summary <- data %>%
-    group_by(POP_ID) %>%
-    summarise(
+    dplyr::group_by(POP_ID) %>%
+    dplyr::summarise(
       SNP = length(unique(POS)),
       LOCUS = length(unique(LOCUS)),
       N = max(N, na.rm = TRUE),
@@ -130,19 +126,18 @@ summary_stats_pop <- function(data, filename) {
       HET_E = mean(HET_E, na.rm = TRUE),
       FIS = mean(FIS, na.rm = TRUE)
     ) %>%
-    select(POP_ID, N, SNP, LOCUS, FREQ_REF, HET_O, HET_E, FIS)  
+    dplyr::select(POP_ID, N, SNP, LOCUS, FREQ_REF, HET_O, HET_E, FIS)  
   
   
-  if (missing(filename) == "FALSE") {
+  if (!is.null(filename)) {
     message("Saving the file in your working directory...")
-    write_tsv(vcf.summary, filename, append = FALSE, col_names = TRUE)
+    readr::write_tsv(vcf.summary, filename, append = FALSE, col_names = TRUE)
     saving <- paste("Saving was selected, the filename:", filename, sep = " ")
   } else {
     saving <- "Saving was not selected"
   }
-  
   return(vcf.summary)
-}
+}#End summary_stats_pop
 
 
 
@@ -150,24 +145,28 @@ summary_stats_pop <- function(data, filename) {
 #' @title Coverage summary
 #' @description This function create a table summary of the important
 #' coverage statistics from the tidy vcf created with tidy_genomic_data.
+
 #' @param data A tidy vcf object or file (using ".tsv"), 
 #' created with tidy_genomic_data.
 #' @param pop.levels Character string defining your ordered populations.
 #' @param filename Name of the file saved to the working directory.
+
 #' @details The tables contains summary statistics (mean, median, min, max)
 #' of read, ref and alt allele coverage. To access 
 #' the two tables, use $. The table that summarise by populations was created
 #' using average nested: loci -> individuals -> populations.
 #' The long format is used for creating figures.
+
 #' @return A list with 2 tables: the long format of loci and populations
 #' coverage statistics and the short format by populations.
 #' The short-format is more user-friendly and
 #' is written to the working directory.
+
 #' @rdname summary_coverage
 #' @importFrom stats median
 #' @export
 
-summary_coverage <- function (data, pop.levels, filename) {
+summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
   
   POP_ID <- NULL
   READ_DEPTH <- NULL
@@ -188,8 +187,8 @@ summary_coverage <- function (data, pop.levels, filename) {
   }
   
   coverage.sum.loci <- data %>%
-    group_by(LOCUS, POP_ID) %>%
-    summarise(
+    dplyr::group_by(LOCUS, POP_ID) %>%
+    dplyr::summarise(
       READ_MEAN = mean(READ_DEPTH, na.rm = TRUE),
       READ_MEDIAN = stats::median(READ_DEPTH, na.rm = TRUE),
       READ_MIN = min(READ_DEPTH, na.rm = TRUE),
@@ -209,7 +208,7 @@ summary_coverage <- function (data, pop.levels, filename) {
       variable.name = "COVERAGE_GROUP", 
       value.name = "VALUE"
     )
-  if (missing(pop.levels) == "TRUE") {
+  if (is.null(pop.levels) == "TRUE") {
     coverage <- coverage.sum.loci
   } else {
     coverage <- coverage.sum.loci %>%
@@ -218,8 +217,8 @@ summary_coverage <- function (data, pop.levels, filename) {
   
   # by pop
   coverage.sum.pop <- data %>%
-    group_by(POP_ID, INDIVIDUALS) %>%
-    summarise(
+    dplyr::group_by(POP_ID, INDIVIDUALS) %>%
+    dplyr::summarise(
       READ_DEPTH_MEAN = mean(READ_DEPTH, na.rm = TRUE),
       READ_DEPTH_MEDIAN = stats::median(READ_DEPTH, na.rm = TRUE),
       READ_DEPTH_MIN = min(READ_DEPTH, na.rm = TRUE),
@@ -233,8 +232,8 @@ summary_coverage <- function (data, pop.levels, filename) {
       ALLELE_ALT_DEPTH_MIN = min(ALLELE_ALT_DEPTH, na.rm = TRUE),
       ALLELE_ALT_DEPTH_MAX = max(ALLELE_ALT_DEPTH, na.rm = TRUE)
     ) %>%
-    group_by(POP_ID) %>%
-    summarise_each_(funs(mean), vars = c("READ_DEPTH_MEAN", "READ_DEPTH_MEDIAN", "READ_DEPTH_MIN", "READ_DEPTH_MAX", "ALLELE_REF_DEPTH_MEAN", "ALLELE_REF_DEPTH_MEDIAN", "ALLELE_REF_DEPTH_MIN", "ALLELE_REF_DEPTH_MAX", "ALLELE_ALT_DEPTH_MEAN", "ALLELE_ALT_DEPTH_MEDIAN", "ALLELE_ALT_DEPTH_MIN", "ALLELE_ALT_DEPTH_MAX")) %>%
+    dplyr::group_by(POP_ID) %>%
+    dplyr::summarise_each_(funs(mean), vars = c("READ_DEPTH_MEAN", "READ_DEPTH_MEDIAN", "READ_DEPTH_MIN", "READ_DEPTH_MAX", "ALLELE_REF_DEPTH_MEAN", "ALLELE_REF_DEPTH_MEDIAN", "ALLELE_REF_DEPTH_MIN", "ALLELE_REF_DEPTH_MAX", "ALLELE_ALT_DEPTH_MEAN", "ALLELE_ALT_DEPTH_MEDIAN", "ALLELE_ALT_DEPTH_MIN", "ALLELE_ALT_DEPTH_MAX")) %>%
     melt(
       id.vars = c("POP_ID"),
       variable.name = "GENOTYPE_LIKELIHOOD_GROUP", 
@@ -242,22 +241,22 @@ summary_coverage <- function (data, pop.levels, filename) {
     )
   
   coverage.summary.total <- coverage.sum.pop %>%
-    summarise_each(funs(mean))
+    dplyr::summarise_each(funs(mean))
   
   coverage.summary.total[1,1] <- "TOTAL"
   
-  if (missing(pop.levels) == "TRUE") {
+  if (is.null(pop.levels)) {
     coverage.summary.pop.total <- coverage.sum.pop %>%
       rbind(coverage.summary.total)
   } else {
     coverage.summary.pop.total <- coverage.sum.pop %>%
       rbind(coverage.summary.total) %>% 
-      mutate(POP_ID = factor(POP_ID, levels = c(pop.levels, "TOTAL"), ordered = T)) %>%
-      arrange(POP_ID)
+      dplyr::mutate(POP_ID = factor(POP_ID, levels = c(pop.levels, "TOTAL"), ordered = TRUE)) %>%
+      dplyr::arrange(POP_ID)
   }
   coverage.summary.pop.total
   
-  write.table(coverage.summary.pop.total, filename, sep = "\t", row.names = F, col.names = T, quote = F)
+  write.table(coverage.summary.pop.total, filename, sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
   
   invisible(cat(sprintf(
     "Filename: %s
@@ -273,24 +272,24 @@ summary_coverage <- function (data, pop.levels, filename) {
   
   return(results)
   
-}
-
-
-
+}#End summary_coverage
 
 #' @title Table of low coverage genotypes
 #' @description This function create a table summary of the genotypes
 #' below a user-define threshold.
 #' coverage statistics by populations.
-#' @param tidy.vcf A tidy vcf object or file (using ".tsv"), 
+
+#' @param data A tidy vcf object or file (using ".tsv"), 
 #' created with tidy_genomic_data.
 #' @param pop.levels Character string defining your ordered populations.
 #' @param read.depth.threshold The read depth threshold to evaluate.
 #' @param filename.low.coverage Filename of the low coverage table written
 #' in the working directory.
 #' @param filename.low.coverage.imbalance Filename of ...
+
 #' @return a list of 2 tables (accessed with $). The values in the tables
 #' represent percentage of samples.
+
 #' @details work in progress....
 #' Table 1: low coverage summary $low.coverage.summary (homo- and
 #' hetero- zygotes genotypes).
@@ -299,85 +298,83 @@ summary_coverage <- function (data, pop.levels, filename) {
 #' 1/1 : homozygote ALT allele.
 #' 0/1 : heterozygote with coverage REF > ALT allele.
 #' 1/0 : heterozygote with coverage REF < ALT allele.
+
 #' @rdname table_low_coverage_summary
 #' @export
 
 
-table_low_coverage_summary <- function(tidy.vcf,
-                                       pop.levels, 
-                                       read.depth.threshold,
-                                       filename.low.coverage,
-                                       filename.low.coverage.imbalance) {
+table_low_coverage_summary <- function(
+  data,
+  pop.levels = NULL, 
+  read.depth.threshold,
+  filename.low.coverage,
+  filename.low.coverage.imbalance
+) {
   
-  INDIVIDUALS <- NULL
-  POP_ID <- NULL
-  GT <- NULL
-  READ_DEPTH <- NULL
-  ALLELE_COVERAGE_RATIO <- NULL
-  SAMPLES_NUMBER <- NULL
-  TOTAL_NUMBER <- NULL
-  IMBALANCE_NUMBER <- NULL
+  ALLELE_COVERAGE_RATIO <- SAMPLES_NUMBER <- TOTAL_NUMBER <- IMBALANCE_NUMBER <- NULL
   
-  if (is.vector(tidy.vcf) == "TRUE") {
-    data <- read_tsv(tidy.vcf, 
-                     col_names = T, 
-                     col_types = "diidccddccccdddddc") %>%
+  if (is.vector(data)) {
+    data <- readr::read_tsv(
+      data, 
+      col_names = TRUE, 
+      col_types = "diidccddccccdddddc"
+      ) %>%
       mutate(INDIVIDUALS = factor(INDIVIDUALS))
     message("Using the file in your directory")
     
   } else {
-    data <- tidy.vcf
+    data <- data
     message("Using the file from your global environment")
     
   }
   
   if (missing(pop.levels) == "TRUE") {
-    data <- tidy.vcf
+    data <- data
     
   } else {
-    data <- tidy.vcf %>%
+    data <- data %>%
       mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T))
   }
   
   low.coverage.summary <- data %>%
-    filter(GT != "./.") %>%
-    select(GT, POP_ID) %>%
-    group_by(GT, POP_ID) %>%
-    summarise(
+    dplyr::filter(GT != "./.") %>%
+    dplyr::select(GT, POP_ID) %>%
+    dplyr::group_by(GT, POP_ID) %>%
+    dplyr::summarise(
       TOTAL_NUMBER = n()
     ) %>%
-    full_join(
+    dplyr::full_join(
       data %>%
-        filter(READ_DEPTH < read.depth.threshold & GT != "./.") %>%
-        group_by(GT, POP_ID) %>%
-        summarise(
+        dplyr::filter(READ_DEPTH < read.depth.threshold & GT != "./.") %>%
+        dplyr::group_by(GT, POP_ID) %>%
+        dplyr::summarise(
           SAMPLES_NUMBER = n()
         ),
       by = c("GT", "POP_ID")
     ) %>%
-    full_join(
+    dplyr::full_join(
       data %>%
-        filter(READ_DEPTH < read.depth.threshold & GT != "./.") %>%
-        filter(ALLELE_COVERAGE_RATIO != "NA" & ALLELE_COVERAGE_RATIO != 0 ) %>%
-        group_by(GT, POP_ID) %>%
-        summarise(
+        dplyr::filter(READ_DEPTH < read.depth.threshold & GT != "./.") %>%
+        dplyr::filter(ALLELE_COVERAGE_RATIO != "NA" & ALLELE_COVERAGE_RATIO != 0 ) %>%
+        dplyr::group_by(GT, POP_ID) %>%
+        dplyr::summarise(
           IMBALANCE_NUMBER = n()
         ),
       by = c("GT", "POP_ID")
     ) %>%
-    mutate(
+    dplyr::mutate(
       LOW_COVERAGE_PERCENT = round(SAMPLES_NUMBER / TOTAL_NUMBER * 100, 2),
       IMBALANCE_PERCENT = round(IMBALANCE_NUMBER / TOTAL_NUMBER * 100, 2)
     )
   
   low.coverage.summary.table <- low.coverage.summary %>%
-    dcast(POP_ID ~ GT, value.var = "LOW_COVERAGE_PERCENT")
+    reshape2::dcast(POP_ID ~ GT, value.var = "LOW_COVERAGE_PERCENT")
   
   write.table(low.coverage.summary.table, filename.low.coverage, sep = "\t", row.names = F, col.names = T, quote = F)
   
   low.coverage.imbalance.summary.table <- low.coverage.summary %>%
-    filter(GT != "0/0" & GT != "1/1") %>%
-    dcast(POP_ID ~ GT, value.var = "IMBALANCE_PERCENT")
+    dplyr::filter(GT != "0/0" & GT != "1/1") %>%
+    reshape2::dcast(POP_ID ~ GT, value.var = "IMBALANCE_PERCENT")
   
   write.table(low.coverage.imbalance.summary.table, filename.low.coverage.imbalance, sep = "\t", row.names = F, col.names = T, quote = F)
   
@@ -397,26 +394,27 @@ Written in the directory:
   res$heterozygote.imbalance <- low.coverage.imbalance.summary.table
   
   return(res)
-}
-
-
+}# End table_low_coverage_summary
 
 
 ## Genotype likelihood ###
 
 #' @title Genotype likelihood summary
+
 #' @description This function create 3 summary tables with 
 #' genotype likelihood statistics. Individuals, populations and markers information is provided.
 #' The input data is a tidy vcf created.
 #' with \link{tidy_genomic_data}.
-#' @param tidy.vcf A tidy vcf object or file (using ".tsv"), 
+
+#' @param data A tidy vcf object or file (using ".tsv"), 
 #' created with tidy_genomic_data.
 #' @param pop.levels (optional) Character string defining your ordered populations.
+#' Default: \code{pop.levels = NULL}
 #' @param gl.approach Character. By \code{"SNP"} or by \code{"haplotype"}. 
 #' The function will consider the SNP or haplotype GL statistics to filter the marker. 
 #' Default: \code{gl.approach = "haplotype"}.
-#' @param folder (optional) Path to folder where results will be saved. 
-#' Default: \code{folder = NULL}, the working directory is used.
+#' @param folder (optional) Path to folder where results will be saved. With the
+#' default, \code{folder = NULL}, the working directory is used.
 
 #' @return A list with 3 object (data frames): the statistics at the 
 #' individual level ($gl.individuals, 
@@ -424,6 +422,7 @@ Written in the directory:
 #' marker and population ($gl.summary.marker.pop) and the overall summary by 
 #' population ($gl.summary.pop). Those 3 data frames are also written in your
 #' working directory.
+
 #' @details The table contains summary statistics: mean, median, min, max and 
 #' diff (max-min), of genotype likelihood for individuals, markers and populations. To access 
 #' the two tables, use $. The table that summarise by populations was created
@@ -433,129 +432,96 @@ Written in the directory:
 #' genotype likelihood for all individuals of pop x for loci x.
 
 #' @importFrom stats median
-#' @rdname summary_genotype_likelihood
+#' @importFrom dplyr group_by mutate summarise ungroup arrange summarise_at
+#' @importFrom readr write_tsv
+#' @importFrom stringi stri_join
+#' @importFrom tidyr gather
+#' 
 #' @export
+#' @rdname summary_genotype_likelihood
 
-summary_genotype_likelihood <- function(tidy.vcf, pop.levels, gl.approach, folder){
+summary_genotype_likelihood <- function(
+  data,
+  pop.levels = NULL,
+  gl.approach = "haplotype",
+  folder = NULL
+){
+  if (missing(data)) stop("missing input file")
   
-  POP_ID <- NULL
-  GL <- NULL
-  GL_MAX <- NULL
-  GL_MIN <- NULL
-  INDIVIDUALS <- NULL
-  GENOTYPE_LIKELIHOOD_GROUP <- NULL
-  
-  
-  if (missing(pop.levels)) pop.levels <- NULL
-  if (missing(gl.approach)) gl.approach <- "haplotype"
-  
-  if (gl.approach == "haplotype"){
+  if (gl.approach == "haplotype") {
     message("Approach: haplotype")
   } else {
     message("Approach: SNP")
   }
   
-  if (missing(folder)) folder <- NULL
-  
   # set the working directory to save results
-  if (is.null(folder)) {
-    folder <- getwd()
-  }
+  if (is.null(folder)) folder <- getwd()
   
   # import data
   message("Importing data")
-  if (is.vector(tidy.vcf) == "TRUE") {
-    data <- data.table::fread(
-      input = tidy.vcf,
-      sep = "\t",
-      stringsAsFactors = FALSE, 
-      header = TRUE,
-      showProgress = TRUE,
-      verbose = FALSE
-    ) %>% 
-      as_data_frame()
-    message("Using the file in your directory")
-  } else {
-    data <- tidy.vcf
-    message("Using the file from your global environment")
-    
+  
+  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  
+  if (!tibble::has_name(input, "GL") & !tibble::has_name(input, "PL") ) {
+    stop("GL or PL information is required") 
   }
   
-  # make sure it's a tidy vcf with Allele Depth info
-  columns.names.tidy.vcf <- names(data) 
-  if("ALLELE_REF_DEPTH" %in% columns.names.tidy.vcf){
-    message("Looking for genotype likelihood information")
-  }else{
-    stop("This is not a tidy vcf with Allele Depth information,
-         you need to run STACKS with a version > 1.29 for this to work.")
-  }
-  
-  if (!is.null(pop.levels)) {
-    data <- data %>%
-      mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = TRUE)) %>%
-      arrange(POP_ID)
-  }
+  pop.levels <- levels(input$POP_ID)
+  pop.labels <- pop.levels
   
   # summary individuals
   message("Summarising GL info: individual")
-  gl.individuals <- data %>% 
-    group_by(POP_ID, INDIVIDUALS) %>% 
-    summarise(
+  gl.individuals <- input %>% 
+    dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
+    dplyr::summarise(
       GL_MEAN = mean(GL, na.rm = TRUE),
-      GL_MEDIAN = median(GL, na.rm = TRUE),
+      GL_MEDIAN = stats::median(GL, na.rm = TRUE),
       GL_MIN = min(GL, na.rm = TRUE),
       GL_MAX = max(GL, na.rm = TRUE),
       GL_DIFF = GL_MAX - GL_MIN
     ) %>%  
-    arrange(POP_ID, INDIVIDUALS)
-  write_tsv(x = gl.individuals, path = stri_paste(folder,"/genotype.likelihood.individual.summary.tsv"), col_names = TRUE)
+    dplyr::arrange(POP_ID, INDIVIDUALS)
+  readr::write_tsv(x = gl.individuals, path = stringi::stri_join(folder,"/genotype.likelihood.individual.summary.tsv"), col_names = TRUE)
   
   # summary by locus and pop
   message("Summarising GL info: marker and pop")
-  if (gl.approach == "haplotype"){ # by haplotype
-    gl.summary.marker.pop <- data %>%
-      ungroup() %>% 
-      group_by(LOCUS, POP_ID) %>%
-      summarise(
+  if (gl.approach == "haplotype") { # by haplotype
+    gl.summary.marker.pop <- input %>%
+      dplyr::ungroup(.) %>% 
+      dplyr::group_by(LOCUS, POP_ID) %>%
+      dplyr::summarise(
         GL_MEAN = mean(GL, na.rm = T),
-        GL_MEDIAN = median(GL, na.rm = T),
+        GL_MEDIAN = stats::median(GL, na.rm = T),
         GL_MIN = min(GL, na.rm = T),
         GL_MAX = max(GL, na.rm = T),
         GL_DIFF = GL_MAX - GL_MIN
       ) %>%
-      melt(
-        id.vars = c("LOCUS", "POP_ID"),
-        variable.name = "GENOTYPE_LIKELIHOOD_GROUP", 
-        value.name = "VALUE"
-      ) %>% 
-      arrange(LOCUS, POP_ID, GENOTYPE_LIKELIHOOD_GROUP)
-  } else { # by SNP
-    gl.summary.marker.pop <- data %>%
-      ungroup() %>% 
-      group_by(LOCUS, POS, POP_ID) %>%
-      summarise(
+      tidyr::gather(data = ., key = "GENOTYPE_LIKELIHOOD_GROUP", value = "VALUE", -c(LOCUS, POP_ID)) %>% 
+      dplyr::arrange(LOCUS, POP_ID, GENOTYPE_LIKELIHOOD_GROUP)
+    
+  } else {# by SNP
+    gl.summary.marker.pop <- input %>%
+      dplyr::ungroup(.) %>% 
+      dplyr::group_by(LOCUS, POS, POP_ID) %>%
+      dplyr::summarise(
         GL_MEAN = mean(GL, na.rm = T),
-        GL_MEDIAN = median(GL, na.rm = T),
+        GL_MEDIAN = stats::median(GL, na.rm = T),
         GL_MIN = min(GL, na.rm = T),
         GL_MAX = max(GL, na.rm = T),
         GL_DIFF = GL_MAX - GL_MIN
       ) %>%
-      melt(
-        id.vars = c("LOCUS", "POS", "POP_ID"),
-        variable.name = "GENOTYPE_LIKELIHOOD_GROUP", 
-        value.name = "VALUE"
-      ) %>% 
-      arrange(LOCUS, POS, POP_ID, GENOTYPE_LIKELIHOOD_GROUP)
+      tidyr::gather(data = ., key = "GENOTYPE_LIKELIHOOD_GROUP", value = "VALUE", -c(LOCUS, POS, POP_ID)) %>% 
+      dplyr::arrange(LOCUS, POS, POP_ID, GENOTYPE_LIKELIHOOD_GROUP)
   }
-  write_tsv(x = gl.summary.marker.pop, path = stri_paste(folder,"/genotype.likelihood.summary.marker.pop.tsv"), col_names = TRUE)
+  readr::write_tsv(x = gl.summary.marker.pop, path = stringi::stri_join(folder,"/genotype.likelihood.summary.marker.pop.tsv"), col_names = TRUE)
   
   # Summary by pop overall locus
   message("Summarising GL info: pop")
   gl.summary.pop <- gl.individuals %>%
-    group_by(POP_ID) %>%
-    summarise_each_(funs(mean), vars = c("GL_MEAN", "GL_MEDIAN", "GL_MIN", "GL_MAX", "GL_DIFF"))
-  write_tsv(x = gl.summary.pop, path = stri_paste(folder,"/genotype.likelihood.summary.pop.tsv"), col_names = TRUE)
+    dplyr::group_by(POP_ID) %>%
+    dplyr::summarise_at(.tbl = ., .cols = c("GL_MEAN", "GL_MEDIAN", "GL_MIN", "GL_MAX", "GL_DIFF"), .funs = mean)
   
+  readr::write_tsv(x = gl.summary.pop, path = stringi::stri_join(folder,"/genotype.likelihood.summary.pop.tsv"), col_names = TRUE)
   
   # results
   results <- list()
@@ -563,57 +529,4 @@ summary_genotype_likelihood <- function(tidy.vcf, pop.levels, gl.approach, folde
   results$gl.summary.marker.pop <- gl.summary.marker.pop
   results$gl.summary.pop <- gl.summary.pop
   return(results)
-}
-
-
-
-
-#' @title Import and summarise the batch_x.phistats.tsv file
-#' @description Import and summarise the batch_x.phistats.tsv file.
-#' Necessary preparation for density distribution and box plot figures.
-#' @param data The 'batch_x.phistats.tsv' created by STACKS.
-#' @param skip.lines The number of line without the header 
-#' to start reading the data.
-#' @rdname summary_phistats
-#' @export
-
-summary_phistats <- function(data, skip.lines) {
-  
-  BATCH_ID <- NULL
-  LOCUS <- NULL
-  CHR <- NULL
-  BP <- NULL
-  POP_COUNT <- NULL
-  PHI_ST <- NULL
-  SMOOTHED_PHI_ST <- NULL
-  SMOOTHED_PHI_ST_P_VALUE <- NULL
-  PHI_CT <- NULL
-  SMOOTHED_PHI_CT <- NULL
-  SMOOTHED_PHI_CT_P_VALUE <- NULL
-  PHI_SC <- NULL
-  SMOOTHED_PHI_SC <- NULL
-  SMOOTHED_PHI_SC_P_VALUE <- NULL
-  FST_PRIME <- NULL
-  SMOOTHED_FST_PRIME <- NULL
-  SMOOTHED_FST_PRIME_P_VALUE <- NULL
-  D_EST <- NULL
-  SMOOTHED_D_EST <- NULL
-  SMOOTHED_D_EST_P_VALUE <- NULL
-  
-  
-  
-  phistats <- read_tsv(data,
-                       na = "NA",
-                       skip = skip.lines,
-                       progress = interactive(),
-                       col_types = "iiciiddddddddddddddd",
-                       col_names = c("BATCH_ID", "LOCUS", "CHR", "BP", "POP_COUNT", "PHI_ST", "SMOOTHED_PHI_ST", "SMOOTHED_PHI_ST_P_VALUE", "PHI_CT", "SMOOTHED_PHI_CT", "SMOOTHED_PHI_CT_P_VALUE", "PHI_SC", "SMOOTHED_PHI_SC", "SMOOTHED_PHI_SC_P_VALUE", "FST_PRIME", "SMOOTHED_FST_PRIME", "SMOOTHED_FST_PRIME_P_VALUE", "D_EST", "SMOOTHED_D_EST", "SMOOTHED_D_EST_P_VALUE")
-  ) %>%
-    select(-c(BATCH_ID, CHR, SMOOTHED_PHI_ST, SMOOTHED_PHI_ST_P_VALUE, SMOOTHED_PHI_CT, SMOOTHED_PHI_CT_P_VALUE, SMOOTHED_PHI_SC, SMOOTHED_PHI_SC_P_VALUE, SMOOTHED_FST_PRIME, SMOOTHED_FST_PRIME_P_VALUE, SMOOTHED_D_EST, SMOOTHED_D_EST_P_VALUE)) %>%
-    melt(
-      id.vars = c("LOCUS","BP","POP_COUNT"),
-      variable.name = c("PHI_ST", "FST_PRIME", "D_EST"),
-      value.name = "VALUE"
-    )
-}
-
+}# End summary_genotype_likelihood

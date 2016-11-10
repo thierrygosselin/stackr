@@ -191,8 +191,7 @@ filter_het <- function(
   
   message(stringi::stri_join("Folder created: ", path.folder))
   file.date <- NULL #unused object
-  
-  
+
   # Filter parameter file ------------------------------------------------------
   message("\nParameters used in this run will be store in a file")
   filters.parameters <- list.files(path = getwd(), pattern = "filters_parameters.tsv", full.names = TRUE)

@@ -14,7 +14,8 @@ vcf2dadi(data, fasta.ingroup = NULL, fasta.outgroup = NULL,
   pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
   imputation.method = NULL, impute = "genotype",
   imputations.group = "populations", num.tree = 100, iteration.rf = 10,
-  split.number = 100, verbose = FALSE, parallel.core = detectCores() - 1)
+  split.number = 100, verbose = FALSE,
+  parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{data}{8 options: vcf (to make vcf population ready, see details below),

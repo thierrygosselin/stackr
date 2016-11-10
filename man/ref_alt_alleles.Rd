@@ -2,8 +2,7 @@
 % Please edit documentation in R/ref_alt_alleles.R
 \name{ref_alt_alleles}
 \alias{ref_alt_alleles}
-\title{Used internally in stackr to compute the REF and ALT alleles from a 
-biallelic genomic tidy data frame}
+\title{Compute the REF and ALT alleles}
 \usage{
 ref_alt_alleles(data, monomorphic.out = TRUE)
 }

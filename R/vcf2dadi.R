@@ -6,6 +6,7 @@
 #' imputation framework specifically designed to work with GBS/RAD data.
 #' If your VCF is not filtered, you can supply the function a whitelist of loci and a 
 #' blacklist of individuals.
+
 #' @inheritParams genomic_converter 
 #' @inheritParams tidy_genomic_data
 #' @inheritParams stackr_imputations_module
@@ -67,10 +68,13 @@
 
 #' @export
 #' @rdname vcf2dadi
-#' @import parallel
-#' @import dplyr
-#' @import stringi
-#' @importFrom data.table fread
+#' @importFrom parallel detectCores
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join contains
+#' @importFrom stringi stri_length stri_pad stri_sub stri_replace_all_fixed stri_replace_na  
+#' @importFrom data.table fread melt.data.table as.data.table
+#' @importFrom tibble as_data_frame has_name
+#' @importFrom readr write_tsv
+
 
 #' @return The function returns a list with 1 or 2 objects (w/o imputations): 
 #' `$dadi.no.imputation`
@@ -168,7 +172,7 @@ vcf2dadi <- function(
   iteration.rf = 10,
   split.number = 100,
   verbose = FALSE,
-  parallel.core = detectCores()-1
+  parallel.core = parallel::detectCores() - 1
 ){
   
   # dadi unicode character: \u2202
@@ -176,53 +180,36 @@ vcf2dadi <- function(
   cat("########################## stackr::vcf2dadi ###########################\n")
   cat("#######################################################################\n")
   
-  # Checking for missing and/or default arguments ******************************
+  # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("Input file missing")
-  if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
+  
+  # POP_ID in gsi_sim does not like spaces, we need to remove space in everything touching POP_ID...
+  # pop.levels, pop.labels, pop.select, strata, etc
+  if (!is.null(pop.levels) & is.null(pop.labels)) {
+    pop.levels <- stringi::stri_replace_all_fixed(pop.levels, pattern = " ", replacement = "_", vectorize_all = FALSE)
+    pop.labels <- pop.levels
+  }
+  
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
+  
+  if (!is.null(pop.labels)) {
+    if (length(pop.labels) != length(pop.levels)) stop("pop.labels and pop.levels must have the same length (number of groups)")
+    pop.labels <- stringi::stri_replace_all_fixed(pop.labels, pattern = " ", replacement = "_", vectorize_all = FALSE)
+  }
+  
+  if (!is.null(pop.select)) {
+    pop.select <- stringi::stri_replace_all_fixed(pop.select, pattern = " ", replacement = "_", vectorize_all = FALSE)
+  }
+  
+  # File type detection----------------------------------------------------------
+  data.type <- stackr::detect_genomic_format(data)
+  
   
   if (is.null(imputation.method)) {
     message("vcf2dadi: no imputation...")
   } else {
     message("vcf2dadi: with imputations...")
   }
-  
-  # File type detection ********************************************************
-  if(adegenet::is.genind(data)){
-    data.type <- "genind.file"
-    message("File type: genind object")
-  } else {
-    data.type <- readChar(con = data, nchars = 16L, useBytes = TRUE)
-    if (identical(data.type, "##fileformat=VCF") | stri_detect_fixed(str = data, pattern = ".vcf")) {
-      data.type <- "vcf.file"
-      # message("File type: VCF")
-    }
-    if (stri_detect_fixed(str = data, pattern = ".tped")) {
-      data.type <- "plink.file"
-      # message("File type: PLINK")
-      if (!file.exists(stri_replace_all_fixed(str = data, pattern = ".tped", replacement = ".tfam", vectorize_all = FALSE))) {
-        stop("Missing tfam file with the same prefix as your tped")
-      }
-    } 
-    if (stri_detect_fixed(str = data.type, pattern = "POP_ID") | stri_detect_fixed(str = data.type, pattern = "INDIVIDUALS")) {
-      data.type <- "df.file"
-      # message("File type: data frame of genotypes")
-    }
-    if (stri_detect_fixed(str = data.type, pattern = "Catalog")) {
-      # data.type <- "haplo.file"
-      message("File type: haplotypes from stacks")
-      if (is.null(blacklist.genotype)) {
-        stop("blacklist.genotype file missing. 
-             Use stackr's missing_genotypes function to create this blacklist")
-      }
-      }
-    if (stri_detect_fixed(str = data, pattern = ".gen")) {
-      # data.type <- "genepop.file"
-      message("File type: genepop")
-      message("Multilocus genepop file won't work, only for biallelic markers")
-    } 
-    
-    } # end file type detection
   
   # Strata argument required for VCF and haplotypes files **********************
   if (data.type == "vcf.file" & is.null(strata)) stop("strata argument is required")
@@ -251,9 +238,7 @@ vcf2dadi <- function(
   )
   
   # create a strata.df
-  strata.df <- input %>% 
-    distinct(INDIVIDUALS, POP_ID, .keep_all = TRUE)
-  strata <- strata.df
+  strata.df <- dplyr::distinct(.data = input, INDIVIDUALS, POP_ID, .keep_all = TRUE)
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
   
@@ -261,26 +246,26 @@ vcf2dadi <- function(
   # We split the alleles here to prep for MAF
   # need to compute REF/ALT allele for non VCF file
   if (!tibble::has_name(input, "GT_VCF")) {
-    ref.alt.alleles.change <- ref_alt_alleles(data = input)
-    input <- left_join(input, ref.alt.alleles.change, by = c("MARKERS", "INDIVIDUALS"))
+    ref.alt.alleles.change <- stackr::ref_alt_alleles(data = input)
+    input <- dplyr::left_join(input, ref.alt.alleles.change, by = c("MARKERS", "INDIVIDUALS"))
   }
   
   # MAF = the ALT allele in the VCF
   message("Computing the Allele Frequency Spectrum")
   
   input.count <- input %>% 
-    group_by(MARKERS, POP_ID, REF, ALT) %>%
-    summarise(
+    dplyr::group_by(MARKERS, POP_ID, REF, ALT) %>%
+    dplyr::summarise(
       N = as.numeric(n()),
       PP = as.numeric(length(GT_VCF[GT_VCF == "0/0"])),
       PQ = as.numeric(length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])),
       QQ = as.numeric(length(GT_VCF[GT_VCF == "1/1"]))
     ) %>%
-    mutate(MAF = ((QQ*2) + PQ)/(2*N)) %>% 
-    ungroup() %>%
-    mutate(
-      REF = stri_replace_all_fixed(str = REF, pattern = c("001", "002", "003", "004"), replacement = c("A", "C", "G", "T"), vectorize_all = FALSE),
-      ALT = stri_replace_all_fixed(str = ALT, pattern = c("001", "002", "003", "004"), replacement = c("A", "C", "G", "T"), vectorize_all = FALSE)
+    dplyr::mutate(MAF = ((QQ*2) + PQ)/(2*N)) %>% 
+    dplyr::ungroup(.) %>%
+    dplyr::mutate(
+      REF = stringi::stri_replace_all_fixed(str = REF, pattern = c("001", "002", "003", "004"), replacement = c("A", "C", "G", "T"), vectorize_all = FALSE),
+      ALT = stringi::stri_replace_all_fixed(str = ALT, pattern = c("001", "002", "003", "004"), replacement = c("A", "C", "G", "T"), vectorize_all = FALSE)
     )
   
   # Function to make dadi input  data format ***********************************
@@ -293,44 +278,44 @@ vcf2dadi <- function(
     if (is.null(fasta.ingroup)) {
       dadi.input <- suppressWarnings(
         input %>%
-          group_by(MARKERS, POP_ID, REF, ALT) %>%
-          mutate(
+          dplyr::group_by(MARKERS, POP_ID, REF, ALT) %>%
+          dplyr::mutate(
             A1 = (2 * PP) + PQ,
             A2 = (2 * QQ) + PQ
           ) %>%
-          ungroup() %>% 
-          select(POP_ID, Allele1 = REF, A1, Allele2 = ALT, A2, MARKERS) %>%
+          dplyr::ungroup(.) %>% 
+          dplyr::select(POP_ID, Allele1 = REF, A1, Allele2 = ALT, A2, MARKERS) %>%
           tidyr::gather(ALLELE_GROUP, COUNT, -c(POP_ID, MARKERS, Allele1, Allele2)) %>% 
           tidyr::unite(POP, POP_ID, ALLELE_GROUP, sep = "_") %>% 
-          group_by(MARKERS, Allele1, Allele2) %>% 
+          dplyr::group_by(MARKERS, Allele1, Allele2) %>% 
           tidyr::spread(data = ., key = POP, value = COUNT) %>%
-          mutate(
+          dplyr::mutate(
             IN_GROUP = rep("---", n()), #version 2
             OUT_GROUP = rep("---", n())
           ) %>% 
-          select(IN_GROUP, OUT_GROUP, Allele1, contains("A1"), Allele2, contains("A2"), MARKERS) %>% 
-          arrange(MARKERS)
+          dplyr::select(IN_GROUP, OUT_GROUP, Allele1, dplyr::contains("A1"), Allele2, dplyr::contains("A2"), MARKERS) %>% 
+          dplyr::arrange(MARKERS)
       )
     } # no fasta, no outgroup
     if (!is.null(fasta.ingroup)) {# With outgroup and ingroup fasta file
       message("using outgroup info")
       # Get the list of ref. allele in the vcf of the ingroup
       ref.allele.vcf.ingroup <- input %>% 
-        ungroup() %>% 
-        distinct(MARKERS, REF, .keep_all = TRUE) %>%
-        arrange(MARKERS) %>% 
+        dplyr::ungroup(.) %>% 
+        dplyr::distinct(MARKERS, REF, .keep_all = TRUE) %>%
+        dplyr::arrange(MARKERS) %>% 
         tidyr::separate(MARKERS, c("CHROM", "LOCUS", "POS"), sep = "__") %>%
-        distinct(CHROM, LOCUS, POS, REF, .keep_all = TRUE) %>%
-        mutate(
-          CHROM = as.character(stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1", vectorize_all = FALSE)),
+        dplyr::distinct(CHROM, LOCUS, POS, REF, .keep_all = TRUE) %>%
+        dplyr::mutate(
+          CHROM = as.character(stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1", vectorize_all = FALSE)),
           LOCUS = as.integer(LOCUS),
           POS = as.integer(POS)
         ) %>%
-        arrange(CHROM, LOCUS, POS)
+        dplyr::arrange(CHROM, LOCUS, POS)
       # View(ref.allele.vcf.ingroup)
       
       # keep the list of markers
-      markers <- ref.allele.vcf.ingroup %>% ungroup %>% select(-REF)
+      markers <- dplyr::ungroup(ref.allele.vcf.ingroup) %>% dplyr::select(-REF)
       
       # import out- and in- group fasta files ********************************
       fasta.outgroup <- data.table::fread(
@@ -342,7 +327,7 @@ vcf2dadi <- function(
         header = FALSE,
         col.names = "LOCUS"
       ) %>%
-        mutate(
+        dplyr::mutate(
           ID.FILTER = rep(c("LOCUS", "SEQ"), times = n()/2),
           ANCESTRAL = rep("outgroup", times = n())
         )
@@ -356,30 +341,31 @@ vcf2dadi <- function(
         header = FALSE,
         col.names = "LOCUS"
       ) %>%
-        mutate(
+        tibble::as_data_frame() %>% 
+        dplyr::mutate(
           ID.FILTER = rep(c("LOCUS", "SEQ"), times = n()/2),
           ANCESTRAL = rep("ingroup", times = n())
         )
       
-      fasta.data <- bind_rows(fasta.outgroup, fasta.ingroup)
+      fasta.data <- dplyr::bind_rows(fasta.outgroup, fasta.ingroup)
       
       fasta.ingroup <- NULL
       fasta.outgroup <- NULL
       
       message("Preparing fasta sequences")
       fasta.prep <- fasta.data %>% 
-        filter(ID.FILTER == "LOCUS") %>% 
-        select(-ID.FILTER) %>% 
-        bind_cols(fasta.data %>% 
-                    filter(ID.FILTER == "SEQ") %>% 
-                    select(-ID.FILTER, -ANCESTRAL, SEQUENCES = LOCUS)
+        dplyr::filter(ID.FILTER == "LOCUS") %>% 
+        dplyr::select(-ID.FILTER) %>% 
+        dplyr::bind_cols(fasta.data %>% 
+                           dplyr::filter(ID.FILTER == "SEQ") %>% 
+                           dplyr::select(-ID.FILTER, -ANCESTRAL, SEQUENCES = LOCUS)
         ) %>% 
         tidyr::separate(LOCUS, c("LOCUS", "ALLELE"), sep = "_Sample_", extra = "warn" ) %>%
         tidyr::separate(ALLELE, c("GARBAGE", "ALLELE"), sep = "_Allele_", extra = "warn" ) %>%
         tidyr::separate(ALLELE, c("ALLELE", "INDIVIDUALS"), sep = " ", extra = "warn" ) %>% 
-        mutate(LOCUS = as.integer(stri_replace_all_fixed(LOCUS, pattern = ">CLocus_", replacement = "", vectorize_all = FALSE))) %>%
-        select(-GARBAGE, -INDIVIDUALS) %>% 
-        distinct(LOCUS, ALLELE, ANCESTRAL, SEQUENCES, .keep_all = TRUE) 
+        dplyr::mutate(LOCUS = as.integer(stringi::stri_replace_all_fixed(LOCUS, pattern = ">CLocus_", replacement = "", vectorize_all = FALSE))) %>%
+        dplyr::select(-GARBAGE, -INDIVIDUALS) %>% 
+        dplyr::distinct(LOCUS, ALLELE, ANCESTRAL, SEQUENCES, .keep_all = TRUE) 
       
       fasta.data <- NULL
       
@@ -395,19 +381,19 @@ vcf2dadi <- function(
         showProgress = TRUE,
         verbose = FALSE
       ) %>% 
-        as_data_frame() %>%
-        select(CHROM = Chr, LOCUS = `Locus ID`, POS = BP, SNP_READ_POS = Col) %>%
-        mutate(
-          CHROM = as.character(stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1", vectorize_all = FALSE)),
+        tibble::as_data_frame() %>%
+        dplyr::select(CHROM = Chr, LOCUS = `Locus ID`, POS = BP, SNP_READ_POS = Col) %>%
+        dplyr::mutate(
+          CHROM = as.character(stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1", vectorize_all = FALSE)),
           LOCUS = as.integer(LOCUS),
           POS = as.integer(POS)
         ) %>% 
-        distinct(CHROM, LOCUS, SNP_READ_POS, .keep_all = TRUE) %>% 
-        semi_join(markers, by = c("CHROM", "LOCUS", "POS")) %>% 
-        arrange(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
-        mutate(ANCESTRAL = rep("outgroup", times = n())) %>%
+        dplyr::distinct(CHROM, LOCUS, SNP_READ_POS, .keep_all = TRUE) %>% 
+        dplyr::semi_join(markers, by = c("CHROM", "LOCUS", "POS")) %>% 
+        dplyr::arrange(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
+        dplyr::mutate(ANCESTRAL = rep("outgroup", times = n())) %>%
         # the SNP position on the read is +1 for the fasta file
-        mutate(SNP_READ_POS = SNP_READ_POS + 1)
+        dplyr::mutate(SNP_READ_POS = SNP_READ_POS + 1)
       
       sumstats.ingroup <- data.table::fread(
         input = sumstats.ingroup,
@@ -418,19 +404,19 @@ vcf2dadi <- function(
         showProgress = TRUE,
         verbose = FALSE
       ) %>% 
-        as_data_frame() %>%
-        select(CHROM = Chr, LOCUS = `Locus ID`, POS = BP, SNP_READ_POS = Col) %>%
-        mutate(
-          CHROM = as.character(stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1", vectorize_all = FALSE)),
+        tibble::as_data_frame() %>%
+        dplyr::select(CHROM = Chr, LOCUS = `Locus ID`, POS = BP, SNP_READ_POS = Col) %>%
+        dplyr::mutate(
+          CHROM = as.character(stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1", vectorize_all = FALSE)),
           LOCUS = as.integer(LOCUS),
           POS = as.integer(POS)
         ) %>% 
-        distinct(CHROM, LOCUS, SNP_READ_POS, .keep_all = TRUE) %>% 
-        semi_join(markers, by = c("CHROM", "LOCUS", "POS")) %>% 
-        arrange(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
-        mutate(ANCESTRAL = rep("ingroup", times = n())) %>%
+        dplyr::distinct(CHROM, LOCUS, SNP_READ_POS, .keep_all = TRUE) %>% 
+        dplyr::semi_join(markers, by = c("CHROM", "LOCUS", "POS")) %>% 
+        dplyr::arrange(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
+        dplyr::mutate(ANCESTRAL = rep("ingroup", times = n())) %>%
         # the SNP position on the read is +1 for the fasta file
-        mutate(SNP_READ_POS = SNP_READ_POS + 1)
+        dplyr::mutate(SNP_READ_POS = SNP_READ_POS + 1)
       
       markers <- NULL # remove unused object
       
@@ -440,165 +426,159 @@ vcf2dadi <- function(
       # THINKING: when ingroup REF and ALT equal, set to REF in VCF, and EQUAL in outgroup
       # when outgroup REF and ALT equal, set the REF based on the ingroup VCF
       
-      max.length.read <- stri_length(str = fasta.prep[1,4])
+      max.length.read <- stringi::stri_length(str = fasta.prep[1,4])
       
       message("combining information from the fasta and sumstats file")
       ref.allele.vcf.ingroup.fasta <- ref.allele.vcf.ingroup %>% 
         # The sumstats is used to get the position of the markers along the sequence read
-        left_join(
+        dplyr::left_join(
           sumstats.ingroup %>% 
-            select(-ANCESTRAL)
+            dplyr::select(-ANCESTRAL)
           , by = c("CHROM", "LOCUS", "POS")
         ) %>% 
-        mutate(SNP_READ_POS = stri_replace_na(SNP_READ_POS, replacement = "NA")) %>%
-        filter(SNP_READ_POS != "NA") %>%
-        mutate(SNP_READ_POS = as.integer(SNP_READ_POS)) %>% 
-        arrange(CHROM, LOCUS, POS) %>%
-        ungroup() %>% 
+        dplyr::mutate(SNP_READ_POS = stringi::stri_replace_na(SNP_READ_POS, replacement = "NA")) %>%
+        dplyr::filter(SNP_READ_POS != "NA") %>%
+        dplyr::mutate(SNP_READ_POS = as.integer(SNP_READ_POS)) %>% 
+        dplyr::arrange(CHROM, LOCUS, POS) %>%
+        dplyr::ungroup(.) %>% 
         # get the fasta sequence for those LOCUS...
-        left_join(
+        dplyr::left_join(
           fasta.prep %>% 
-            filter(ANCESTRAL == "ingroup") %>% 
-            select (-ALLELE, -ANCESTRAL)
+            dplyr::filter(ANCESTRAL == "ingroup") %>% 
+            dplyr::select(-ALLELE, -ANCESTRAL)
           , by = "LOCUS"
         ) %>%
-        mutate(SNP_READ_POS = stri_replace_na(SNP_READ_POS, replacement = "NA")) %>%
-        filter(SNP_READ_POS != "NA") %>%
+        dplyr::mutate(SNP_READ_POS = stringi::stri_replace_na(SNP_READ_POS, replacement = "NA")) %>%
+        dplyr::filter(SNP_READ_POS != "NA") %>%
         # get the flanking bases, left and right, of the SNP
-        mutate(
+        dplyr::mutate(
           SNP_READ_POS = as.integer(SNP_READ_POS),
-          FASTA_REF = stri_sub(SEQUENCES, from = SNP_READ_POS, to = SNP_READ_POS),
-          IN_GROUP = stri_sub(SEQUENCES, from = SNP_READ_POS-1, to = SNP_READ_POS+1)
+          FASTA_REF = stringi::stri_sub(SEQUENCES, from = SNP_READ_POS, to = SNP_READ_POS),
+          IN_GROUP = stringi::stri_sub(SEQUENCES, from = SNP_READ_POS - 1, to = SNP_READ_POS + 1)
         ) %>%
         # remove lines with no match between all the alleles in the fasta file and the REF in the VCF
-        filter(FASTA_REF == REF) %>%
-        group_by(CHROM, LOCUS, POS, REF) %>%
-        distinct(CHROM, LOCUS, POS, REF, .keep_all = TRUE) %>% 
-        mutate(
-          IN_GROUP = ifelse(SNP_READ_POS == max.length.read, stri_pad(IN_GROUP, width = 3, side = "right", pad = "-"), IN_GROUP),
-          IN_GROUP = ifelse(SNP_READ_POS == 1, stri_pad(IN_GROUP, width = 3, side = "left", pad = "-"), IN_GROUP)
+        dplyr::filter(FASTA_REF == REF) %>%
+        dplyr::group_by(CHROM, LOCUS, POS, REF) %>%
+        dplyr::distinct(CHROM, LOCUS, POS, REF, .keep_all = TRUE) %>% 
+        dplyr::mutate(
+          IN_GROUP = ifelse(SNP_READ_POS == max.length.read, stringi::stri_pad(IN_GROUP, width = 3, side = "right", pad = "-"), IN_GROUP),
+          IN_GROUP = ifelse(SNP_READ_POS == 1, stringi::stri_pad(IN_GROUP, width = 3, side = "left", pad = "-"), IN_GROUP)
         )
       
       
-      ingroup <- ref.allele.vcf.ingroup.fasta %>% 
-        ungroup() %>% 
-        select(CHROM, LOCUS, POS, IN_GROUP) %>% 
-        # mutate(
-        #   POS = stri_pad_left(str = POS, width = 8, pad = "0"),
-        #   LOCUS = stri_pad_left(str = LOCUS, width = 8, pad = "0")
+      ingroup <- dplyr::ungroup(ref.allele.vcf.ingroup.fasta) %>% 
+        dplyr::select(CHROM, LOCUS, POS, IN_GROUP) %>% 
+        # dplyr::mutate(
+        #   POS = stringi::stri_pad_left(str = POS, width = 8, pad = "0"),
+        #   LOCUS = stringi::stri_pad_left(str = LOCUS, width = 8, pad = "0")
         # ) %>%
-        arrange(CHROM, LOCUS, POS) %>%
+        dplyr::arrange(CHROM, LOCUS, POS) %>%
         tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__")
       
-      markers.id <- ref.allele.vcf.ingroup.fasta %>% 
-        ungroup %>% 
-        select(CHROM, LOCUS, POS, SNP_READ_POS)
+      markers.id <- dplyr::ungroup(ref.allele.vcf.ingroup.fasta) %>% 
+        dplyr::select(CHROM, LOCUS, POS, SNP_READ_POS)
       
-      markers.id.ingroup.nuc <- ref.allele.vcf.ingroup.fasta %>% 
-        ungroup %>% 
-        select(CHROM, LOCUS, POS, IN_GROUP)
+      markers.id.ingroup.nuc <- dplyr::ungroup(ref.allele.vcf.ingroup.fasta) %>% 
+        dplyr::select(CHROM, LOCUS, POS, IN_GROUP)
       
       # remove unused objects
-      ref.allele.vcf.ingroup <- NULL
-      ref.allele.vcf.ingroup.fasta <- NULL
-      sumstats.ingroup <- NULL
-      sumstats.outgroup <- NULL
+      ref.allele.vcf.ingroup <- ref.allele.vcf.ingroup.fasta <- NULL
+      sumstats.ingroup <- sumstats.outgroup <- NULL
       
       # Same thing but with outgroup
       ref.allele.outgroup.fasta <- markers.id %>% 
-        left_join(
+        dplyr::left_join(
           fasta.prep %>% 
-            filter(ANCESTRAL == "outgroup") %>% 
-            select (-ALLELE, -ANCESTRAL)
+            dplyr::filter(ANCESTRAL == "outgroup") %>% 
+            dplyr::select(-ALLELE, -ANCESTRAL)
           , by = "LOCUS"
         ) %>%
-        mutate(SEQUENCES = stri_replace_na(SEQUENCES, replacement = "NA")) %>%
-        filter(SEQUENCES != "NA") %>%
+        dplyr::mutate(SEQUENCES = stringi::stri_replace_na(SEQUENCES, replacement = "NA")) %>%
+        dplyr::filter(SEQUENCES != "NA") %>%
         # get the flanking bases, left and right, of the SNP
-        mutate(OUT_GROUP = stri_sub(SEQUENCES, from = SNP_READ_POS-1, to = SNP_READ_POS+1)) %>%
-        select(CHROM, LOCUS, POS, OUT_GROUP, SNP_READ_POS) %>%
-        group_by(CHROM, LOCUS, POS, OUT_GROUP, SNP_READ_POS) %>%
-        tally %>% 
-        group_by(CHROM, LOCUS, POS) %>%
-        filter(n == max(n))
+        dplyr::mutate(OUT_GROUP = stringi::stri_sub(SEQUENCES, from = SNP_READ_POS - 1, to = SNP_READ_POS + 1)) %>%
+        dplyr::select(CHROM, LOCUS, POS, OUT_GROUP, SNP_READ_POS) %>%
+        dplyr::group_by(CHROM, LOCUS, POS, OUT_GROUP, SNP_READ_POS) %>%
+        dplyr::tally(.) %>% 
+        dplyr::group_by(CHROM, LOCUS, POS) %>%
+        dplyr::filter(n == max(n))
       
       fasta.prep <- NULL # remove unused object
       
       # The problem is that some markers in the outgroup will have number of REF and ALT alleles equals...
       # Making the ancestral allele call ambiguous (50/50 chance of differences...)
       ambiguous.ancestral.allele <- ref.allele.outgroup.fasta %>%
-        ungroup() %>%
-        select(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
-        group_by(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
-        tally %>% 
-        filter(n > 1) %>% 
-        select(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
-        left_join(markers.id.ingroup.nuc, by = c("CHROM", "LOCUS", "POS")) %>% 
-        rename(OUT_GROUP = IN_GROUP) %>% 
-        ungroup() %>% 
-        arrange(CHROM, LOCUS, POS)
+        dplyr::ungroup(.) %>%
+        dplyr::select(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
+        dplyr::group_by(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
+        dplyr::tally(.) %>% 
+        dplyr::filter(n > 1) %>% 
+        dplyr::select(CHROM, LOCUS, POS, SNP_READ_POS) %>% 
+        dplyr::left_join(markers.id.ingroup.nuc, by = c("CHROM", "LOCUS", "POS")) %>% 
+        dplyr::rename(OUT_GROUP = IN_GROUP) %>% 
+        dplyr::ungroup(.) %>% 
+        dplyr::arrange(CHROM, LOCUS, POS)
       
       markers.id.ingroup.nuc <- NULL # remove unused object
       
       outgroup <- ref.allele.outgroup.fasta %>% 
-        select(-n) %>% 
-        anti_join(ambiguous.ancestral.allele, by = c("CHROM", "LOCUS", "POS")) %>%
-        ungroup() %>% 
-        arrange(CHROM, LOCUS, POS) %>% 
-        bind_rows(ambiguous.ancestral.allele) %>%
-        ungroup() %>% 
-        arrange(CHROM, LOCUS, POS) %>%
-        mutate(
-          OUT_GROUP = ifelse(SNP_READ_POS == max.length.read, stri_pad(OUT_GROUP, width = 3, side = "right", pad = "-"), OUT_GROUP),
-          OUT_GROUP = ifelse(SNP_READ_POS == 1, stri_pad(OUT_GROUP, width = 3, side = "left", pad = "-"), OUT_GROUP)
+        dplyr::select(-n) %>% 
+        dplyr::anti_join(ambiguous.ancestral.allele, by = c("CHROM", "LOCUS", "POS")) %>%
+        dplyr::ungroup(.) %>% 
+        dplyr::arrange(CHROM, LOCUS, POS) %>% 
+        dplyr::bind_rows(ambiguous.ancestral.allele) %>%
+        dplyr::ungroup(.) %>% 
+        dplyr::arrange(CHROM, LOCUS, POS) %>%
+        dplyr::mutate(
+          OUT_GROUP = ifelse(SNP_READ_POS == max.length.read, stringi::stri_pad(OUT_GROUP, width = 3, side = "right", pad = "-"), OUT_GROUP),
+          OUT_GROUP = ifelse(SNP_READ_POS == 1, stringi::stri_pad(OUT_GROUP, width = 3, side = "left", pad = "-"), OUT_GROUP)
         ) %>% 
-        select(CHROM, LOCUS, POS, OUT_GROUP) %>% 
-        # mutate(
-        #   POS = stri_pad_left(str = POS, width = 8, pad = "0"),
-        #   LOCUS = stri_pad_left(str = LOCUS, width = 8, pad = "0")
+        dplyr::select(CHROM, LOCUS, POS, OUT_GROUP) %>% 
+        # dplyr::mutate(
+        #   POS = stringi::stri_pad_left(str = POS, width = 8, pad = "0"),
+        #   LOCUS = stringi::stri_pad_left(str = LOCUS, width = 8, pad = "0")
         # ) %>%
-        arrange(CHROM, LOCUS, POS) %>%
+        dplyr::arrange(CHROM, LOCUS, POS) %>%
         tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__")
       
       ambiguous.ancestral.allele <- NULL # remove unused object
       ref.allele.outgroup.fasta <- NULL # remove unused object
       
       # common markers between ingroup and outgroup
-      markers.ingroup <- ingroup %>% select(MARKERS)
-      markers.outgroup <- outgroup %>% select(MARKERS)
+      markers.ingroup <- ingroup %>% dplyr::select(MARKERS)
+      markers.outgroup <- outgroup %>% dplyr::select(MARKERS)
       
-      markers.ingroup.outgroup.common <- bind_rows(markers.ingroup, markers.outgroup) %>% 
-        group_by(MARKERS) %>%
-        tally %>% 
-        filter(n == 2) %>%
-        arrange(MARKERS) %>%
-        distinct(MARKERS)
+      markers.ingroup.outgroup.common <- dplyr::bind_rows(markers.ingroup, markers.outgroup) %>% 
+        dplyr::group_by(MARKERS) %>%
+        dplyr::tally(.) %>% 
+        dplyr::filter(n == 2) %>%
+        dplyr::arrange(MARKERS) %>%
+        dplyr::distinct(MARKERS)
       
-      markers.ingroup <- NULL
-      markers.outgroup <- NULL
+      markers.ingroup <- markers.outgroup <- NULL
       
-      message(stri_join("Number of markers common between in- and out- group = ", n_distinct(markers.ingroup.outgroup.common$MARKERS)))
+      message(stringi::stri_join("Number of markers common between in- and out- group = ", dplyr::n_distinct(markers.ingroup.outgroup.common$MARKERS)))
       dadi.input <- suppressWarnings(
         input %>%
-          group_by(MARKERS, POP_ID, REF, ALT) %>%
-          mutate(
+          dplyr::group_by(MARKERS, POP_ID, REF, ALT) %>%
+          dplyr::mutate(
             A1 = (2 * PP) + PQ,
             A2 = (2 * QQ) + PQ
           ) %>%
-          ungroup() %>%
-          select(POP_ID, Allele1 = REF, A1, Allele2 = ALT, A2, MARKERS) %>%
+          dplyr::ungroup(.) %>%
+          dplyr::select(POP_ID, Allele1 = REF, A1, Allele2 = ALT, A2, MARKERS) %>%
           tidyr::gather(ALLELE_GROUP, COUNT, -c(POP_ID, MARKERS, Allele1, Allele2)) %>%
           tidyr::unite(POP, POP_ID, ALLELE_GROUP, sep = "_") %>%
-          group_by(MARKERS, Allele1, Allele2) %>%
+          dplyr::group_by(MARKERS, Allele1, Allele2) %>%
           tidyr::spread(data = ., key = POP, value = COUNT) %>% 
-          select(Allele1, contains("A1"), Allele2, contains("A2"), MARKERS) %>%
-          arrange(MARKERS) %>% 
-          ungroup %>% 
-          semi_join(markers.ingroup.outgroup.common, by = "MARKERS") %>% 
-          inner_join(ingroup, by = "MARKERS") %>% 
-          inner_join(outgroup, by = "MARKERS") %>% 
-          select(IN_GROUP, OUT_GROUP, Allele1, contains("A1"), Allele2, contains("A2"), MARKERS) %>% 
-          arrange(MARKERS)
+          dplyr::select(Allele1, dplyr::contains("A1"), Allele2, dplyr::contains("A2"), MARKERS) %>%
+          dplyr::arrange(MARKERS) %>% 
+          dplyr::ungroup(.) %>% 
+          dplyr::semi_join(markers.ingroup.outgroup.common, by = "MARKERS") %>% 
+          dplyr::inner_join(ingroup, by = "MARKERS") %>% 
+          dplyr::inner_join(outgroup, by = "MARKERS") %>% 
+          dplyr::select(IN_GROUP, OUT_GROUP, Allele1, dplyr::contains("A1"), Allele2, dplyr::contains("A2"), MARKERS) %>% 
+          dplyr::arrange(MARKERS)
       )
       
       # remove unused objects
@@ -610,18 +590,26 @@ vcf2dadi <- function(
     
     # We need to modify the header to remove "_A1" and "_A2" that were necessary for spreading the info accross columns
     header.dadi <- colnames(dadi.input)
-    colnames(dadi.input) <- stri_replace_all_fixed(str = header.dadi, pattern = c("_A1", "_A2"), replacement = "", vectorize_all = FALSE)
+    colnames(dadi.input) <- stringi::stri_replace_all_fixed(
+      str = header.dadi, pattern = c("_A1", "_A2"),
+      replacement = "", vectorize_all = FALSE
+    )
     
-    if(is.null(dadi.input.filename)){
+    if (is.null(dadi.input.filename)) {
       # when filename is not provided will save the 'dadi.input' with date and time
-      file.date <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
-      file.date <- stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "_", ""), vectorize_all = FALSE)
+      file.date <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
+      file.date <- stringi::stri_replace_all_fixed(
+        str = file.date,
+        pattern = c("-", " ", ":"),
+        replacement = c("", "_", ""), 
+        vectorize_all = FALSE
+      )
       if (write.imputation == FALSE) {
-        dadi.input.filename <- stri_paste("dadi_input_", file.date, ".tsv", sep = "")
+        dadi.input.filename <- stringi::stri_join("dadi_input_", file.date, ".tsv", sep = "")
       }
       
       if (write.imputation == TRUE) {
-        dadi.input.filename.imp <- stri_paste("dadi_input_imputed_", file.date, ".tsv", sep = "")
+        dadi.input.filename.imp <- stringi::stri_join("dadi_input_imputed_", file.date, ".tsv", sep = "")
       }
     } else {
       if (write.imputation == FALSE) {
@@ -629,7 +617,7 @@ vcf2dadi <- function(
       }
       
       if (write.imputation == TRUE) {
-        dadi.input.filename.imp <- stri_replace_all_fixed(
+        dadi.input.filename.imp <- stringi::stri_replace_all_fixed(
           dadi.input.filename,
           pattern = c(".txt", ".tsv"),
           replacement = c("_imputed.txt", "_imputed.tsv"),
@@ -637,20 +625,20 @@ vcf2dadi <- function(
         )
       }
     }
-    file.version <- suppressWarnings(stri_paste("#\u2202a\u2202i SNP input file generated with stackr v.", packageVersion("stackr"), sep = ""))
-    file.date <- suppressWarnings(stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = ""))
-    file.header.line <- suppressWarnings(as.data.frame(stri_paste(file.version, file.date, sep = " ")))
+    file.version <- suppressWarnings(stringi::stri_join("#\u2202a\u2202i SNP input file generated with stackr v.", packageVersion("stackr"), sep = ""))
+    file.date <- suppressWarnings(stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = ""))
+    file.header.line <- suppressWarnings(as.data.frame(stringi::stri_join(file.version, file.date, sep = " ")))
     
     if (write.imputation == FALSE) {
-      write_tsv(x = file.header.line, path = dadi.input.filename, append = FALSE, col_names = FALSE) # write the header line
-      write_tsv(x = dadi.input, path = dadi.input.filename, append = TRUE, col_names = TRUE) # write the data frame
-      message(stri_paste("\u2202a\u2202i input file name is: ", dadi.input.filename, "\n", "Saved here: ", getwd()))
+      readr::write_tsv(x = file.header.line, path = dadi.input.filename, append = FALSE, col_names = FALSE) # write the header line
+      readr::write_tsv(x = dadi.input, path = dadi.input.filename, append = TRUE, col_names = TRUE) # write the data frame
+      message(stringi::stri_join("\u2202a\u2202i input file name is: ", dadi.input.filename, "\n", "Saved here: ", getwd()))
     }
     
     if (write.imputation == TRUE) {
-      write_tsv(x = file.header.line, path = dadi.input.filename.imp, append = FALSE, col_names = FALSE) # write the header line
-      write_tsv(x = dadi.input, path = dadi.input.filename.imp, append = TRUE, col_names = TRUE) # write the data frame
-      message(stri_paste("\u2202a\u2202i input file name is: ", dadi.input.filename.imp, "\n", "Saved here: ", getwd()))
+      readr::write_tsv(x = file.header.line, path = dadi.input.filename.imp, append = FALSE, col_names = FALSE) # write the header line
+      readr::write_tsv(x = dadi.input, path = dadi.input.filename.imp, append = TRUE, col_names = TRUE) # write the data frame
+      message(stringi::stri_join("\u2202a\u2202i input file name is: ", dadi.input.filename.imp, "\n", "Saved here: ", getwd()))
     }
     
     return(dadi.input)
@@ -681,15 +669,14 @@ vcf2dadi <- function(
     # transform the imputed dataset  -------------------------------------------
     message("Computing the Allele Frequency Spectrum for the imputed data")
     
-    input.count.imp <- input.imp %>% 
-      group_by(MARKERS, POP_ID, REF, ALT) %>%
-      summarise(
+    input.count.imp <- dplyr::group_by(.data = input.imp, MARKERS, POP_ID, REF, ALT) %>%
+      dplyr::summarise(
         N = as.numeric(n()),
         PP = as.numeric(length(GT_VCF[GT_VCF == "0/0"])),
         PQ = as.numeric(length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])),
         QQ = as.numeric(length(GT_VCF[GT_VCF == "1/1"]))
       ) %>%
-      mutate(MAF = ((QQ*2) + PQ)/(2*N))
+      dplyr::mutate(MAF = ((QQ*2) + PQ)/(2*N))
     
     input.imp <- NULL # remove unused object
     
@@ -699,4 +686,4 @@ vcf2dadi <- function(
   cat("############################## completed ##############################\n")
   
   return(res)
-  } # End vcf2dadi
+} # End vcf2dadi

@@ -235,31 +235,6 @@
 #' American Journal of Human Genetics. 2007; 81: 559–575. doi:10.1086/519795
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-# required to pass the R CMD check and have 'no visible binding for global variable'
-if (getRversion() >= "2.15.1") {
-  utils::globalVariables(
-    c("ID", "#CHROM", "CHROM", "FORMAT", "INDIVIDUALS", "FORMAT_ID", "LOCUS",
-      "POS", "REF", "ALT", "POP_ID", "READ_DEPTH", "ALLELE_DEPTH", "GL",
-      "ERASE", "GT", "MARKERS", "QQ", "PQ", "N", "MAF_GLOBAL", "MAF_LOCAL",
-      "ALLELES", "POP_ID", "GT", "INDIVIDUALS", "MARKERS", "POP_ID", "nal",
-      "ALLELES_GROUP", "ALLELES", "N_IND_GENE", "P", "N", "nal_sq",
-      "nal_sq_sum", "nal_sq_sum_nt", "npl", "het", "mho", "mhom", "dum",
-      "dum1", "SSG", "ntal", "SSP", "ntalb", "SSi", "MSI", "sigw", "MSP",
-      "siga", "sigb", "lsiga", "lsigb", "lsigw", "FST", "MARKERS",
-      "MARKERS_ALLELES", "ALLELES", "POP_ID", "INDIVIDUALS", "filename",
-      "ID", "KEEPER", "ASSIGN", "OTHERS", "CURRENT", "INFERRED",
-      "SECOND_BEST_POP", "SCORE", "SECOND_BEST_SCORE", "NUMBER", "INDIVIDUALS_ALLELES",
-      "MARKER_NUMBER", "MISSING_DATA", "TOTAL", "ASSIGNMENT_PERC",
-      "MARKERS", "CURRENT", "INFERRED", "MISSING_DATA",
-      "ITERATIONS", "METHOD", "TOTAL", "MEAN_i", "MEAN", "ASSIGNMENT_PERC",
-      "SE", "MEDIAN", "MIN", "MAX", "QUANTILE25", "QUANTILE75", "SE_MIN",
-      "SE_MAX", ".", "QUAL", "FILTER", "INFO", "pb", "SUBSAMPLE", "STRATA", 
-      "sum.pop", "A1", "A2", "INDIVIDUALS_2", "Cnt", "Catalog ID", "GROUP",
-      "COUNT", "MAX_COUNT_MARKERS", "hierarchy", "COL1", "COL3", "COL4"
-    )
-  )
-}
-
 data_pruning <- function(data,
                          whitelist.markers = NULL,
                          monomorphic.out = TRUE,
@@ -280,40 +255,30 @@ data_pruning <- function(data,
 ) {
   
   
-  # Checking for missing and/or default arguments ******************************
+  # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("Input file missing")
-  if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
+  
+  # POP_ID in gsi_sim does not like spaces, we need to remove space in everything touching POP_ID...
+  # pop.levels, pop.labels, pop.select, strata, etc
+  if (!is.null(pop.levels) & is.null(pop.labels)) {
+    pop.levels <- stringi::stri_replace_all_fixed(pop.levels, pattern = " ", replacement = "_", vectorize_all = FALSE)
+    pop.labels <- pop.levels
+  }
+  
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
-
-    # File type detection ********************************************************
-  data.type <- readChar(con = data, nchars = 16L, useBytes = TRUE)
   
-  if (identical(data.type, "##fileformat=VCF") | stri_detect_fixed(str = data, pattern = ".vcf")) {
-    data.type <- "vcf.file"
-    message("File type: VCF")
+  if (!is.null(pop.labels)) {
+    if (length(pop.labels) != length(pop.levels)) stop("pop.labels and pop.levels must have the same length (number of groups)")
+    pop.labels <- stringi::stri_replace_all_fixed(pop.labels, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
   
-  if (stri_detect_fixed(str = data, pattern = ".tped")) {
-    data.type <- "plink.file"
-    message("File type: PLINK")
-    if (!file.exists(stri_replace_all_fixed(str = data, pattern = ".tped", replacement = ".tfam", vectorize_all = FALSE))) {
-      stop("Missing tfam file with the same prefix as your tped")
-    }
-  } 
-  
-  if (stri_detect_fixed(str = data.type, pattern = "POP_ID") | stri_detect_fixed(str = data.type, pattern = "INDIVIDUALS")) {
-    data.type <- "df.file"
-    message("File type: data frame of genotypes")
+  if (!is.null(pop.select)) {
+    pop.select <- stringi::stri_replace_all_fixed(pop.select, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
   
-  if (stri_detect_fixed(str = data.type, pattern = "Catalog")) {
-    data.type <- "haplo.file"
-    message("File type: haplotypes from stacks")
-    if (is.null(blacklist.genotype)) {
-      stop("blacklist.genotype file missing. 
-           Use stackr's missing_genotypes function to create this blacklist")
-    }
-  }
+  # File type detection----------------------------------------------------------
+  data.type <- detect_genomic_format(data)
+  
   
   # Create a filename to save the output files ********************************
   # Get date and time to have unique filenaming
@@ -365,8 +330,6 @@ data_pruning <- function(data,
     select(INDIVIDUALS, POP_ID) %>% 
     distinct(INDIVIDUALS, .keep_all = TRUE)
   
-  strata <- strata.df
-  
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
   
@@ -410,7 +373,7 @@ data_pruning <- function(data,
     )
     
     # File format
-    file.format <- "##fileformat=VCFv4.2"
+    file.format <- "##fileformat=VCFv4.3"
     file.format <- as.data.frame(file.format)
     utils::write.table(x = file.format, file = filename, sep = " ", append = FALSE, col.names = FALSE, row.names = FALSE, quote = FALSE)
     
