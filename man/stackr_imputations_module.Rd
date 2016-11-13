@@ -7,7 +7,7 @@
 stackr_imputations_module(data, imputation.method = NULL,
   impute = "genotype", imputations.group = "populations", num.tree = 100,
   iteration.rf = 10, split.number = 100, verbose = FALSE,
-  parallel.core = detectCores() - 1, filename = NULL, ...)
+  parallel.core = parallel::detectCores() - 1, filename = NULL, ...)
 }
 \arguments{
 \item{data}{A file in the working directory or object in the global environment 

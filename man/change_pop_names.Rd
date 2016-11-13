@@ -17,6 +17,7 @@ case, the id of the pop.
 Use this argument to have the pop ordered your way instead of the default 
 alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
 instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+White spaces in population names are replaced by underscore.
 Default: \code{pop.levels = NULL}.}
 
 \item{pop.labels}{(optional, string) Use this argument to rename/relabel
@@ -25,11 +26,12 @@ into a new pop called \code{"NEW"}:
 (1) First, define the levels for your pop with \code{pop.levels} argument: 
 \code{pop.levels = c("QUE", "ONT", "ALB")}. 
 (2) then, use \code{pop.labels} argument: 
-\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.
 To rename \code{"QUE"} to \code{"TAS"}:
 \code{pop.labels = c("TAS", "ONT", "ALB")}.
 Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
-\code{strata} argument that can do the same thing, see below.}
+\code{strata} argument that can do the same thing, see below.
+White spaces in population names are replaced by underscore.}
 }
 \description{
 Transform into a factor the POP_ID column, change names and reorder the levels

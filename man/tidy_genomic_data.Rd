@@ -105,6 +105,7 @@ case, the id of the pop.
 Use this argument to have the pop ordered your way instead of the default 
 alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
 instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+White spaces in population names are replaced by underscore.
 Default: \code{pop.levels = NULL}.}
 
 \item{pop.labels}{(optional, string) Use this argument to rename/relabel
@@ -113,14 +114,17 @@ into a new pop called \code{"NEW"}:
 (1) First, define the levels for your pop with \code{pop.levels} argument: 
 \code{pop.levels = c("QUE", "ONT", "ALB")}. 
 (2) then, use \code{pop.labels} argument: 
-\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.
 To rename \code{"QUE"} to \code{"TAS"}:
 \code{pop.labels = c("TAS", "ONT", "ALB")}.
 Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
-\code{strata} argument that can do the same thing, see below.}
+\code{strata} argument that can do the same thing, see below.
+White spaces in population names are replaced by underscore.}
 
-\item{strata}{(optional for data frame and PLINK files, 
-required for VCF and haplotypes files) A tab delimited file with 2 columns with header:
+\item{strata}{(optional/required) Required for VCF and haplotypes files, 
+optional for the other file formats supported. 
+
+The strata file is a tab delimited file with 2 columns with header:
 \code{INDIVIDUALS} and \code{STRATA}. With a 
 data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
 PLINK files, the \code{tfam} first 2 columns are used. 
@@ -130,10 +134,10 @@ To create a strata file see \code{\link[stackr]{individuals2strata}}.
 If you have already run 
 \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
 the strata file is similar to a stacks `population map file`, make sure you 
-have the required column names  (\code{INDIVIDUALS} and \code{STRATA}).
+have the required column names (\code{INDIVIDUALS} and \code{STRATA}).
 Default: \code{strata = NULL}.}
 
-\item{pop.select}{(string, optional) Selected list of populations for 
+\item{pop.select}{(string, optional) Selected list of populations for
 the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
 and \code{ONT} population samples (out of 20 pops).
 Default: \code{pop.select = NULL}}
