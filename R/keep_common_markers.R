@@ -99,7 +99,7 @@ keep_common_markers <- function(data) {
   )
   
   if (blacklist.markers.common > 0) {
-    input <- suppressWarnings(input %>% dplyr::semi_join(pop.filter, by = "MARKERS"))
+    input <- suppressWarnings(dplyr::semi_join(input, pop.filter, by = "MARKERS"))
   }
   return(input)
 }
