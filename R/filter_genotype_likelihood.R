@@ -697,7 +697,7 @@ filter_genotype_likelihood <- function(
   message("The number of markers before -> after the GL filter")
   message(stringi::stri_join("SNP: ", as.integer(n_distinct(data.filter.gl.individuals$POS)), " -> ", as.integer(n_distinct(filter$POS))))
   message(stringi::stri_join("LOCUS: ", as.integer(n_distinct(data.filter.gl.individuals$LOCUS)), " -> ", as.integer(n_distinct(filter$LOCUS))))
-  cat("#######################################################################\n")
+  cat("############################## completed ##############################\n")
   
   if (interactive.filter) {
     res <- list()
