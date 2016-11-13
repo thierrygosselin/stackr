@@ -208,25 +208,24 @@ missing_visualization <- function(
   # import data ----------------------------------------------------------------
   if (is.vector(data)) {
     message("Using input file in your directory")
-    
-    input <- stackr::tidy_genomic_data(
-      data = data, 
-      vcf.metadata = vcf.metadata,
-      blacklist.id = blacklist.id, 
-      blacklist.genotype = blacklist.genotype, 
-      whitelist.markers = whitelist.markers, 
-      monomorphic.out = monomorphic.out, 
-      max.marker = max.marker,
-      snp.ld = snp.ld, 
-      common.markers = common.markers,
-      strata = strata, 
-      pop.select = pop.select,
-      filename = filename
-    )
   } else {
     message("Using input file from your global environment")
-    input <- stackr::read_long_tidy_wide(data = data)
   }
+  input <- stackr::tidy_genomic_data(
+    data = data, 
+    vcf.metadata = vcf.metadata,
+    blacklist.id = blacklist.id, 
+    blacklist.genotype = blacklist.genotype, 
+    whitelist.markers = whitelist.markers, 
+    monomorphic.out = monomorphic.out, 
+    max.marker = max.marker,
+    snp.ld = snp.ld, 
+    common.markers = common.markers,
+    strata = strata, 
+    pop.select = pop.select,
+    filename = filename
+  )
+  
   
   if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
@@ -276,13 +275,14 @@ missing_visualization <- function(
   # create an empty list to store results
   res <- list()
   
-  # Identity-by-missingness (IBM) analysis -------------------------------------
-  # MultiDimensional Scaling analysis (MDS) - Principal Coordinates Analysis (PCoA)
-  message("Principal Coordinate Analysis (PCoA)...")
-  
+  # preping data
   input.prep <- input %>% 
     dplyr::mutate(GT = ifelse(GT == "000000", "0", "1"), GT = as.numeric(GT))
   
+  # Identity-by-missingness (IBM) analysis -------------------------------------
+  # MultiDimensional Scaling analysis (MDS) - Principal Coordinates Analysis (PCoA)
+  message("Principal Coordinate Analysis (PCoA)...")
+
   input.pcoa <- input.prep %>% 
     dplyr::select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
     dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
@@ -306,14 +306,15 @@ missing_visualization <- function(
   # ibm$values # test
   # ibm$vectors # test
   # ibm$trace # test
-
+  
   # Should broken_stick values be reported?
   
   # variance
-  # v <- ibm$values$Eigenvalues
-  # va <- var(v)
-  # v[1]/va
-  # v[2]/va
+  variance.component <-  tibble::data_frame(EIGENVALUES = ibm$values$Eigenvalues) %>% 
+    mutate(
+      VARIANCE_PROP = round(EIGENVALUES/sum(EIGENVALUES), 2)
+    )
+  
   
   # alternative tested giving the same results:
   # ibm <- stats::cmdscale(d, eig = TRUE, k = 2) 
@@ -348,11 +349,14 @@ missing_visualization <- function(
     # i <- "WATERSHED"
     # IBM Figures
     
+    label.x.axis <- stringi::stri_join("PCo1", " [", variance.component[1,2], "]")
+    label.y.axis <- stringi::stri_join("PCo2", " [", variance.component[2,2], "]")
+    
     ibm.plot.pco1.pco2 <- ggplot(pcoa.df, aes(x = Axis.1, y = Axis.2), environment = environment()) +
       geom_point(aes_string(colour = i)) +
       labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
-      labs(x = "PCo1") +
-      labs(y = "PCo2") +
+      labs(x = label.x.axis) +
+      labs(y = label.y.axis) +
       theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
             axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
             legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
@@ -363,11 +367,14 @@ missing_visualization <- function(
     res[[ibm_plot_name]] <- ibm.plot.pco1.pco2
     
     # with axis 1 and 3
+    label.x.axis <- stringi::stri_join("PCo1", " [", variance.component[1,2], "]")
+    label.y.axis <- stringi::stri_join("PCo3", " [", variance.component[3,2], "]")
+    
     ibm.plot.pco1.pco3 <- ggplot(pcoa.df, aes(x = Axis.1, y = Axis.3), environment = environment()) +
       geom_point(aes_string(colour = i)) +
       labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
-      labs(x = "PCo1") +
-      labs(y = "PCo3") +
+      labs(x = label.x.axis) +
+      labs(y = label.y.axis) +
       theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
             axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
             legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
@@ -378,11 +385,14 @@ missing_visualization <- function(
     res[[ibm_plot_name]] <- ibm.plot.pco1.pco3
     
     # with axis 2 and 3
+    label.x.axis <- stringi::stri_join("PCo2", " [", variance.component[2,2], "]")
+    label.y.axis <- stringi::stri_join("PCo3", " [", variance.component[3,2], "]")
+    
     ibm.plot.pco2.pco3 <- ggplot(pcoa.df, aes(x = Axis.2, y = Axis.3), environment = environment()) +
       geom_point(aes_string(colour = i)) +
       labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
-      labs(x = "PCo2") +
-      labs(y = "PCo3") +
+      labs(x = label.x.axis) +
+      labs(y = label.y.axis) +
       theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
             axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
             legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
@@ -393,11 +403,14 @@ missing_visualization <- function(
     res[[ibm_plot_name]] <- ibm.plot.pco2.pco3
     
     # with axis 3 and 4
+    label.x.axis <- stringi::stri_join("PCo3", " [", variance.component[3,2], "]")
+    label.y.axis <- stringi::stri_join("PCo4", " [", variance.component[4,2], "]")
+    
     ibm.plot.pco3.pco4 <- ggplot(pcoa.df, aes(x = Axis.3, y = Axis.4), environment = environment()) +
       geom_point(aes_string(colour = i)) +
       labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
-      labs(x = "PCo3") +
-      labs(y = "PCo4") +
+      labs(x = label.x.axis) +
+      labs(y = label.y.axis) +
       theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
             axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
             legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
@@ -531,6 +544,79 @@ missing_visualization <- function(
     )
   # missing.genotypes.markers.plot
   
+  # Missingness per markers and per populations
+  # message("Missingness per markers per populations")
+  # 
+  # missing.genotypes.markers.pop <- dplyr::ungroup(input.prep) %>% 
+  #   dplyr::select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
+  #   dplyr::group_by(MARKERS, POP_ID, GT) %>%
+  #   dplyr::tally(.) %>%
+  #   dplyr::ungroup(.) %>%
+  #   tidyr::complete(
+  #     data = .,
+  #     GT,
+  #     nesting(MARKERS, POP_ID),
+  #     fill = list(n = 0)
+  #   ) %>%
+  #   dplyr::group_by(MARKERS, POP_ID) %>%
+  #   dplyr::summarise(MISSING_GENOTYPE_PROP = n[GT == 0] / sum(n))
+  # 
+  # het.per.markers <- assigner::fst_WC84(data = input)
+  # names(het.per.markers)
+  # fis <- het.per.markers$fis.markers
+  # 
+  # het.summary <- input %>%
+  #   dplyr::filter(GT != "000000") %>%
+  #   dplyr::mutate(
+  #     HET = dplyr::if_else(
+  #       stringi::stri_sub(GT, 1, 3) != stringi::stri_sub(GT, 4, 6), 1, 0
+  #     )
+  #   ) %>% 
+  #   dplyr::group_by(MARKERS, POP_ID) %>% 
+  #   dplyr::summarise(
+  #     GENOTYPED = n(),
+  #     HET_NUMBER = length(HET[HET == 1]),
+  #     HET_PROP = HET_NUMBER / GENOTYPED
+  #   )
+  # 
+  # het.summary <- dplyr::ungroup(input) %>%
+  #   dplyr::filter(GT != "000000") %>%
+  #   dplyr::group_by(MARKERS, POP_ID) %>%
+  #   dplyr::mutate(
+  #     HET = dplyr::if_else(
+  #       stringi::stri_sub(GT, 1, 3) != stringi::stri_sub(GT, 4, 6), 1, 0
+  #     )
+  #   ) %>% 
+  #   dplyr::summarise(
+  #     N = as.numeric(n()),
+  #     PP = as.numeric(length(GT[GT == "0/0"])),
+  #     PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
+  #     QQ = as.numeric(length(GT[GT == "1/1"]))
+  #   ) %>%
+  #   dplyr::mutate(
+  #     FREQ_REF = ((PP*2) + PQ)/(2*N),
+  #     FREQ_ALT = ((QQ*2) + PQ)/(2*N),
+  #     HET_O = PQ/N,
+  #     HET_E = 2 * FREQ_REF * FREQ_ALT,
+  #     FIS = dplyr::if_else(HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6))
+  #   )
+  # 
+  # 
+  # # Figure markers pop
+  # missing.genotypes.markers.pop.plot <- ggplot(
+  #   data = missing.genotypes.markers.pop, aes(x = POP_ID, y = MISSING_GENOTYPE_PROP, colour = POP_ID)) + 
+  #   geom_jitter() + 
+  #   labs(y = "Missing genotypes (proportion)") +
+  #   labs(x = "Populations") +
+  #   labs(colour = "Populations") +
+  #   theme(
+  #     legend.position = "none",
+  #     axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
+  #     axis.text.x = element_text(size = 10, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
+  #     axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
+  #     axis.text.y = element_text(size = 8, family = "Helvetica")
+  #   )
+  
   # Results --------------------------------------------------------------------
   res$tidy.data <- input
   res$tidy.data.binary <- input.prep
@@ -542,5 +628,6 @@ missing_visualization <- function(
   res$missing.genotypes.pop.plot <- missing.genotypes.pop.plot
   res$missing.genotypes.markers <- missing.genotypes.markers
   res$missing.genotypes.markers.plot <- missing.genotypes.markers.plot
+  # res$missing.genotypes.markers.pop.plot <- missing.genotypes.markers.pop.plot
   return(res)
 }
