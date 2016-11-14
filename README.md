@@ -95,7 +95,7 @@ Change log, version, new features and bug history now lives in the [NEWS.md file
 
 **v.0.4.4**
 
--   several updates to make function faster.
+-   several updates to make functions faster.
 -   `stackr_imputations_module` no longer imputes globally after imputations by populations. Instead, use `common.markers` or not to test impacts.
 -   bug fix with `ref_alt_alleles` that was not working properly inside the imputation module.
 -   `snp_ld` is not a separate module available for users. Check documentation.
