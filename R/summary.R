@@ -50,15 +50,15 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 #' and the inbreeding coefficient. The Global MAF of Loci, 
 #' with STACKS GBS/RAD loci = read or de novo haplotypes, 
 #' is included and repeated over SNP.
-#' @param filename (optional) Name of the file written to the working directory.
 #' @param data The tidy VCF file created with \link{tidy_genomic_data}.
+#' @param filename (optional) Name of the file written to the working directory.
 #' @rdname summary_stats_vcf_tidy
 #' @export
 
 summary_stats_vcf_tidy <- function(data, filename = NULL) {
   
   vcf.summary <- data %>%
-    dplyr::filter(GT != "./.") %>%
+    dplyr::filter(GT_VCF != "./.") %>%
     dplyr::group_by(LOCUS, POS, POP_ID) %>%
     dplyr::summarise(
       N = as.numeric(n()),
@@ -71,7 +71,7 @@ summary_stats_vcf_tidy <- function(data, filename = NULL) {
       FREQ_ALT = ((QQ*2) + PQ)/(2*N),
       HET_O = PQ/N,
       HET_E = 2 * FREQ_REF * FREQ_ALT,
-      FIS = ifelse(HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6))
+      FIS = dplyr::if_else(HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6))
     )
   
   global.maf <- vcf.summary %>%
@@ -80,8 +80,7 @@ summary_stats_vcf_tidy <- function(data, filename = NULL) {
     dplyr::mutate(GLOBAL_MAF = (PQ + (2 * QQ)) / (2*N)) %>%
     dplyr::select(LOCUS, POS, GLOBAL_MAF)
   
-  vcf.prep <- global.maf %>%
-    dplyr::left_join(vcf.summary, by = c("LOCUS", "POS"))
+  vcf.prep <- dplyr::left_join(global.maf, vcf.summary, by = c("LOCUS", "POS"))
   
   vcf.prep <- vcf.prep[c("LOCUS", "POS", "POP_ID", "N", "PP", "PQ", "QQ", "FREQ_REF", "FREQ_ALT", "GLOBAL_MAF", "HET_O", "HET_E", "FIS")]
   
@@ -167,15 +166,6 @@ summary_stats_pop <- function(data, filename = NULL) {
 #' @export
 
 summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
-  
-  POP_ID <- NULL
-  READ_DEPTH <- NULL
-  ALLELE_REF_DEPTH <- NULL
-  ALLELE_ALT_DEPTH <- NULL
-  INDIVIDUALS <- NULL
-  
-  
-  
   if (is.vector(data) == "TRUE") {
     data <- read_tsv(data, col_names = T, col_types = "iiiiccddcdccddddc")
     message("Using the file in your directory")
@@ -233,7 +223,7 @@ summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
       ALLELE_ALT_DEPTH_MAX = max(ALLELE_ALT_DEPTH, na.rm = TRUE)
     ) %>%
     dplyr::group_by(POP_ID) %>%
-    dplyr::summarise_each_(funs(mean), vars = c("READ_DEPTH_MEAN", "READ_DEPTH_MEDIAN", "READ_DEPTH_MIN", "READ_DEPTH_MAX", "ALLELE_REF_DEPTH_MEAN", "ALLELE_REF_DEPTH_MEDIAN", "ALLELE_REF_DEPTH_MIN", "ALLELE_REF_DEPTH_MAX", "ALLELE_ALT_DEPTH_MEAN", "ALLELE_ALT_DEPTH_MEDIAN", "ALLELE_ALT_DEPTH_MIN", "ALLELE_ALT_DEPTH_MAX")) %>%
+    dplyr::summarise_each_(dplyr::funs(mean), vars = c("READ_DEPTH_MEAN", "READ_DEPTH_MEDIAN", "READ_DEPTH_MIN", "READ_DEPTH_MAX", "ALLELE_REF_DEPTH_MEAN", "ALLELE_REF_DEPTH_MEDIAN", "ALLELE_REF_DEPTH_MIN", "ALLELE_REF_DEPTH_MAX", "ALLELE_ALT_DEPTH_MEAN", "ALLELE_ALT_DEPTH_MEDIAN", "ALLELE_ALT_DEPTH_MIN", "ALLELE_ALT_DEPTH_MAX")) %>%
     melt(
       id.vars = c("POP_ID"),
       variable.name = "GENOTYPE_LIKELIHOOD_GROUP", 
@@ -333,7 +323,7 @@ table_low_coverage_summary <- function(
     
   } else {
     data <- data %>%
-      mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T))
+      dplyr::mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T))
   }
   
   low.coverage.summary <- data %>%
