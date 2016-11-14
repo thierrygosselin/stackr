@@ -91,12 +91,13 @@ write_genind <- function(data) {
       dplyr::select(-GT_VCF, -A1_A2) %>% 
       tidyr::gather(data = ., key = ALLELES, value = n, -c(INDIVIDUALS, POP_ID, MARKERS)) %>% 
       dplyr::mutate(MARKERS_ALLELES = stringi::stri_join(MARKERS, ALLELES, sep = ".")) %>% 
-      dplyr::select(-MARKERS, -ALLELES)
-
-    genind.prep <- data.table::dcast.data.table(
-      data = data.table::as.data.table(genind.prep), 
-      formula = POP_ID + INDIVIDUALS ~ MARKERS_ALLELES, 
-      value.var = "n") %>% 
+      dplyr::select(-MARKERS, -ALLELES) %>% 
+      data.table::as.data.table() %>%
+      data.table::dcast.data.table(
+        data = .,
+        formula = POP_ID + INDIVIDUALS ~ MARKERS_ALLELES, 
+        value.var = "n"
+      ) %>% 
       tibble::as_data_frame()
   } else {
     missing.geno <- dplyr::ungroup(input) %>%
@@ -128,15 +129,15 @@ write_genind <- function(data) {
       dplyr::select(-MARKERS, -GT) %>%
       dplyr::right_join(strata.genind, by = "INDIVIDUALS") %>%#include strata
       dplyr::mutate(POP_ID = factor(as.character(POP_ID))) %>%# xvalDapc doesn't accept pop as ordered factor
-      dplyr::arrange(MARKERS_ALLELES, INDIVIDUALS)
-    
-    missing.geno <- NULL
-    
-    genind.prep <- data.table::dcast.data.table(
-      data = data.table::as.data.table(genind.prep), 
-      formula = POP_ID + INDIVIDUALS ~ MARKERS_ALLELES, 
-      value.var = "n") %>% 
+      dplyr::arrange(MARKERS_ALLELES, INDIVIDUALS) %>% 
+      data.table::as.data.table() %>%
+      data.table::dcast.data.table(
+        data = .,
+        formula = POP_ID + INDIVIDUALS ~ MARKERS_ALLELES, 
+        value.var = "n"
+      ) %>% 
       tibble::as_data_frame()
+    missing.geno <- NULL
   }
   
   # genind arguments common to all data.type
