@@ -1487,12 +1487,14 @@ tidy_genomic_data <- function(
   } # End common markers
   
   # Removing monomorphic markers------------------------------------------------
-  if (monomorphic.out & !biallelic) {
+  if (monomorphic.out) {
     message("Removing monomorphic markers: yes")
     mono.out <- discard_monomorphic_markers(input)
     mono.markers <- mono.out$blacklist.momorphic.markers
     if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
-      if (data.type == "haplo.file") mono.markers <- dplyr::rename(.data = mono.markers, LOCUS = MARKERS)
+      if (data.type == "haplo.file") {
+        mono.markers <- dplyr::rename(.data = mono.markers, LOCUS = MARKERS)
+      }
       input <- mono.out$input
       readr::write_tsv(mono.markers, "blacklist.momorphic.markers.tsv")
     }
