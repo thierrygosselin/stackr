@@ -327,7 +327,7 @@ haplo2colony <- function(haplotypes.file,
   message("step 3/5: completed")
   haplo.prep <- dplyr::mutate_all(.tbl = haplo.prep, .funs = factor, exclude = NA)
   # Allele frequency per locus
-  if (allele.freq == "overall"){
+  if (allele.freq == "overall") {
     
     allele.per.locus <- haplo.prep %>% select(-INDIVIDUALS, -POP_ID, -ALLELE) %>% 
       dplyr::mutate_all(.tbl = ., .funs = nlevels)
@@ -353,7 +353,7 @@ haplo2colony <- function(haplotypes.file,
     )    
     message("step 4/5: completed")
     
-  } else if (missing(allele.freq) != TRUE & allele.freq != FALSE){
+  } else if (missing(allele.freq) != TRUE & allele.freq != FALSE) {
     
     allele.per.locus <- haplo.prep %>% 
       filter(POP_ID %in% allele.freq) %>%
@@ -867,7 +867,7 @@ haplo2colony <- function(haplotypes.file,
     
     if (allele.freq == "overall"){
       
-      allele.per.locus <-  %>% dplyr::select(.data = haplo.imp, -c(INDIVIDUALS, POP_ID, ALLELE)) %>%
+      allele.per.locus <-  dplyr::select(.data = haplo.imp, -c(INDIVIDUALS, POP_ID, ALLELE)) %>%
         dplyr::mutate_all(.tbl = ., .funs = nlevels)
       
       frequency.markers <- suppressWarnings(
@@ -891,7 +891,7 @@ haplo2colony <- function(haplotypes.file,
       )    
       message("step 3/4: completed")
       
-    } else if (missing(allele.freq) != TRUE & allele.freq != FALSE){
+    } else if (missing(allele.freq) != TRUE & allele.freq != FALSE) {
       
       allele.per.locus <- haplo.imp %>% 
         filter(POP_ID %in% allele.freq) %>%
@@ -1044,12 +1044,12 @@ haplo2colony <- function(haplotypes.file,
     }
     
     # Line 15 and more = Numbers of alleles per locus (Integer, optional). Required when the Population allele frequency indicator is set to 1
-    if (allele.freq != FALSE){
+    if (allele.freq != FALSE) {
       write_delim(x = allele.per.locus, path = filename, delim = " ", append = TRUE, col_names = FALSE)
     }
     
     # Alleles and their frequencies per locus (Integer, Real, optional)    
-    if (allele.freq != FALSE){
+    if (allele.freq != FALSE) {
       write_delim(x = frequency.markers, path = filename, delim = " ", append = TRUE, col_names = FALSE)
     }
     
