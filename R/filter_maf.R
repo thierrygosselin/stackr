@@ -283,7 +283,7 @@ filter_maf <- function(
   
   # Step 1. Global MAF: Inspecting the MAF globally----------------------------
   if (interactive.filter) {
-    message("Step 1. Global MAF: Inspecting the MAF globally")
+    message("\nStep 1. Global MAF: Inspecting the MAF globally\n")
     # plot_1: Violin plot global MAF individuals and pop
     message("Show the violin plot for the global MAF (y/n)): ")
     violinplot <- as.character(readLines(n = 1))
@@ -328,7 +328,7 @@ filter_maf <- function(
       
       global.data <- NULL # unused object
       
-      readr::write_tsv(x = maf.global.summary, path = "maf.global.summary.tsv")
+      readr::write_tsv(x = maf.global.summary, path = paste0(path.folder, "/maf.global.summary.tsv"))
       message(stringi::stri_join("The global MAF mean: ", round(maf.global.summary$MEAN, 4)))
       message(stringi::stri_join("The global MAF median: ", round(maf.global.summary$MEDIAN, 4)))
       message(stringi::stri_join("The global MAF range: ", maf.global.summary$RANGE))
@@ -341,7 +341,7 @@ filter_maf <- function(
   # Step 2. Local MAF: Inspecting the MAF at the populations level--------------
   # plot_2: Violin plot local MAF 
   if (interactive.filter) {
-    message("Step 2. Local MAF: Inspecting the MAF at the population level")
+    message("\nStep 2. Local MAF: Inspecting the MAF at the population level\n")
     # plot_2: Violin plot local MAF
     message("Show the violin plot for the local MAF (y/n)): ")
     violinplot <- as.character(readLines(n = 1))
@@ -457,12 +457,12 @@ filter_maf <- function(
   # remove unused objects
   TOTAL <- n.ind <- NULL
   
-  readr::write_tsv(x = maf.helper.table, path = stringi::stri_join(path.folder, "/", "maf.helper.table.tsv"))
+  readr::write_tsv(x = maf.helper.table, path = paste0(path.folder, "/maf.helper.table.tsv"))
   
-  message(stringi::stri_join("To visualize the local and global MAF, a table 
+  message(stringi::stri_join("\nTo visualize the local and global MAF, a table 
 (maf.helper.table.tsv) was written in this directory: \n", path.folder))
   
-  message("First and second variable columns: POP_ID and sample size.
+  message("\nFirst and second variable columns: POP_ID and sample size.
 The last row is the TOTAL/GLOBAL observation.
 The remaining columns are the variable corresponding to the number of ALT allele (range 1 to 20).
 The observations in the ALT allele variable columns are the local (for the pop) 
@@ -474,7 +474,7 @@ e.g. ALT_3 could be 3 heterozygote individuals with the ALT allele or
   
   # maf.approach
   if (interactive.filter) {
-    message("Step 3. Filtering markers based on the different MAF arguments")
+    message("\nStep 3. Filtering markers based on the different MAF arguments\n")
     message("The maf.approach:\n
 maf.approach = \"haplotype\" : looks at the minimum MAF found on the read/haplotype. 
 This will discard all the markers/snp on that read based on the thresholds chosen.
@@ -535,7 +535,7 @@ thresholds entered.")
 
 readr::write_tsv(
   x = maf.data.thresholds, 
-  path = "maf.data.tsv",
+  path = paste0(path.folder, "/maf.data.tsv"),
   col_names = TRUE, 
   append = FALSE
 )
@@ -620,24 +620,17 @@ if (maf.approach == "SNP") { # SNP approach
 maf.data <- NULL    
 
 # Update filters.parameters SNP ----------------------------------------------
-if (data.type == "vcf.file") {
-  snp.before <- as.integer(n_distinct(input$MARKERS))
-  snp.after <- as.integer(n_distinct(filter$MARKERS))
-  snp.blacklist <- as.integer(n_distinct(input$MARKERS) - n_distinct(filter$MARKERS))
-  locus.before <- as.integer(n_distinct(input$LOCUS))
-  locus.after <- as.integer(n_distinct(filter$LOCUS))
-  locus.blacklist <- as.integer(n_distinct(input$LOCUS) - n_distinct(filter$LOCUS))
-} else if (data.type == "haplo.file") {
-  snp.before <- as.character("NA")
-  snp.after <- as.character("NA")
-  snp.blacklist <- as.character("NA")
-  locus.before <- as.integer(n_distinct(input$MARKERS))
-  locus.after <- as.integer(n_distinct(filter$MARKERS))
-  locus.blacklist <- as.integer(n_distinct(input$MARKERS) - n_distinct(filter$MARKERS))
+if (tibble::has_name(input, "LOCUS") & maf.approach == "haplotype") {
+  snp.before <- as.integer(dplyr::n_distinct(input$MARKERS))
+  snp.after <- as.integer(dplyr::n_distinct(filter$MARKERS))
+  snp.blacklist <- as.integer(dplyr::n_distinct(input$MARKERS) - dplyr::n_distinct(filter$MARKERS))
+  locus.before <- as.integer(dplyr::n_distinct(input$LOCUS))
+  locus.after <- as.integer(dplyr::n_distinct(filter$LOCUS))
+  locus.blacklist <- as.integer(locus.before - locus.after)
 } else {
-  snp.before <- as.integer(n_distinct(input$MARKERS))
-  snp.after <- as.integer(n_distinct(filter$MARKERS))
-  snp.blacklist <- as.integer(n_distinct(input$MARKERS) - n_distinct(filter$MARKERS))
+  snp.before <- as.integer(dplyr::n_distinct(input$MARKERS))
+  snp.after <- as.integer(dplyr::n_distinct(filter$MARKERS))
+  snp.blacklist <- as.integer(dplyr::n_distinct(input$MARKERS) - dplyr::n_distinct(filter$MARKERS))
   locus.before <- as.character("NA")
   locus.after <- as.character("NA")
   locus.blacklist <- as.character("NA")
@@ -701,19 +694,15 @@ message(stringi::stri_join("maf.approach: ", maf.approach))
 message(stringi::stri_join("maf.thresholds: ", "local = ", maf.local.threshold, ", global = ", maf.global.threshold))
 message(stringi::stri_join("maf.operator: ", maf.operator))
 message(stringi::stri_join("maf.pop.num.threshold: ", maf.pop.num.threshold))
-if (data.type != "vcf.file" & data.type != "haplo.file") {
-  message(stringi::stri_join("The number of markers removed by the MAF filter: ", n_distinct(input$MARKERS) - n_distinct(filter$MARKERS)))
+if (tibble::has_name(input, "LOCUS") & maf.approach == "haplotype") {
+  message(stringi::stri_join("The number of markers removed by the MAF filter:\nSNP: ", snp.blacklist, "\nLOCUS: ", locus.blacklist))
   message("The number of markers before -> after the MAF filter")
-  message(stringi::stri_join("SNP: ", as.integer(n_distinct(input$MARKERS)), " -> ", as.integer(n_distinct(filter$MARKERS))))
-} else if (data.type == "vcf.file") {
-  message(stringi::stri_join("The number of markers removed by the MAF filter:\nSNP: ", n_distinct(input$POS) - n_distinct(filter$POS), "\nLOCUS: ", n_distinct(input$LOCUS) - n_distinct(filter$LOCUS)))
+  message(stringi::stri_join("SNP: ", snp.before, " -> ", snp.after))
+  message(stringi::stri_join("LOCUS: ", locus.before, " -> ", locus.after))
+} else {
+  message(stringi::stri_join("The number of markers removed by the MAF filter: ", snp.blacklist))
   message("The number of markers before -> after the MAF filter")
-  message(stringi::stri_join("SNP: ", as.integer(n_distinct(input$POS)), " -> ", as.integer(n_distinct(filter$POS))))
-  message(stringi::stri_join("LOCUS: ", as.integer(n_distinct(input$LOCUS)), " -> ", as.integer(n_distinct(filter$LOCUS))))
-} else {# for haplotype file
-  message(stringi::stri_join("The number of markers/locus removed by the MAF filter: ", n_distinct(input$MARKERS) - n_distinct(filter$MARKERS)))
-  message("The number of markers before -> after the MAF filter")
-  message(stringi::stri_join("MARKERS/LOCUS: ", as.integer(n_distinct(input$MARKERS)), " -> ", as.integer(n_distinct(filter$MARKERS))))
+  message(stringi::stri_join("SNP: ", snp.before, " -> ", snp.after))
 }
 cat("############################## completed ##############################\n")
 res <- list()

@@ -141,11 +141,10 @@
 
 #' @import ggplot2
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_sub
-#' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs
 #' @importFrom readr write_tsv
 #' @importFrom tibble data_frame
 #' @importFrom tidyr complete gather unite spread
-
 
 #' @seealso \link{plot_density_distribution_het}
 
@@ -1126,16 +1125,16 @@ number of populations in the dataset turns off the filter.\n")
   # Prepare a list of markers and number of markers before filtering
   if (tibble::has_name(het.summary, "LOCUS") & het.approach[1] == "haplotype") {
     markers.df <- dplyr::distinct(input, CHROM, LOCUS, POS)
-    snp.before <- n_distinct(input$POS)
-    locus.before <- n_distinct(input$LOCUS)
-    snp.after <- as.integer(n_distinct(filter$MARKERS))
+    snp.before <- dplyr::n_distinct(input$POS)
+    locus.before <- dplyr::n_distinct(input$LOCUS)
+    snp.after <- as.integer(dplyr::n_distinct(filter$MARKERS))
     snp.blacklist <- as.integer(snp.before - snp.after)
-    locus.after <- as.integer(n_distinct(filter$LOCUS))
+    locus.after <- as.integer(dplyr::n_distinct(filter$LOCUS))
     locus.blacklist <- as.integer(locus.before - locus.after)
   } else {
     markers.df <- dplyr::distinct(input, MARKERS)
-    snp.before <- n_distinct(input$MARKERS)
-    snp.after <- as.integer(n_distinct(filter$MARKERS))
+    snp.before <- dplyr::n_distinct(input$MARKERS)
+    snp.after <- as.integer(dplyr::n_distinct(filter$MARKERS))
     snp.blacklist <- as.integer(snp.before - snp.after)
     locus.before <- as.character("NA")
     locus.after <- as.character("NA")
@@ -1195,14 +1194,14 @@ number of populations in the dataset turns off the filter.\n")
   message(stringi::stri_join("het.dif.threshold: ", het.dif.threshold))
   message(stringi::stri_join("outlier.pop.threshold: ", outlier.pop.threshold))
   if (tibble::has_name(het.summary, "LOCUS") & het.approach[1] == "haplotype") {
-    message(stringi::stri_join("The number of markers removed by the HET filter:\nSNP: ", snp.before - n_distinct(filter$POS), "\nLOCUS: ", locus.before - n_distinct(filter$LOCUS)))
+    message(stringi::stri_join("The number of markers removed by the HET filter:\nSNP: ", snp.before - dplyr::n_distinct(filter$POS), "\nLOCUS: ", locus.before - dplyr::n_distinct(filter$LOCUS)))
     message("The number of markers before -> after the HET filter")
-    message(stringi::stri_join("SNP: ", snp.before, " -> ", as.integer(n_distinct(filter$POS))))
-    message(stringi::stri_join("LOCUS: ", locus.before, " -> ", as.integer(n_distinct(filter$LOCUS))))
+    message(stringi::stri_join("SNP: ", snp.before, " -> ", as.integer(dplyr::n_distinct(filter$POS))))
+    message(stringi::stri_join("LOCUS: ", locus.before, " -> ", as.integer(dplyr::n_distinct(filter$LOCUS))))
   } else {# for haplotype file
-    message(stringi::stri_join("The number of markers/locus removed by the HET filter: ", snp.before - n_distinct(filter$MARKERS)))
+    message(stringi::stri_join("The number of markers/locus removed by the HET filter: ", snp.before - dplyr::n_distinct(filter$MARKERS)))
     message("The number of markers before -> after the HET filter")
-    message(stringi::stri_join("MARKERS/LOCUS: ", snp.before, " -> ", as.integer(n_distinct(filter$MARKERS))))
+    message(stringi::stri_join("MARKERS/LOCUS: ", snp.before, " -> ", as.integer(dplyr::n_distinct(filter$MARKERS))))
   }
   cat("############################## completed ##############################\n")
   res <- list()
