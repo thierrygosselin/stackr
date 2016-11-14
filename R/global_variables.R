@@ -37,7 +37,7 @@ if (getRversion() >= "2.15.1") {
       "MARKERS", "MARKERS_ALLELES", "MARKER_NUMBER", "MAX_COUNT_MARKERS",
       "NUMBER", "QUAL", "READ_DEPTH", "REF", "STRATA", "TOTAL",
       "path.folder.step1", "path.folder.step2", "sum.pop", "EIGENVALUES",
-      "MISSING_GENOTYPE_PROP"
+      "MISSING_GENOTYPE_PROP", "A1_A2"
     )
   )
 }
