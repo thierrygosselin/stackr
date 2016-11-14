@@ -55,7 +55,7 @@
 
 #' @export
 #' @rdname ref_alt_alleles
-#' @importFrom dplyr select mutate group_by ungroup rename tally filter if_else full_join
+#' @importFrom dplyr select mutate group_by ungroup rename tally filter if_else arrange summarise top_n distinct coalesce if_else full_join
 #' @importFrom stringi stri_replace_all_fixed stri_join stri_sub
 #' @importFrom data.table fread
 #' @importFrom tibble has_name
@@ -108,14 +108,15 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
     dplyr::group_by(MARKERS) %>% 
     dplyr::tally(.)
   
-  if (monomorphic.out) {
+  # monomorphic
+  if (monomorphic.out) { 
     # monomorphic markers 
     mono.markers <- marker.type %>% 
       dplyr::filter(n == 1) %>% 
       dplyr::select(MARKERS)
   }
   
-  # Biallelic marker detection
+  # Biallelic marker detection -------------------------------------------------
   biallelic <- marker.type %>% 
     dplyr::summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
     purrr::flatten_chr(.x = .)
@@ -126,6 +127,42 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
     biallelic <- TRUE
   }
   
+  # Function to calculate REF\ALT --------------------------------------------
+  ref_compute <- function(data = input, new.ref = alleles.new.ref) {
+    input <- data %>%
+      dplyr::mutate(
+        A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
+        A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
+      ) %>% 
+      dplyr::full_join(new.ref, by = "MARKERS") %>%
+      dplyr::mutate(
+        A1 = replace(A1, which(A1 == "000"), NA),
+        A2 = replace(A2, which(A2 == "000"), NA),
+        GT_VCF_A1 = dplyr::if_else(A1 == REF, "0", "1", missing = "."),
+        GT_VCF_A2 = dplyr::if_else(A2 == REF, "0", "1", missing = "."),
+        GT_VCF = stringi::stri_join(GT_VCF_A1, GT_VCF_A2, sep = "/"),
+        GT_BIN = stringi::stri_replace_all_fixed(
+          str = GT_VCF, 
+          pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
+          replacement = c("0", "2", "1", "1", NA), 
+          vectorize_all = FALSE
+        ),
+        REF = stringi::stri_replace_all_fixed(
+          str = REF, 
+          pattern = c("001", "002", "003", "004"), 
+          replacement = c("A", "C", "G", "T"),
+          vectorize_all = FALSE),
+        ALT = stringi::stri_replace_all_fixed(
+          str = ALT, 
+          pattern = c("001", "002", "003", "004"), 
+          replacement = c("A", "C", "G", "T"),
+          vectorize_all = FALSE)
+      ) %>% 
+      dplyr::select(-c(A1, A2, GT_VCF_A1, GT_VCF_A2))
+  }#End ref_compute
+  
+  
+  # Detection and change -------------------------------------------------------
   if (biallelic) {
     alleles.new.ref <- input.genotyped.split %>%   
       dplyr::group_by(MARKERS, ALLELES) %>%
@@ -171,44 +208,18 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
           dplyr::select(-ALLELE_REF_DEPTH, -ALLELE_ALT_DEPTH) %>% 
           dplyr::rename(ALLELE_REF_DEPTH = ALLELE_REF_DEPTH_NEW, ALLELE_ALT_DEPTH = ALLELE_ALT_DEPTH_NEW)
       }
-    }
-    #Switch REF\ALT
-    if (length(change.ref) > 0 & tibble::has_name(input, "REF") | !tibble::has_name(input, "REF")) {
       
-      if (tibble::has_name(input, "REF")) input <- dplyr::select(input, -c(REF, ALT))
+      # switch REF/ALT in the dataset
+      if (length(change.ref) > 0) {
+        input <- dplyr::select(input, -c(REF, ALT))
+        input <- ref_compute(data = input, new.ref = alleles.new.ref)
+      }
       
-      input <- input %>%
-        dplyr::mutate(
-          A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
-          A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
-        ) %>% 
-        dplyr::full_join(alleles.new.ref, by = "MARKERS") %>%
-        dplyr::mutate(
-          A1 = replace(A1, which(A1 == "000"), NA),
-          A2 = replace(A2, which(A2 == "000"), NA),
-          GT_VCF_A1 = dplyr::if_else(A1 == REF, "0", "1", missing = "."),
-          GT_VCF_A2 = dplyr::if_else(A2 == REF, "0", "1", missing = "."),
-          GT_VCF = stringi::stri_join(GT_VCF_A1, GT_VCF_A2, sep = "/"),
-          GT_BIN = stringi::stri_replace_all_fixed(
-            str = GT_VCF, 
-            pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
-            replacement = c("0", "2", "1", "1", NA), 
-            vectorize_all = FALSE
-          ),
-          REF = stringi::stri_replace_all_fixed(
-            str = REF, 
-            pattern = c("001", "002", "003", "004"), 
-            replacement = c("A", "C", "G", "T"),
-            vectorize_all = FALSE),
-          ALT = stringi::stri_replace_all_fixed(
-            str = ALT, 
-            pattern = c("001", "002", "003", "004"), 
-            replacement = c("A", "C", "G", "T"),
-            vectorize_all = FALSE)
-        ) %>% 
-        dplyr::select(-c(A1, A2, GT_VCF_A1, GT_VCF_A2))
+    } else {
+      input <- ref_compute(data = input, new.ref = alleles.new.ref)
     }
-    # Remove the markers from the dataset
+    
+    # monomorphic filter
     if (monomorphic.out) {
       if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
         input <- dplyr::filter(input, !MARKERS %in% mono.markers$MARKERS)
