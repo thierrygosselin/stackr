@@ -91,22 +91,23 @@ library(stackr) # to load
   library("stackr")
   ```
 
-## Vignettes and examples
+## Vignettes, R Notebooks and examples
 
-From a browser:
+**Vignettes (in development, check periodically for updates):**
 
 * [installation problems](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
 * [parallel computing during imputations](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) 
 * [vcf2dadi](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_vcf2dadi.Rmd)
 * [haplo2genind](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_haplo2genind.Rmd)
-* [Missing data visualization and analysis (html vignette)](https://www.dropbox.com/s/4zf032g6yjatj0a/vignette_missing_data_analysis.nb.html?dl=0)
-Inside R:
+
+Vignettes can also be accessed inside R with:
 ```r
 browseVignettes("stackr") # To browse vignettes
 vignette("vignette_vcf2dadi") # To open specific vignette
 ```
 
-Vignettes are in development, check periodically for updates.
+**R Notebooks:**
+* Missing data visualization and analysis [(html vignette)](https://www.dropbox.com/s/4zf032g6yjatj0a/vignette_missing_data_analysis.nb.html?dl=0) and [(Rmd)](https://www.dropbox.com/s/5fxw2h9w1l1j391/vignette_missing_data_analysis.Rmd?dl=0)
 
 
 ## Citation:
