@@ -65,7 +65,6 @@ To try out the dev version of **stackr**, copy/paste the code below:
 
 ```r
 if (!require("devtools")) install.packages("devtools") # to install
-library(devtools) # to load
 devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to install WITH vignettes
 library(stackr) # to load
 ```
@@ -80,16 +79,18 @@ library(stackr) # to load
   Easy to install and use ([instructions](https://github.com/nathanvan/parallelsugar#installation)).
   * For a better experience in **stackr** and in R in general, I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/). 
   The R GUI is unstable with functions using parallel ([more info](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html)). 
-  Below, the combination of packages and how I install/load them :
-  
-  ```r
-  if (!require("pacman")) install.packages("pacman")
-  library("pacman")
-  pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)
-  pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)
-  # install_github("thierrygosselin/stackr", build_vignettes = TRUE) # uncomment to install
-  library("stackr")
-  ```
+
+
+Below, the combination of packages and how I install/load them :
+
+```r
+if (!require("pacman")) install.packages("pacman")
+library("pacman")
+pacman::p_load(devtools, tidyverse, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)
+pacman::p_load(devtools, tidyverse, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)
+devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)
+library("stackr")
+```
 
 ## Vignettes, R Notebooks and examples
 

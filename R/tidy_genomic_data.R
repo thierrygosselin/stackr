@@ -239,7 +239,6 @@
 #' @importFrom stats var median quantile
 #' @importFrom purrr map flatten keep discard
 #' @importFrom data.table fread melt.data.table as.data.table
-#' @importFrom plyr colwise
 #' @importFrom tidyr spread gather unite separate
 #' @importFrom utils count.fields
 #' @importFrom readr write_tsv read_tsv
@@ -1102,9 +1101,10 @@ tidy_genomic_data <- function(
     
     input.id.col <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, ALLELES)
     
-    input.variable <- input %>% dplyr::select(-c(POP_ID, INDIVIDUALS, ALLELES)) %>% 
-      plyr::colwise(factor, exclude = NA)(.) %>% 
-      plyr::colwise(as.numeric)(.)
+    input.variable <- input %>%
+      dplyr::select(-c(POP_ID, INDIVIDUALS, ALLELES)) %>% 
+      dplyr::mutate_all(.tbl = ., .funs = factor, exclude = NA) %>% 
+      dplyr::mutate_all(.tbl = ., .funs = as.numeric)
     
     input <- dplyr::bind_cols(input.id.col, input.variable)
     
@@ -1364,9 +1364,9 @@ tidy_genomic_data <- function(
           )
         )
     )
-    blacklist.genotype <- suppressWarnings(
-      plyr::colwise(as.character, exclude = NA)(blacklist.genotype)
-    )
+    blacklist.genotype <- dplyr::mutate_all(
+      .tbl = blacklist.genotype, .funs = as.character, exclude = NA
+      )
     columns.names.blacklist.genotype <- colnames(blacklist.genotype)
     
     if ("CHROM" %in% columns.names.blacklist.genotype) {

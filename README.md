@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.4.3-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--11--10-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.4.4-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--11--13-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -37,7 +37,6 @@ To try out the dev version of **stackr**, copy/paste the code below:
 
 ``` r
 if (!require("devtools")) install.packages("devtools") # to install
-library(devtools) # to load
 devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to install WITH vignettes
 library(stackr) # to load
 ```
@@ -48,27 +47,37 @@ Prerequisite - Suggestions - Troubleshooting
 -   **Parallel computing**: Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) package to do imputations in parallel.
 -   **Installation problem:** see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
 -   **Windows users**: 1. Install [Rtools](https://cran.r-project.org/bin/windows/Rtools/). 2. To have *stackr* run in parallel, use [parallelsugar](https://github.com/nathanvan/parallelsugar). Easy to install and use ([instructions](https://github.com/nathanvan/parallelsugar#installation)).
--   For a better experience in **stackr** and in R in general, I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/). The R GUI is unstable with functions using parallel ([more info](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html)). Below, the combination of packages and how I install/load them :
+-   For a better experience in **stackr** and in R in general, I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/). The R GUI is unstable with functions using parallel ([more info](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html)).
 
-`r   if (!require("pacman")) install.packages("pacman")   library("pacman")   pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)   pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)   # install_github("thierrygosselin/stackr", build_vignettes = TRUE) # uncomment to install   library("stackr")`
+Below, the combination of packages and how I install/load them :
 
-Vignettes and examples
-----------------------
+``` r
+if (!require("pacman")) install.packages("pacman")
+library("pacman")
+pacman::p_load(devtools, tidyverse, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)
+pacman::p_load(devtools, tidyverse, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)
+devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)
+library("stackr")
+```
 
-From a browser:
+Vignettes, R Notebooks and examples
+-----------------------------------
+
+**Vignettes (in development, check periodically for updates):**
 
 -   [installation problems](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
 -   [parallel computing during imputations](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd)
 -   [vcf2dadi](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_vcf2dadi.Rmd)
 -   [haplo2genind](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_haplo2genind.Rmd)
--   [Missing data visualization and analysis (html vignette)](https://www.dropbox.com/s/4zf032g6yjatj0a/vignette_missing_data_analysis.nb.html?dl=0) Inside R:
 
-    ``` r
-    browseVignettes("stackr") # To browse vignettes
-    vignette("vignette_vcf2dadi") # To open specific vignette
-    ```
+Vignettes can also be accessed inside R with:
 
-Vignettes are in development, check periodically for updates.
+``` r
+browseVignettes("stackr") # To browse vignettes
+vignette("vignette_vcf2dadi") # To open specific vignette
+```
+
+**R Notebooks:** \* Missing data visualization and analysis [(html vignette)](https://www.dropbox.com/s/4zf032g6yjatj0a/vignette_missing_data_analysis.nb.html?dl=0) and [(Rmd)](https://www.dropbox.com/s/5fxw2h9w1l1j391/vignette_missing_data_analysis.Rmd?dl=0)
 
 Citation:
 ---------
@@ -84,9 +93,9 @@ New features
 
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
-**v.0.4.3** \* bug fix in `summary_haplotypes` stemming from a new `readr` version \* `artifacts` replace `paralogs` in `summary_haplotypes`
+**v.0.4.4** \* several updates to make function faster. \* `stackr_imputations_module` no longer imputes globally after imputations by populations. Instead, use `common.markers` or not to test impacts. \* bug fix with `ref_alt_alleles` that was not working properly inside the imputation module. \* `snp_ld` is not a separate module available for users. Check documentation. \* `missing_visualization` now show the proportion of variance with plot axis text.
 
-**v.0.4.2** \* `gtypes` object from [strataG](https://github.com/EricArcher/strataG) package can now be read/write in/out of **Stackr** using the `tidy_genomic_data` and `genomic_converter` functions.
+**v.0.4.3** \* bug fix in `summary_haplotypes` stemming from a new `readr` version \* `artifacts` replace `paralogs` in `summary_haplotypes`
 
 For previous news: [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 

@@ -72,12 +72,12 @@
 #' @export
 #' @rdname stackr_imputations_module
 #' @importFrom parallel detectCores mclapply
-#' @importFrom dplyr rename distinct select mutate group_by ungroup arrange left_join bind_rows
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate mutate_all summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs bind_rows
+
 #' @importFrom tidyr spread gather separate
 #' @importFrom purrr map flatten keep
 #' @importFrom data.table fread melt.data.table as.data.table
 #' @importFrom randomForestSRC impute.rfsrc
-#' @importFrom plyr colwise
 #' @importFrom stringi stri_replace_all_fixed stri_replace_na stri_join
 #' @importFrom tibble has_name
 

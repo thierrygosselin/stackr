@@ -92,7 +92,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("Catalog ID", "Catalog.I
 #' @import reshape2
 #' @import dplyr
 #' @import lazyeval
-#' @importFrom plyr colwise
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
 #' G3, 1, 171-182.
@@ -326,15 +325,12 @@ haplo2colony <- function(haplotypes.file,
     ) %>% 
     dcast(INDIVIDUALS + POP_ID + ALLELE ~ Catalog.ID, value.var = "NUCLEOTIDES")
   message("step 3/5: completed")
-  haplo.prep <- suppressWarnings(
-    haplo.prep %>% 
-      plyr::colwise(factor, exclude = "NA")(.)
-  )
+  haplo.prep <- dplyr::mutate_all(.tbl = haplo.prep, .funs = factor, exclude = NA)
   # Allele frequency per locus
   if (allele.freq == "overall"){
     
     allele.per.locus <- haplo.prep %>% select(-INDIVIDUALS, -POP_ID, -ALLELE) %>% 
-      colwise(nlevels)(.)
+      dplyr::mutate_all(.tbl = ., .funs = nlevels)
     
     frequency.markers <- suppressWarnings(
       haplo.prep %>%
@@ -362,7 +358,7 @@ haplo2colony <- function(haplotypes.file,
     allele.per.locus <- haplo.prep %>% 
       filter(POP_ID %in% allele.freq) %>%
       select(-INDIVIDUALS, -POP_ID, -ALLELE) %>% 
-      colwise(nlevels)(.)
+      dplyr::mutate_all(.tbl = ., .funs = nlevels)
     
     frequency.markers <- suppressWarnings(
       haplo.prep %>%
@@ -717,9 +713,7 @@ haplo2colony <- function(haplotypes.file,
     if (imputations == "rf") {
       # A different format is required for the imputations 
       # Transformed columns into factor excluding the "NA"
-      haplo.prep <- suppressWarnings(
-        plyr::colwise(factor, exclude = "NA")(haplo.filtered)
-      )
+      haplo.prep <- dplyr::mutate_all(.tbl = haplo.filtered, .funs = factor, exclude = NA)
       
       # Parallel computations options
       if (missing(parallel.core) == "TRUE"){
@@ -866,17 +860,15 @@ haplo2colony <- function(haplotypes.file,
     
     message("step 2/4: completed")
     
-    haplo.imp <- suppressWarnings(
-      haplo.imp %>% 
-        colwise(factor, exclude = "NA")(.)
-    )
+    haplo.imp <- dplyr::mutate_all(.tbl = haplo.imp, .funs = factor, exclude = NA)
+    
     
     # Allele frequency per locus
     
     if (allele.freq == "overall"){
       
-      allele.per.locus <- haplo.imp %>% select(-INDIVIDUALS, -POP_ID, -ALLELE) %>% 
-        colwise(nlevels)(.)
+      allele.per.locus <-  %>% dplyr::select(.data = haplo.imp, -c(INDIVIDUALS, POP_ID, ALLELE)) %>%
+        dplyr::mutate_all(.tbl = ., .funs = nlevels)
       
       frequency.markers <- suppressWarnings(
         haplo.imp %>%
@@ -904,7 +896,7 @@ haplo2colony <- function(haplotypes.file,
       allele.per.locus <- haplo.imp %>% 
         filter(POP_ID %in% allele.freq) %>%
         select(-INDIVIDUALS, -POP_ID, -ALLELE) %>% 
-        colwise(nlevels)(.)
+        dplyr::mutate_all(.tbl = ., .funs = nlevels)
       
       frequency.markers <- suppressWarnings(
         haplo.imp %>%
