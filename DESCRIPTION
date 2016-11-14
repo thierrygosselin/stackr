@@ -1,8 +1,8 @@
 Package: stackr
 Type: Package
 Title: GBS/RADseq Data Exploration, Manipulation and Visualization using R
-Version: 0.4.3
-Date: 2016-11-01
+Version: 0.4.4
+Date: 2016-11-13
 Encoding: UTF-8
 Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),

@@ -119,15 +119,18 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.4.4**
+* several updates to make function faster.
+* `stackr_imputations_module` no longer imputes globally after imputations
+by populations. Instead, use `common.markers` or not to test impacts.
+*  bug fix with `ref_alt_alleles` that was not working properly inside
+the imputation module.
+* `snp_ld` is not a separate module available for users. Check documentation.
+* `missing_visualization` now show the proportion of variance with plot axis text.
+
 **v.0.4.3**
 * bug fix in `summary_haplotypes` stemming from a new `readr` version
 * `artifacts` replace `paralogs` in `summary_haplotypes`
-
-
-**v.0.4.2**
-* `gtypes` object from [strataG](https://github.com/EricArcher/strataG) package
-can now be read/write in/out of **Stackr** using the `tidy_genomic_data` and 
-`genomic_converter` functions.
 
 For previous news:
 [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
