@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.4.4-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--11--13-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.4.4-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--11--14-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -54,8 +54,8 @@ Below, the combination of packages and how I install/load them :
 ``` r
 if (!require("pacman")) install.packages("pacman")
 library("pacman")
-pacman::p_load(devtools, tidyverse, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)
-pacman::p_load(devtools, tidyverse, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC, hierfstat, strataG)
+pacman::p_load(devtools, tidyverse, data.table, parallel, lazyeval, randomForestSRC)
+pacman::p_load(devtools, tidyverse, data.table, parallel, lazyeval, randomForestSRC)
 devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)
 library("stackr")
 ```
@@ -93,9 +93,18 @@ New features
 
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
-**v.0.4.4** \* several updates to make function faster. \* `stackr_imputations_module` no longer imputes globally after imputations by populations. Instead, use `common.markers` or not to test impacts. \* bug fix with `ref_alt_alleles` that was not working properly inside the imputation module. \* `snp_ld` is not a separate module available for users. Check documentation. \* `missing_visualization` now show the proportion of variance with plot axis text.
+**v.0.4.4**
 
-**v.0.4.3** \* bug fix in `summary_haplotypes` stemming from a new `readr` version \* `artifacts` replace `paralogs` in `summary_haplotypes`
+-   several updates to make function faster.
+-   `stackr_imputations_module` no longer imputes globally after imputations by populations. Instead, use `common.markers` or not to test impacts.
+-   bug fix with `ref_alt_alleles` that was not working properly inside the imputation module.
+-   `snp_ld` is not a separate module available for users. Check documentation.
+-   `missing_visualization` now show the proportion of variance with plot axis text.
+
+**v.0.4.3**
+
+-   bug fix in `summary_haplotypes` stemming from a new `readr` version
+-   `artifacts` replace `paralogs` in `summary_haplotypes`
 
 For previous news: [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
@@ -113,10 +122,17 @@ Contributions:
 --------------
 
 This package has been developed in the open, and it wouldn’t be nearly as good without your contributions. There are a number of ways you can help me make this package even better:
-\* If you don’t understand something, please let me know. \* Your feedback on what is confusing or hard to understand is valuable. \* If you spot a typo, feel free to edit the underlying page and send a pull request.
+
+-   If you don’t understand something, please let me know.
+-   Your feedback on what is confusing or hard to understand is valuable.
+-   If you spot a typo, feel free to edit the underlying page and send a pull request.
 
 New to pull request on github ? The process is very easy:
-\* Click the edit this page on the sidebar. \* Make the changes using github’s in-page editor and save. \* Submit a pull request and include a brief description of your changes. \* “Fixing typos” is perfectly adequate.
+
+-   Click the edit this page on the sidebar.
+-   Make the changes using github’s in-page editor and save.
+-   Submit a pull request and include a brief description of your changes.
+-   “Fixing typos” is perfectly adequate.
 
 GBS workflow
 ------------
@@ -269,20 +285,69 @@ Currently under construction. Come back soon!
 </tbody>
 </table>
 
-**Step 1 Quality** Ask yourself these questions: \* DNA quality, libraries quality, sequencing lanes quality ? \* Please stop thinking in terms of quantity (e.g. millions of reads returned), and start thinking about actual quality of your new data. \* Use quality metrics inside available software (e.g. fastqc)
+**Step 1 Quality** Ask yourself these questions:
 
-**Step 2 *de novo* assembly and genotyping** \* This is conducted outside stackr \* Integrated software pipelines include: [STACKS](http://catchenlab.life.illinois.edu/stacks/), [pyRAD](http://dereneaton.com/software/), [dDocent](https://ddocent.wordpress.com), [AftrRAD](http://u.osu.edu/sovic.1/downloads/). If you want to develop your own pipeline, there are a multitude of approaches, good luck.
+-   DNA quality, libraries quality, sequencing lanes quality ?
+-   Please stop thinking in terms of quantity (e.g. millions of reads returned), and start thinking about actual quality of your new data.
+-   Use quality metrics inside available software (e.g. fastqc)
 
-**Step 3 Outliers** \* Remove replicates (I hope you have some). \* Remove *de novo* assembly artifact, by creating blacklist of genotypes or whitelist of markers: \* individuals with more than 2 alleles (use `summary_haplotypes`) \* outlier markers with extreme number of SNP/read or haplotype (use `filter_snp_number`) \* Remove potential duplicated samples that went off your radar, try `find_duplicate_genome`. \* Highlight outliers individual's heterozygosity that might represent mixed samples with `filter_individual_het`. \* The metric you're using: a *de novo* artefact or a reliable signal of biological polymorphism? \* Should the statistic you are interested in be consistent throughout the read ? \* Will you consider haplotype or snp level statistics? \* The consistensies of SNPs statistics among haplotype can be throughly tested by using `snp.ld` argument in several stackr functions. \* Any other outliers with different individual's or markers metrics (reads/sample, etc) ?
+**Step 2 *de novo* assembly and genotyping**
 
-**Step 4 Pattern of missingness** \* Use `missing_visualization` with/without your new blacklists (e.g. of genotypes, individuals) and with/without whitelist of markers to examine patterns of missingness in you dataset before more extensive filtering (there is a vignette for this step) \* The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc). \* Do you see a trend between your missing pattern and reads/samples ? Heterozygosity? \* Do you need more sequencing? Do you have to re-run some lanes?
+-   This is conducted outside stackr
+-   Integrated software pipelines include: [STACKS](http://catchenlab.life.illinois.edu/stacks/), [pyRAD](http://dereneaton.com/software/), [dDocent](https://ddocent.wordpress.com), [AftrRAD](http://u.osu.edu/sovic.1/downloads/). If you want to develop your own pipeline, there are a multitude of approaches, good luck.
 
-**Step 5-6 Coverage and Genotype Likelihood** \* Coverage is an individual metric. With most software you'll find allele and genotype coverage info. \* Genotype likelihood is usually a metric based on coverage of the different genotypes found in all of your data. \* Good allele coverage is required for reliable genotypes. \* Reliable genotypes is required for reliable downstream summary statistics. \* Explore filtering options in `filter_coverage` and `filter_genotype_likelihood`.
+**Step 3 Outliers**
 
-**Step 7 Prop. Genotyped** \* Do you have enough individuals in each sampling sites (`filter_individual`) and enough putative populations (`filter_population`) for each markers ? \* Use blacklist of individuals with different thresholds. \* Keep different whitelist of markers. \* Use `common.markers` argument inside most of stackr functions to test the impact of vetting loci based on shared markers. \* Use imputation methods provided by stackr (inside `tidy_genomic_data` or `genomic_converter`, as a separate module: `stackr_imputations_module`) to assess the impact of lowering or increasing threshold that impact missing data.
+-   Remove replicates (I hope you have some).
+-   Remove *de novo* assembly artifact, by creating blacklist of genotypes or whitelist of markers:
+    -   individuals with more than 2 alleles (use `summary_haplotypes`)
+    -   outlier markers with extreme number of SNP/read or haplotype (use `filter_snp_number`)
+-   Remove potential duplicated samples that went off your radar, try `find_duplicate_genome`.
+-   Highlight outliers individual's heterozygosity that might represent mixed samples with `filter_individual_het`.
+-   The metric you're using: a *de novo* artefact or a reliable signal of biological polymorphism?
+-   Should the statistic you are interested in be consistent throughout the read ?
+-   Will you consider haplotype or snp level statistics?
+-   The consistensies of SNPs statistics among haplotype can be throughly tested by using `snp.ld` argument in several stackr functions.
+-   Any other outliers with different individual's or markers metrics (reads/sample, etc) ?
 
-**Step 8 HET, Fis, HWE** \* Overall and/or per populations hwe, heterozygosity and Fis statistics can highlight: *de novo* assembly problems (oversplitting/undermerging), genotyping problems or biological problems. \* These filters allows to test rapidly if departure from realistic expectations are a problem for downstream analysis ? \* Choose your threshold wisely and test impact on pipeline. \* Use `filter_het`, `filter_fis`, `filter_hwe` and look again at the individual's heterozygosity (`filter_individual_het`) for outliers.
+**Step 4 Pattern of missingness**
 
-**Step 9 MAF** \* Remove artifactual and uninformative markers. \* Use MAF arguments inside several of stackr functions to tailor MAF to your analysis tolerance to minor allelel frequencies. \* There is also a separate filter in stackr: `filter_maf`
+-   Use `missing_visualization` with/without your new blacklists (e.g. of genotypes, individuals) and with/without whitelist of markers to examine patterns of missingness in you dataset before more extensive filtering (there is a vignette for this step)
+-   The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
+-   Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
+-   Do you need more sequencing? Do you have to re-run some lanes?
 
-**Step 10 Pattern of missingness, again** \* Use `missing_visualization` with your new blacklists (e.g. of genotypes, individuals) and with your whitelist of markers to examine patterns of missingness in your dataset after filtering (there is a vignette for this step) \* The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc). \* Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
+**Step 5-6 Coverage and Genotype Likelihood**
+
+-   Coverage is an individual metric. With most software you'll find allele and genotype coverage info.
+-   Genotype likelihood is usually a metric based on coverage of the different genotypes found in all of your data.
+-   Good allele coverage is required for reliable genotypes.
+-   Reliable genotypes is required for reliable downstream summary statistics.
+-   Explore filtering options in `filter_coverage` and `filter_genotype_likelihood`.
+
+**Step 7 Prop. Genotyped**
+
+-   Do you have enough individuals in each sampling sites (`filter_individual`) and enough putative populations (`filter_population`) for each markers ?
+-   Use blacklist of individuals with different thresholds.
+-   Keep different whitelist of markers.
+-   Use `common.markers` argument inside most of stackr functions to test the impact of vetting loci based on shared markers.
+-   Use imputation methods provided by stackr (inside `tidy_genomic_data` or `genomic_converter`, as a separate module: `stackr_imputations_module`) to assess the impact of lowering or increasing threshold that impact missing data.
+
+**Step 8 HET, Fis, HWE**
+
+-   Overall and/or per populations hwe, heterozygosity and Fis statistics can highlight: *de novo* assembly problems (oversplitting/undermerging), genotyping problems or biological problems.
+-   These filters allows to test rapidly if departure from realistic expectations are a problem for downstream analysis ?
+-   Choose your threshold wisely and test impact on pipeline.
+-   Use `filter_het`, `filter_fis`, `filter_hwe` and look again at the individual's heterozygosity (`filter_individual_het`) for outliers.
+
+**Step 9 MAF**
+
+-   Remove artifactual and uninformative markers.
+-   Use MAF arguments inside several of stackr functions to tailor MAF to your analysis tolerance to minor allelel frequencies.
+-   There is also a separate filter in stackr: `filter_maf`
+
+**Step 10 Pattern of missingness, again**
+
+-   Use `missing_visualization` with your new blacklists (e.g. of genotypes, individuals) and with your whitelist of markers to examine patterns of missingness in your dataset after filtering (there is a vignette for this step)
+-   The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
+-   Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
