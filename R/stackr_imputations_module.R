@@ -71,7 +71,7 @@
 
 #' @export
 #' @rdname stackr_imputations_module
-#' @import parallel
+#' @importFrom parallel detectCores mclapply
 #' @importFrom dplyr rename distinct select mutate group_by ungroup arrange left_join bind_rows
 #' @importFrom tidyr spread gather separate
 #' @importFrom purrr map flatten keep
@@ -100,14 +100,6 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-# # required to pass the R CMD check and have 'no visible binding for global variable'
-# if (getRversion() >= "2.15.1") {
-#   utils::globalVariables(
-#     c("DP", "AD", "vcf.headers", "GT_VCF", "INDIVIDUALS2", ""
-#     )
-#   )
-# }
-
 stackr_imputations_module <- function(
   data, 
   imputation.method = NULL,
@@ -117,10 +109,10 @@ stackr_imputations_module <- function(
   iteration.rf = 10,
   split.number = 100,
   verbose = FALSE,
-  parallel.core = detectCores() - 1,
+  parallel.core = parallel::detectCores() - 1,
   filename = NULL,
   ...
-  ) {
+) {
   
   # for timing
   timing <- proc.time()
@@ -137,6 +129,7 @@ stackr_imputations_module <- function(
   }
   
   # scan for the columnn CHROM and keep the info to include it after imputations
+  # detect if data is biallelic
   if (tibble::has_name(input, "CHROM")) {
     marker.meta <- dplyr::distinct(.data = input, MARKERS, CHROM, LOCUS, POS)
   } else {
@@ -146,12 +139,18 @@ stackr_imputations_module <- function(
   # scan for REF allele column
   if (tibble::has_name(input, "REF")) {
     ref.column <- TRUE
+    biallelic <- TRUE
   } else {
     ref.column <- FALSE
+    biallelic <- detect_biallelic_markers(data = input)
   }
   
   # select the column for the imputations
   input <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT)
+  
+  # output the proportion of missing genotypes BEFORE imputations
+  still.na <- dplyr::summarise(.data = input, MISSING = round(length(GT[GT == "000000"])/length(GT), 3))
+  message(stringi::stri_join("Proportion of missing genotypes before imputations: ", still.na$MISSING))
   
   # Imputations ----------------------------------------------------------------
   message("Preparing the data for imputations")
@@ -159,10 +158,7 @@ stackr_imputations_module <- function(
   # prepare the data in working with genotype or alleles
   if (impute == "genotype") {
     input.prep <- input %>%
-      dplyr::mutate(
-        GT = stringi::stri_replace_all_fixed(GT, pattern = "000000", replacement = "NA", vectorize_all = FALSE),
-        GT = replace(GT, which(GT == "NA"), NA)
-      ) %>%
+      dplyr::mutate(GT = replace(GT, which(GT == "000000"), NA)) %>%
       dplyr::group_by(INDIVIDUALS, POP_ID) %>% 
       tidyr::spread(data = ., key = MARKERS, value = GT) %>%
       dplyr::ungroup(.) %>% 
@@ -172,10 +168,7 @@ stackr_imputations_module <- function(
     input.prep <- input %>%
       tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = 3, remove = TRUE) %>% 
       tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%  
-      dplyr::mutate(
-        GT = stringi::stri_replace_all_fixed(GT, pattern = "000", replacement = "NA", vectorize_all = FALSE),
-        GT = replace(GT, which(GT == "NA"), NA)
-      ) %>%
+      dplyr::mutate(GT = replace(GT, which(GT == "000"), NA)) %>%
       dplyr::group_by(INDIVIDUALS, POP_ID, ALLELES) %>% 
       tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
       dplyr::ungroup(.) %>% 
@@ -183,8 +176,7 @@ stackr_imputations_module <- function(
   }
   
   # keep stratification
-  strata.df.impute <- input.prep %>% 
-    dplyr::distinct(INDIVIDUALS, POP_ID)
+  strata.df.impute <- dplyr::distinct(.data = input.prep, INDIVIDUALS, POP_ID)
   
   # Imputation with Random Forest  ---------------------------------------------
   if (imputation.method == "rf") {
@@ -193,12 +185,13 @@ stackr_imputations_module <- function(
     
     # imputations using Random Forest with the package randomForestSRC
     impute_genotype_rf <- function(x) {
-      randomForestSRC::impute.rfsrc(data = x,
-                                    ntree = num.tree,
-                                    nodesize = 1,
-                                    nsplit = split.number,
-                                    nimpute = iteration.rf,
-                                    do.trace = verbose)
+      randomForestSRC::impute.rfsrc(
+        data = data.frame(x),
+        ntree = num.tree,
+        nodesize = 1,
+        nsplit = split.number,
+        nimpute = iteration.rf,
+        do.trace = verbose)
     } # End of imputation function
     
     # Random Forest by pop
@@ -211,25 +204,20 @@ stackr_imputations_module <- function(
       # Function to go through the populations
       impute_rf_pop <- function(pop.list, ...){
         sep.pop <- df.split.pop[[pop.list]]
-        sep.pop <- suppressWarnings(
-          plyr::colwise(factor, exclude = NA)(sep.pop)
-        )
+        sep.pop <- dplyr::mutate_all(.tbl = sep.pop, .funs = factor, exclude = NA)
+        imputed.dataset <- impute_genotype_rf(sep.pop)
+        imputed.dataset <- dplyr::mutate_all(.tbl = imputed.dataset, .funs = as.character, exclude = NA)
         # message of progress for imputations by population
         message(paste("Completed imputations for pop ", pop.list, sep = ""))
-        # imputed.dataset[[i]] <- impute_markers_rf(sep.pop) # test with foreach
-        imputed.dataset <- impute_genotype_rf(sep.pop)
-        imputed.dataset <- suppressWarnings(
-          plyr::colwise(as.character, exclude = NA)(imputed.dataset)
-        )
         return(imputed.dataset)
       } # End impute_rf_pop
       
       input.imp <- list()
-      input.imp <- mclapply(
-        X = pop.list, 
-        FUN = impute_rf_pop, 
-        mc.preschedule = FALSE, 
-        mc.silent = FALSE, 
+      input.imp <- parallel::mclapply(
+        X = pop.list,
+        FUN = impute_rf_pop,
+        mc.preschedule = FALSE,
+        mc.silent = FALSE,
         mc.cleanup = TRUE,
         mc.cores = parallel.core
       )
@@ -239,10 +227,8 @@ stackr_imputations_module <- function(
       input.imp <- suppressWarnings(dplyr::bind_rows(input.imp))
       
       # Second round of imputations (globally) to remove introduced NA --------
-      
       # section commented because this introduces a huge bias when entire 
       # population are not genotyped
-      
       # In case that some pop don't have the markers
       # input.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(input.imp)) # Make the columns factor
       # input.imp <- impute_genotype_rf(input.imp) # impute globally
@@ -250,36 +236,31 @@ stackr_imputations_module <- function(
       
       # reintroduce the stratification
       input.imp <- suppressWarnings(
-        dplyr::left_join(strata.df.impute, 
-                  input.imp %>% 
-                    dplyr::select(-POP_ID)
-                  , by = "INDIVIDUALS") %>% 
+        dplyr::left_join(
+          strata.df.impute,
+          dplyr::select(.data = input.imp, -POP_ID)
+          , by = "INDIVIDUALS"
+        ) %>% 
           dplyr::arrange(POP_ID, INDIVIDUALS) %>% 
           dplyr::ungroup(.)
       )
       
-      # dump unused objects
-      df.split.pop <- NULL
-      pop.list <- NULL
-      sep.pop <- NULL
-      imputed.dataset <- NULL
-      input.prep <- NULL
-      
+      # remove unused objects
+      df.split.pop <- pop.list <- sep.pop <- imputed.dataset <- input.prep <- NULL
     } # End imputation RF populations
     
     # Random Forest global
     if (imputations.group == "global") { # Globally (not by pop_id)
       message("Imputations computed globally, take a break...")
-      input.prep <- plyr::colwise(factor, exclude = NA)(input.prep)
+      input.prep <- dplyr::mutate_all(.tbl = input.prep, .funs = factor, exclude = NA)
       input.imp <- impute_genotype_rf(input.prep)
-      input.imp <- plyr::colwise(as.character, exclude = NA)(input.imp)
+      input.imp <- dplyr::mutate_all(.tbl = input.imp, .funs = as.character, exclude = NA)
       
       # reintroduce the stratification
       input.imp <- suppressWarnings(
-        dplyr::left_join(strata.df.impute, 
-                  input.imp %>% 
-                    dplyr::select(-POP_ID)
-                  , by = "INDIVIDUALS") %>% 
+        dplyr::left_join(strata.df.impute,
+                         dplyr::select(.data = input.imp, -POP_ID)
+                         , by = "INDIVIDUALS") %>% 
           dplyr::arrange(POP_ID, INDIVIDUALS) %>% 
           dplyr::ungroup(.)
       )
@@ -289,16 +270,23 @@ stackr_imputations_module <- function(
     # data prep
     if (impute == "genotype") {
       input.imp <- suppressWarnings(
-        input.imp %>%
-          tidyr::gather(key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID))
+        tidyr::gather(
+          data = input.imp,
+          key = MARKERS, value = GT,
+          -c(INDIVIDUALS, POP_ID)
+        )
       )
     }
     if (impute == "allele") {
       input.imp <- suppressWarnings(
-        input.imp %>%
-          tidyr::gather(key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID, ALLELES))
+        tidyr::gather(
+          data = input.imp,
+          key = MARKERS, value = GT,
+          -c(INDIVIDUALS, POP_ID, ALLELES)
+        )
       )
     }
+    
   } # End imputation RF
   
   # Imputation using the most common genotype ----------------------------------
@@ -366,7 +354,7 @@ stackr_imputations_module <- function(
       input.prep <- NULL # remove unused object
     } # End imputation max global 
   } # End imputations max
-
+  
   # results --------------------------------------------------------------------
   message("Tidying the imputed data set")
   
@@ -380,8 +368,8 @@ stackr_imputations_module <- function(
   # Replace NA by 000000 in GT column
   input.imp$GT <- stringi::stri_replace_na(str = input.imp$GT, replacement = "000000")
   
-  # Compute REF/ALT allele
-  # REF/ALT might have change depending on prop of missing values
+  
+  # Compute REF/ALT allele... might have change depending on prop of missing values
   if (ref.column) {
     message("Adjusting REF/ALT alleles to account for imputations...")
     input.imp <- ref_alt_alleles(data = input.imp)
@@ -389,15 +377,18 @@ stackr_imputations_module <- function(
   
   # Integrate marker.meta columns
   if (!is.null(marker.meta)) {
-    input.imp <- dplyr::left_join(input.imp, marker.meta, by = "MARKERS") %>% 
-      dplyr::select(MARKERS, CHROM, LOCUS, POS, REF, ALT, POP_ID, INDIVIDUALS, GT, GT_VCF, GT_BIN)
+    input.imp <- dplyr::left_join(input.imp, marker.meta, by = "MARKERS") #%>% dplyr::select(MARKERS, CHROM, LOCUS, POS, REF, ALT, POP_ID, INDIVIDUALS, GT, GT_VCF, GT_BIN)
   }
   
   # Write to working directory
   if (!is.null(filename)) {
-  message(stringi::stri_join("Writing the imputed tidy data to the working directory: \n"), filename)
-  readr::write_tsv(x = input.imp, path = filename, col_names = TRUE)
+    message(stringi::stri_join("Writing the imputed tidy data to the working directory: \n"), filename)
+    readr::write_tsv(x = input.imp, path = filename, col_names = TRUE)
   }
+  
+  # output the proportion of missing genotypes after imputations
+  still.na <- dplyr::summarise(.data = input.imp, MISSING = round(length(GT[GT == "000000"])/length(GT), 3))
+  message(stringi::stri_join("Proportion of missing genotypes after imputations: ", still.na$MISSING))
   
   # for timing
   timing <- proc.time() - timing
