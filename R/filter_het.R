@@ -113,7 +113,28 @@
 #' It's easier to tolerate outliers with this new approach: 
 #' \code{outlier.pop.threshold = 2}.
 
-
+#' @return The function returns inside the global environment a list with
+#' 14 objects, the objects names are found by using \code{names(your.list.name)}:
+#' 
+#' \enumerate{
+#' \item filtered tidy data frame: \code{$tidy.filtered.het}
+#' \item whitelist of markers:\code{$whitelist.markers}
+#' \item the strata:\code{$strata}
+#' \item the filters parameters used:\code{$filters.parameters}
+#' \item the individual's heterozigosity:\code{$individual.heterozigosity}
+#' \item the blacklisted individuals based on the individual's heterozigosity:\code{$blacklist.ind.het}
+#' \item a list containing the helper tables:\code{$helper.table.het}
+#' \item the boxplot of individual heterozygosity:\code{$individual.heterozygosity.boxplot}
+#' \item the manhattan plot of individual heterozygosity:\code{$individual.heterozygosity.manhattan.plot}
+#' \item the boxplot of observed heterozygosity averaged across markers and pop:\code{$markers.pop.heterozygosity.boxplot}
+#' \item the density plot of observed heterozygosity averaged across markers and pop:\code{$markers.pop.heterozygosity.density.plot}
+#' \item the manhattan plot of observed heterozygosity averaged across markers and pop:\code{$markers.pop.heterozygosity.manhattan.plot}
+#' \item whitelist of markers:\code{$whitelist.markers}
+#' \item whitelist of markers:\code{$whitelist.markers}
+#' }
+#' 
+#' 
+#' In the working directory, output is conditional to \code{interactive.filter} argument
 
 #' @rdname filter_het
 #' @export
@@ -271,12 +292,12 @@ information")
       HET_PROP = HET_NUMBER / GENOTYPED
     )
   
-  # jitter.max.breaks <- max(het.ind$HET_PROP)
-  # jitter.max.breaks <- 0.26
+  # manhattan.max.breaks <- max(het.ind$HET_PROP)
+  # manhattan.max.breaks <- 0.26
   
   
   
-  individual.heterozygosity.jitter.plot <- ggplot(data = het.ind, aes(x = POP_ID, y = HET_PROP, colour = POP_ID)) + 
+  individual.heterozygosity.manhattan.plot <- ggplot(data = het.ind, aes(x = POP_ID, y = HET_PROP, colour = POP_ID)) + 
     geom_jitter() + 
     labs(y = "Individual's Mean Heterozygosity (proportion)") +
     labs(x = "Populations") +
@@ -305,11 +326,11 @@ information")
   
   if (interactive.filter) {
     message("\nStep 1. Individual's heterozygosity: outliers that might represent mixed samples\n")
-    print(individual.heterozygosity.jitter.plot)
+    print(individual.heterozygosity.manhattan.plot)
     # save
-    ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.jitter.plot.pdf"), width = pop.number * 2, height = 10, dpi = 600, units = "cm", useDingbats = F)
-    ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.jitter.plot.png"), width = pop.number * 2, height = 10, dpi = 300, units = "cm")
-    message(stringi::stri_join("2 versions (pdf and png) of the plot (individual.heterozygosity.jitter.plot) were saved in this directory:\n", path.folder))
+    ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.manhattan.plot.pdf"), width = pop.number * 2, height = 10, dpi = 600, units = "cm", useDingbats = F)
+    ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.manhattan.plot.png"), width = pop.number * 2, height = 10, dpi = 300, units = "cm")
+    message(stringi::stri_join("2 versions (pdf and png) of the plot (individual.heterozygosity.manhattan.plot) were saved in this directory:\n", path.folder))
   }
   
   
@@ -492,7 +513,7 @@ use the overall approach.\n")
     ) +
     facet_grid(POP_ID ~ HET_GROUP)
   
-  markers.pop.heterozygosity.jitter.plot <- ggplot(data = het.summary.tidy, aes(x = POP_ID, y = VALUE, colour = POP_ID)) + 
+  markers.pop.heterozygosity.manhattan.plot <- ggplot(data = het.summary.tidy, aes(x = POP_ID, y = VALUE, colour = POP_ID)) + 
     geom_jitter() + 
     labs(y = "Observed Heterozygosity") +
     labs(x = "Populations") +
@@ -923,15 +944,15 @@ use the overall approach.\n")
   }
   
   if (interactive.filter) {
-    message("Show the jitter plot of markers observed heterozygosity per populations and overall (y/n): ")
-    jitter.plot <- as.character(readLines(n = 1))
-    if (jitter.plot == "y") {
+    message("Show the manhattan plot of markers observed heterozygosity per populations and overall (y/n): ")
+    manhattan.plot <- as.character(readLines(n = 1))
+    if (manhattan.plot == "y") {
       message("Rendering the plot may take some time depending on the number of markers and populations...")
-      print(markers.pop.heterozygosity.jitter.plot)
+      print(markers.pop.heterozygosity.manhattan.plot)
       # save
-      ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.jitter.plot.pdf"), width = pop.number * 2, height = 10, dpi = 600, units = "cm", useDingbats = F)
-      ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.jitter.plot.png"), width = pop.number * 2, height = 10, dpi = 300, units = "cm")
-      message(stringi::stri_join("2 versions (pdf and png) of the plot (markers.pop.heterozygosity.jitter.plot) were saved in this directory:\n", path.folder))
+      ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.manhattan.plot.pdf"), width = pop.number * 2, height = 10, dpi = 600, units = "cm", useDingbats = F)
+      ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.manhattan.plot.png"), width = pop.number * 2, height = 10, dpi = 300, units = "cm")
+      message(stringi::stri_join("2 versions (pdf and png) of the plot (markers.pop.heterozygosity.manhattan.plot) were saved in this directory:\n", path.folder))
     }
   }
   
@@ -1193,9 +1214,9 @@ number of populations in the dataset turns off the filter.\n")
   res$blacklist.ind.het <- blacklist.ind.het
   res$helper.table.het <- helper.table.het 
   res$individual.heterozygosity.boxplot <- individual.heterozygosity.boxplot
-  res$individual.heterozygosity.jitter.plot <- individual.heterozygosity.jitter.plot
+  res$individual.heterozygosity.manhattan.plot <- individual.heterozygosity.manhattan.plot
   res$markers.pop.heterozygosity.boxplot <- markers.pop.heterozygosity.boxplot
   res$markers.pop.heterozygosity.density.plot <- markers.pop.heterozygosity.density.plot
-  res$markers.pop.heterozygosity.jitter.plot <- markers.pop.heterozygosity.jitter.plot
+  res$markers.pop.heterozygosity.manhattan.plot <- markers.pop.heterozygosity.manhattan.plot
   return(res)
 }
