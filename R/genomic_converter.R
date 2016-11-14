@@ -377,7 +377,6 @@ genomic_converter <- function(
       input <- dplyr::rename(.data = input, MARKERS = LOCUS)
     }
   } else {
-    
     input <- stackr::tidy_genomic_data(
       data = data,
       vcf.metadata = FALSE,
