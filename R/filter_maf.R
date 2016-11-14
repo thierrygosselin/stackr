@@ -29,10 +29,10 @@
 
 #' @import ggplot2
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_sub
-#' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs
+#' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs summarise_at
 #' @importFrom readr write_tsv
 #' @importFrom tibble data_frame has_name
-#' @importFrom tidyr separate gather
+#' @importFrom tidyr separate gather complete
 
 #' @details To help choose a threshold for the local and global MAF, look
 #' at the function \link{diagnostic_maf}, or use the interactive version.
@@ -146,7 +146,7 @@ filter_maf <- function(
     message("Step 1. Global MAF: Inspecting the MAF globally")
     message("Step 2. Local MAF: Inspecting the MAF at the populations level")
     message("Step 3. Filtering markers based on the different MAF arguments")
-    
+  }
     # Folder -------------------------------------------------------------------
     # Get date and time to have unique filenaming
     file.date <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
@@ -158,9 +158,6 @@ filter_maf <- function(
     
     message(stringi::stri_join("Folder created: \n", path.folder))
     file.date <- NULL #unused object
-  } else {
-    path.folder <- getwd()
-  }
   
   # Filter parameter file ------------------------------------------------------
   message("Parameters used in this run will be store in a file")
@@ -214,16 +211,9 @@ filter_maf <- function(
   strata.df <- input %>% 
     dplyr::select(INDIVIDUALS, POP_ID) %>% 
     dplyr::distinct(INDIVIDUALS, .keep_all = TRUE)
-  strata <- strata.df
+  
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
-  
-  # # File detection to speed up the MAF calculations with VCF file --------------
-  # if ("GT_VCF" %in% colnames(input)) {
-  #   data.type <- "vcf.file"
-  # } else {
-  #   data.type <- NULL
-  # }
   
   # Detection if data is summarized for MAF or not -----------------------------
   if ("MAF_LOCAL" %in% colnames(input)) {
@@ -237,7 +227,7 @@ filter_maf <- function(
   if (!summarize.data) {
     message("Calculating global and local MAF on large data set may take some time...")
     
-    if (data.type == "vcf.file") {
+    if (tibble::has_name(input, "GT_VCF")) {
       maf.local <- input %>%
         dplyr::filter(GT_VCF != "./.") %>%
         dplyr::group_by(MARKERS, POP_ID, REF, ALT) %>%
@@ -250,38 +240,42 @@ filter_maf <- function(
       
       maf.global <- maf.local %>%
         dplyr::group_by(MARKERS) %>%
-        dplyr::summarise_each_(funs(sum), vars = c("N", "PQ", "QQ")) %>%
+        dplyr::summarise_at(.tbl = ., .cols = c("N", "PQ", "QQ"), .funs = sum) %>% 
         dplyr::mutate(MAF_GLOBAL = ((QQ * 2) + PQ) / (2 * N)) %>%
         dplyr::select(MARKERS, MAF_GLOBAL)
+      
       
       maf.data <- maf.global %>%
         dplyr::left_join(maf.local, by = c("MARKERS")) %>%
         dplyr::select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
       
-      maf.local <- NULL
-      maf.global <- NULL
+      maf.local <- maf.global <- NULL
     } else {# not vcf file
-      
       # We split the alleles here to prep for MAF
       maf.data <- input %>%
+        dplyr::filter(GT != "000000") %>% 
         dplyr::select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
-        tidyr::separate(data = ., col = GT, into = .(A1, A2), sep = 3, remove = TRUE) %>% 
+        dplyr::mutate(
+          A1 = stringi::stri_sub(GT, 1, 3),
+          A2 = stringi::stri_sub(GT, 4,6)
+        ) %>% 
+        dplyr::select(MARKERS, POP_ID, INDIVIDUALS, A1, A2) %>%
         tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
-        dplyr::filter(GT != "000")
-      
-      maf.data <- maf.data %>%
         dplyr::group_by(MARKERS, GT, POP_ID) %>%
         dplyr::tally(.) %>%
+        dplyr::ungroup() %>%
+        tidyr::complete(data = ., POP_ID, nesting(MARKERS, GT), fill = list(n = 0)) %>%
+        dplyr::rename(n.al.pop = n) %>% 
         dplyr::arrange(MARKERS, GT) %>% 
         dplyr::group_by(MARKERS, GT) %>%
-        dplyr::mutate(sum.pop = sum(n)) %>% 
+        dplyr::mutate(n.al.tot = sum(n.al.pop)) %>% 
         dplyr::group_by(MARKERS) %>%
-        dplyr::mutate(MAF_GLOBAL = min(sum.pop)/sum(n)) %>% 
+        dplyr::mutate(MAF_GLOBAL = min(n.al.tot)/sum(n.al.pop)) %>%
         dplyr::group_by(MARKERS, POP_ID) %>%
-        dplyr::mutate(MAF_LOCAL = n/sum(n)) %>% 
+        dplyr::mutate(MAF_LOCAL = n.al.pop/sum(n.al.pop)) %>% 
         dplyr::arrange(MARKERS, POP_ID, GT) %>% 
         dplyr::group_by(MARKERS, POP_ID) %>% 
-        dplyr::filter(n == min(n)) %>% 
+        dplyr::filter(n.al.pop == min(n.al.pop)) %>% 
         dplyr::distinct(MARKERS, POP_ID, .keep_all = TRUE) %>% 
         dplyr::select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
     }# end maf calculations
@@ -298,13 +292,11 @@ filter_maf <- function(
       message("Generating violin plot may take some time...")
       # plot
       OVERALL <- NULL
-      global.data <- maf.data %>% 
-        dplyr::group_by(MARKERS) %>% 
+      global.data <- dplyr::ungroup(maf.data) %>% 
         dplyr::distinct(MARKERS, MAF_GLOBAL) %>%
         dplyr::mutate(OVERALL = rep("overall", n()))
       
-      maf.global.summary <- global.data %>% 
-        dplyr::ungroup(.) %>% 
+      maf.global.summary <- dplyr::ungroup(global.data) %>% 
         dplyr::summarise(
           MEAN = mean(MAF_GLOBAL, na.rm = TRUE),
           MEDIAN = stats::median(MAF_GLOBAL, na.rm = TRUE),
@@ -463,8 +455,7 @@ filter_maf <- function(
       ALT_20 = 20/(2*n)
     )
   # remove unused objects
-  TOTAL <- NULL
-  n.ind <- NULL
+  TOTAL <- n.ind <- NULL
   
   readr::write_tsv(x = maf.helper.table, path = stringi::stri_join(path.folder, "/", "maf.helper.table.tsv"))
   

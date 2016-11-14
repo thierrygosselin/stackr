@@ -54,10 +54,10 @@
 
 #' @export
 #' @rdname stackr_maf_module
-#' @importFrom dplyr select mutate group_by ungroup rename tally filter if_else full_join
+#' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs summarise_at
 #' @importFrom stringi stri_replace_all_fixed stri_join stri_sub
 #' @importFrom tibble has_name
-#' @importFrom tidyr gather
+#' @importFrom tidyr gather complete separate
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 stackr_maf_module <- function(
