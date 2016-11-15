@@ -212,7 +212,7 @@ filter_het <- function(
   
   message(stringi::stri_join("Folder created: ", path.folder))
   file.date <- NULL #unused object
-
+  
   # Filter parameter file ------------------------------------------------------
   message("\nParameters used in this run will be store in a file")
   filters.parameters <- list.files(path = getwd(), pattern = "filters_parameters.tsv", full.names = TRUE)
@@ -1124,7 +1124,6 @@ number of populations in the dataset turns off the filter.\n")
   # Update filters.parameters SNP ----------------------------------------------
   # Prepare a list of markers and number of markers before filtering
   if (tibble::has_name(het.summary, "LOCUS") & het.approach[1] == "haplotype") {
-    markers.df <- dplyr::distinct(input, CHROM, LOCUS, POS)
     snp.before <- dplyr::n_distinct(input$POS)
     locus.before <- dplyr::n_distinct(input$LOCUS)
     snp.after <- as.integer(dplyr::n_distinct(filter$MARKERS))
@@ -1132,7 +1131,6 @@ number of populations in the dataset turns off the filter.\n")
     locus.after <- as.integer(dplyr::n_distinct(filter$LOCUS))
     locus.blacklist <- as.integer(locus.before - locus.after)
   } else {
-    markers.df <- dplyr::distinct(input, MARKERS)
     snp.before <- dplyr::n_distinct(input$MARKERS)
     snp.after <- as.integer(dplyr::n_distinct(filter$MARKERS))
     snp.blacklist <- as.integer(snp.before - snp.after)
@@ -1149,6 +1147,13 @@ number of populations in the dataset turns off the filter.\n")
   markers.after <- stringi::stri_join(snp.after, locus.after, sep = "/")
   markers.blacklist <- stringi::stri_join(snp.blacklist, locus.blacklist, sep = "/")
   
+  if (tibble::has_name(het.summary, "LOCUS")) {
+    markers.df <- dplyr::distinct(input, CHROM, LOCUS, POS)
+  } else {
+    markers.df <- dplyr::distinct(input, MARKERS)
+  }
+  
+  
   if (het.approach[2] == "overall") outlier.pop.threshold <- "using overall"
   
   filters.parameters <- tibble::data_frame(
@@ -1163,16 +1168,16 @@ number of populations in the dataset turns off the filter.\n")
   )
   readr::write_tsv(x = filters.parameters, path = "filters_parameters.tsv", append = TRUE, col_names = FALSE)
   
-  # saving tidy data 
+  # saving filtered tidy data --------------------------------------------------
   # filename <- "test.tidy.tsv"#test
   if (!is.null(filename)) {
     message("Writing the filtered tidy data set in your working directory...")
     readr::write_tsv(filter, paste0(path.folder,"/", filename), append = FALSE, col_names = TRUE)
   }
-  # saving whitelist
+  # saving whitelist -----------------------------------------------------------
   message("Writing the whitelist of markers in your working directory\nwhitelist.markers.het.tsv")
   
-  if (tibble::has_name(het.summary, "LOCUS") & het.approach[1] == "haplotype") {
+  if (tibble::has_name(het.summary, "LOCUS")) {
     whitelist.markers <- dplyr::ungroup(filter) %>%
       dplyr::distinct(CHROM, LOCUS, POS)
   } else {
@@ -1182,9 +1187,9 @@ number of populations in the dataset turns off the filter.\n")
   readr::write_tsv(whitelist.markers, paste0(path.folder,"/whitelist.markers.het.tsv"), append = FALSE, col_names = TRUE)
   
   
-  # saving blacklist
+  # saving blacklist -----------------------------------------------------------
   message("Writing the blacklist of markers in your working directory\nblacklist.markers.het.tsv")
-  if (tibble::has_name(het.summary, "LOCUS") & het.approach[1] == "haplotype") {
+  if (tibble::has_name(het.summary, "LOCUS")) {
     blacklist.markers <- dplyr::anti_join(markers.df, whitelist.markers, by = c("CHROM", "LOCUS", "POS"))
   } else {
     blacklist.markers <- dplyr::anti_join(markers.df, whitelist.markers, by = "MARKERS")

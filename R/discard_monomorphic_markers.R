@@ -73,11 +73,13 @@ discard_monomorphic_markers <- function(data) {
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
+  markers.df <- dplyr::distinct(.data = input, MARKERS, CHROM, LOCUS, POS)
+  
   message("Scanning for monomorphic markers...")
   
   mono.markers <- input %>%
     dplyr::filter(GT != "000000") %>%
-    dplyr::select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
+    dplyr::select(MARKERS, POP_ID, INDIVIDUALS, GT) %>%
     dplyr::mutate(
       A1 = stringi::stri_sub(GT, 1, 3),
       A2 = stringi::stri_sub(GT, 4,6)
@@ -99,6 +101,11 @@ discard_monomorphic_markers <- function(data) {
   if (length(mono.markers$MARKERS) > 0) {
     input <- dplyr::anti_join(input, mono.markers, by = "MARKERS")
   }
+  
+  if (tibble::has_name(input, "LOCUS")) {
+    mono.markers <- dplyr::left_join(mono.markers, markers.df, by = "MARKERS")
+  }
+  
   res <- list(input = input, blacklist.momorphic.markers = mono.markers)
   return(res)
 } # end discar mono markers

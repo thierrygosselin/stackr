@@ -399,7 +399,12 @@ genomic_converter <- function(
     )
   }
   
-  input$GT <- stringi::stri_replace_all_fixed(str = input$GT, pattern = c("/", ":", "_", "-", "."), replacement = c("", "", "", "", ""), vectorize_all = FALSE)
+  input$GT <- stringi::stri_replace_all_fixed(
+    str = input$GT,
+    pattern = c("/", ":", "_", "-", "."),
+    replacement = c("", "", "", "", ""),
+    vectorize_all = FALSE
+  )
   
   # create a strata.df
   # strata.df <- input %>%
