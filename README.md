@@ -77,7 +77,9 @@ browseVignettes("stackr") # To browse vignettes
 vignette("vignette_vcf2dadi") # To open specific vignette
 ```
 
-**R Notebooks:** \* Missing data visualization and analysis [(html vignette)](https://www.dropbox.com/s/4zf032g6yjatj0a/vignette_missing_data_analysis.nb.html?dl=0) and [(Rmd)](https://www.dropbox.com/s/5fxw2h9w1l1j391/vignette_missing_data_analysis.Rmd?dl=0)
+**R Notebooks:**
+
+-   Missing data visualization and analysis [(html vignette)](https://www.dropbox.com/s/4zf032g6yjatj0a/vignette_missing_data_analysis.nb.html?dl=0) and [(Rmd)](https://www.dropbox.com/s/5fxw2h9w1l1j391/vignette_missing_data_analysis.Rmd?dl=0)
 
 Citation:
 ---------
