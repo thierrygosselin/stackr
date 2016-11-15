@@ -28,6 +28,19 @@
 #' 
 #' \strong{Under developement, use with caution}
 
+#' @examples
+#' \dontrun{
+#' problem <- detect_allele_problems(
+#' data = "batch_1.vcf",
+#' strata = "strata.salmon.tsv",
+#' allele.threshold = 3
+#' )
+#' # The default with this function:
+#' # vcf.metadata = TRUE # VCF metadata (read depth, etc. are imported)
+#' # monomorphic.out = TRUE # = discarded
+#' # common.markers = TRUE # markers not in common between pop are discarded
+#' }
+
 #' @export
 #' @rdname detect_allele_problems
 #' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs

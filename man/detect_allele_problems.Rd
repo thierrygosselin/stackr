@@ -165,13 +165,28 @@ Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and might be of interest for users. The function compute allele counts and
 look for alleles bellow a certain threshold. The summary statistics for the
 markers with problematic allele is computed based on coverage and
-genotype likelihood.
+genotype likelihood. This function is very fast to highlight: i) bias in
+representation of allelic copies and unequal coverage and ii) type I error 
+during genotyping of heterozygote with low coverage data.
 }
 \details{
 \strong{Input files:} see \pkg{stackr} \code{\link[stackr]{tidy_genomic_data}}
 for detailed information about supported file format.
 
 \strong{Under developement, use with caution}
+}
+\examples{
+\dontrun{
+problem <- detect_allele_problems(
+data = "batch_1.vcf",
+strata = "strata.salmon.tsv",
+allele.threshold = 3
+)
+# The default with this function:
+# vcf.metadata = TRUE # VCF metadata (read depth, etc. are imported)
+# monomorphic.out = TRUE # = discarded
+# common.markers = TRUE # markers not in common between pop are discarded
+}
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
