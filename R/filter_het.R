@@ -175,7 +175,7 @@ filter_het <- function(
   cat("#######################################################################\n")
   cat("######################### stackr::filter_het ##########################\n")
   cat("#######################################################################\n")
-  
+  timing <- proc.time()
   # manage missing arguments -----------------------------------------------------  
   if (missing(data)) stop("Input file missing")
   if (!is.null(pop.levels) & is.null(pop.labels)) {
@@ -1141,6 +1141,10 @@ number of populations in the dataset turns off the filter.\n")
     locus.blacklist <- as.character("NA")
   }
   
+  ind.before <- dplyr::n_distinct(input$INDIVIDUALS)
+  ind.blacklisted <- length(blacklist.ind.het$INDIVIDUALS)
+  ind.after <- ind.before - ind.blacklisted
+  
   markers.before <- stringi::stri_join(snp.before, locus.before, sep = "/")
   markers.after <- stringi::stri_join(snp.after, locus.after, sep = "/")
   markers.blacklist <- stringi::stri_join(snp.blacklist, locus.blacklist, sep = "/")
@@ -1148,14 +1152,14 @@ number of populations in the dataset turns off the filter.\n")
   if (het.approach[2] == "overall") outlier.pop.threshold <- "using overall"
   
   filters.parameters <- tibble::data_frame(
-    FILTERS = c("Observed Heterozygosity", rep(as.character(""), 3)),
-    PARAMETERS = c("het.approach", "het.threshold", "het.dif.threshold", "outlier.pop.threshold"), 
-    VALUES = c(paste(het.approach, collapse = " and "), paste("<=", het.threshold), paste("<=", het.dif.threshold), paste("<=", outlier.pop.threshold)), 
-    BEFORE = c("", "", "", markers.before),
-    AFTER = c("", "", "", markers.after),
-    BLACKLIST = c("", "", "", markers.blacklist),
-    UNITS = c("", "", "", "SNP/LOCUS"),
-    COMMENTS = c("", "", "", "")
+    FILTERS = c("Observed Heterozygosity", rep(as.character(""), 4)),
+    PARAMETERS = c("ind.mean.het", "het.approach", "het.threshold", "het.dif.threshold", "outlier.pop.threshold"), 
+    VALUES = c(ind.heterozygosity.threshold, paste(het.approach, collapse = " and "), paste("<=", het.threshold), paste("<=", het.dif.threshold), paste("<=", outlier.pop.threshold)), 
+    BEFORE = c(ind.before, "", "", "", markers.before),
+    AFTER = c(ind.after, "", "", "", markers.after),
+    BLACKLIST = c(ind.blacklisted, "", "", "", markers.blacklist),
+    UNITS = c("individual" , "", "", "", "SNP/LOCUS"),
+    COMMENTS = c("", "", "", "", "")
   )
   readr::write_tsv(x = filters.parameters, path = "filters_parameters.tsv", append = TRUE, col_names = FALSE)
   
@@ -1189,6 +1193,8 @@ number of populations in the dataset turns off the filter.\n")
   
   # results --------------------------------------------------------------------
   cat("############################### RESULTS ###############################\n")
+  message(stringi::stri_join("ind.heterozygosity.threshold: ", ind.heterozygosity.threshold))
+  message(stringi::stri_join("Blacklisted individuals: ", ind.blacklisted))
   message(stringi::stri_join("het.approach: ", paste(het.approach, collapse = " and ")))
   message(stringi::stri_join("het.threshold: ", het.threshold))
   message(stringi::stri_join("het.dif.threshold: ", het.dif.threshold))
@@ -1202,6 +1208,10 @@ number of populations in the dataset turns off the filter.\n")
     message(stringi::stri_join("The number of markers/locus removed by the HET filter: ", snp.before - dplyr::n_distinct(filter$MARKERS)))
     message("The number of markers before -> after the HET filter")
     message(stringi::stri_join("MARKERS/LOCUS: ", snp.before, " -> ", as.integer(dplyr::n_distinct(filter$MARKERS))))
+  }
+  if (!interactive.filter) {
+    timing <- proc.time() - timing
+    message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
   }
   cat("############################## completed ##############################\n")
   res <- list()

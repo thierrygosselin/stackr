@@ -29,7 +29,7 @@
 
 #' @import ggplot2
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_sub
-#' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs summarise_at
+#' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs summarise_at bind_rows
 #' @importFrom readr write_tsv
 #' @importFrom tibble data_frame has_name
 #' @importFrom tidyr separate gather complete
@@ -120,6 +120,7 @@ filter_maf <- function(
   cat("######################### stackr::filter_maf ##########################\n")
   cat("#######################################################################\n")
   
+  timing <- proc.time()
   # manage missing arguments -----------------------------------------------------  
   if (!interactive.filter & missing(maf.thresholds)) stop("The required maf.thresholds argument is missing")
   if (missing(data)) stop("Input file missing")
@@ -141,11 +142,11 @@ filter_maf <- function(
   
   # Message about steps taken during the process ---------------------------------
   if (interactive.filter) {
-    message("Interactive mode: on")
+    message("Interactive mode: on\n")
     message("3 steps to visualize and filter the data based on MAF:")
     message("Step 1. Global MAF: Inspecting the MAF globally")
     message("Step 2. Local MAF: Inspecting the MAF at the populations level")
-    message("Step 3. Filtering markers based on the different MAF arguments")
+    message("Step 3. Filtering markers based on the different MAF arguments\n\n")
   }
     # Folder -------------------------------------------------------------------
     # Get date and time to have unique filenaming
@@ -160,14 +161,14 @@ filter_maf <- function(
     file.date <- NULL #unused object
   
   # Filter parameter file ------------------------------------------------------
-  message("Parameters used in this run will be store in a file")
+  message("\nParameters used in this run will be store in a file")
   filters.parameters <- list.files(path = getwd(), pattern = "filters_parameters.tsv", full.names = TRUE)
   if (length(filters.parameters) == 0) {
     filters.parameters <- tibble::data_frame(FILTERS = as.character(), PARAMETERS = as.character(), VALUES = as.integer(), BEFORE = as.character(), AFTER = as.character(), BLACKLIST = as.integer(), UNITS = as.character(), COMMENTS = as.character())
     readr::write_tsv(x = filters.parameters, path = "filters_parameters.tsv", append = FALSE, col_names = TRUE)
-    message("Created a file to store filters parameters: filters_parameters.tsv")
+    message("Created a file to store filters parameters: filters_parameters.tsv\n")
   } else {
-    message("Using the filters parameters file found in the directory: \nfilters_parameters.tsv")
+    message("Using the filters parameters file found in the directory: \nfilters_parameters.tsv\n")
   }
   
   # File type detection----------------------------------------------------------
@@ -219,7 +220,7 @@ filter_maf <- function(
   if ("MAF_LOCAL" %in% colnames(input)) {
     summarize.data <- TRUE
   } else {
-    message("Summarizing the data by populations and globally")
+    message("\nSummarizing the data by populations and globally")
     summarize.data <- FALSE
   }
   
@@ -431,45 +432,32 @@ filter_maf <- function(
   TOTAL <- tibble::data_frame(POP_ID = "TOTAL/GLOBAL", n = n.ind)
   
   # bind pop and global + MAF local and global for different ALT allele
-  maf.helper.table <- bind_rows(maf.helper.table, TOTAL) %>% 
-    dplyr::mutate(
-      ALT_1 = 1/(2*n),
-      ALT_2 = 2/(2*n),
-      ALT_3 = 3/(2*n),
-      ALT_4 = 4/(2*n),
-      ALT_5 = 5/(2*n),
-      ALT_6 = 6/(2*n),
-      ALT_7 = 7/(2*n),
-      ALT_8 = 8/(2*n),
-      ALT_9 = 9/(2*n),
-      ALT_10 = 10/(2*n),
-      ALT_11 = 11/(2*n),
-      ALT_12 = 12/(2*n),
-      ALT_13 = 13/(2*n),
-      ALT_14 = 14/(2*n),
-      ALT_15 = 15/(2*n),
-      ALT_16 = 16/(2*n),
-      ALT_17 = 17/(2*n),
-      ALT_18 = 18/(2*n),
-      ALT_19 = 19/(2*n),
-      ALT_20 = 20/(2*n)
-    )
-  # remove unused objects
+  maf.helper.table <- suppressWarnings(
+    dplyr::bind_rows(maf.helper.table, TOTAL) %>% 
+      dplyr::mutate(
+        ALT_1 = 1/(2*n), ALT_2 = 2/(2*n), ALT_3 = 3/(2*n), ALT_4 = 4/(2*n),
+        ALT_5 = 5/(2*n), ALT_6 = 6/(2*n), ALT_7 = 7/(2*n), ALT_8 = 8/(2*n),
+        ALT_9 = 9/(2*n), ALT_10 = 10/(2*n), ALT_11 = 11/(2*n), ALT_12 = 12/(2*n),
+        ALT_13 = 13/(2*n), ALT_14 = 14/(2*n), ALT_15 = 15/(2*n), ALT_16 = 16/(2*n),
+        ALT_17 = 17/(2*n), ALT_18 = 18/(2*n), ALT_19 = 19/(2*n), ALT_20 = 20/(2*n)
+      )
+  )
+    # remove unused objects
   TOTAL <- n.ind <- NULL
   
   readr::write_tsv(x = maf.helper.table, path = paste0(path.folder, "/maf.helper.table.tsv"))
   
   message(stringi::stri_join("\nTo visualize the local and global MAF, a table 
 (maf.helper.table.tsv) was written in this directory: \n", path.folder))
-  
-  message("\nFirst and second variable columns: POP_ID and sample size.
+  if (interactive.filter) {
+    message("\nFirst and second variable columns: POP_ID and sample size.
 The last row is the TOTAL/GLOBAL observation.
 The remaining columns are the variable corresponding to the number of ALT allele (range 1 to 20).
 The observations in the ALT allele variable columns are the local (for the pop) 
-and global (last row) MAF of your dataset.
+and global (last row) MAF of your dataset.\n
 e.g. ALT_3 could be 3 heterozygote individuals with the ALT allele or 
-1 homozygote individuals for the ALT allele and 1 heterozygote individual. And so on...")
-  
+1 homozygote individuals for the ALT allele and 1 heterozygote individual. And so on...\n")
+  }  
   # Step 3. Thresholds selection -----------------------------------------------
   
   # maf.approach
@@ -539,7 +527,7 @@ readr::write_tsv(
   col_names = TRUE, 
   append = FALSE
 )
-message(stringi::stri_join("The MAF summary statistics (maf.data.tsv), written in this directory: \n", path.folder))
+message(stringi::stri_join("\nThe MAF summary statistics (maf.data.tsv), written in this directory: \n", path.folder))
 
 # Filtering ------------------------------------------------------------------
 if (maf.approach == "haplotype") {
@@ -654,7 +642,7 @@ readr::write_tsv(x = filters.parameters, path = "filters_parameters.tsv", append
 
 # saving tidy data 
 if (!is.null(filename)) {
-  message("Writing the filtered tidy data set in your working directory...")
+  message("\nWriting the filtered tidy data set in your working directory...")
   # if (!is.null(save.feather)) {
   # feather::write_feather(filter, stringi::stri_replace_all_fixed(filename, pattern = ".tsv", replacement = "_feather.tsv", vectorize_all = TRUE))
   # } else {
@@ -663,7 +651,7 @@ if (!is.null(filename)) {
 }
 
 # saving whitelist
-message("Writing the whitelist of markers in your working directory\nwhitelist.markers.maf.tsv")
+message("\nWriting the whitelist of markers in your working directory\nwhitelist.markers.maf.tsv")
 
 if (tibble::has_name(input, "CHROM")) {
   whitelist.markers <- dplyr::ungroup(filter) %>%
@@ -672,11 +660,11 @@ if (tibble::has_name(input, "CHROM")) {
   whitelist.markers <- dplyr::ungroup(filter) %>%
     dplyr::distinct(MARKERS)
 }
-readr::write_tsv(whitelist.markers, "whitelist.markers.maf.tsv", append = FALSE, col_names = TRUE)
+readr::write_tsv(whitelist.markers, paste0(path.folder, "/whitelist.markers.maf.tsv"), append = FALSE, col_names = TRUE)
 
 
 # saving blacklist
-message("Writing the blacklist of markers in your working directory\nblacklist.markers.maf.tsv")
+message("\nWriting the blacklist of markers in your working directory\nblacklist.markers.maf.tsv")
 if (tibble::has_name(input, "CHROM")) {
   blacklist.markers <- dplyr::ungroup(input) %>%
     dplyr::distinct(CHROM, LOCUS, POS) %>% 
@@ -686,7 +674,7 @@ if (tibble::has_name(input, "CHROM")) {
     dplyr::distinct(MARKERS) %>% 
     dplyr::anti_join(whitelist.markers, by = "MARKERS")
 }
-readr::write_tsv(blacklist.markers, "blacklist.markers.maf.tsv", append = FALSE, col_names = TRUE)
+readr::write_tsv(blacklist.markers, paste0(path.folder, "/blacklist.markers.maf.tsv"), append = FALSE, col_names = TRUE)
 
 # results --------------------------------------------------------------------
 cat("############################### RESULTS ###############################\n")
@@ -703,6 +691,10 @@ if (tibble::has_name(input, "LOCUS") & maf.approach == "haplotype") {
   message(stringi::stri_join("The number of markers removed by the MAF filter: ", snp.blacklist))
   message("The number of markers before -> after the MAF filter")
   message(stringi::stri_join("SNP: ", snp.before, " -> ", snp.after))
+}
+if (!interactive.filter) {
+  timing <- proc.time() - timing
+  message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
 }
 cat("############################## completed ##############################\n")
 res <- list()
