@@ -1215,8 +1215,7 @@ number of populations in the dataset turns off the filter.\n")
     message(stringi::stri_join("MARKERS/LOCUS: ", snp.before, " -> ", as.integer(dplyr::n_distinct(filter$MARKERS))))
   }
   if (!interactive.filter) {
-    timing <- proc.time() - timing
-    message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
+    message(stringi::stri_join("Computation time: ", round((proc.time() - timing)[[3]]), " sec"))
   }
   cat("############################## completed ##############################\n")
   res <- list()

@@ -121,6 +121,13 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+
+**v.0.4.5**
+
+* `missing_visualization` now computes the FH measure and look for correlation
+with average missingness per individual
+* temporary fix to `tidy_genomic_data` to read unconventional Tassel VCF
+
 **v.0.4.4**
 
 * several updates to make functions faster.

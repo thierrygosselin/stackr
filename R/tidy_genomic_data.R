@@ -497,6 +497,14 @@ tidy_genomic_data <- function(
     ) %>% 
       tibble::as_data_frame()
     
+    # while waiting for fix with vcfR::extract.gt (if it's a bug or just following VCF norm)
+    gt.na <- dplyr::filter(.data = input, is.na(GT)) %>% dplyr::select(GT)
+    
+    if(nrow(gt.na) >= 1) {
+      input$GT <- stringi::stri_replace_na(str = input$GT, replacement = "./.")
+    }
+    gt.na <- NULL
+    
     # metadata
     if (vcf.metadata) {
       message("Keeping vcf metadata: yes")

@@ -113,7 +113,7 @@ summary_stats_pop <- function(data, filename = NULL) {
   
   
   N <- HET_O <- HET_E <- FREQ_REF <- FIS <- NULL
-
+  
   vcf.summary <- data %>%
     dplyr::group_by(POP_ID) %>%
     dplyr::summarise(
@@ -308,7 +308,7 @@ table_low_coverage_summary <- function(
       data, 
       col_names = TRUE, 
       col_types = "diidccddccccdddddc"
-      ) %>%
+    ) %>%
       mutate(INDIVIDUALS = factor(INDIVIDUALS))
     message("Using the file in your directory")
     
@@ -520,3 +520,232 @@ summary_genotype_likelihood <- function(
   results$gl.summary.pop <- gl.summary.pop
   return(results)
 }# End summary_genotype_likelihood
+
+
+## FIS
+#' @title Fis summary
+#' @description Fis summary (per markers) by populations and overall.
+
+#' @inheritParams tidy_genomic_data
+
+#' @details The tables contains summary statistics (mean, median, min, max).
+
+#' @return A list with 2 tables: the long format of loci and populations
+#' coverage statistics and the short format by populations.
+
+
+#' @rdname fis_summary
+#' @keywords internal
+#' @export
+
+#' @importFrom stats median
+#' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs summarise_at
+#' @importFrom stringi stri_replace_all_fixed stri_join stri_sub
+#' @importFrom tibble has_name as_data_frame
+#' @importFrom tidyr gather spread complete separate
+
+fis_summary <- function(
+  data,
+  vcf.metadata = TRUE,
+  whitelist.markers = NULL,
+  monomorphic.out = TRUE,
+  blacklist.genotype = NULL,
+  snp.ld = NULL,
+  common.markers = TRUE,
+  maf.thresholds = NULL,
+  maf.pop.num.threshold = 1,
+  maf.approach = "SNP",
+  maf.operator = "OR",
+  max.marker = NULL,
+  blacklist.id = NULL,
+  pop.levels = NULL,
+  pop.labels = NULL,
+  strata = NULL,
+  pop.select = NULL,
+  filename = NULL,
+  verbose = FALSE
+) {
+  timing <- proc.time()
+  
+  # Checking for missing and/or default arguments-------------------------------
+  if (missing(data)) stop("Input file missing")
+  if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
+  if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
+  
+  
+  # Import data ---------------------------------------------------------------
+  input <- suppressMessages(
+    stackr::tidy_genomic_data(
+      data = data,
+      vcf.metadata = TRUE,
+      blacklist.id = blacklist.id,
+      blacklist.genotype = blacklist.genotype,
+      whitelist.markers = whitelist.markers,
+      monomorphic.out = monomorphic.out,
+      max.marker = max.marker,
+      snp.ld = snp.ld,
+      common.markers = common.markers,
+      maf.thresholds = maf.thresholds,
+      maf.pop.num.threshold = maf.pop.num.threshold,
+      maf.approach = maf.approach,
+      maf.operator = maf.operator,
+      strata = strata,
+      pop.levels = pop.levels,
+      pop.labels = pop.labels,
+      pop.select = pop.select,
+      filename = NULL
+    )  
+  )  
+  
+  input$GT <- stringi::stri_replace_all_fixed(
+    str = input$GT,
+    pattern = c("/", ":", "_", "-", "."),
+    replacement = c("", "", "", "", ""),
+    vectorize_all = FALSE
+  )
+  
+  pop.levels <- levels(input$POP_ID)
+  pop.labels <- pop.levels
+  
+  # check genotype column naming
+  if (tibble::has_name(input, "GENOTYPE")) {
+    colnames(input) <- stringi::stri_replace_all_fixed(
+      str = colnames(input), 
+      pattern = "GENOTYPE", 
+      replacement = "GT", 
+      vectorize_all = FALSE)
+  }
+  
+  # necessary steps to make sure we work with unique markers and not duplicated LOCUS
+  if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
+  }
+  
+  
+  if (tibble::has_name(input, "GT_VCF")) {
+    fis <- input %>%
+      dplyr::filter(GT_VCF != "./.") %>%
+      dplyr::group_by(MARKERS, POP_ID) %>%
+      dplyr::summarise(
+        N = n(),
+        HET = length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"]),
+        HOM_ALT = length(GT_VCF[GT_VCF == "1/1"])
+      ) %>%
+      dplyr::mutate(
+        FREQ_ALT = ((HOM_ALT * 2) + HET) / (2 * N),
+        FREQ_REF = 1 - FREQ_ALT,
+        HET_O = HET / N,
+        HET_E = 2 * FREQ_REF * FREQ_ALT,
+        FIS = (HET_E - HET_O) / HET_E,
+        FIS = replace(FIS, which(FIS == "NaN"), 0)
+      )
+    
+    fis.overall <- input %>%
+      dplyr::filter(GT_VCF != "./.") %>%
+      dplyr::group_by(MARKERS) %>%
+      dplyr::summarise(
+        N = n(),
+        HET = length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"]),
+        HOM_ALT = length(GT_VCF[GT_VCF == "1/1"])
+      ) %>%
+      dplyr::mutate(
+        FREQ_ALT = ((HOM_ALT * 2) + HET) / (2 * N),
+        FREQ_REF = 1 - FREQ_ALT,
+        HET_O = HET / N,
+        HET_E = 2 * FREQ_REF * FREQ_ALT,
+        FIS = (HET_E - HET_O) / HET_E,
+        FIS = replace(FIS, which(FIS == "NaN"), 0)
+      )
+  } else {
+    input.alleles <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT) %>%
+      dplyr::filter(GT != "000000") %>% 
+      dplyr::mutate(
+        A1 = stringi::stri_sub(GT, 1, 3),
+        A2 = stringi::stri_sub(GT, 4,6)
+      ) %>% 
+      dplyr::select(-GT)
+    
+    alleles.count <- input.alleles %>%
+      tidyr::gather(data = ., key = ALLELE_GROUP, value = ALLELES, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
+      dplyr::group_by(MARKERS, ALLELES, POP_ID) %>%
+      dplyr::tally(.) %>%
+      dplyr::ungroup() %>%
+      tidyr::complete(data = ., POP_ID, nesting(MARKERS, ALLELES), fill = list(n = 0)) %>%
+      dplyr::group_by(MARKERS, POP_ID) %>%
+      dplyr::mutate(
+        FREQ = n/sum(n),
+        HOM_E = FREQ^2
+      ) %>%
+      dplyr::summarise(HOM_E = sum(HOM_E)) %>%
+      dplyr::mutate(HET_E = 1 - HOM_E)
+    
+    # Observed Het et Hom per pop and markers
+    fis <- input.alleles %>%
+      dplyr::mutate(IND_LEVEL_POLYMORPHISM = dplyr::if_else(A1 != A2, "HET", "HOM")) %>%
+      dplyr::group_by(MARKERS, POP_ID, IND_LEVEL_POLYMORPHISM) %>% 
+      dplyr::tally(.) %>%
+      dplyr::group_by(MARKERS, POP_ID) %>% 
+      tidyr::spread(data = ., IND_LEVEL_POLYMORPHISM, n, fill = 0) %>% 
+      dplyr::group_by(MARKERS, POP_ID) %>% 
+      dplyr::summarise(
+        N = HOM + HET,
+        HOM_O = HOM / N,
+        HET_O = HET / N
+      ) %>%
+      dplyr::full_join(alleles.count, by = c("MARKERS", "POP_ID")) %>% 
+      dplyr::mutate(
+        FIS = 1 - (HET_O/HET_E),
+        FIS = replace(FIS, which(FIS == "NaN"), 0)
+      ) %>% 
+      dplyr::arrange(MARKERS, POP_ID)
+
+    # overall
+    alleles.count.overall <- dplyr::select(.data = input.alleles, -POP_ID) %>%
+      tidyr::gather(data = ., key = ALLELE_GROUP, value = ALLELES, -c(MARKERS, INDIVIDUALS)) %>%
+      dplyr::group_by(MARKERS, ALLELES) %>%
+      dplyr::tally(.) %>%
+      dplyr::group_by(MARKERS) %>%
+      dplyr::mutate(
+        FREQ = n/sum(n),
+        HOM_E = FREQ^2
+      ) %>%
+      dplyr::summarise(HOM_E = sum(HOM_E)) %>%
+      dplyr::mutate(HET_E = 1 - HOM_E)
+    
+    # Observed Het et Hom per pop and markers
+    fis.overall <- input.alleles %>%
+      dplyr::mutate(IND_LEVEL_POLYMORPHISM = dplyr::if_else(A1 != A2, "HET", "HOM")) %>%
+      dplyr::group_by(MARKERS, IND_LEVEL_POLYMORPHISM) %>% 
+      dplyr::tally(.) %>%
+      dplyr::group_by(MARKERS) %>% 
+      tidyr::spread(data = ., IND_LEVEL_POLYMORPHISM, n, fill = 0) %>% 
+      dplyr::summarise(
+        N = HOM + HET,
+        HOM_O = HOM / N,
+        HET_O = HET / N
+      ) %>%
+      dplyr::full_join(alleles.count.overall, by = "MARKERS") %>% 
+      dplyr::mutate(
+        FIS = 1 - (HET_O/HET_E),
+        FIS = replace(FIS, which(FIS == "NaN"), 0)
+      ) %>% 
+      dplyr::arrange(MARKERS)
+  }
+  
+  # summary
+  fis.summary <- fis %>% 
+    dplyr::summarise(
+      FIS_MEAN = mean(FIS, na.rm = TRUE),
+      FIS_MEDIAN = stats::median(FIS, na.rm = TRUE),
+      FIS_MIN = min(FIS, na.rm = TRUE),
+      FIS_MAX = max(FIS, na.rm = TRUE),
+      FIS_DIFF = FIS_MAX - FIS_MIN
+    ) %>% 
+    dplyr::full_join(
+      dplyr::select(.data = fis.overall, MARKERS, FIS_OVERALL = FIS)
+      , by = "MARKERS"
+    )
+  res = list(fis.pop = fis, fis.overall = fis.overall, fis.summary = fis.summary)
+  message(stringi::stri_join("Computation time: ", round((proc.time() - timing)[[3]]), " sec"))
+  return(res)
+}# End fis_summary

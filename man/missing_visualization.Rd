@@ -13,29 +13,33 @@ missing_visualization(data, vcf.metadata = FALSE, strata = NULL,
   snp.ld = NULL, common.markers = FALSE, filename = NULL)
 }
 \arguments{
-\item{data}{7 options: vcf, plink, stacks haplotype file, genind, genepop, 
-and a data frame in wide or long/tidy format. 
-The function uses 
-\href{https://github.com/thierrygosselin/stackr}{stackr} 
-\code{\link[stackr]{read_long_tidy_wide}} and 
-\code{\link[stackr]{tidy_genomic_data}}.
-\emph{See details}.}
+\item{data}{8 options: vcf (to make vcf population ready, see details below),
+plink, stacks haplotype file, genind (library(adegenet)), 
+genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
+and a data frame in wide format. \emph{See details}.}
 
-\item{vcf.metadata}{(optional, logical) For the VCF file, with \code{vcf.metadata = TRUE}, 
-the metadata contained in the \code{FORMAT} field will be kept in the tidy 
-data file. With default: \code{vcf.metadata = FALSE}, only the genotype information is kept.}
+\item{vcf.metadata}{(optional, logical) For the VCF file, 
+with \code{vcf.metadata = FALSE}, only the genotype information is kept.
+With default: \code{vcf.metadata = TRUE}, the metadata contained in the 
+\code{FORMAT} field will be kept in the tidy data file. Currently keeping only
+those metadata: \code{"DP", "AD", "GL", "PL"}. If you need different one, submit
+a request.}
 
-\item{strata}{(optional for data frame and PLINK files, 
-required for VCF and haplotypes files) A tab delimited file at least 2 columns 
-with header:
+\item{strata}{(optional/required) Required for VCF and haplotypes files, 
+optional for the other file formats supported. 
+
+The strata file is a tab delimited file with 2 columns with header:
 \code{INDIVIDUALS} and \code{STRATA}. With a 
 data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
 PLINK files, the \code{tfam} first 2 columns are used. 
 If a \code{strata} file is specified, the strata file will have
-precedence. The \code{STRATA} and any other columns can be any hierarchical grouping. 
+precedence. The \code{STRATA} column can be any hierarchical grouping. 
 To create a strata file see \code{\link[stackr]{individuals2strata}}.
-Default: \code{strata = NULL}. This file is particularly useful to test pattern
-of missingness stemming from lanes, library or any other grouping.}
+If you have already run 
+\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
+the strata file is similar to a stacks `population map file`, make sure you 
+have the required column names (\code{INDIVIDUALS} and \code{STRATA}).
+Default: \code{strata = NULL}.}
 
 \item{strata.select}{(optional, character) Use this argument to select the column
 from the strata file to generate the PCoA-IBM plot. More than 1 column you
@@ -58,6 +62,7 @@ case, the id of the pop.
 Use this argument to have the pop ordered your way instead of the default 
 alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
 instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+White spaces in population names are replaced by underscore.
 Default: \code{pop.levels = NULL}.}
 
 \item{pop.labels}{(optional, string) Use this argument to rename/relabel
@@ -66,15 +71,17 @@ into a new pop called \code{"NEW"}:
 (1) First, define the levels for your pop with \code{pop.levels} argument: 
 \code{pop.levels = c("QUE", "ONT", "ALB")}. 
 (2) then, use \code{pop.labels} argument: 
-\code{pop.levels = c("NEW", "NEW", "ALB")}.#' 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.
 To rename \code{"QUE"} to \code{"TAS"}:
 \code{pop.labels = c("TAS", "ONT", "ALB")}.
 Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
-\code{strata} argument that can do the same thing, see below.}
+\code{strata} argument that can do the same thing, see below.
+White spaces in population names are replaced by underscore.}
 
-\item{pop.select}{(string, optional) Selected list of populations for 
+\item{pop.select}{(string, optional) Selected list of populations for
 the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
-and \code{ONT} population samples (out of 20 pops).}
+and \code{ONT} population samples (out of 20 pops).
+Default: \code{pop.select = NULL}}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
 a column header 'INDIVIDUALS'. The blacklist is in the working directory
@@ -84,10 +91,10 @@ Default: \code{blacklist.id = NULL}.}
 \item{blacklist.genotype}{(optional) Useful to erase genotype with below 
 average quality, e.g. genotype with more than 2 alleles in diploid likely 
 sequencing errors or genotypes with poor genotype likelihood or coverage. 
-The blacklist as a minimum of 2 column headers (markers and individuals). 
+The blacklist has a minimum of 2 column headers (markers and individuals). 
 Markers can be 1 column (CHROM or LOCUS or POS), 
 a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
-all 3 (CHROM, LOCUS, POS) The markers columns must be designated: CHROM (character
+all 3 (CHROM, LOCUS, POS). The markers columns must be designated: CHROM (character
 or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
 INDIVIDUALS (character) columns header. The blacklist must be in the working 
 directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
@@ -154,9 +161,6 @@ Use this function to visualize pattern of missing data.
    \item \strong{Tidy data:} if the filename argument is used, the 
    function also output the data in a tidy format.
 }
-}
-\details{
-under construction
 }
 \examples{
 \dontrun{

@@ -1,3 +1,19 @@
+# stackr v.0.4.5
+* `missing_visualization` now computes the FH measure and look for correlation
+with average missingness per individual
+* temporary fix to `tidy_genomic_data` to read unconventional Tassel VCF
+
+# stackr v.0.4.4
+
+* several updates to make functions faster.
+* `stackr_imputations_module` no longer imputes globally after imputations
+by populations. Instead, use `common.markers` or not to test impacts.
+*  bug fix with `ref_alt_alleles` that was not working properly inside
+the imputation module.
+* `snp_ld` is not a separate module available for users. Check documentation.
+* `missing_visualization` now show the proportion of variance with plot axis text.
+
+
 # stackr v.0.4.3
 * bug fix in `summary_haplotypes` stemming from a new `readr` version
 * `artifacts` replace `paralogs` in `summary_haplotypes`
