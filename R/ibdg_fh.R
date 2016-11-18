@@ -44,9 +44,9 @@
 #' should be centered around 0 in samples of non-inbred individuals.
 
 #' @note
-#' #\deqn{F_{h_i} = \frac{\overline{Het}_{obs_{ij}} - \overline{Het}_{exp_j}}{∑_{i}snp_{ij} - \overline{Het}_{exp_j}}}
-#' #\deqn{\overline{Het}_{obs_i} = \frac{∑_iHet_{obs_i}}{∑_i{snp_i}}}
-#' #\deqn{\overline{Het}_{exp_j} = \frac{∑_jHet_{exp_j}}{∑_j{snp_j}}}
+#' #\deqn{F_{h_i} = \frac{\overline{Het}_{obs_{ij}} - \overline{Het}_{exp_j}}{\sum_{i}snp_{ij} - \overline{Het}_{exp_j}}}
+#' #\deqn{\overline{Het}_{obs_i} = \frac{\sum_iHet_{obs_i}}{\sum_i{snp_i}}}
+#' #\deqn{\overline{Het}_{exp_j} = \frac{\sum_jHet_{exp_j}}{\sum_j{snp_j}}}
 
 
 #' @examples
