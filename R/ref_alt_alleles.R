@@ -226,7 +226,8 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
       }
     }
   } else {
-    stop("WARNING: Markers are not biallelic: cannot attribute REF/ALT alleles")
+    warning("WARNING: Markers are not biallelic: cannot attribute REF/ALT alleles")
+    input <- input
   }
   return(input)
 }

@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.4.5-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--11--17-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.4.5-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--11--18-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -97,8 +97,13 @@ Change log, version, new features and bug history now lives in the [NEWS.md file
 
 **v.0.4.5**
 
--   `missing_visualization` now computes the FH measure and look for correlation with average missingness per individual
 -   temporary fix to `tidy_genomic_data` to read unconventional Tassel VCF
+
+-   new function `ibdg_fh` computes the FH measure that was previously computed in `summary_haplotypes`. It now works with biallelic and multiallelic data.
+
+The FH measure is based on the excess in the observed number of homozygous genotypes within an individual relative to the mean number of homozygous genotypes expected under random mating (see function for details). The `IBDg` in the name is because the measure is a proxy of the realized proportion of the genome that is identical by descent by reference to the current population under hypothetical random mating.
+
+-   `missing_visualization` now computes the FH measure and look for correlation with average missingness per individual.
 
 **v.0.4.4**
 

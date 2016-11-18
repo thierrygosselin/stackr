@@ -32,7 +32,7 @@
 #' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs summarise_at bind_rows
 #' @importFrom readr write_tsv
 #' @importFrom tibble data_frame has_name
-#' @importFrom tidyr separate gather complete
+#' @importFrom tidyr complete gather unite spread nesting
 
 #' @details To help choose a threshold for the local and global MAF, look
 #' at the function \link{diagnostic_maf}, or use the interactive version.
@@ -265,7 +265,7 @@ filter_maf <- function(
         dplyr::group_by(MARKERS, GT, POP_ID) %>%
         dplyr::tally(.) %>%
         dplyr::ungroup() %>%
-        tidyr::complete(data = ., POP_ID, nesting(MARKERS, GT), fill = list(n = 0)) %>%
+        tidyr::complete(data = ., POP_ID, tidyr::nesting(MARKERS, GT), fill = list(n = 0)) %>%
         dplyr::rename(n.al.pop = n) %>% 
         dplyr::arrange(MARKERS, GT) %>% 
         dplyr::group_by(MARKERS, GT) %>%

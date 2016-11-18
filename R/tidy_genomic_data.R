@@ -11,7 +11,8 @@
 #' and \href{https://github.com/thierrygosselin/assigner}{assigner}
 #' and might be of interest for users.
 
-#' @param data 8 options: vcf (to make vcf population ready, see details below),
+#' @param data 9 options: biallelic and haplotypic vcf
+#' (to make vcf population ready, see details below),
 #' plink, stacks haplotype file, genind (library(adegenet)), 
 #' genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 #' and a data frame in wide format. \emph{See details}.
@@ -163,7 +164,10 @@
 #' 
 #' \strong{Input files:}
 #' \enumerate{
-#' \item VCF file (e.g. \code{data = "batch_1.vcf"}). 
+#' \item VCF biallelic file (e.g. \code{data = "batch_1.vcf"})
+#' To make the VCF population ready, you need the \code{strata} argument.
+#' 
+#' \item VCF haplotypic file (e.g. \code{data = "batch_1.haplotypes.vcf"})
 #' To make the VCF population ready, you need the \code{strata} argument.
 #' 
 #' \item haplotype file created in STACKS (e.g. \code{data = "batch_1.haplotypes.tsv"}).
@@ -209,8 +213,9 @@
 #' \code{.tped} use \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK} 
 #' with \code{--recode transpose},
 #' 
-#' \item \code{\link[adegenet]{genind}} and \code{\link[adegenet]{genlight}} 
-#' object from \code{\link[adegenet]{adegenet}}.
+#' \item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
+#' 
+#' \item \code{\link[adegenet]{genlight}} object from \code{\link[adegenet]{adegenet}}.
 #' 
 #' \item \code{\link[strataG]{gtypes}} object from \code{\link[strataG]{strataG}}.
 #' 
@@ -500,7 +505,7 @@ tidy_genomic_data <- function(
     # while waiting for fix with vcfR::extract.gt (if it's a bug or just following VCF norm)
     gt.na <- dplyr::filter(.data = input, is.na(GT)) %>% dplyr::select(GT)
     
-    if(nrow(gt.na) >= 1) {
+    if (nrow(gt.na) >= 1) {
       input$GT <- stringi::stri_replace_na(str = input$GT, replacement = "./.")
     }
     gt.na <- NULL
@@ -566,8 +571,8 @@ tidy_genomic_data <- function(
       input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
       input$POP_ID <- droplevels(input$POP_ID)
     }
-
-
+    
+    
     # check, parse and cleane FORMAT columns
     if (vcf.metadata) {
       # Detect the columns that need a check, parsing and cleaning
@@ -647,43 +652,71 @@ tidy_genomic_data <- function(
       # test <- input %>% filter(GT == "./.")
       # range(test$GL)
     }# end cleaning columns
-
-    # recoding genotype and creating a new column combining CHROM, LOCUS and POS 
-    input <- input %>%
-      dplyr::mutate(
-        REF2 = stri_replace_all_fixed(
-          str = REF, 
-          pattern = c("A", "C", "G", "T"), 
-          replacement = c("001", "002", "003", "004"), 
-          vectorize_all = FALSE
-        ), # replace nucleotide with numbers
-        ALT2 = stringi::stri_replace_all_fixed(
-          str = ALT, pattern = c("A", "C", "G", "T"), 
-          replacement = c("001", "002", "003", "004"), 
-          vectorize_all = FALSE
-        ),# replace nucleotide with numbers
-        # Replace phased info to the regular unphased GT, not useful here
-        GT = stringi::stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
-        GT_VCF = GT,
-        # Experimental (for genlight object)
-        GT_BIN = stringi::stri_replace_all_fixed(
-          str = GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."),
-          replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE
+    
+    # Haplotypes or biallelic VCF----------------------------------------------
+    # recoding genotype
+    if (length(unique(input$GT)) > 5) {
+      input <- input %>%
+        dplyr::mutate(
+          GT_VCF = GT,
+          GT = stringi::stri_replace_all_fixed(str = GT, pattern = "./.", replacement = "-1/-1", vectorize_all = FALSE)
+        ) %>% 
+        tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = "/", remove = TRUE, extra = "drop") %>% 
+        dplyr::mutate(
+          A1 = as.numeric(A1),
+          A2 = as.numeric(A2),
+          A1 = A1 + 1,
+          A2 = A2 + 1,
+          A1 = stringi::stri_pad_left(str = A1, pad = "0", width = 3),
+          A2 = stringi::stri_pad_left(str = A2, pad = "0", width = 3),
+          GT_BIN = rep(NA, n())
+        ) %>% 
+        tidyr::unite(data = ., GT, A1, A2, sep = "") %>% 
+        tibble::as_data_frame()
+      
+      biallelic <- FALSE # for other part of the script
+      
+    } else {
+      input <- input %>%
+        dplyr::mutate(
+          REF2 = stri_replace_all_fixed(
+            str = REF, 
+            pattern = c("A", "C", "G", "T"), 
+            replacement = c("001", "002", "003", "004"), 
+            vectorize_all = FALSE
+          ), # replace nucleotide with numbers
+          ALT2 = stringi::stri_replace_all_fixed(
+            str = ALT, pattern = c("A", "C", "G", "T"), 
+            replacement = c("001", "002", "003", "004"), 
+            vectorize_all = FALSE
+          ),# replace nucleotide with numbers
+          # Replace phased info to the regular unphased GT, not useful here
+          GT = stringi::stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
+          GT_VCF = GT,
+          # Experimental (for genlight object)
+          GT_BIN = stringi::stri_replace_all_fixed(
+            str = GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."),
+            replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE
           ),
-        GT = dplyr::if_else(GT == "0/0", stringi::stri_join(REF2, REF2, sep = ""),
-                            dplyr::if_else(GT == "1/1", stringi::stri_join(ALT2, ALT2, sep = ""),
-                                           dplyr::if_else(GT == "0/1", stringi::stri_join(REF2, ALT2, sep = ""),
-                                                          dplyr::if_else(GT == "1/0", stringi::stri_join(ALT2, REF2, sep = ""),
-                                                                         dplyr::if_else(GT == "./.", "000000", GT)))))
-      ) %>% 
-      dplyr::select(-REF2, -ALT2) %>% 
-      tibble::as_data_frame()
-
+          GT = dplyr::if_else(GT == "0/0", stringi::stri_join(REF2, REF2, sep = ""),
+                              dplyr::if_else(GT == "1/1", stringi::stri_join(ALT2, ALT2, sep = ""),
+                                             dplyr::if_else(GT == "0/1", stringi::stri_join(REF2, ALT2, sep = ""),
+                                                            dplyr::if_else(GT == "1/0", stringi::stri_join(ALT2, REF2, sep = ""),
+                                                                           dplyr::if_else(GT == "./.", "000000", GT)))))
+        ) %>% 
+        dplyr::select(-REF2, -ALT2) %>% 
+        tibble::as_data_frame()
+      
+      biallelic <- TRUE # for other part of the script
+    }
+    
     # re-computing the REF/ALT allele
-    if (!is.null(pop.select) || !is.null(blacklist.id)) {
-      message("Adjusting REF/ALT alleles to account for filters...")
-      input <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
-    } # end re-computing the REF/ALT allele
+    if (biallelic) {
+      if (!is.null(pop.select) || !is.null(blacklist.id)) {
+        message("Adjusting REF/ALT alleles to account for filters...")
+        input <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
+      }
+    }# end re-computing the REF/ALT allele
     
     # Re ordering columns
     if (vcf.metadata) {
@@ -696,8 +729,6 @@ tidy_genomic_data <- function(
     } else {
       input <- input %>% dplyr::select(MARKERS, CHROM, LOCUS, POS, POP_ID, INDIVIDUALS, GT_VCF, GT_BIN, REF, ALT, GT)
     }
-    # for other part of the script
-    biallelic <- TRUE
   } # End import VCF
   
   # Import PLINK ---------------------------------------------------------------
@@ -1374,7 +1405,7 @@ tidy_genomic_data <- function(
     )
     blacklist.genotype <- dplyr::mutate_all(
       .tbl = blacklist.genotype, .funs = as.character, exclude = NA
-      )
+    )
     columns.names.blacklist.genotype <- colnames(blacklist.genotype)
     
     if ("CHROM" %in% columns.names.blacklist.genotype) {

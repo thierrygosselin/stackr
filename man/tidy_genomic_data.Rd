@@ -12,7 +12,8 @@ tidy_genomic_data(data, vcf.metadata = TRUE, whitelist.markers = NULL,
   strata = NULL, pop.select = NULL, filename = NULL, verbose = FALSE)
 }
 \arguments{
-\item{data}{8 options: vcf (to make vcf population ready, see details below),
+\item{data}{9 options: biallelic and haplotypic vcf
+(to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 and a data frame in wide format. \emph{See details}.}
@@ -175,7 +176,10 @@ disequilibrium based SNP pruning} option.
 
 \strong{Input files:}
 \enumerate{
-\item VCF file (e.g. \code{data = "batch_1.vcf"}). 
+\item VCF biallelic file (e.g. \code{data = "batch_1.vcf"})
+To make the VCF population ready, you need the \code{strata} argument.
+
+\item VCF haplotypic file (e.g. \code{data = "batch_1.haplotypes.vcf"})
 To make the VCF population ready, you need the \code{strata} argument.
 
 \item haplotype file created in STACKS (e.g. \code{data = "batch_1.haplotypes.tsv"}).
@@ -220,8 +224,9 @@ to convert very large VCF file. For \code{.ped} file conversion to
 \code{.tped} use \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK} 
 with \code{--recode transpose},
 
-\item \code{\link[adegenet]{genind}} and \code{\link[adegenet]{genlight}} 
-object from \code{\link[adegenet]{adegenet}}.
+\item \code{\link[adegenet]{genind}} object from \code{\link[adegenet]{adegenet}}.
+
+\item \code{\link[adegenet]{genlight}} object from \code{\link[adegenet]{adegenet}}.
 
 \item \code{\link[strataG]{gtypes}} object from \code{\link[strataG]{strataG}}.
 

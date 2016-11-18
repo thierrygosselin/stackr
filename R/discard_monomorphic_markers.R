@@ -73,7 +73,9 @@ discard_monomorphic_markers <- function(data) {
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
+  if (tibble::has_name(input, "CHROM")) {
   markers.df <- dplyr::distinct(.data = input, MARKERS, CHROM, LOCUS, POS)
+  }
   
   message("Scanning for monomorphic markers...")
   
@@ -102,7 +104,7 @@ discard_monomorphic_markers <- function(data) {
     input <- dplyr::anti_join(input, mono.markers, by = "MARKERS")
   }
   
-  if (tibble::has_name(input, "LOCUS")) {
+  if (tibble::has_name(input, "CHROM")) {
     mono.markers <- dplyr::left_join(mono.markers, markers.df, by = "MARKERS")
   }
   

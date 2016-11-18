@@ -1,0 +1,305 @@
+#' @name ibdg_fh
+#' @title FH measure of IBDg
+#' @description FH is based on the excess in the observed number of homozygous
+#'    genotypes within an individual relative to the mean number of homozygous
+#'    genotypes expected under random mating
+#'    (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016).
+#'    
+#'    IBDg is a proxy measure of the realized proportion of the genome
+#'    that is identical by descent by reference to the current population
+#'    under hypothetical random mating
+#'    (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016).
+
+#'    
+#'    This function is using a modified version of the FH measure
+#'    (constructed using \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK}
+#'    \code{-het} option) described in (Keller et al., 2011; Kardos et al., 2015).
+#'    See \strong{note} below for the equation. The particuliarities are:
+#'    
+#'    \itemize{
+#'    \item \strong{population-wise:} the individual's observed homozygosity is
+#'    contrasted against the expected homozygosity.
+#'    Two estimates of the expected homozygosity are provided based 
+#'    on the population and/or the overall expected homozygosity 
+#'    averaged across markers.
+#'    \item \strong{tailored for RADseq:} instead of using the overall number
+#'    of markers, the population and the overall expected homozygosity
+#'    are averaged with the same markers the individual's are genotyped for.
+#'    This reduces the bias potentially introduced by comparing the individual's
+#'    observed homozygosity (computed from non-missing genotypes) with
+#'    an estimate computed with more markers found at the population or at the
+#'    overall level.
+#' }
+#' 
+#' The FH measure is also computed in \code{\link[stackr]{summary_haplotypes}}
+#' and \code{\link[stackr]{missing_visualization}}.
+
+#' @inheritParams tidy_genomic_data
+
+#' @param filename (optional) Name of the tidy data set, 
+#' written to the working directory.
+
+#' @return A list is created with 3 objects (table, manhattan and distribution plot).
+#' FH measure is on average negative when the parents are less related than
+#' expected by random mating. The distribution \code{fh.distribution.plot}
+#' should be centered around 0 in samples of non-inbred individuals.
+
+#' @note
+#' \deqn{F_{h_i} = \frac{\overline{Het}_{obs_{ij}} - \overline{Het}_{exp_j}}{∑_{i}snp_{ij} - \overline{Het}_{exp_j}}}
+
+#' @examples
+#' \dontrun{
+#' Using a  VCF file, the simplest for of the function:
+#' fh <- ibdg_fh(
+#' data = "batch_1.vcf", 
+#' strata = "strata.panda.tsv"
+#' )
+#' # To see what's inside the list
+#' names(fh) 
+#' # To view the manhattan plot:
+#' fh$fh.manhattan.plot
+#' # To view the distribution of FH values:
+#' fh$fh.distribution.plot
+#' }
+
+#' @references Keller MC, Visscher PM, Goddard ME (2011)
+#' Quantification of inbreeding due to distant ancestors and its detection
+#'  using dense single nucleotide polymorphism data. Genetics, 189, 237–249.
+#' @references Kardos M, Luikart G, Allendorf FW (2015)
+#' Measuring individual inbreeding in the age of genomics: marker-based
+#' measures are better than pedigrees. Heredity, 115, 63–72.
+#' @references Hedrick PW, Garcia-Dorado A. (2016)
+#' Understanding Inbreeding Depression, Purging, and Genetic Rescue.
+#' Trends in Ecology and Evolution. 2016;31: 940-952.
+#' doi:10.1016/j.tree.2016.09.005
+
+#' @export
+#' @rdname ibdg_fh
+
+#' @import ggplot2
+
+#' @importFrom dplyr distinct rename arrange mutate select summarise group_by ungroup filter inner_join left_join
+#' @importFrom stringi stri_join stri_replace_all_fixed stri_replace_all_regex
+#' @importFrom utils count.fields
+#' @importFrom readr read_tsv write_tsv
+#' @importFrom data.table fread melt.data.table as.data.table
+#' @importFrom ape pcoa
+#' @importFrom stats dist
+#' @importFrom tibble data_frame
+
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
+
+ibdg_fh <- function(
+  data,
+  strata = NULL,
+  pop.levels = NULL, 
+  pop.labels = NULL, 
+  pop.select = NULL,
+  blacklist.id = NULL, 
+  blacklist.genotype = NULL, 
+  whitelist.markers = NULL, 
+  monomorphic.out = TRUE, 
+  max.marker = NULL,
+  snp.ld = NULL, 
+  common.markers = FALSE,
+  filename = NULL,
+  verbose = FALSE
+) {
+  if (verbose) {
+    cat("#######################################################################\n")
+    cat("########################### stackr::ibdg_fh ###########################\n")
+    cat("#######################################################################\n")
+    timing <- proc.time()
+  }
+  # manage missing arguments -----------------------------------------------------  
+  if (missing(data)) stop("Input file missing")
+  if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
+  if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
+  
+  # import data ----------------------------------------------------------------
+  input <- stackr::tidy_genomic_data(
+    data = data, 
+    vcf.metadata = FALSE,
+    blacklist.id = blacklist.id, 
+    blacklist.genotype = blacklist.genotype, 
+    whitelist.markers = whitelist.markers, 
+    monomorphic.out = monomorphic.out, 
+    max.marker = max.marker,
+    snp.ld = snp.ld, 
+    common.markers = common.markers,
+    strata = strata, 
+    pop.select = pop.select,
+    filename = filename
+  )
+  
+  if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
+  }
+  
+  # population names if pop.levels/pop.labels were request
+  input <- stackr::change_pop_names(data = input, pop.levels = pop.labels, pop.labels = pop.labels)
+  
+  # Detect if biallelic --------------------------------------------------------
+  biallelic <- stackr::detect_biallelic_markers(input)
+  
+  message("Genome-Wide Identity-By-Descent calculations (FH)...")
+  if (tibble::has_name(input, "GT_VCF") & biallelic) {
+    # freq.full <- input %>%
+    #   dplyr::filter(GT_VCF != "./.") %>%
+    #   dplyr::group_by(MARKERS, POP_ID) %>%
+    #   dplyr::summarise(
+    #     N = n(),
+    #     HOM_REF = length(GT_VCF[GT_VCF == "0/0"]),
+    #     HOM_ALT = length(GT_VCF[GT_VCF == "1/1"]),
+    #     HOM = HOM_REF + HOM_ALT,
+    #     HET = length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])    ) %>%
+    #   dplyr::mutate(
+    #     FREQ_ALT = ((HOM_ALT * 2) + HET) / (2 * N),
+    #     FREQ_REF = 1 - FREQ_ALT,
+    #     HET_O = HET / N,
+    #     HOM_O = HOM / N,
+    #     HOM_REF_O = HOM_REF / N,
+    #     HOM_ALT_O = HOM_ALT / N,
+    #     HOM_E = (FREQ_REF^2) + (FREQ_ALT^2),
+    #     # HET_E2 = 1 - HOM_E2,
+    #     HET_E = 2 * FREQ_REF * FREQ_ALT
+    #   )
+    freq <- input %>%
+      dplyr::filter(GT_VCF != "./.") %>%
+      dplyr::group_by(MARKERS, POP_ID) %>%
+      dplyr::summarise(
+        N = n(),
+        HOM_ALT = length(GT_VCF[GT_VCF == "1/1"]),
+        HET = length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])
+      ) %>%
+      dplyr::mutate(
+        FREQ_ALT = ((HOM_ALT * 2) + HET) / (2 * N),
+        FREQ_REF = 1 - FREQ_ALT,
+        HOM_E = (FREQ_REF^2) + (FREQ_ALT^2)
+      ) #%>% dplyr::group_by(POP_ID) %>% dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE))
+    
+    
+    hom.e <- dplyr::full_join(
+      dplyr::filter(.data = input, GT_VCF != "./."), 
+      dplyr::select(.data = freq, MARKERS, POP_ID, HOM_E)
+      , by = c("MARKERS", "POP_ID")
+    ) %>% 
+      dplyr::select(MARKERS, POP_ID, INDIVIDUALS, HOM_E) %>% 
+      dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
+      dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE)) #%>% dplyr::group_by(POP_ID) %>% dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE))
+    
+    fh <- input %>%
+      dplyr::filter(GT_VCF != "./.") %>%
+      dplyr::group_by(POP_ID, INDIVIDUALS) %>%
+      dplyr::summarise(
+        N = n(),
+        HOM_REF = length(GT_VCF[GT_VCF == "0/0"]),
+        HOM_ALT = length(GT_VCF[GT_VCF == "1/1"]),
+        HOM = HOM_REF + HOM_ALT
+        # HET = length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])
+      ) %>%
+      dplyr::mutate(
+        # FREQ_ALT = ((HOM_ALT * 2) + HET) / (2 * N),
+        # FREQ_REF = 1 - FREQ_ALT,
+        # HET_O = HET / N,
+        HOM_O = HOM / N #, HOM_REF_O = HOM_REF / N, HOM_ALT_O = HOM_ALT / N
+      ) %>% 
+      dplyr::full_join(dplyr::select(.data = hom.e, INDIVIDUALS, POP_ID, HOM_E), by = c("POP_ID", "INDIVIDUALS")) %>% 
+      dplyr::mutate(FH = ((HOM_O - HOM_E)/(N - HOM_E))) %>% 
+      dplyr::ungroup(.) %>%
+      dplyr::arrange(POP_ID, INDIVIDUALS)
+    
+    ind.levels <- fh$INDIVIDUALS
+    fh <- dplyr::mutate(.data = fh, INDIVIDUALS = factor(INDIVIDUALS, levels = ind.levels, ordered = TRUE))
+  } else {
+    # not biallelic
+    input.alleles <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT) %>%
+      dplyr::filter(GT != "000000") %>% 
+      dplyr::mutate(
+        A1 = stringi::stri_sub(GT, 1, 3),
+        A2 = stringi::stri_sub(GT, 4,6)
+      ) %>% 
+      dplyr::select(-GT)
+    
+    freq <- input.alleles %>%
+      tidyr::gather(data = ., key = ALLELE_GROUP, value = ALLELES, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
+      dplyr::group_by(MARKERS, ALLELES, POP_ID) %>%
+      dplyr::tally(.) %>%
+      dplyr::ungroup() %>%
+      tidyr::complete(data = ., POP_ID, tidyr::nesting(MARKERS, ALLELES), fill = list(n = 0)) %>%
+      dplyr::group_by(MARKERS, POP_ID) %>%
+      dplyr::mutate(
+        FREQ = n/sum(n),
+        HOM_E = FREQ^2
+      ) %>%
+      dplyr::summarise(HOM_E = sum(HOM_E)) #%>% dplyr::mutate(HET_E = 1 - HOM_E)
+    
+    hom.e <- dplyr::full_join(
+      dplyr::filter(.data = input, GT != "000000"), 
+      dplyr::select(.data = freq, MARKERS, POP_ID, HOM_E)
+      , by = c("MARKERS", "POP_ID")
+    ) %>% 
+      dplyr::select(MARKERS, POP_ID, INDIVIDUALS, HOM_E) %>% 
+      dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
+      dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE)) #%>% dplyr::group_by(POP_ID) %>% dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE))
+    
+    fh <- input.alleles %>%
+      dplyr::group_by(POP_ID, INDIVIDUALS) %>%
+      dplyr::summarise(
+        N = n(),
+        HOM = length(INDIVIDUALS[A1 == A2])
+      ) %>% 
+      dplyr::mutate(HOM_O = HOM / N) %>%
+      dplyr::full_join(dplyr::select(.data = hom.e, INDIVIDUALS, POP_ID, HOM_E), by = c("POP_ID", "INDIVIDUALS")) %>% 
+      dplyr::mutate(FH = ((HOM_O - HOM_E)/(N - HOM_E))) %>% 
+      dplyr::ungroup(.) %>%
+      dplyr::arrange(POP_ID, INDIVIDUALS)
+    
+    ind.levels <- fh$INDIVIDUALS
+    fh <- dplyr::mutate(.data = fh, INDIVIDUALS = factor(INDIVIDUALS, levels = ind.levels, ordered = TRUE))
+  }
+  
+  # plots -----------------------------------------------------------------------
+  # manhattan
+  fh.manhattan.plot <- ggplot(data = fh, aes(x = INDIVIDUALS, y = FH, colour = POP_ID)) + 
+    geom_jitter() + 
+    labs(y = "Individual IBDg (FH)") +
+    labs(x = "Individuals") +
+    labs(colour = "Populations") +
+    # theme_minimal() +
+    theme_classic() +
+    # theme_dark() +
+    theme(
+      panel.grid.minor.x = element_blank(), 
+      panel.grid.major.y = element_blank(), 
+      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.x = element_blank(), 
+      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = element_text(size = 8, family = "Helvetica")
+    )
+  # fh.manhattan.plot
+  
+  # Histogram
+  fh.distribution.plot <- ggplot(data = fh, aes(x = FH)) + 
+    geom_histogram() +
+    labs(x = "Individual IBDg (FH)") +
+    labs(y = "Markers (number)") +
+    theme(
+      legend.position = "none",
+      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
+      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
+      axis.text.x = element_text(size = 8, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
+      strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+    )
+  # fh.distribution.plot
+  
+  
+  # Results --------------------------------------------------------------------
+  if (verbose) {
+    timing <- proc.time() - timing
+    message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
+    cat("############################## completed ##############################\n")
+  }
+  res = list(fh = fh, fh.manhattan.plot = fh.manhattan.plot, fh.distribution.plot = fh.distribution.plot)
+  return(res)
+}

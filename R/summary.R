@@ -542,7 +542,7 @@ summary_genotype_likelihood <- function(
 #' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs summarise_at
 #' @importFrom stringi stri_replace_all_fixed stri_join stri_sub
 #' @importFrom tibble has_name as_data_frame
-#' @importFrom tidyr gather spread complete separate
+#' @importFrom tidyr gather spread complete separate nesting
 
 fis_summary <- function(
   data,
@@ -621,8 +621,11 @@ fis_summary <- function(
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
+  # Detect if biallelic --------------------------------------------------------
+  biallelic <- stackr::detect_biallelic_markers(input)
   
-  if (tibble::has_name(input, "GT_VCF")) {
+  
+  if (tibble::has_name(input, "GT_VCF") & biallelic) {
     fis <- input %>%
       dplyr::filter(GT_VCF != "./.") %>%
       dplyr::group_by(MARKERS, POP_ID) %>%
@@ -670,7 +673,7 @@ fis_summary <- function(
       dplyr::group_by(MARKERS, ALLELES, POP_ID) %>%
       dplyr::tally(.) %>%
       dplyr::ungroup() %>%
-      tidyr::complete(data = ., POP_ID, nesting(MARKERS, ALLELES), fill = list(n = 0)) %>%
+      tidyr::complete(data = ., POP_ID, tidyr::nesting(MARKERS, ALLELES), fill = list(n = 0)) %>%
       dplyr::group_by(MARKERS, POP_ID) %>%
       dplyr::mutate(
         FREQ = n/sum(n),

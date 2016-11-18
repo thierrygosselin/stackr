@@ -144,7 +144,7 @@
 #' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs
 #' @importFrom readr write_tsv
 #' @importFrom tibble data_frame
-#' @importFrom tidyr complete gather unite spread
+#' @importFrom tidyr complete gather unite spread nesting
 
 #' @seealso \link{plot_density_distribution_het}
 
@@ -619,7 +619,7 @@ use the overall approach.\n")
         tidyr::complete(
           data = .,
           MAX_OUTLIERS,
-          nesting(MAX_THRESHOLD),
+          tidyr::nesting(MAX_THRESHOLD),
           fill = list(n = 0)
         ) %>%
         dplyr::group_by(MAX_THRESHOLD) %>%
@@ -641,7 +641,7 @@ use the overall approach.\n")
         tidyr::complete(
           data = .,
           DIF_OUTLIERS,
-          nesting(DIF_THRESHOLD),
+          tidyr::nesting(DIF_THRESHOLD),
           fill = list(n = 0)
         ) %>%
         dplyr::group_by(DIF_THRESHOLD) %>%
@@ -664,7 +664,7 @@ use the overall approach.\n")
         tidyr::complete(
           data = .,
           MAX_DIF_OUTLIERS,
-          nesting(MAX_DIF_THRESHOLD),
+          tidyr::nesting(MAX_DIF_THRESHOLD),
           fill = list(n = 0)
         ) %>%
         dplyr::group_by(MAX_DIF_THRESHOLD) %>%
@@ -744,7 +744,7 @@ use the overall approach.\n")
         tidyr::complete(
           data = .,
           MAX_OUTLIERS,
-          nesting(MAX_THRESHOLD),
+          tidyr::nesting(MAX_THRESHOLD),
           fill = list(n = 0)
         ) %>%
         dplyr::group_by(MAX_THRESHOLD) %>%
@@ -769,7 +769,7 @@ use the overall approach.\n")
         tidyr::complete(
           data = .,
           DIF_OUTLIERS,
-          nesting(DIF_THRESHOLD),
+          tidyr::nesting(DIF_THRESHOLD),
           fill = list(n = 0)
         ) %>%
         dplyr::group_by(DIF_THRESHOLD) %>%
@@ -795,7 +795,7 @@ use the overall approach.\n")
         tidyr::complete(
           data = .,
           MAX_DIF_OUTLIERS,
-          nesting(MAX_DIF_THRESHOLD),
+          tidyr::nesting(MAX_DIF_THRESHOLD),
           fill = list(n = 0)
         ) %>%
         dplyr::group_by(MAX_DIF_THRESHOLD) %>%
@@ -870,7 +870,7 @@ use the overall approach.\n")
         dplyr::group_by(THRESHOLD, OUTLIERS) %>%
         dplyr::tally(.) %>%
         dplyr::ungroup(.) %>%
-        tidyr::complete(data = ., OUTLIERS, nesting(THRESHOLD), fill = list(n = 0)) %>%
+        tidyr::complete(data = ., OUTLIERS, tidyr::nesting(THRESHOLD), fill = list(n = 0)) %>%
         dplyr::group_by(THRESHOLD) %>%
         dplyr::mutate(
           WHITELIST = cumsum(n),
@@ -899,7 +899,7 @@ use the overall approach.\n")
         dplyr::group_by(THRESHOLD, OUTLIERS) %>%
         dplyr::tally(.) %>%
         dplyr::ungroup(.) %>%
-        tidyr::complete(data = ., OUTLIERS, nesting(THRESHOLD), fill = list(n = 0)) %>%
+        tidyr::complete(data = ., OUTLIERS, tidyr::nesting(THRESHOLD), fill = list(n = 0)) %>%
         dplyr::group_by(THRESHOLD) %>%
         dplyr::mutate(
           WHITELIST = cumsum(n),

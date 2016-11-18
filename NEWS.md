@@ -1,7 +1,20 @@
 # stackr v.0.4.5
-* `missing_visualization` now computes the FH measure and look for correlation
-with average missingness per individual
+
 * temporary fix to `tidy_genomic_data` to read unconventional Tassel VCF
+
+* new function `ibdg_fh` computes the FH measure that was previously
+computed in `summary_haplotypes`.
+It now works with biallelic and multiallelic data.
+
+The FH measure is based on the excess in the observed number of homozygous
+genotypes within an individual relative to the mean number of homozygous
+genotypes expected under random mating (see function for details). The `IBDg` in
+the name is because the measure is a proxy of the realized proportion of the genome
+that is identical by descent by reference to the current population 
+under hypothetical random mating.
+
+* `missing_visualization` now computes the FH measure and look for correlation
+with average missingness per individual.
 
 # stackr v.0.4.4
 

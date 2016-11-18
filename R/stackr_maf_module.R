@@ -57,7 +57,8 @@
 #' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs summarise_at
 #' @importFrom stringi stri_replace_all_fixed stri_join stri_sub
 #' @importFrom tibble has_name
-#' @importFrom tidyr gather complete separate
+#' @importFrom tidyr gather complete separate nesting
+
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 stackr_maf_module <- function(
@@ -131,7 +132,7 @@ stackr_maf_module <- function(
         dplyr::group_by(MARKERS, GT, POP_ID) %>%
         dplyr::tally(.) %>%
         dplyr::ungroup() %>%
-        tidyr::complete(data = ., POP_ID, nesting(MARKERS, GT), fill = list(n = 0)) %>%
+        tidyr::complete(data = ., POP_ID, tidyr::nesting(MARKERS, GT), fill = list(n = 0)) %>%
         dplyr::rename(n.al.pop = n) %>% 
         dplyr::arrange(MARKERS, GT) %>% 
         dplyr::group_by(MARKERS, GT) %>%

@@ -3,16 +3,29 @@
 #' @description Use this function to visualize pattern of missing data.
 #'  \itemize{
 #'    \item \strong{Imput file:} various file format are supported 
-#'    (see \code{data} argument below)
+#'    (see \code{data} argument below).
 #'    \item \strong{Filters:} genotypes, markers, individuals and populations can be 
 #'   filtered and/or selected in several ways using blacklist,
-#'   whitelist and other arguments
-#'    \item \strong{IBM-PCoA:} Conduct identity-by-missingness analyses using 
-#'    Principal Coordinates Analysis, PCoA (also called Multidimensional Scaling, MDS) 
-#'    \item \strong{Figures and Tables:} create figures and summary tables of 
-#'    missing information at the marker, individual and population level. 
+#'   whitelist and other arguments.
+#'    \item \strong{IBM-PCoA:} conduct identity-by-missingness analyses using 
+#'    Principal Coordinates Analysis, PCoA (also called Multidimensional Scaling, MDS).
+#'    \item \strong{FH measure vs missingness}: missingness at the individual level
+#'    is contrasted against FH, a new measure of IBDg 
+#'    (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016)
+#'    FH is based on the excess in the observed number of homozygous
+#'    genotypes within an individual relative to the mean number of homozygous
+#'    genotypes expected under random mating.
+#'    IBDg is a proxy measure of the realized proportion of the genome
+#'    that is identical by descent.
+#'    Within this function, we're using a modified version of the measure
+#'    described in (Keller et al., 2011; Kardos et al., 2015).
+#'    The new measure is population-wise and tailored for RADseq data
+#'    (see \code{\link[stackr]{ibdg_fh}} for details).
+#'    \item \strong{Figures and Tables:} figures and summary tables of 
+#'    missing information at the marker, individual and population level are
+#'    generated.
 #'    \item \strong{Blacklist:} create blacklist of individuals based on 
-#'    desired thresholds of missing genotypes
+#'    desired thresholds of missing genotypes.
 #'    \item \strong{Tidy data:} if the filename argument is used, the 
 #'    function also output the data in a tidy format.
 #' }
@@ -63,6 +76,16 @@
 
 #' @references Legendre, P. and Legendre, L. (1998) Numerical Ecology, 
 #' 2nd English edition. Amsterdam: Elsevier Science BV.
+#' @references Keller MC, Visscher PM, Goddard ME (2011)
+#' Quantification of inbreeding due to distant ancestors and its detection
+#'  using dense single nucleotide polymorphism data. Genetics, 189, 237–249.
+#' @references Kardos M, Luikart G, Allendorf FW (2015)
+#' Measuring individual inbreeding in the age of genomics: marker-based
+#' measures are better than pedigrees. Heredity, 115, 63–72.
+#' @references Hedrick PW, Garcia-Dorado A. (2016)
+#' Understanding Inbreeding Depression, Purging, and Genetic Rescue.
+#' Trends in Ecology and Evolution. 2016;31: 940-952.
+#' doi:10.1016/j.tree.2016.09.005
 
 #' @export
 #' @rdname missing_visualization
@@ -400,99 +423,32 @@ missing_visualization <- function(
   }
   
   # FH -------------------------------------------------------------------------
-  if (tibble::has_name(input, "GT_VCF")) {
-    # freq.full <- input %>%
-    #   dplyr::filter(GT_VCF != "./.") %>%
-    #   dplyr::group_by(MARKERS, POP_ID) %>%
-    #   dplyr::summarise(
-    #     N = n(),
-    #     HOM_REF = length(GT_VCF[GT_VCF == "0/0"]),
-    #     HOM_ALT = length(GT_VCF[GT_VCF == "1/1"]),
-    #     HOM = HOM_REF + HOM_ALT,
-    #     HET = length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])    ) %>%
-    #   dplyr::mutate(
-    #     FREQ_ALT = ((HOM_ALT * 2) + HET) / (2 * N),
-    #     FREQ_REF = 1 - FREQ_ALT,
-    #     HET_O = HET / N,
-    #     HOM_O = HOM / N,
-    #     HOM_REF_O = HOM_REF / N,
-    #     HOM_ALT_O = HOM_ALT / N,
-    #     HOM_E = (FREQ_REF^2) + (FREQ_ALT^2),
-    #     # HET_E2 = 1 - HOM_E2,
-    #     HET_E = 2 * FREQ_REF * FREQ_ALT
-    #   )
-    
-    freq <- input %>%
-      dplyr::filter(GT_VCF != "./.") %>%
-      dplyr::group_by(MARKERS, POP_ID) %>%
-      dplyr::summarise(
-        N = n(),
-        HOM_ALT = length(GT_VCF[GT_VCF == "1/1"]),
-        HET = length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])    ) %>%
-      dplyr::mutate(
-        FREQ_ALT = ((HOM_ALT * 2) + HET) / (2 * N),
-        FREQ_REF = 1 - FREQ_ALT,
-        HOM_E = (FREQ_REF^2) + (FREQ_ALT^2)
-      ) #%>% dplyr::group_by(POP_ID) %>% dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE))
-    
-    
-    hom.e <- dplyr::full_join(
-      dplyr::filter(.data = input, GT_VCF != "./."), 
-      dplyr::select(.data = freq, MARKERS, POP_ID, HOM_E)
-      , by = c("MARKERS", "POP_ID")
-    ) %>% 
-      dplyr::select(MARKERS, POP_ID, INDIVIDUALS, HOM_E) %>% 
-      dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
-      dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE)) #%>% dplyr::group_by(POP_ID) %>% dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE))
-    
-    fh <- input %>%
-      dplyr::filter(GT_VCF != "./.") %>%
-      dplyr::group_by(POP_ID, INDIVIDUALS) %>%
-      dplyr::summarise(
-        N = n(),
-        HOM_REF = length(GT_VCF[GT_VCF == "0/0"]),
-        HOM_ALT = length(GT_VCF[GT_VCF == "1/1"]),
-        HOM = HOM_REF + HOM_ALT,
-        HET = length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])
-      ) %>%
-      dplyr::mutate(
-        FREQ_ALT = ((HOM_ALT * 2) + HET) / (2 * N),
-        FREQ_REF = 1 - FREQ_ALT,
-        HET_O = HET / N,
-        HOM_O = HOM / N,
-        HOM_REF_O = HOM_REF / N,
-        HOM_ALT_O = HOM_ALT / N
-      ) %>% 
-      dplyr::full_join(dplyr::select(.data = hom.e, INDIVIDUALS, POP_ID, HOM_E), by = c("POP_ID", "INDIVIDUALS")) %>% 
-      dplyr::mutate(FH = ((HOM_O - HOM_E)/(N - HOM_E))) %>% 
-      dplyr::ungroup(.)
-    
-    missing.genotypes.ind.fh <- dplyr::full_join(
+  fh <- stackr::ibdg_fh(data = input)
+  
+  missing.genotypes.ind.fh <- suppressWarnings(
+    dplyr::full_join(
       missing.genotypes.ind,
-      fh
+      fh$fh
       # dplyr::select(.data = fh, INDIVIDUALS, FH)
       , by = c("INDIVIDUALS", "POP_ID")
     )
-    
-    missing.genotypes.fh.plot <- ggplot(missing.genotypes.ind.fh, aes(y = FH, x = PERC)) +
-      geom_point() +
-      stat_smooth(method = lm, level = 0.99) +
-      # labs(title = "Correlation between missingness and inbreeding coefficient") +
-      labs(y = "Individual IBDg (FH)") +
-      labs(x = "Missing genotype (proportion)") +
-      theme(
-        axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
-        axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
-        legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
-        legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
-        strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
-      )
-    # missing.genotypes.fh.plot
-    
-  } else {
-    missing.genotypes.ind.fh <- missing.genotypes.fh.plot <- "not implemented, yet, for multiallelic data"
-  }
-
+  )
+  
+  missing.genotypes.fh.plot <- ggplot(missing.genotypes.ind.fh, aes(y = FH, x = PERC)) +
+    geom_point() +
+    stat_smooth(method = lm, level = 0.99) +
+    # labs(title = "Correlation between missingness and inbreeding coefficient") +
+    labs(y = "Individual IBDg (FH)") +
+    labs(x = "Missing genotype (proportion)") +
+    theme(
+      axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
+      axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
+      legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
+      legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
+      strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+    )
+  # missing.genotypes.fh.plot
+  
   # Populations-----------------------------------------------------------------
   message("Missingness per populations")
   missing.genotypes.pop <- missing.genotypes.ind %>% 
