@@ -1,34 +1,33 @@
 #' @name ibdg_fh
 #' @title FH measure of IBDg
-#' @description FH is based on the excess in the observed number of homozygous
-#'    genotypes within an individual relative to the mean number of homozygous
-#'    genotypes expected under random mating
-#'    (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016).
+#' @description FH is a proxy mesure of IBDg based on the excess in the observed 
+#' number of homozygous genotypes within an individual,
+#' relative to the mean number of homozygous genotypes expected under random mating
+#' (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016).
 #'    
-#'    IBDg is a proxy measure of the realized proportion of the genome
-#'    that is identical by descent by reference to the current population
-#'    under hypothetical random mating
-#'    (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016).
-
-#'    
-#'    This function is using a modified version of the FH measure
-#'    (constructed using \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK}
-#'    \code{-het} option) described in (Keller et al., 2011; Kardos et al., 2015).
-#'    See \strong{note} below for the equation. The particuliarities are:
-#'    
-#'    \itemize{
-#'    \item \strong{population-wise:} the individual's observed homozygosity is
-#'    contrasted against the expected homozygosity.
-#'    Two estimates of the expected homozygosity are provided based 
-#'    on the population and/or the overall expected homozygosity 
-#'    averaged across markers.
-#'    \item \strong{tailored for RADseq:} instead of using the overall number
-#'    of markers, the population and the overall expected homozygosity
-#'    are averaged with the same markers the individual's are genotyped for.
-#'    This reduces the bias potentially introduced by comparing the individual's
-#'    observed homozygosity (computed from non-missing genotypes) with
-#'    an estimate computed with more markers found at the population or at the
-#'    overall level.
+#' IBDg: the realized proportion of the genome that is identical by descent
+#' by reference to the current population under hypothetical random mating
+#' (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016).
+#' 
+#' This function is using a modified version of the FH measure
+#' (constructed using \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK}
+#' \code{-het} option) described in (Keller et al., 2011; Kardos et al., 2015).
+#' 
+#' See \strong{note} below for the equations. The particuliarities are:
+#' 
+#' \itemize{
+#' \item \strong{population-wise:} the individual's observed homozygosity is
+#' contrasted against the expected homozygosity.
+#' Two estimates of the expected homozygosity are provided based 
+#' on the population and/or the overall expected homozygosity 
+#' averaged across markers.
+#' \item \strong{tailored for RADseq:} instead of using the overall number
+#' of markers, the population and the overall expected homozygosity
+#' are averaged with the same markers the individual's are genotyped for.
+#' This reduces the bias potentially introduced by comparing the individual's
+#' observed homozygosity (computed from non-missing genotypes) with
+#' an estimate computed with more markers found at the population or at the
+#' overall level.
 #' }
 #' 
 #' The FH measure is also computed in \code{\link[stackr]{summary_haplotypes}}
@@ -45,11 +44,14 @@
 #' should be centered around 0 in samples of non-inbred individuals.
 
 #' @note
-#' \deqn{F_{h_i} = \frac{\overline{Het}_{obs_{ij}} - \overline{Het}_{exp_j}}{∑_{i}snp_{ij} - \overline{Het}_{exp_j}}}
+#' #\deqn{F_{h_i} = \frac{\overline{Het}_{obs_{ij}} - \overline{Het}_{exp_j}}{∑_{i}snp_{ij} - \overline{Het}_{exp_j}}}
+#' #\deqn{\overline{Het}_{obs_i} = \frac{∑_iHet_{obs_i}}{∑_i{snp_i}}}
+#' #\deqn{\overline{Het}_{exp_j} = \frac{∑_jHet_{exp_j}}{∑_j{snp_j}}}
+
 
 #' @examples
 #' \dontrun{
-#' Using a  VCF file, the simplest for of the function:
+#' # Using a  VCF file, the simplest for of the function:
 #' fh <- ibdg_fh(
 #' data = "batch_1.vcf", 
 #' strata = "strata.panda.tsv"
@@ -70,8 +72,7 @@
 #' measures are better than pedigrees. Heredity, 115, 63–72.
 #' @references Hedrick PW, Garcia-Dorado A. (2016)
 #' Understanding Inbreeding Depression, Purging, and Genetic Rescue.
-#' Trends in Ecology and Evolution. 2016;31: 940-952.
-#' doi:10.1016/j.tree.2016.09.005
+#' Trends in Ecology and Evolution. 2016; 31: 940-952.
 
 #' @export
 #' @rdname ibdg_fh
