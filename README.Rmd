@@ -139,6 +139,8 @@ under hypothetical random mating.
 
 * `missing_visualization` now computes the FH measure and look for correlation
 with average missingness per individual.
+* `tidy_stacks_haplotypes_vcf` is now deprecated in favor of using `tidy_genomic_data`
+that will import haplotypic vcf files.
 
 **v.0.4.4**
 
