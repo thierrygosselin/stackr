@@ -434,7 +434,7 @@ missing_visualization <- function(
     )
   )
   
-  missing.genotypes.fh.plot <- ggplot(missing.genotypes.ind.fh, aes(y = FH, x = PERC)) +
+  missing.genotypes.fh.plot <- ggplot(missing.genotypes.ind.fh, aes(y = FH, x = MISSING_GENOTYPE_PROP)) +
     geom_point() +
     stat_smooth(method = lm, level = 0.99) +
     # labs(title = "Correlation between missingness and inbreeding coefficient") +
