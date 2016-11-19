@@ -44,8 +44,14 @@
 #' should be centered around 0 in samples of non-inbred individuals.
 
 #' @note
-#' #\deqn{F_{h_i} = \frac{\overline{Het}_{obs_{ij}} - \overline{Het}_{exp_j}}{\sum_{i}snp_{ij} - \overline{Het}_{exp_j}}}
-#' #\deqn{\overline{Het}_{obs_i} = \frac{\sum_iHet_{obs_i}}{\sum_i{snp_i}}}
+#' \strong{Modified FH:}
+#' \deqn{F_{h_i} = \frac{\overline{Het}_{obs_{ij}} - \overline{Het}_{exp_j}}{\sum_{i}snp_{ij} - \overline{Het}_{exp_j}}}
+#' 
+#' \strong{Individual Observed Heterozygosity averaged across markers:}
+#' \deqn{\overline{Het}_{obs_i} = \frac{\sum_iHet_{obs_i}}{\sum_i{snp_i}}}
+#' 
+#' \strong{Population expected Heterozygosity tailored for each individual
+#' by using the same markers:}
 #' #\deqn{\overline{Het}_{exp_j} = \frac{\sum_jHet_{exp_j}}{\sum_j{snp_j}}}
 
 
