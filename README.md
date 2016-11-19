@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.4.5-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--11--18-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.4.5-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--11--19-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -113,11 +113,6 @@ Change log, version, new features and bug history now lives in the [NEWS.md file
 -   bug fix with `ref_alt_alleles` that was not working properly inside the imputation module.
 -   `snp_ld` is not a separate module available for users. Check documentation.
 -   `missing_visualization` now show the proportion of variance with plot axis text.
-
-**v.0.4.3**
-
--   bug fix in `summary_haplotypes` stemming from a new `readr` version
--   `artifacts` replace `paralogs` in `summary_haplotypes`
 
 For previous news: [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
