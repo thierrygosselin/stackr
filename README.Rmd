@@ -152,11 +152,6 @@ the imputation module.
 * `snp_ld` is not a separate module available for users. Check documentation.
 * `missing_visualization` now show the proportion of variance with plot axis text.
 
-**v.0.4.3**
-
-* bug fix in `summary_haplotypes` stemming from a new `readr` version
-* `artifacts` replace `paralogs` in `summary_haplotypes`
-
 For previous news:
 [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
