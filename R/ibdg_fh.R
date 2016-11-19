@@ -13,7 +13,7 @@
 #' (constructed using \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK}
 #' \code{-het} option) described in (Keller et al., 2011; Kardos et al., 2015).
 #' 
-#' See \strong{note} below for the equations. The particuliarities are:
+#' The novelties are:
 #' 
 #' \itemize{
 #' \item \strong{population-wise:} the individual's observed homozygosity is
@@ -31,9 +31,19 @@
 #' }
 #' 
 #' The FH measure is also computed in \code{\link[stackr]{summary_haplotypes}}
-#' and \code{\link[stackr]{missing_visualization}}.
+#' and \code{\link[stackr]{missing_visualization}}. See \strong{note} below
+#' for the equations. 
 
 #' @inheritParams tidy_genomic_data
+
+#' @param monomorphic.out (optional) Set by default to remove
+#' monomorphic markers that might have avoided filters.
+#' Default: \code{monomorphic.out = TRUE}.
+
+#' @param common.markers (optional) Logical. The argument for common markers
+#' between populations is set by default to maximize genome coverage of 
+#' individuals and populations.
+#' Default: \code{common.markers = FALSE}
 
 #' @param filename (optional) Name of the tidy data set, 
 #' written to the working directory.
@@ -44,14 +54,15 @@
 #' should be centered around 0 in samples of non-inbred individuals.
 
 #' @note
+#' 
 #' \strong{Modified FH:}
 #' \deqn{F_{h_i} = \frac{\overline{Het}_{obs_{ij}} - \overline{Het}_{exp_j}}{\sum_{i}snp_{ij} - \overline{Het}_{exp_j}}}
 #' 
 #' \strong{Individual Observed Heterozygosity averaged across markers:}
 #' \deqn{\overline{Het}_{obs_i} = \frac{\sum_iHet_{obs_i}}{\sum_i{snp_i}}}
 #' 
-#' \strong{Population expected Heterozygosity tailored for each individual
-#' by using the same markers:}
+#' \strong{Population expected Heterozygosity (under Hardy-Weinberg) and 
+#' tailored by averaging for each individual using his genotyped markers:}
 #' #\deqn{\overline{Het}_{exp_j} = \frac{\sum_jHet_{exp_j}}{\sum_j{snp_j}}}
 
 
@@ -99,16 +110,16 @@
 ibdg_fh <- function(
   data,
   strata = NULL,
+  monomorphic.out = TRUE, 
+  common.markers = FALSE,
   pop.levels = NULL, 
   pop.labels = NULL, 
   pop.select = NULL,
   blacklist.id = NULL, 
   blacklist.genotype = NULL, 
   whitelist.markers = NULL, 
-  monomorphic.out = TRUE, 
   max.marker = NULL,
   snp.ld = NULL, 
-  common.markers = FALSE,
   filename = NULL,
   verbose = FALSE
 ) {
@@ -149,7 +160,8 @@ ibdg_fh <- function(
   # Detect if biallelic --------------------------------------------------------
   biallelic <- stackr::detect_biallelic_markers(input)
   
-  message("Genome-Wide Identity-By-Descent calculations (FH)...")
+  # IBDg computations ----------------------------------------------------------
+  message("Genome-Wide Identity-By-Descent calculations using FH...")
   if (tibble::has_name(input, "GT_VCF") & biallelic) {
     # freq.full <- input %>%
     #   dplyr::filter(GT_VCF != "./.") %>%
@@ -171,8 +183,11 @@ ibdg_fh <- function(
     #     # HET_E2 = 1 - HOM_E2,
     #     HET_E = 2 * FREQ_REF * FREQ_ALT
     #   )
+    
+    # Remove missing
+    input <- dplyr::filter(.data = input, GT_VCF != "./.")
+    
     freq <- input %>%
-      dplyr::filter(GT_VCF != "./.") %>%
       dplyr::group_by(MARKERS, POP_ID) %>%
       dplyr::summarise(
         N = n(),
@@ -185,9 +200,8 @@ ibdg_fh <- function(
         HOM_E = (FREQ_REF^2) + (FREQ_ALT^2)
       ) #%>% dplyr::group_by(POP_ID) %>% dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE))
     
-    
     hom.e <- dplyr::full_join(
-      dplyr::filter(.data = input, GT_VCF != "./."), 
+      input,
       dplyr::select(.data = freq, MARKERS, POP_ID, HOM_E)
       , by = c("MARKERS", "POP_ID")
     ) %>% 
@@ -196,7 +210,6 @@ ibdg_fh <- function(
       dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE)) #%>% dplyr::group_by(POP_ID) %>% dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE))
     
     fh <- input %>%
-      dplyr::filter(GT_VCF != "./.") %>%
       dplyr::group_by(POP_ID, INDIVIDUALS) %>%
       dplyr::summarise(
         N = n(),
@@ -266,7 +279,8 @@ ibdg_fh <- function(
     fh <- dplyr::mutate(.data = fh, INDIVIDUALS = factor(INDIVIDUALS, levels = ind.levels, ordered = TRUE))
   }
   
-  # plots -----------------------------------------------------------------------
+  # plots ----------------------------------------------------------------------
+  message("Generating plots")
   # manhattan
   fh.manhattan.plot <- ggplot(data = fh, aes(x = INDIVIDUALS, y = FH, colour = POP_ID)) + 
     geom_jitter() + 
