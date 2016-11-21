@@ -49,7 +49,8 @@
 #' @param filename (optional) Name of the tidy data set, 
 #' written to the working directory.
 
-#' @return A list is created with 5 objects (tables, manhattan, boxplot and distribution plot).
+#' @return A list is created with 6 objects (function call, tables, manhattan,
+#' boxplot and distribution plot).
 #' FH measure is on average negative when the parents are less related than
 #' expected by random mating. The distribution \code{fh.distribution.plot}
 #' should be centered around 0 in samples of non-inbred individuals.
@@ -80,6 +81,8 @@
 #' names(fh) 
 #' # To view the manhattan plot:
 #' fh$fh.manhattan.plot
+#' # To view the boxplot:
+#' fh$fh.boxplot
 #' # To view the distribution of FH values:
 #' fh$fh.distribution.plot
 #' }
