@@ -137,6 +137,9 @@ ibdg_fh <- function(
   if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
   
+  # store function call
+  function.call <- match.call()
+  
   # import data ----------------------------------------------------------------
   input <- stackr::tidy_genomic_data(
     data = data, 
@@ -352,6 +355,6 @@ ibdg_fh <- function(
     message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
     cat("############################## completed ##############################\n")
   }
-  res = list(fh = fh, fh.stats = fh.stats, fh.manhattan.plot = fh.manhattan.plot, fh.boxplot = fh.boxplot, fh.distribution.plot = fh.distribution.plot)
+  res = list(call = function.call, fh = fh, fh.stats = fh.stats, fh.manhattan.plot = fh.manhattan.plot, fh.boxplot = fh.boxplot, fh.distribution.plot = fh.distribution.plot)
   return(res)
 }
