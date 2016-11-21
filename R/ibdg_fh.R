@@ -5,8 +5,9 @@
 #' relative to the mean number of homozygous genotypes expected under random mating
 #' (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016).
 #'    
-#' IBDg: the realized proportion of the genome that is identical by descent
-#' by reference to the current population under hypothetical random mating
+#' \strong{IBDg} is the realized proportion of the individual genome
+#' that is identical by descent by reference to the current population
+#' under hypothetical random mating
 #' (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016).
 #' 
 #' This function is using a modified version of the FH measure
@@ -48,10 +49,12 @@
 #' @param filename (optional) Name of the tidy data set, 
 #' written to the working directory.
 
-#' @return A list is created with 3 objects (table, manhattan and distribution plot).
+#' @return A list is created with 5 objects (tables, manhattan, boxplot and distribution plot).
 #' FH measure is on average negative when the parents are less related than
 #' expected by random mating. The distribution \code{fh.distribution.plot}
 #' should be centered around 0 in samples of non-inbred individuals.
+#' The first table, \code{$fh}, gives the individual's value
+#' while the second table, \code{$fh.stats}, show the population and overall averaged.
 
 #' @note
 #' 
@@ -121,7 +124,7 @@ ibdg_fh <- function(
   max.marker = NULL,
   snp.ld = NULL, 
   filename = NULL,
-  verbose = FALSE
+  verbose = TRUE
 ) {
   if (verbose) {
     cat("#######################################################################\n")
@@ -279,6 +282,18 @@ ibdg_fh <- function(
     fh <- dplyr::mutate(.data = fh, INDIVIDUALS = factor(INDIVIDUALS, levels = ind.levels, ordered = TRUE))
   }
   
+  # FH statistics per pop
+  fh.stats <- fh %>% 
+    dplyr::group_by(POP_ID) %>% 
+    dplyr::summarise(FH = mean(FH))
+  
+  # per pop and overall combined
+  fh.stats <- tibble::add_row(
+    .data = fh.stats,
+    POP_ID = "OVERALL",
+    FH = unlist(dplyr::summarise(.data = fh.stats, FH = mean(FH)))
+    )
+  
   # plots ----------------------------------------------------------------------
   message("Generating plots")
   # manhattan
@@ -299,6 +314,22 @@ ibdg_fh <- function(
       axis.text.y = element_text(size = 8, family = "Helvetica")
     )
   # fh.manhattan.plot
+  
+  fh.boxplot <- ggplot(data = fh, aes(x = POP_ID, y = FH)) + 
+    geom_boxplot() +
+    labs(y = "Individual IBDg (FH)") +
+    labs(x = "Populations") +
+    # theme_bw() +
+    theme(
+      panel.grid.minor.x = element_blank(), 
+      panel.grid.major.y = element_blank(), 
+      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.x = element_text(size = 8, family = "Helvetica"),
+      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = element_text(size = 8, family = "Helvetica")
+    )
+  # fh.boxplot
+  
   
   # Histogram
   fh.distribution.plot <- ggplot(data = fh, aes(x = FH)) + 
@@ -321,6 +352,6 @@ ibdg_fh <- function(
     message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
     cat("############################## completed ##############################\n")
   }
-  res = list(fh = fh, fh.manhattan.plot = fh.manhattan.plot, fh.distribution.plot = fh.distribution.plot)
+  res = list(fh = fh, fh.stats = fh.stats, fh.manhattan.plot = fh.manhattan.plot, fh.boxplot = fh.boxplot, fh.distribution.plot = fh.distribution.plot)
   return(res)
 }
