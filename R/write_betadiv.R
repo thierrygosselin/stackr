@@ -83,7 +83,7 @@ write_betadiv <- function(data) {
   # need to compute REF/ALT allele for non VCF file
   if (!tibble::has_name(input, "GT_VCF")) {
     ref.alt.alleles.change <- ref_alt_alleles(data = input)
-    input <- left_join(input, ref.alt.alleles.change, by = c("MARKERS", "INDIVIDUALS"))
+    input <- left_join(input, ref.alt.alleles.change$input, by = c("MARKERS", "INDIVIDUALS"))
   }
   
   # MAF

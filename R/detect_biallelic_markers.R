@@ -77,24 +77,24 @@ detect_biallelic_markers <- function(data) {
   
   # Detecting biallelic markers-------------------------------------------------
   input <- input %>%
-    dplyr::filter(GT != "000000") %>% 
     dplyr::select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
+    dplyr::filter(GT != "000000") %>% 
     dplyr::mutate(
       A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
       A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
     ) %>% 
-    dplyr::select(MARKERS, POP_ID, INDIVIDUALS, A1, A2) %>%
+    dplyr::select(-GT) %>%
     tidyr::gather(data = ., key = ALLELES_GROUP, value = ALLELES, -c(MARKERS, INDIVIDUALS, POP_ID)) %>% 
     dplyr::group_by(MARKERS, ALLELES) %>% 
     dplyr::tally(.) %>%
-    dplyr::ungroup() %>% 
+    dplyr::ungroup(.) %>% 
     dplyr::select(MARKERS) %>% 
     dplyr::group_by(MARKERS) %>% 
     dplyr::tally(.) %>% 
     dplyr::summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
     purrr::flatten_chr(.x = .)
   
-  if (input != 2) {
+  if (input > 4) {
     biallelic <- FALSE
   } else {
     biallelic <- TRUE

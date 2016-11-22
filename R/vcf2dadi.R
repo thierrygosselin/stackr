@@ -246,7 +246,8 @@ vcf2dadi <- function(
   # We split the alleles here to prep for MAF
   # need to compute REF/ALT allele for non VCF file
   if (!tibble::has_name(input, "GT_VCF")) {
-    ref.alt.alleles.change <- stackr::ref_alt_alleles(data = input)
+    input.temp <- stackr::ref_alt_alleles(data = input)
+    ref.alt.alleles.change <- input.temp$input
     input <- dplyr::left_join(input, ref.alt.alleles.change, by = c("MARKERS", "INDIVIDUALS"))
   }
   

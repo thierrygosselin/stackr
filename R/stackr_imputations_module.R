@@ -372,7 +372,9 @@ stackr_imputations_module <- function(
   # Compute REF/ALT allele... might have change depending on prop of missing values
   if (ref.column) {
     message("Adjusting REF/ALT alleles to account for imputations...")
-    input.imp <- ref_alt_alleles(data = input.imp)
+    input.temp <- ref_alt_alleles(data = input.imp)
+    input.imp <- input.temp$input
+    
   } # end computing REF/ALT
   
   # Integrate marker.meta columns

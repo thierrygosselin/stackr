@@ -128,7 +128,7 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
   }
   
   # Function to calculate REF\ALT --------------------------------------------
-  ref_compute <- function(data = input, new.ref = alleles.new.ref) {
+  ref_compute <- function(data, new.ref) {
     input <- data %>%
       dplyr::mutate(
         A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
@@ -226,8 +226,9 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
       }
     }
   } else {
-    warning("WARNING: Markers are not biallelic: cannot attribute REF/ALT alleles")
+    message("Data is not biallellic")
     input <- input
   }
-  return(input)
-}
+  res <- list(input = input, biallelic = biallelic)
+  return(res)
+}#End ref_alt_alleles

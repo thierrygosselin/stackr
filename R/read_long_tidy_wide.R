@@ -67,7 +67,7 @@ read_long_tidy_wide <- function(data, import.metadata = FALSE, ...) {
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file argument is missing")
   
-  if (is.vector(data)) { # for file in the working directory
+  if (is.vector(data)) {# for file in the working directory
     # Scan column names 
     scan.colnames <- data.table::fread(
       input = data, 
