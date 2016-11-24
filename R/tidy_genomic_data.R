@@ -349,7 +349,7 @@ tidy_genomic_data <- function(
   data.type <- detect_genomic_format(data)
   
   if (data.type == "haplo.file") {
-    message("With stacks haplotype file the maf.approach is automatically set to: haplotype")
+    if (verbose) message("With stacks haplotype file the maf.approach is automatically set to: haplotype")
     maf.approach <- "SNP"
     # confusing, but because the haplotpe file doesn't have snp info, only locus info
     # it's treated as markers/snp info and filtered the same way as the approach by SNP.
@@ -455,7 +455,7 @@ tidy_genomic_data <- function(
     #function to parse the format field and tidy the results
     parse_genomic <- function(x, gather.data = FALSE) {
       format.name <- x
-      message(paste("Parsing and tidying: ", format.name))
+      if (verbose) message(paste("Parsing and tidying: ", format.name))
       x <- tibble::as_data_frame(vcfR::extract.gt(x = vcf.data, element = x))
       
       if (gather.data) {
@@ -498,7 +498,7 @@ tidy_genomic_data <- function(
     
     # metadata
     if (vcf.metadata) {
-      message("Keeping vcf metadata: yes")
+      if (verbose) message("Keeping vcf metadata: yes")
       # detect FORMAT fields available
       have <- vcfR::vcf_field_names(vcf.data, tag = "FORMAT")$ID
       want <- c("DP", "AD", "GL", "PL")
@@ -509,7 +509,7 @@ tidy_genomic_data <- function(
         purrr::map(parse.format.list, parse_genomic, gather.data = TRUE) %>% 
           dplyr::bind_cols(.))
     } else {
-      message("Keeping vcf metadata: no")
+      if (verbose) message("Keeping vcf metadata: no")
     }
     
     # Filter with whitelist of markers
@@ -538,7 +538,7 @@ tidy_genomic_data <- function(
     }
     
     # Population levels and strata
-    message("Making the vcf population-wise...")
+    if (verbose) message("Making the vcf population-wise...")
     strata.df$INDIVIDUALS <- stringi::stri_replace_all_fixed(
       str = strata.df$INDIVIDUALS, 
       pattern = c("_", ":"), 
@@ -553,7 +553,7 @@ tidy_genomic_data <- function(
     
     # Pop select
     if (!is.null(pop.select)) {
-      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      if (verbose) message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
       input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
       input$POP_ID <- droplevels(input$POP_ID)
     }
@@ -580,7 +580,7 @@ tidy_genomic_data <- function(
       # Cleaning AD (ALLELES_DEPTH)
       if (tibble::has_name(input, "AD")) {
         # if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "AD", omit_no_match = TRUE))) > 0) {
-        message("AD column: splitting coverage info into ALLELE_REF_DEPTH and ALLELE_ALT_DEPTH")
+        if (verbose) message("AD column: splitting coverage info into ALLELE_REF_DEPTH and ALLELE_ALT_DEPTH")
         input <- input %>%
           dplyr::mutate(AD = dplyr::if_else(GT == "./.", NA_character_, AD)) %>% 
           tidyr::separate(AD, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"), sep = ",", extra = "drop") %>% 
@@ -596,7 +596,7 @@ tidy_genomic_data <- function(
       
       # Cleaning DP and changing name to READ_DEPTH
       if (tibble::has_name(input, "DP")) {
-        message("DP column: cleaning and renaming to READ_DEPTH")
+        if (verbose) message("DP column: cleaning and renaming to READ_DEPTH")
         input <- dplyr::rename(.data = input, READ_DEPTH = DP) %>% 
           dplyr::mutate(
             READ_DEPTH = dplyr::if_else(GT == "./.", as.numeric(NA_character_), as.numeric(READ_DEPTH))
@@ -607,7 +607,7 @@ tidy_genomic_data <- function(
       
       # PL for biallelic as 3 values:
       if (tibble::has_name(input, "PL")) {
-        message("PL column (normalized, phred-scaled likelihoods for genotypes): separating into PROB_HOM_REF, PROB_HET and PROB_HOM_ALT")
+        if (verbose) message("PL column (normalized, phred-scaled likelihoods for genotypes): separating into PROB_HOM_REF, PROB_HET and PROB_HOM_ALT")
         # Value 1: probability that the site is homozgyous REF
         # Value 2: probability that the sample is heterzygous
         # Value 2: probability that it is homozygous ALT
@@ -619,7 +619,7 @@ tidy_genomic_data <- function(
       
       # GL cleaning
       if (tibble::has_name(input, "GL")) {
-        message("GL column: cleaning Genotype Likelihood column")
+        if (verbose) message("GL column: cleaning Genotype Likelihood column")
         input <- input %>% 
           dplyr::mutate(
             GL = dplyr::if_else(GT == "./.", NA_character_, GL),
@@ -629,7 +629,7 @@ tidy_genomic_data <- function(
       
       # GQ
       if (tibble::has_name(input, "GQ")) {
-        message("GQ column: Genotype Quality")
+        if (verbose) message("GQ column: Genotype Quality")
         input <- dplyr::mutate(
           input, 
           GQ = dplyr::if_else(GT == "./.", as.numeric(NA_character_), as.numeric(GQ))
@@ -697,7 +697,7 @@ tidy_genomic_data <- function(
     # re-computing the REF/ALT allele
     if (biallelic) {
       if (!is.null(pop.select) || !is.null(blacklist.id)) {
-        message("Adjusting REF/ALT alleles to account for filters...")
+        if (verbose) message("Adjusting REF/ALT alleles to account for filters...")
         input.temp <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
         input <- input.temp$input
       }
@@ -820,7 +820,7 @@ tidy_genomic_data <- function(
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
-      message("Filtering with whitelist of markers")
+      if (verbose) message("Filtering with whitelist of markers")
       input <- suppressWarnings(
         dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist)
       )
@@ -828,7 +828,7 @@ tidy_genomic_data <- function(
     
     # To reduce the size of the dataset we subsample the markers with max.marker
     if (!is.null(max.marker)) {
-      message("Using the max.marker to reduce the size of the dataset")
+      if (verbose) message("Using the max.marker to reduce the size of the dataset")
       input <- dplyr::sample_n(tbl = input, size = max(as.numeric(max.marker)), replace = FALSE)
       
       max.marker.subsample.select <- input %>% 
@@ -841,7 +841,7 @@ tidy_genomic_data <- function(
     }
     
     # Make tidy
-    message("Tidying the PLINK file ...")
+    if (verbose) message("Tidying the PLINK file ...")
     # Filling GT and new separating INDIVIDUALS from ALLELES
     # combining alleles
     input <- data.table::melt.data.table(
@@ -866,7 +866,7 @@ tidy_genomic_data <- function(
       dplyr::select(LOCUS, INDIVIDUALS, GT)
     
     # population levels and strata
-    message("Integrating the tfam/strata file...")
+    if (verbose) message("Integrating the tfam/strata file...")
     
     input <- dplyr::left_join(x = input, y = strata.df, by = "INDIVIDUALS")
     
@@ -875,7 +875,7 @@ tidy_genomic_data <- function(
     
     # Pop select
     if (!is.null(pop.select)) {
-      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      if (verbose) message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
       input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
       input$POP_ID <- droplevels(input$POP_ID)
     }
@@ -887,7 +887,7 @@ tidy_genomic_data <- function(
     
     untyped.markers <- dplyr::n_distinct(input$LOCUS) - dplyr::n_distinct(remove.missing.gt$LOCUS)
     if (untyped.markers > 0) {
-      message(paste0("Number of marker with 100 % missing genotypes: ", untyped.markers))
+      if (verbose) message(paste0("Number of marker with 100 % missing genotypes: ", untyped.markers))
       input <- suppressWarnings(
         dplyr::semi_join(input, 
                          remove.missing.gt %>% 
@@ -934,13 +934,13 @@ tidy_genomic_data <- function(
 
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
-      message("Filtering with whitelist of markers")
+      if (verbose) message("Filtering with whitelist of markers")
       input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
 
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
-      message("Filtering with blacklist of individuals")
+      if (verbose) message("Filtering with blacklist of individuals")
       blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = blacklist.id$INDIVIDUALS, 
         pattern = c("_", ":"), 
@@ -984,13 +984,13 @@ tidy_genomic_data <- function(
     
     # Pop select
     if (!is.null(pop.select)) {
-      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      if (verbose) message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
       input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
     }
 
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
-    message("bi/multi allelic markers scan ...")
+    if (verbose) message("bi/multi allelic markers scan ...")
     input.temp <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
@@ -1038,7 +1038,7 @@ tidy_genomic_data <- function(
     number.columns <- NULL
     
     # remove consensus markers
-    message("Scanning for consensus markers")
+    if (verbose) message("Scanning for consensus markers")
     consensus.markers <- input %>%
       dplyr::filter(GT == "consensus") %>% 
       dplyr::distinct(LOCUS, .keep_all = TRUE)
@@ -1046,17 +1046,17 @@ tidy_genomic_data <- function(
     if (length(consensus.markers$LOCUS) > 0) {
       input <- suppressWarnings(dplyr::anti_join(input, consensus.markers, by = "LOCUS"))
     }
-    message(stringi::stri_join("Consensus markers removed: ", dplyr::n_distinct(consensus.markers$LOCUS)))
+    if (verbose) message(stringi::stri_join("Consensus markers removed: ", dplyr::n_distinct(consensus.markers$LOCUS)))
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
-      message("Filtering with whitelist of markers")
+      if (verbose) message("Filtering with whitelist of markers")
       input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
     
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
-      message("Filtering with blacklist of individuals")
+      if (verbose) message("Filtering with blacklist of individuals")
       
       blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = blacklist.id$INDIVIDUALS, 
@@ -1083,12 +1083,12 @@ tidy_genomic_data <- function(
     
     # Pop select
     if (!is.null(pop.select)) {
-      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      if (verbose) message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
       input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
     }
     
     # removing errors and potential paralogs (GT with > 2 alleles)
-    message("Scanning for genotypes with more than 2 alleles")
+    if (verbose) message("Scanning for genotypes with more than 2 alleles")
     input <- input %>%
       dplyr::mutate(POLYMORPHISM = stringi::stri_count_fixed(GT, "/"))
     
@@ -1096,7 +1096,7 @@ tidy_genomic_data <- function(
       dplyr::filter(POLYMORPHISM > 1) %>% 
       dplyr::select(LOCUS, INDIVIDUALS)
     
-    message(stringi::stri_join("Number of genotypes with more than 2 alleles: ", length(blacklist.paralogs$LOCUS), sep = ""))
+    if (verbose) message(stringi::stri_join("Number of genotypes with more than 2 alleles: ", length(blacklist.paralogs$LOCUS), sep = ""))
     
     if (length(blacklist.paralogs$LOCUS) > 0) {
       input <- input %>% 
@@ -1109,7 +1109,7 @@ tidy_genomic_data <- function(
     tidy.haplo <- input %>% dplyr::select(LOCUS, INDIVIDUALS, GT_HAPLO = GT)
     
     # recode genotypes
-    message("Recoding haplotypes in 6 digits format")
+    if (verbose) message("Recoding haplotypes in 6 digits format")
     # input.bk <- input
     input <- suppressWarnings(
       input %>% 
@@ -1198,13 +1198,13 @@ tidy_genomic_data <- function(
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
-      message("Filtering with whitelist of markers")
+      if (verbose) message("Filtering with whitelist of markers")
       input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
     
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
-      message("Filtering with blacklist of individuals")
+      if (verbose) message("Filtering with blacklist of individuals")
       
       blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = blacklist.id$INDIVIDUALS, 
@@ -1244,7 +1244,7 @@ tidy_genomic_data <- function(
     
     # Pop select
     if (!is.null(pop.select)) {
-      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      if (verbose) message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
       input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
     }
     
@@ -1293,13 +1293,13 @@ tidy_genomic_data <- function(
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
-      message("Filtering with whitelist of markers")
+      if (verbose) message("Filtering with whitelist of markers")
       input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
     
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
-      message("Filtering with blacklist of individuals")
+      if (verbose) message("Filtering with blacklist of individuals")
       
       blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
         str = blacklist.id$INDIVIDUALS, 
@@ -1339,7 +1339,7 @@ tidy_genomic_data <- function(
     
     # Pop select
     if (!is.null(pop.select)) {
-      message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      if (verbose) message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
       input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
     }
     
@@ -1367,9 +1367,9 @@ tidy_genomic_data <- function(
   
   # Blacklist genotypes --------------------------------------------------------
   if (is.null(blacklist.genotype)) { # no Whitelist
-    message("Erasing genotype: no")
+    if (verbose) message("Erasing genotype: no")
   } else {
-    message("Erasing genotype: yes")
+    if (verbose) message("Erasing genotype: yes")
     suppressMessages(
       blacklist.genotype <- readr::read_tsv(blacklist.genotype, col_names = TRUE) %>% 
         dplyr::mutate(
@@ -1403,7 +1403,7 @@ tidy_genomic_data <- function(
     # control check to keep only whitelisted markers from the blacklist of genotypes
     if (!is.null(whitelist.markers)) {
       blacklist.genotype <- blacklist.genotype
-      message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
+      if (verbose) message("Control check to keep only whitelisted markers present in the blacklist of genotypes to erase.")
       # updating the whitelist of markers to have all columns that id markers
       if (data.type == "vcf.file") {
         whitelist.markers.ind <- input %>% dplyr::distinct(CHROM, LOCUS, POS, INDIVIDUALS)
@@ -1444,7 +1444,7 @@ tidy_genomic_data <- function(
              haplotype file and create a whitelist, for other file type, use 
              PLINK linkage disequilibrium based SNP pruning option")
     }
-    message("Minimizing LD...")
+    if (verbose) message("Minimizing LD...")
     snp.locus <- input %>% dplyr::distinct(LOCUS, POS)
     
     # Random selection
@@ -1452,7 +1452,7 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         sample_n(size = 1, replace = FALSE)
-      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
+      if (verbose) message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
     }
     
     # Fist SNP on the read
@@ -1460,7 +1460,7 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         dplyr::summarise(POS = min(POS))
-      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
+      if (verbose) message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
     }
     
     # Last SNP on the read
@@ -1468,12 +1468,12 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         dplyr::summarise(POS = max(POS))
-      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
+      if (verbose) message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
     }
     
     # filtering the VCF to minimize LD
     input <- input %>% dplyr::semi_join(snp.select, by = c("LOCUS", "POS"))
-    message("Filtering the tidy VCF to minimize LD by keeping only 1 SNP per short read/haplotype")
+    if (verbose) message("Filtering the tidy VCF to minimize LD by keeping only 1 SNP per short read/haplotype")
   } # End of snp.ld control
   
   # Unique markers id ----------------------------------------------------------
@@ -1499,13 +1499,13 @@ tidy_genomic_data <- function(
   
   # Markers in common between all populations (optional) -----------------------
   if (common.markers) { # keep only markers present in all pop
-    input <- stackr::keep_common_markers(input)
+    input <- stackr::keep_common_markers(input, verbose = verbose)
   } # End common markers
   
   # Removing monomorphic markers------------------------------------------------
   if (monomorphic.out) {
-    message("Removing monomorphic markers: yes")
-    mono.out <- discard_monomorphic_markers(input)
+    if (verbose) message("Removing monomorphic markers: yes")
+    mono.out <- discard_monomorphic_markers(input, verbose = verbose)
     mono.markers <- mono.out$blacklist.momorphic.markers
     if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
       if (data.type == "haplo.file") {
@@ -1534,7 +1534,7 @@ tidy_genomic_data <- function(
   
   # Write to working directory -------------------------------------------------
   if (!is.null(filename)) {
-    message(stringi::stri_join("Writing the tidy data to the working directory: \n"), filename)
+    if (verbose) message(stringi::stri_join("Writing the tidy data to the working directory: \n"), filename)
     readr::write_tsv(x = input, path = filename, col_names = TRUE)
   }
   # messages -------------------------------------------------------------------

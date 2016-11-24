@@ -1,8 +1,7 @@
 # write a strataG gtypes object from a tidy data frame
 
 #' @name write_gtypes
-#' @title Used internally in stackr to write a \code{\link[strataG]{gtypes}} 
-#' from a tidy data frame
+#' @title Tidy genomic data to \code{\link[strataG]{gtypes}} 
 #' @description Write a \code{\link[strataG]{gtypes}} object from a tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and might be of interest for users.
@@ -47,7 +46,7 @@
 #' @importFrom data.table fread
 #' @importFrom methods new
 #' @importFrom stringi stri_replace_all_fixed stri_sub
-#' @importFrom dplyr select arrange rename
+#' @importFrom dplyr select arrange rename mutate
 
 
 #' @seealso \code{strataG.devel} is available on github \url{https://github.com/EricArcher/}
@@ -77,10 +76,12 @@ write_gtypes <- function(data) {
   if ("LOCUS" %in% colnames(input)) input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   
   input <- input %>% 
-    dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
+    dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT) %>%
     dplyr::arrange(MARKERS, POP_ID, INDIVIDUALS) %>% 
     dplyr::mutate(
-      `1` = stringi::stri_sub(str = GT, from = 1, to = 3),
+      GT = replace(GT, which(GT == "000000"), NA),
+      POP_ID = as.character(POP_ID),
+      `1` = stringi::stri_sub(str = GT, from = 1, to = 3), # most of the time: faster than tidyr::separate
       `2` = stringi::stri_sub(str = GT, from = 4, to = 6)
     ) %>%
     dplyr::select(-GT) %>% 
@@ -91,9 +92,8 @@ write_gtypes <- function(data) {
       -c(MARKERS, INDIVIDUALS, POP_ID)
     ) %>% 
     tidyr::unite(data = ., MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>% 
-    tidyr::spread(data = ., key = MARKERS_ALLELES, value = GT) %>% 
-    dplyr::mutate(POP_ID = as.character(POP_ID))
-  
+    tidyr::spread(data = ., key = MARKERS_ALLELES, value = GT)
+
   res <- suppressWarnings(
     methods::new("gtypes", gen.data = input[, -(1:2)], ploidy = 2, ind.names = input$INDIVIDUALS, 
                  strata = input$POP_ID, schemes = NULL, sequences = NULL, 

@@ -69,8 +69,7 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
   # Checking for missing and/or default arguments ------------------------------
   if (missing(data)) stop("Input file missing")
   
-  # Import data ---------------------------------------------------------------
-  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  input <- data
   
   # check genotype column naming
   if (tibble::has_name(input, "GENOTYPE")) {
@@ -87,39 +86,30 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
   }
   
   # Detecting biallelic markers and removing monomorphic markers ---------------
-  input.genotyped.split <- input %>%
+  input.genotyped.split <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
     dplyr::filter(GT != "000000") %>% 
-    dplyr::select(MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
     dplyr::mutate(
       A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
       A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
     ) %>% 
-    dplyr::select(MARKERS, POP_ID, INDIVIDUALS, A1, A2) %>%
+    dplyr::select(-GT) %>%
     tidyr::gather(data = ., key = ALLELES_GROUP, value = ALLELES, -c(MARKERS, INDIVIDUALS, POP_ID))
   
   alleles.old <- dplyr::distinct(.data = input.genotyped.split, MARKERS, ALLELES) %>% 
     dplyr::arrange(MARKERS, ALLELES)
-  
-  marker.type <- input.genotyped.split %>% 
-    dplyr::group_by(MARKERS, ALLELES) %>% 
-    dplyr::tally(.) %>%
-    dplyr::ungroup() %>% 
-    dplyr::select(MARKERS) %>% 
-    dplyr::group_by(MARKERS) %>% 
-    dplyr::tally(.)
-  
+
+  marker.type <- dplyr::distinct(.data = input.genotyped.split, MARKERS, ALLELES) %>%
+    dplyr::count(x = ., MARKERS)
+
   # monomorphic
   if (monomorphic.out) { 
     # monomorphic markers 
-    mono.markers <- marker.type %>% 
-      dplyr::filter(n == 1) %>% 
+    mono.markers <-  dplyr::filter(.data = marker.type, n == 1) %>% 
       dplyr::select(MARKERS)
   }
   
   # Biallelic marker detection -------------------------------------------------
-  biallelic <- marker.type %>% 
-    dplyr::summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
-    purrr::flatten_chr(.x = .)
+  biallelic <- purrr::flatten_chr(.x = dplyr::summarise(.data = marker.type, BIALLELIC = max(n, na.rm = TRUE)))
   
   if (biallelic > 4 ) {
     biallelic <- FALSE
@@ -164,9 +154,8 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
   
   # Detection and change -------------------------------------------------------
   if (biallelic) {
-    alleles.new.ref <- input.genotyped.split %>%   
-      dplyr::group_by(MARKERS, ALLELES) %>%
-      dplyr::tally(.) %>% 
+    alleles.new.ref <- dplyr::select(.data = input.genotyped.split, MARKERS, ALLELES) %>%
+      dplyr::count(x = ., MARKERS, ALLELES) %>%
       dplyr::group_by(MARKERS) %>%
       dplyr::top_n(1, n) %>% 
       dplyr::distinct(MARKERS, .keep_all = TRUE) %>% 
@@ -176,7 +165,7 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
       dplyr::mutate(REF = dplyr::coalesce(REF, "ALT")) %>% # faster than stri_replace_na
       dplyr::group_by(MARKERS) %>% 
       tidyr::spread(data = ., key = REF, value = ALLELES) %>% 
-      dplyr::mutate(ALT = if_else(is.na(ALT), REF, ALT))
+      dplyr::mutate(ALT = dplyr::if_else(is.na(ALT), REF, ALT))
     
     if (tibble::has_name(input, "REF")) {
       change.ref <- dplyr::distinct(.data = input, MARKERS, REF, ALT) %>% 

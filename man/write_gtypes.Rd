@@ -2,8 +2,7 @@
 % Please edit documentation in R/write_gtypes.R
 \name{write_gtypes}
 \alias{write_gtypes}
-\title{Used internally in stackr to write a \code{\link[strataG]{gtypes}} 
-from a tidy data frame}
+\title{Tidy genomic data to \code{\link[strataG]{gtypes}}}
 \usage{
 write_gtypes(data)
 }
