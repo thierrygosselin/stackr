@@ -38,7 +38,8 @@ Imports:
     copula, 
     gsl,
     vcfR,
-    magrittr
+    magrittr,
+    Hmisc
 Suggests:
     pegas,
     hierfstat,
