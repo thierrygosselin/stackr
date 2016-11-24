@@ -55,7 +55,6 @@
 
 #' @export
 #' @rdname write_arlequin
-#' @import reshape2
 #' @import dplyr
 #' @import stringi
 

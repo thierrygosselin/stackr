@@ -20,7 +20,6 @@
 
 #' @export
 #' @rdname vcf2hierfstat
-#' @import reshape2
 #' @import dplyr
 #' @references Goudet, J. (1995) FSTAT (Version 1.2): A computer program to 
 #' calculate F- statistics. Journal of Heredity, 86, 485-486.

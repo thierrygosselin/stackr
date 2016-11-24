@@ -21,7 +21,6 @@
 
 #' @export
 #' @rdname vcf2betadiv
-#' @import reshape2
 #' @import dplyr
 
 #' @seealso \code{beta.div} is available on Pierre Legendre web site \url{http://adn.biol.umontreal.ca/~numericalecology/Rcode/}

@@ -20,7 +20,6 @@
 
 #' @export
 #' @rdname vcf2gtypes
-#' @import reshape2
 #' @import dplyr
 
 #' @seealso \code{\link[stackr]{genomic_converter}}

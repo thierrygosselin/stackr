@@ -22,7 +22,6 @@
 
 #' @export
 #' @rdname vcf2genepop
-#' @import reshape2
 #' @import dplyr
 #' @import stringi
 #' @importFrom data.table fread
