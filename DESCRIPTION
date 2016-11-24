@@ -37,7 +37,8 @@ Imports:
     tidyverse,
     copula, 
     gsl,
-    vcfR
+    vcfR,
+    magrittr
 Suggests:
     pegas,
     hierfstat,
