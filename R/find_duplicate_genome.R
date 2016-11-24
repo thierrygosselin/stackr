@@ -54,6 +54,7 @@
 #' @importFrom stats na.omit
 #' @importFrom amap Dist
 #' @importFrom data.table fread
+#' @importFrom reshape2 melt
 
 #' @examples
 #' \dontrun{

@@ -289,6 +289,7 @@ summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
 #' 0/1 : heterozygote with coverage REF > ALT allele.
 #' 1/0 : heterozygote with coverage REF < ALT allele.
 
+#' @importFrom reshape2 dcast
 #' @rdname table_low_coverage_summary
 #' @export
 

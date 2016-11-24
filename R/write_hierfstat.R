@@ -51,7 +51,6 @@
 #' in a tidy data frame.
 #' @export
 #' @rdname write_hierfstat
-#' @import reshape2
 #' @import dplyr
 #' @import stringi
 #' @importFrom data.table fread

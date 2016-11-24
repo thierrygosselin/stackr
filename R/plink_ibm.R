@@ -63,7 +63,6 @@
 
 #' @export
 #' @rdname plink_ibm
-#' @import reshape2
 #' @import dplyr
 
 #' @references Danecek P, Auton A, Abecasis G et al. (2011) 

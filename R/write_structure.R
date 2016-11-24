@@ -60,7 +60,6 @@
 
 #' @export
 #' @rdname write_structure
-#' @import reshape2
 #' @import dplyr
 #' @import stringi
 
