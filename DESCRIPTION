@@ -36,6 +36,7 @@ Imports:
     methods,
     tidyverse,
     copula,
+    survival (>= 2.40.1),
     Hmisc,
     gsl,
     vcfR,
