@@ -102,6 +102,7 @@ discard_monomorphic_markers <- function(data) {
   
   if (length(mono.markers$MARKERS) > 0) {
     input <- dplyr::anti_join(input, mono.markers, by = "MARKERS")
+    message(paste0("Number of markers remaining = ", dplyr::n_distinct(input$MARKERS)))
   }
   
   if (tibble::has_name(input, "CHROM")) {
@@ -110,5 +111,5 @@ discard_monomorphic_markers <- function(data) {
   
   res <- list(input = input, blacklist.momorphic.markers = mono.markers)
   return(res)
-} # end discar mono markers
+} # end discard mono markers
 

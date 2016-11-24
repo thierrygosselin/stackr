@@ -86,12 +86,12 @@ write_hierfstat <- function(data, filename = NULL) {
   
   # Get the number of sample (pop) for hierfstat -------------------------------
   np <- nlevels(droplevels(input$POP_ID))
-  np.message <- stri_paste("Number of sample pop, np = ", np, sep = "")
+  np.message <- stri_paste("    * Number of sample pop, np = ", np, sep = "")
   message(np.message)
   
   # Get the number of loci -----------------------------------------------------
   nl <- length(markers)
-  nl.message <- stri_paste("Number of markers, nl = ", nl, sep = "")
+  nl.message <- stri_paste("    * Number of markers, nl = ", nl, sep = "")
   message(nl.message)
   
   input <- input %>%
@@ -104,7 +104,7 @@ write_hierfstat <- function(data, filename = NULL) {
   
   # Get the highest number used to label an allele -----------------------------
   nu <- max(c(unique(input$A1), unique(input$A2)), na.rm = TRUE)
-  nu.message <- stri_paste("The highest number used to label an allele, nu = ", 
+  nu.message <- stri_paste("    * The highest number used to label an allele, nu = ", 
                            nu, sep = "")
   message(nu.message)
   
@@ -122,7 +122,7 @@ write_hierfstat <- function(data, filename = NULL) {
   
   # allele coding --------------------------------------------------------------
   allele.coding <- 1
-  message("The alleles are encoded with one digit number")
+  message("    * The alleles are encoded with one digit number")
   
   # Filename -------------------------------------------------------------------
   if (is.null(filename)) {
