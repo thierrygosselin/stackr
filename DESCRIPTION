@@ -38,15 +38,12 @@ Imports:
     copula, 
     gsl,
     vcfR,
-    magrittr,
-    Hmisc
+    magrittr
 Suggests:
     pegas,
     hierfstat,
     knitr,
     rmarkdown
-Remotes:
-    github::ericarcher/strataG
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr
