@@ -34,7 +34,6 @@
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
 #' @importFrom dplyr select distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs
 #' @importFrom readr write_tsv
-#' @importFrom plyr round_any
 #' @importFrom tibble data_frame has_name
 
 #' @details 
@@ -217,14 +216,20 @@ filter_population <- function(
     if (line.graph == "y") {
       # Set the breaks for the figure
       max.markers <- dplyr::n_distinct(input$MARKERS)
+      
+      #Function to replace plyr::round_any
+      rounder <- function(x, accuracy, f = round) {
+        f(x / accuracy) * accuracy
+      }
+
       # max.markers <- 658
       if (max.markers >= 1000) {
-        y.breaks.by <- plyr::round_any(max.markers/10, 100, ceiling)
-        y.breaks.max <- plyr::round_any(max.markers, 1000, ceiling)
+        y.breaks.by <- rounder(max.markers/10, 100, ceiling)
+        y.breaks.max <- rounder(max.markers, 1000, ceiling)
         y.breaks <- seq(0, y.breaks.max, by = y.breaks.by)
       } else {
-        y.breaks.by <- plyr::round_any(max.markers/10, 10, ceiling)
-        y.breaks.max <- plyr::round_any(max.markers, 100, ceiling)
+        y.breaks.by <- rounder(max.markers/10, 10, ceiling)
+        y.breaks.max <- rounder(max.markers, 100, ceiling)
         y.breaks <- seq(0, y.breaks.max, by = y.breaks.by)
       }
       
