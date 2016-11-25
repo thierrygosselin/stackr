@@ -55,6 +55,7 @@
 #' @importFrom amap Dist
 #' @importFrom data.table fread
 #' @importFrom reshape2 melt
+#' @importFrom lazyeval interp
 
 #' @examples
 #' \dontrun{
