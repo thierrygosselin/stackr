@@ -1,53 +1,30 @@
 # write a strataG gtypes object from a tidy data frame
 
 #' @name write_gtypes
-#' @title Tidy genomic data to \code{\link[strataG]{gtypes}} 
+#' @title Write a \code{\link[strataG]{gtypes}} object from a tidy data
+
 #' @description Write a \code{\link[strataG]{gtypes}} object from a tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and might be of interest for users.
-#' 
-#' @param data A file in the working directory or object in the global environment 
-#' in wide or long (tidy) formats. See details for more info. 
+
+#' @param data A tidy data frame object in the global environment or
+#' a tidy data frame in wide or long format in the working directory.
+#' \emph{How to get a tidy data frame ?}
+#' Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
 
 #' @return An object of the class \code{\link[strataG]{gtypes}} is returned.
 
-#' @details
-#' \strong{Details for Input data:}
-#' 
-#' To discriminate the long from the wide format, 
-#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-#' for "MARKERS" in column names (TRUE = long format).
-#' The data frame is tab delimitted.
 
-#' \strong{Wide format:}
-#' The wide format cannot store metadata info.
-#' The wide format starts with these 2 id columns: 
-#' \code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
-#' the remaining columns are the markers in separate columns storing genotypes.
-#' 
-#' \strong{Long/Tidy format:}
-#' The long format is considered to be a tidy data frame and can store metadata info. 
-#' (e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
-#' are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
-#' \code{MARKERS} and \code{GENOTYPE or GT}. The rest are considered metata info.
-#' 
-#' \strong{2 genotypes formats are available:}
-#' 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
-#' 6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
-#' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
-#' 
-#' \emph{How to get a tidy data frame ?}
-#' \pkg{stackr} \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
-#' in a tidy data frame.
+
 #' @export
 #' @rdname write_gtypes
 #' @import strataG
-#' @importFrom tidyr gather unite spread 
-#' @importFrom data.table fread
+
+#' @importFrom tidyr gather
 #' @importFrom methods new
 #' @importFrom stringi stri_replace_all_fixed stri_sub
 #' @importFrom dplyr select arrange rename mutate
-
+#' @importFrom data.table dcast.data.table as.data.table
 
 #' @seealso \code{strataG.devel} is available on github \url{https://github.com/EricArcher/}
 
@@ -64,19 +41,26 @@ write_gtypes <- function(data) {
   if (missing(data)) stop("Input file necessary to write the hierfstat file is missing")
   
   # Import data ---------------------------------------------------------------
-  input <- data
+  if (is.vector(data)) {
+    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  } else {
+    input <- data
+  }
   
+  # check genotype column naming
   colnames(input) <- stringi::stri_replace_all_fixed(
     str = colnames(input), 
     pattern = "GENOTYPE", 
     replacement = "GT", 
-    vectorize_all = FALSE)
+    vectorize_all = FALSE
+  )
   
-  # Switch colnames LOCUS to MARKERS if found
-  if ("LOCUS" %in% colnames(input)) input <- dplyr::rename(.data = input, MARKERS = LOCUS)
+  # necessary steps to make sure we work with unique markers and not duplicated LOCUS
+  if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
+  }
   
-  input <- input %>% 
-    dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT) %>%
+  input <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, MARKERS, GT) %>%
     dplyr::arrange(MARKERS, POP_ID, INDIVIDUALS) %>% 
     dplyr::mutate(
       GT = replace(GT, which(GT == "000000"), NA),
@@ -90,14 +74,32 @@ write_gtypes <- function(data) {
       key = ALLELES, 
       value = GT, 
       -c(MARKERS, INDIVIDUALS, POP_ID)
+    ) %>%
+    data.table::as.data.table(.) %>% 
+    data.table::dcast.data.table(
+      data = .,
+      formula = POP_ID + INDIVIDUALS ~ MARKERS + ALLELES,
+      value.var = "GT",
+      sep = "."
     ) %>% 
-    tidyr::unite(data = ., MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>% 
-    tidyr::spread(data = ., key = MARKERS_ALLELES, value = GT)
-
+    tibble::as_data_frame(.)
+  
+  # dcast is slightly faster using microbenchmark then unite and spread
+  # tidyr::unite(data = ., MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>% 
+  # tidyr::spread(data = ., key = MARKERS_ALLELES, value = GT)
+  
   res <- suppressWarnings(
-    methods::new("gtypes", gen.data = input[, -(1:2)], ploidy = 2, ind.names = input$INDIVIDUALS, 
-                 strata = input$POP_ID, schemes = NULL, sequences = NULL, 
-                 description = NULL, other = NULL)
-  )      
+    methods::new(
+      "gtypes",
+      gen.data = input[, -(1:2)],
+      ploidy = 2,
+      ind.names = input$INDIVIDUALS, 
+      strata = input$POP_ID,
+      schemes = NULL,
+      sequences = NULL, 
+      description = NULL, 
+      other = NULL
+    )
+  )
   return(res)
 }# End write_gtypes

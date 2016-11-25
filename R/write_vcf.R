@@ -1,14 +1,16 @@
 # write a vcf file from a tidy data frame
 
 #' @name write_vcf
-#' @title Used internally in stackr to write a vcf file from a tidy 
-#' data frame
+#' @title Write a vcf file from a tidy data frame
 #' @description Write a vcf file from a tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and might be of interest for users.
-#' 
-#' @param data A file in the working directory or object in the global environment 
-#' in wide or long (tidy) formats. See details for more info. 
+
+#' @param data A tidy data frame object in the global environment or
+#' a tidy data frame in wide or long format in the working directory.
+#' \emph{How to get a tidy data frame ?}
+#' Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
+
 
 #' @param pop.info (optional, logical) Should the population information be 
 #' included in the FORMAT field (along the GT info for each samples ?). To make
@@ -20,42 +22,14 @@
 #' written to the working directory. With default: \code{filename = NULL}, 
 #' the date and time is appended to \code{stackr_vcf_file_}.
 
-#' @details \strong{Input data:}
-#'  
-#' To discriminate the long from the wide format, 
-#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-#' for \code{MARKERS or LOCUS} in column names (TRUE = long format).
-#' The data frame is tab delimitted.
-
-#' \strong{Wide format:}
-#' The wide format cannot store metadata info.
-#' The wide format starts with these 2 id columns: 
-#' \code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
-#' the remaining columns are the markers in separate columns storing genotypes.
-#' 
-#' \strong{Long/Tidy format:}
-#' The long format is considered to be a tidy data frame and can store metadata info. 
-#' (e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
-#' are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
-#' \code{MARKERS or LOCUS} and \code{GENOTYPE or GT}. The rest are considered metata info.
-#' 
-#' \strong{2 genotypes formats are available:}
-#' 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
-#' 6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
-#' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
-#' 
-#' \emph{How to get a tidy data frame ?}
-#' \pkg{stackr} \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
-#' in a tidy data frame.
-
-
 #' @export
 #' @rdname write_vcf
-#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_extract_all_fixed stri_replace_all_regex stri_sub stri_pad_left stri_count_fixed stri_replace_na 
 #' @importFrom readr write_tsv write_delim
 #' @importFrom utils write.table packageVersion
 #' @importFrom tibble has_name
+#' @importFrom tidyr spread
 
 #' @references Danecek P, Auton A, Abecasis G et al. (2011)
 #' The variant call format and VCFtools.
@@ -66,15 +40,24 @@
 write_vcf <- function(data, pop.info = FALSE, filename = NULL) {
   
   # Import data ---------------------------------------------------------------
-  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  if (is.vector(data)) {
+    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  } else {
+    input <- data
+  }
   
+  # check genotype column naming
   colnames(input) <- stringi::stri_replace_all_fixed(
     str = colnames(input), 
     pattern = "GENOTYPE", 
     replacement = "GT", 
     vectorize_all = FALSE
-    )
+  )
   
+  # necessary steps to make sure we work with unique markers and not duplicated LOCUS
+  if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
+  }
   
   # REF/ALT Alleles and VCF genotype format ------------------------------------
   if (!tibble::has_name(input, "GT_VCF")) {
@@ -84,8 +67,8 @@ write_vcf <- function(data, pop.info = FALSE, filename = NULL) {
   
   # remove duplicate REF/ALT column
   if (tibble::has_name(input, "REF.x")) {
-    input <- input %>% dplyr::select(-c(REF.x, ALT.x)) %>% 
-      rename(REF = REF.y, ALT = ALT.y)
+    input <- dplyr::select(.data = input, -c(REF.x, ALT.x)) %>% 
+      dplyr::rename(REF = REF.y, ALT = ALT.y)
   }
   
   
@@ -106,10 +89,9 @@ write_vcf <- function(data, pop.info = FALSE, filename = NULL) {
   
   # Info field -----------------------------------------------------------------
   info.field <- suppressWarnings(
-    input %>% 
-      dplyr::group_by(MARKERS) %>%
+    dplyr::select(.data = input, MARKERS, GT_VCF) %>% 
       dplyr::filter(GT_VCF != "./.") %>% 
-      dplyr::tally(.) %>% 
+      dplyr::count(x = ., MARKERS) %>% 
       dplyr::mutate(INFO = stringi::stri_join("NS=", n, sep = "")) %>% 
       dplyr::select(-n)
   )
@@ -163,9 +145,8 @@ write_vcf <- function(data, pop.info = FALSE, filename = NULL) {
     )
   
   # Keep the required columns
-  output <- output %>% 
+  output <- dplyr::ungroup(output) %>%
     dplyr::arrange(CHROM, LOCUS, POS) %>%
-    dplyr::ungroup(.) %>%
     dplyr::select(-MARKERS) %>%
     dplyr::select('#CHROM' = CHROM, POS, ID = LOCUS, REF, ALT, QUAL, FILTER, INFO, FORMAT, everything())
   
@@ -191,23 +172,23 @@ write_vcf <- function(data, pop.info = FALSE, filename = NULL) {
   
   # Source ---------------------------------------------------------------------
   readr::write_delim(x = data_frame(stringi::stri_join("##source=stackr_v.", utils::packageVersion("stackr"))), path = filename, delim = " ", append = TRUE, col_names = FALSE)
-
+  
   # Info field 1 ---------------------------------------------------------------
   info1 <- as.data.frame('##INFO=<ID=NS,Number=1,Type=Integer,Description=\"Number of Samples With Data\">')
   utils::write.table(x = info1, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-
-
+  
+  
   # Format field 1 -------------------------------------------------------------
   format1 <- '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">'
   format1 <- as.data.frame(format1)
   utils::write.table(x = format1, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
-
+  
   # Format field 2 ---------------------------------------------------------------
   if (pop.info) {
     format2 <- as.data.frame('##FORMAT=<ID=POP_ID,Number=1,Type=Character,Description="Population identification of Sample">')
     utils::write.table(x = format2, file = filename, sep = " ", append = TRUE, col.names = FALSE, row.names = FALSE, quote = FALSE)
   }
-
+  
   # Write the prunned vcf to the file ------------------------------------------
   suppressWarnings(readr::write_tsv(x = output, path = filename, append = TRUE, col_names = TRUE))
 } # end write_vcf

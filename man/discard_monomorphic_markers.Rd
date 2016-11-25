@@ -7,9 +7,10 @@
 discard_monomorphic_markers(data, verbose = FALSE)
 }
 \arguments{
-\item{data}{A tidy genomic data set in the working directory tidy formats.
+\item{data}{A tidy data frame object in the global environment or
+a tidy data frame in wide or long format in the working directory.
 \emph{How to get a tidy data frame ?}
-Look for \pkg{stackr} \code{\link{tidy_genomic_data}}.}
+Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
 
 \item{verbose}{(optional, logical) \code{verbose = TRUE} to be chatty 
 during execution. 

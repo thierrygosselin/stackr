@@ -2,9 +2,7 @@
 % Please edit documentation in R/tidy_fstat.R
 \name{tidy_fstat}
 \alias{tidy_fstat}
-\title{Read and transform a 
-\href{http://www2.unil.ch/popgen/softwares/fstat.htm}{fstat} file (Goudet, 1995) 
-into a wide or long/tidy data frame}
+\title{fstat file to tidy dataframe}
 \usage{
 tidy_fstat(data, strata = NULL, tidy = TRUE, filename = NULL)
 }

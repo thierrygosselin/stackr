@@ -2,17 +2,17 @@
 
 #' @name stackr_maf_module
 
-#' @title Used internally in stackr to compile and/or filter maf data
-#' from a genomic tidy data frame
+#' @title MAF computation from a tidy data frame
 
-#' @description compute the minor allele frequency (local and global) using 
+#' @description Compute the minor allele frequency (local and global) using 
 #' a genomic tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and might be of interest for users.
 #' 
 #' @param data A biallelic genomic data set in the working directory or 
 #' object in the global environment in wide or long (tidy) formats. 
-#' See details for more info. 
+#' \emph{How to get a tidy data frame ?}
+#' Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
 
 #' @inheritParams tidy_genomic_data
 
@@ -22,34 +22,6 @@
 #' \code{GT_BIN}: coding used internally to easily convert to genlight, 
 #' the coding \code{0, 1, 2, NA} stands for the number of ALT allele in the 
 #' genotype and \code{NA} for missing genotype.
-
-#' @details \strong{Input data:}
-#'  
-#' To discriminate the long from the wide format, 
-#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-#' for \code{MARKERS or LOCUS} in column names (TRUE = long format).
-#' The data frame is tab delimitted.
-
-#' \strong{Wide format:}
-#' The wide format cannot store metadata info.
-#' The wide format starts with these 2 id columns: 
-#' \code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
-#' the remaining columns are the markers in separate columns storing genotypes.
-#' 
-#' \strong{Long/Tidy format:}
-#' The long format is considered to be a tidy data frame and can store metadata info. 
-#' (e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
-#' are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
-#' \code{MARKERS or LOCUS} and \code{GENOTYPE or GT}. The rest are considered metata info.
-#' 
-#' \strong{2 genotypes formats are available:}
-#' 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
-#' 6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
-#' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
-#' 
-#' \emph{How to get a tidy data frame ?}
-#' \pkg{stackr} \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
-#' in a tidy data frame.
 
 
 #' @export
@@ -73,7 +45,11 @@ stackr_maf_module <- function(
   if (missing(data)) stop("Input file missing")
   
   # Import data ---------------------------------------------------------------
-  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  if (is.vector(data)) {
+    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  } else {
+    input <- data
+  }
   
   # check genotype column naming
   if (tibble::has_name(input, "GENOTYPE")) {

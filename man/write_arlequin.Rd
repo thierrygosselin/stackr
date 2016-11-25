@@ -7,8 +7,10 @@
 write_arlequin(data, pop.levels = NULL, filename = NULL, ...)
 }
 \arguments{
-\item{data}{A file in the working directory or object in the global environment 
-in wide or long (tidy) formats. See details for more info.}
+\item{data}{A tidy data frame object in the global environment or
+a tidy data frame in wide or long format in the working directory.
+\emph{How to get a tidy data frame ?}
+Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
 
 \item{pop.levels}{(optional, string) A character string with your populations ordered.
 Default: \code{pop.levels = NULL}.}
@@ -27,34 +29,6 @@ Write a arlequin file from a tidy data frame
 Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.
-}
-\details{
-\strong{Input data:}
- 
-To discriminate the long from the wide format, 
-the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-for \code{MARKERS or LOCUS} in column names (TRUE = long format).
-The data frame is tab delimitted.
-\strong{Wide format:}
-The wide format cannot store metadata info.
-The wide format starts with these 2 id columns: 
-\code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
-the remaining columns are the markers in separate columns storing genotypes.
-
-\strong{Long/Tidy format:}
-The long format is considered to be a tidy data frame and can store metadata info. 
-(e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
-are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
-\code{MARKERS or LOCUS} and \code{GENOTYPE or GT}. The rest are considered metata info.
-
-\strong{2 genotypes formats are available:}
-6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
-6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
-The separator can be any of these: \code{"/", ":", "_", "-", "."}.
-
-\emph{How to get a tidy data frame ?}
-\pkg{stackr} \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
-in a tidy data frame.
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}

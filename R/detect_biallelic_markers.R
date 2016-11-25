@@ -8,9 +8,11 @@
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and might be of interest for users.
 
-#' @param data A tidy genomic data set in the working directory tidy formats.
+#' @param data A tidy data frame object in the global environment or
+#' a tidy data frame in wide or long format in the working directory.
 #' \emph{How to get a tidy data frame ?}
-#' Look for \pkg{stackr} \code{\link{tidy_genomic_data}}.
+#' Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
+
 #' @param verbose (optional, logical) \code{verbose = TRUE} to be chatty 
 #' during execution. 
 #' Default: \code{verbose = FALSE}.
@@ -34,7 +36,11 @@ detect_biallelic_markers <- function(data, verbose = FALSE) {
   if (missing(data)) stop("Input file missing")
   
   # Import data ---------------------------------------------------------------
-  input <- data
+  if (is.vector(data)) {
+    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  } else {
+    input <- data
+  }
   
   # check genotype column naming
   if (tibble::has_name(input, "GENOTYPE")) {

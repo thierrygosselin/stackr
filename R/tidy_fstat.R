@@ -1,7 +1,6 @@
 #' @name tidy_fstat
-#' @title Read and transform a 
-#' \href{http://www2.unil.ch/popgen/softwares/fstat.htm}{fstat} file (Goudet, 1995) 
-#' into a wide or long/tidy data frame
+#' @title fstat file to tidy dataframe
+
 #' @description Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and might be of interest for users. 
 #' The function \code{tidy_fstat} reads a file in the 
@@ -40,13 +39,14 @@
 #' @rdname tidy_fstat
 
 
-#' @importFrom dplyr slice rename as_data_frame left_join select mutate
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join slice bind_cols bind_rows
 #' @importFrom purrr invoke flatten_chr
-#' @importFrom data.table fread
-#' @importFrom stringi stri_split_fixed stri_replace_all_fixed stri_paste stri_pad_left
-#' @importFrom readr write_tsv
+#' @importFrom data.table fread as.data.table
+#' @importFrom stringi stri_split_fixed stri_replace_all_fixed stri_join stri_pad_left stri_replace_all_regex
+#' @importFrom readr write_tsv read_tsv
 #' @importFrom utils count.fields
 #' @importFrom tidyr separate gather
+#' @importFrom tibble as_data_frame
 
 #' @examples
 #' \dontrun{
@@ -124,7 +124,7 @@ tidy_fstat <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
   data <- dplyr::slice(.data = data, -(1:(as.numeric(fstat.first.line$nl) + 1)))
   
   # separate the dataset by tab
-  data <- dplyr::as_data_frame(
+  data <- tibble::as_data_frame(
     purrr::invoke(#similar to do.call
       rbind, stringi::stri_split_fixed(str = data$data, pattern = "\t")
     )
@@ -134,7 +134,7 @@ tidy_fstat <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
   colnames(data) <- c("POP_ID", markers)
   
   # Create a string of id
-  id <- dplyr::data_frame(INDIVIDUALS = paste0("IND-",seq_along(1:length(data$POP_ID))))
+  id <- dplyr::data_frame(INDIVIDUALS = paste0("IND-", seq_along(1:length(data$POP_ID))))
   
   # bind with data
   data <- dplyr::bind_cols(id, data)
@@ -144,12 +144,12 @@ tidy_fstat <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
   if (!is.null(strata)) {
     if (is.vector(strata)) {
       number.columns.strata <- max(utils::count.fields(strata, sep = "\t"))
-      col.types <- stringi::stri_paste(rep("c", number.columns.strata), collapse = "")
+      col.types <- stringi::stri_join(rep("c", number.columns.strata), collapse = "")
       strata.df <- readr::read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>%
-        rename(POP_ID = STRATA)
+        dplyr::rename(POP_ID = STRATA)
     } else {
       # message("strata object: yes")
-      colnames(strata) <- stri_replace_all_fixed(
+      colnames(strata) <- stringi::stri_replace_all_fixed(
         str = colnames(strata),
         pattern = "STRATA",
         replacement = "POP_ID",
@@ -159,7 +159,7 @@ tidy_fstat <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
     }
     
     # Remove potential whitespace in pop_id
-    strata.df$POP_ID <- stri_replace_all_fixed(
+    strata.df$POP_ID <- stringi::stri_replace_all_fixed(
       strata.df$POP_ID,
       pattern = " ",
       replacement = "_",
@@ -169,7 +169,7 @@ tidy_fstat <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
     # Remove unwanted character in individual names
     strata.df <- strata.df %>%
       dplyr::mutate(
-        INDIVIDUALS =  stri_replace_all_fixed(
+        INDIVIDUALS =  stringi::stri_replace_all_fixed(
           str = INDIVIDUALS,
           pattern = c("_", ",", ":"),
           replacement = c("-", "", "-"),
@@ -196,7 +196,7 @@ tidy_fstat <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
     tidyr::separate(
       col = GENOTYPE, into = c("A1", "A2"), sep = as.numeric(fstat.first.line$allele.coding)
     ) %>% 
-    mutate(
+    dplyr::mutate(
       A1 = stringi::stri_pad_left(str = A1, pad = "0", width = 3),
       A2 = stringi::stri_pad_left(str = A2, pad = "0", width = 3)
     ) %>% 
@@ -205,9 +205,9 @@ tidy_fstat <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
   # wide format
   if (!tidy) {
     data <- data %>% 
-      group_by(POP_ID, INDIVIDUALS) %>% 
+      dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
       tidyr::spread(data = ., key = MARKERS, value = GENOTYPE) %>% 
-      arrange(POP_ID, INDIVIDUALS)
+      dplyr::arrange(POP_ID, INDIVIDUALS)
   }
   
   # writing to a file  ---------------------------------------------------------

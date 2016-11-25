@@ -1,49 +1,27 @@
 # write a genind file from a tidy data frame
 
 #' @name write_genind
-#' @title Used internally in stackr to write a genind object from a tidy data frame
+#' @title Write a genind object from a tidy data frame
+
 #' @description Write a genind object from a tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and \href{https://github.com/thierrygosselin/assigner}{assigner}
 #' and might be of interest for users.
-#' 
-#' @param data A file in the working directory or object in the global environment 
-#' in wide or long (tidy) formats. See details for more info. 
 
-#' \strong{Details for Input data:}
-#'  
-#' To discriminate the long from the wide format, 
-#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-#' for "MARKERS" in column names (TRUE = long format).
-#' The data frame is tab delimitted.
-
-#' \strong{Wide format:}
-#' The wide format cannot store metadata info.
-#' The wide format starts with these 2 id columns: 
-#' \code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
-#' the remaining columns are the markers in separate columns storing genotypes.
-#' 
-#' \strong{Long/Tidy format:}
-#' The long format is considered to be a tidy data frame and can store metadata info. 
-#' (e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
-#' are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
-#' \code{MARKERS} and \code{GENOTYPE or GT}. The rest are considered metata info.
-#' 
-#' \strong{2 genotypes formats are available:}
-#' 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
-#' 6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
-#' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
-#' 
+#' @param data A tidy data frame object in the global environment or
+#' a tidy data frame in wide or long format in the working directory.
 #' \emph{How to get a tidy data frame ?}
-#' \pkg{stackr} \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
-#' in a tidy data frame.
+#' Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
+
 #' @export
 #' @rdname write_genind
+
 #' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs
 #' @importFrom data.table fread as.data.table dcast.data.table
 #' @importFrom tidyr spread gather separate complete
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_replace_na 
 #' @importFrom tibble has_name as_data_frame
+#' @importFrom adegenet genind
 
 #' @references Jombart T (2008) adegenet: a R package for the multivariate
 #' analysis of genetic markers. Bioinformatics, 24, 1403-1405.
@@ -61,8 +39,13 @@ write_genind <- function(data) {
   if (missing(data)) stop("Input file necessary to write the genepop file is missing")
   
   # Import data ---------------------------------------------------------------
-  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  if (is.vector(data)) {
+    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  } else {
+    input <- data
+  }
   
+  # check genotype column naming
   colnames(input) <- stringi::stri_replace_all_fixed(
     str = colnames(input), 
     pattern = "GENOTYPE", 
@@ -70,11 +53,16 @@ write_genind <- function(data) {
     vectorize_all = FALSE
   )
   
+  # necessary steps to make sure we work with unique markers and not duplicated LOCUS
+  if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
+  }
+  
   strata.genind <- dplyr::distinct(.data = input, INDIVIDUALS, POP_ID)
   
   # When VCF data available
   if (tibble::has_name(input, "GT_VCF")) {
-    genind.prep <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT_VCF) %>%
+    input <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT_VCF) %>%
       dplyr::mutate(
         A1_A2 = stringi::stri_replace_all_fixed(
           str = GT_VCF, 
@@ -100,14 +88,16 @@ write_genind <- function(data) {
       ) %>% 
       tibble::as_data_frame()
   } else {
+    
     missing.geno <- dplyr::ungroup(input) %>%
+      dplyr::select(MARKERS, INDIVIDUALS, GT) %>% 
       dplyr::filter(GT == "000000") %>%
       dplyr::select(MARKERS, INDIVIDUALS) %>% 
       dplyr::mutate(MISSING = rep("blacklist", n()))
     
-    genind.prep <- input %>%
-      dplyr::filter(GT != "000000") %>%
+    input <- dplyr::ungroup(input) %>%
       dplyr::select(MARKERS, INDIVIDUALS, GT) %>% 
+      dplyr::filter(GT != "000000") %>%
       dplyr::mutate(
         A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
         A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
@@ -120,9 +110,8 @@ write_genind <- function(data) {
         -c(MARKERS, INDIVIDUALS)
       ) %>% 
       dplyr::arrange(MARKERS, INDIVIDUALS, GT) %>%
-      dplyr::group_by(INDIVIDUALS, MARKERS, GT) %>% 
-      dplyr::tally(.) %>% # count alleles, longest part of the block
-      dplyr::ungroup(.) %>%
+      dplyr::count(x = ., INDIVIDUALS, MARKERS, GT) %>% 
+      dplyr::ungroup(.) %>% 
       tidyr::complete(data = ., INDIVIDUALS, tidyr::nesting(MARKERS, GT), fill = list(n = 0)) %>%
       dplyr::anti_join(missing.geno, by = c("MARKERS", "INDIVIDUALS")) %>% 
       dplyr::mutate(MARKERS_ALLELES = stringi::stri_join(MARKERS, GT, sep = ".")) %>%
@@ -137,21 +126,18 @@ write_genind <- function(data) {
         value.var = "n"
       ) %>% 
       tibble::as_data_frame()
-    missing.geno <- NULL
   }
   
   # genind arguments common to all data.type
-  ind <- genind.prep$INDIVIDUALS
-  pop <- genind.prep$POP_ID
-  genind.df <-  dplyr::ungroup(genind.prep) %>% dplyr::select(-c(INDIVIDUALS, POP_ID))
-  suppressWarnings(rownames(genind.df) <- ind)
-  loc.names <- colnames(genind.df)
-  # strata <- dplyr::ungroup(genind.prep) %>% dplyr::distinct(INDIVIDUALS, POP_ID)
-  
+  ind <- input$INDIVIDUALS
+  pop <- input$POP_ID
+  input <-  dplyr::ungroup(input) %>% dplyr::select(-c(INDIVIDUALS, POP_ID))
+  suppressWarnings(rownames(input) <- ind)
+
   # genind constructor
   prevcall <- match.call()
   res <- adegenet::genind(
-    tab = genind.df,
+    tab = input,
     pop = pop,
     prevcall = prevcall,
     ploidy = 2,

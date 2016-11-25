@@ -2,9 +2,7 @@
 % Please edit documentation in R/tidy_genepop.R
 \name{tidy_genepop}
 \alias{tidy_genepop}
-\title{Read and transform a 
-\href{http://genepop.curtin.edu.au/help_input.html}{genepop} file into 
-a wide or long/tidy data frame}
+\title{genepop to tidy dataframe}
 \usage{
 tidy_genepop(data, strata = NULL, tidy = TRUE, filename = NULL)
 }

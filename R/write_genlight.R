@@ -1,47 +1,27 @@
 # write a genind file from a tidy data frame
 
 #' @name write_genlight
-#' @title Used internally in stackr to write a genlight object from a tidy data frame
+#' @title Write a genlight object from a tidy data frame
 #' @description Write a genlight object from a tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and might be of interest for users.
-#' 
-#' @param data A file in the working directory or object in the global environment 
-#' in wide or long (tidy) formats. See details for more info. 
 
-#' \strong{Details for Input data:}
-#'  
-#' To discriminate the long from the wide format, 
-#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-#' for "MARKERS" in column names (TRUE = long format).
-#' The data frame is tab delimitted.
-
-#' \strong{Wide format:}
-#' The wide format cannot store metadata info.
-#' The wide format starts with these 2 id columns: 
-#' \code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
-#' the remaining columns are the markers in separate columns storing genotypes.
-#' 
-#' \strong{Long/Tidy format:}
-#' The long format is considered to be a tidy data frame and can store metadata info. 
-#' (e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
-#' are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
-#' \code{MARKERS} and \code{GENOTYPE or GT}. The rest are considered metata info.
-#' 
-#' \strong{2 genotypes formats are available:}
-#' 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
-#' 6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
-#' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
-#' 
+#' @param data A tidy data frame object in the global environment or
+#' a tidy data frame in wide or long format in the working directory.
 #' \emph{How to get a tidy data frame ?}
-#' \pkg{stackr} \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
-#' in a tidy data frame.
+#' Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
+#' \strong{The genotypes are biallelic.}
+
 #' @export
 #' @rdname write_genlight
-#' @import dplyr
-#' @import stringi
+
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join
+#' @importFrom stringi stri_replace_all_fixed
 #' @importFrom methods new
-#' @importFrom data.table fread
+#' @importFrom adegenet indNames pop chromosome locNames position
+#' @importFrom data.table dcast.data.table as.data.table
+#' @importFrom tibble has_name
+#' @importFrom tidyr spread
 
 #' @references Jombart T (2008) adegenet: a R package for the multivariate
 #' analysis of genetic markers. Bioinformatics, 24, 1403-1405.
@@ -55,51 +35,66 @@
 
 write_genlight <- function(data) {
   
-  # Checking for missing and/or default arguments ******************************
+  # Checking for missing and/or default arguments ------------------------------
   if (missing(data)) stop("Input file necessary to write the genepop file is missing")
   
   # Import data ---------------------------------------------------------------
-  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  if (is.vector(data)) {
+    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  } else {
+    input <- data
+  }
+  # check genotype column naming
+  colnames(input) <- stringi::stri_replace_all_fixed(
+    str = colnames(input), 
+    pattern = "GENOTYPE", 
+    replacement = "GT", 
+    vectorize_all = FALSE
+  )
   
-  colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
-                                            pattern = "GENOTYPE", 
-                                            replacement = "GT", 
-                                            vectorize_all = FALSE)
+  # necessary steps to make sure we work with unique markers and not duplicated LOCUS
+  if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
+  }
+  
+  # Detect if biallelic data
+  biallelic <- detect_biallelic_markers(data = input, verbose = TRUE)
+  
+  if (!biallelic) stop("genlight object requires biallelic genotypes")
   
   # data = input
-  marker.meta <- distinct(.data = input, MARKERS, CHROM, LOCUS, POS)
+  marker.meta <- dplyr::distinct(.data = input, MARKERS, CHROM, LOCUS, POS)
   
   if (!tibble::has_name(input, "GT_BIN")) {
-    input$GT_BIN <- stri_replace_all_fixed(
+    input$GT_BIN <- stringi::stri_replace_all_fixed(
       str = input$GT_VCF, 
       pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
       replacement = c("0", "2", "1", "1", NA), 
       vectorize_all = FALSE
-      )
+    )
   }
   
-  
-  geno.df <- select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT_BIN) %>% 
-    mutate(GT_BIN = as.integer(GT_BIN)) %>% 
-    arrange(MARKERS)
-  
-  geno.df <- data.table::dcast.data.table(
-    data = as.data.table(geno.df), 
-    formula = INDIVIDUALS + POP_ID ~ MARKERS, 
-    value.var = "GT_BIN") %>% 
-    as_data_frame() %>% 
-    arrange(POP_ID, INDIVIDUALS)
+  input <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT_BIN) %>% 
+    dplyr::mutate(GT_BIN = as.integer(GT_BIN)) %>% 
+    dplyr::arrange(MARKERS) %>%
+    dplyr::group_by(INDIVIDUALS, POP_ID) %>% 
+    tidyr::spread(data = ., key = MARKERS, value = GT_BIN) %>% 
+    dplyr::arrange(POP_ID, INDIVIDUALS)
   
   # Generate genlight
-  genlight.object <- methods::new("genlight", geno.df[,-(1:2)], parallel=FALSE)
-  adegenet::indNames(genlight.object) <- geno.df$INDIVIDUALS
-  adegenet::pop(genlight.object) <- geno.df$POP_ID
+  genlight.object <- methods::new(
+    "genlight",
+    input[,-(1:2)],
+    parallel = FALSE
+  )
+  adegenet::indNames(genlight.object)   <- input$INDIVIDUALS
+  adegenet::pop(genlight.object)        <- input$POP_ID
   adegenet::chromosome(genlight.object) <- marker.meta$CHROM
   adegenet::locNames(genlight.object)   <- marker.meta$LOCUS
   adegenet::position(genlight.object)   <- marker.meta$POS
   
   
-  # test
+  # Check
   # genlight.object@n.loc
   # genlight.object@ind.names
   # genlight.object@chromosome
@@ -112,7 +107,6 @@ write_genlight <- function(data) {
   # adegenet::indNames(genlight.object)
   # adegenet::nPop(genlight.object)
   # adegenet::NA.posi(genlight.object)
-  
   
   return(genlight.object)
 } # End write_genlight

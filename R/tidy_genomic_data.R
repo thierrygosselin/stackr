@@ -911,11 +911,11 @@ tidy_genomic_data <- function(
   if (data.type == "genepop.file") {
     message("Tidying the genepop file ...")
     data <- stackr::tidy_genepop(data = data, tidy = TRUE)
-    data.type <- "df.file"
+    data.type <- "tbl_df"
   }
   
   # Import DF-------------------------------------------------------------------
-  if (data.type == "df.file") { # DATA FRAME OF GENOTYPES
+  if (data.type == "tbl_df") { # DATA FRAME OF GENOTYPES
     message("Importing the data frame ...")
     input <- stackr::read_long_tidy_wide(data = data, import.metadata = vcf.metadata)
 
@@ -1154,7 +1154,7 @@ tidy_genomic_data <- function(
   } # End import haplotypes file
   
   # Import GENIND--------------------------------------------------------------
-  if (data.type == "genind.file") { # DATA FRAME OF GENOTYPES
+  if (data.type == "genind") { # DATA FRAME OF GENOTYPES
     message("Tidying the genind object ...")
     input <- adegenet::genind2df(data) %>% 
       tibble::rownames_to_column("INDIVIDUALS") %>% 
@@ -1255,10 +1255,88 @@ tidy_genomic_data <- function(
     biallelic <- input.temp$biallelic
     
     # Now the genind and genepop are like ordinary data frames
-    data.type <- "df.file" # for subsequent steps
+    data.type <- "tbl_df" # for subsequent steps
     
   } # End tidy genind
 
+  # Import GENLIGHT ------------------------------------------------------------
+  if (data.type == "genlight") { # DATA FRAME OF GENOTYPES
+    message("Tidying the genlight object ...")
+    input <- stackr::tidy_genlight(data = data)
+    
+    # remove unwanted sep in id and pop.id names
+    input <- input %>% 
+      dplyr::mutate(
+        INDIVIDUALS = stringi::stri_replace_all_fixed(
+          str = INDIVIDUALS, 
+          pattern = c("_", ":"), 
+          replacement = c("-", "-"), 
+          vectorize_all = FALSE),
+        POP_ID = stringi::stri_replace_all_fixed(
+          POP_ID,
+          pattern = " ", 
+          replacement = "_", 
+          vectorize_all = FALSE)
+      )
+    
+    # Filter with whitelist of markers
+    if (!is.null(whitelist.markers)) {
+      if (verbose) message("Filtering with whitelist of markers")
+      input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
+    }
+    
+    # Filter with blacklist of individuals
+    if (!is.null(blacklist.id)) {
+      if (verbose) message("Filtering with blacklist of individuals")
+      
+      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
+        str = blacklist.id$INDIVIDUALS, 
+        pattern = c("_", ":"), 
+        replacement = c("-", "-"),
+        vectorize_all = FALSE
+      )
+      
+      input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
+    }
+    
+    # population levels and strata
+    if (!is.null(strata)) {
+      input <- input %>%
+        dplyr::select(-POP_ID) %>% 
+        dplyr::mutate(INDIVIDUALS =  as.character(INDIVIDUALS)) %>% 
+        dplyr::left_join(strata.df, by = "INDIVIDUALS")
+    }
+    
+    # Change potential problematic POP_ID space
+    input$POP_ID = stringi::stri_replace_all_fixed(
+      input$POP_ID, 
+      pattern = " ", 
+      replacement = "_", 
+      vectorize_all = FALSE
+    )
+    
+    # Check with strata and pop.levels/pop.labels
+    if (!is.null(pop.levels)) {
+      if (length(levels(factor(input$POP_ID))) != length(pop.levels)) {
+        stop("The number of groups in your POP_ID column must match the number of groups in pop.levels")
+      }
+    }
+    
+    # using pop.levels and pop.labels info if present
+    input <- change_pop_names(data = input, pop.levels = pop.levels, pop.labels = pop.labels)
+    
+    # Pop select
+    if (!is.null(pop.select)) {
+      if (verbose) message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
+      input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
+    }
+    
+    # Now the genind and genepop are like ordinary data frames
+    data.type <- "tbl_df" # for subsequent steps
+    
+  } # End tidy genlight
+  
+  
   # Import STRATAG gtypes ------------------------------------------------------
   if (data.type == "gtypes") { # DATA FRAME OF GENOTYPES
     message("Tidying the gtypes object ...")
@@ -1350,9 +1428,12 @@ tidy_genomic_data <- function(
     biallelic <- input.temp$biallelic
     
     # Now the gtypes are like ordinary data frames
-    data.type <- "df.file" # for subsequent steps
+    data.type <- "tbl_df" # for subsequent steps
     
   } # End tidy gtypes
+  
+  
+  # END IMPORT DATA
   
   # Arrange the id and create a strata after pop select ------------------------
   input$INDIVIDUALS <- stringi::stri_replace_all_fixed(

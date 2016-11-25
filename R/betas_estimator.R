@@ -89,11 +89,9 @@ betas_estimator <- function(
     pop.select = pop.select,
     filename = filename
   )
-  # } else {
-  # input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
-  # }
   
-  if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
+  # necessary steps to make sure we work with unique markers and not duplicated LOCUS
+  if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
@@ -108,8 +106,7 @@ betas_estimator <- function(
   if (tibble::has_name(input, "GT_VCF")) {
     message("Warning: implementation is not working yet for haplotype vcf file")
     # option 2 using list-columns
-    betas.prep <- input %>% 
-      dplyr::filter(GT_VCF != "./.") %>%
+    betas.prep <- dplyr::filter(.data = input, GT_VCF != "./.") %>%
       dplyr::group_by(MARKERS, POP_ID) %>%
       dplyr::summarise(
         N = n(),
@@ -136,8 +133,7 @@ betas_estimator <- function(
       return(res)
     }
     
-    betas <- betas.prep %>%
-      dplyr::select(MARKERS, POP_ID, FREQ_ALT, FREQ_REF) %>%
+    betas <- dplyr::select(.data = betas.prep, MARKERS, POP_ID, FREQ_ALT, FREQ_REF) %>%
       dplyr::group_by(MARKERS) %>%
       dplyr::summarise_at(.tbl = ., .cols = c("FREQ_ALT", "FREQ_REF"), .funs = list) %>% 
       dplyr::mutate(
@@ -189,8 +185,7 @@ betas_estimator <- function(
       return(res)
     }
     
-    betas <- betas.prep %>%
-      dplyr::select(MARKERS, POP_ID, GT, HOM_O) %>%
+    betas <- dplyr::select(.data = betas.prep, MARKERS, POP_ID, GT, HOM_O) %>%
       dplyr::group_by(MARKERS, GT) %>%
       dplyr::summarise_at(.tbl = ., .cols = "HOM_O", .funs = list) %>% 
       dplyr::mutate(

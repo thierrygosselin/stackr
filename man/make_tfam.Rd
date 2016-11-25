@@ -4,7 +4,8 @@
 \alias{make_tfam}
 \title{Write a PLINK tfam file from a population map.}
 \usage{
-make_tfam(population.map, pop.id.start, pop.id.end, pop.levels, filename)
+make_tfam(population.map, pop.id.start, pop.id.end, pop.levels = NULL,
+  filename)
 }
 \arguments{
 \item{population.map}{The population map or individuals listed in one column. No headers.}

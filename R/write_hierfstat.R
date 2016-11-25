@@ -1,14 +1,17 @@
 # write a hierfstat file from a tidy data frame
 
 #' @name write_hierfstat
-#' @title Used internally in stackr to write a hierfstat file from a tidy data frame
+#' @title Write a hierfstat file from a tidy data frame
+
 #' @description Write a hierfstat file from a tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and \href{https://github.com/thierrygosselin/assigner}{assigner}
 #' and might be of interest for users.
-#' 
-#' @param data A file in the working directory or object in the global environment 
-#' in wide or long (tidy) formats. See details for more info. 
+ 
+#' @param data A tidy data frame object in the global environment or
+#' a tidy data frame in wide or long format in the working directory.
+#' \emph{How to get a tidy data frame ?}
+#' Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
 
 #' @param filename (optional) The file name prefix for the hierfstat file 
 #' written to the working directory. With default: \code{filename = NULL}, 
@@ -16,44 +19,15 @@
 
 #' @return A hierfstat file is saved to the working directory. 
 
-#' @details \strong{Details for the sep argument}
-#' This character is directly used in regular expressions using strigi. 
-#' Some characters need to be preceeded by double backslashes \code{\\}. 
-#' For instance, "/" works but "|" must be coded as "\\|".
-#' 
-#' 
-#' \strong{Details for Input data:}
-#'  
-#' To discriminate the long from the wide format, 
-#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
-#' for "MARKERS" in column names (TRUE = long format).
-#' The data frame is tab delimitted.
 
-#' \strong{Wide format:}
-#' The wide format cannot store metadata info.
-#' The wide format starts with these 2 id columns: 
-#' \code{INDIVIDUALS}, \code{POP_ID} (that refers to any grouping of individuals), 
-#' the remaining columns are the markers in separate columns storing genotypes.
-#' 
-#' \strong{Long/Tidy format:}
-#' The long format is considered to be a tidy data frame and can store metadata info. 
-#' (e.g. from a VCF see \pkg{stackr} \code{\link{tidy_genomic_data}}). A minimum of 4 columns
-#' are required in the long format: \code{INDIVIDUALS}, \code{POP_ID}, 
-#' \code{MARKERS} and \code{GENOTYPE or GT}. The rest are considered metata info.
-#' 
-#' \strong{2 genotypes formats are available:}
-#' 6 characters no separator: e.g. \code{001002 of 111333} (for heterozygote individual).
-#' 6 characters WITH separator: e.g. \code{001/002 of 111/333} (for heterozygote individual).
-#' The separator can be any of these: \code{"/", ":", "_", "-", "."}.
-#' 
-#' \emph{How to get a tidy data frame ?}
-#' \pkg{stackr} \code{\link{tidy_genomic_data}} can transform 6 genomic data formats 
-#' in a tidy data frame.
+
 #' @export
 #' @rdname write_hierfstat
-#' @import dplyr
-#' @import stringi
-#' @importFrom data.table fread
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join
+#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub 
+#' @importFrom purrr flatten_chr
+#' @importFrom tidyr spread unite
+#' @importFrom readr write_delim
 
 #' @references Goudet, J. (1995) FSTAT (Version 1.2): A computer program to 
 #' calculate F- statistics. Journal of Heredity, 86, 485-486.
@@ -68,29 +42,41 @@ write_hierfstat <- function(data, filename = NULL) {
   if (missing(data)) stop("Input file necessary to write the hierfstat file is missing")
   
   # Import data ---------------------------------------------------------------
-  input <- stackr::read_long_tidy_wide(data = data)
+  if (is.vector(data)) {
+    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  } else {
+    input <- data
+  }
   
-  colnames(input) <- stri_replace_all_fixed(str = colnames(input), 
-                                            pattern = "GENOTYPE", 
-                                            replacement = "GT", 
-                                            vectorize_all = FALSE)
+  # check genotype column naming
+  colnames(input) <- stringi::stri_replace_all_fixed(
+    str = colnames(input), 
+    pattern = "GENOTYPE", 
+    replacement = "GT", 
+    vectorize_all = FALSE
+  )
   
-  # Switch colnames LOCUS to MARKERS if found
-  if ("LOCUS" %in% colnames(input)) input <- rename(.data = input, MARKERS = LOCUS)
+  # necessary steps to make sure we work with unique markers and not duplicated LOCUS
+  if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
+  }
   
-  input <- select(.data = input, POP_ID, INDIVIDUALS, MARKERS, GT) %>% arrange(MARKERS, POP_ID, INDIVIDUALS)
+  input <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, MARKERS, GT) %>%
+    dplyr::arrange(MARKERS, POP_ID, INDIVIDUALS)
   
-  # Create a marker vector  ----------------------------------------------------
-  markers <- unique(input$MARKERS)
+  # Create a marker vector  ------------------------------------------------
+  markers <- dplyr::distinct(.data = input, MARKERS) %>%
+    dplyr::arrange(MARKERS) %>%
+    purrr::flatten_chr(.)
   
   # Get the number of sample (pop) for hierfstat -------------------------------
   np <- nlevels(droplevels(input$POP_ID))
-  np.message <- stri_paste("    * Number of sample pop, np = ", np, sep = "")
+  np.message <- stringi::stri_join("    * Number of sample pop, np = ", np, sep = "")
   message(np.message)
   
   # Get the number of loci -----------------------------------------------------
   nl <- length(markers)
-  nl.message <- stri_paste("    * Number of markers, nl = ", nl, sep = "")
+  nl.message <- stringi::stri_join("    * Number of markers, nl = ", nl, sep = "")
   message(nl.message)
   
   input <- input %>%
@@ -103,20 +89,19 @@ write_hierfstat <- function(data, filename = NULL) {
   
   # Get the highest number used to label an allele -----------------------------
   nu <- max(c(unique(input$A1), unique(input$A2)), na.rm = TRUE)
-  nu.message <- stri_paste("    * The highest number used to label an allele, nu = ", 
+  nu.message <- stringi::stri_join("    * The highest number used to label an allele, nu = ", 
                            nu, sep = "")
   message(nu.message)
   
   # prep the data  -------------------------------------------------------------
   input <- suppressWarnings(
-    input %>% 
-      tidyr::unite(GT, A1, A2, sep = "") %>%
-      group_by(POP_ID, INDIVIDUALS) %>% 
+      tidyr::unite(data = input, GT, A1, A2, sep = "") %>%
+      dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
       tidyr::spread(data = ., MARKERS, GT) %>%
-      ungroup %>% 
-      arrange(POP_ID, INDIVIDUALS) %>% 
-      mutate(POP_ID = as.integer(POP_ID)) %>% 
-      select(-INDIVIDUALS)
+      dplyr::ungroup(.) %>% 
+      dplyr::arrange(POP_ID, INDIVIDUALS) %>% 
+      dplyr::mutate(POP_ID = as.integer(POP_ID)) %>% 
+      dplyr::select(-INDIVIDUALS)
   )
   
   # allele coding --------------------------------------------------------------
@@ -126,28 +111,28 @@ write_hierfstat <- function(data, filename = NULL) {
   # Filename -------------------------------------------------------------------
   if (is.null(filename)) {
     # Get date and time to have unique filenaming
-    file.date <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "", vectorize_all = FALSE)
-    file.date <- stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
-    file.date <- stri_sub(file.date, from = 1, to = 13)
-    filename <- stri_paste("stackr_hierfstat_", file.date, ".dat")
+    file.date <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "", vectorize_all = FALSE)
+    file.date <- stringi::stri_replace_all_fixed(file.date, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
+    file.date <- stringi::stri_sub(file.date, from = 1, to = 13)
+    filename <- stringi::stri_join("stackr_hierfstat_", file.date, ".dat")
   } else {
-    filename <- stri_paste(filename, ".dat")
+    filename <- stringi::stri_join(filename, ".dat")
   }
   
   
   # FSTAT: write the first line ------------------------------------------------
-  fstat.first.line <- stri_paste(np, nl, nu, allele.coding, sep = " ")
+  fstat.first.line <- stringi::stri_join(np, nl, nu, allele.coding, sep = " ")
   fstat.first.line <- as.data.frame(fstat.first.line)
-  write_delim(x = fstat.first.line, path = filename, delim = "\n", append = FALSE, 
+  readr::write_delim(x = fstat.first.line, path = filename, delim = "\n", append = FALSE, 
               col_names = FALSE)
   
   # FSTAT: write the locus name to the file
   loci.table <- as.data.frame(markers)
-  write_delim(x = loci.table, path = filename, delim = "\n", append = TRUE, 
+  readr::write_delim(x = loci.table, path = filename, delim = "\n", append = TRUE, 
               col_names = FALSE)
   
   # FSTAT: write the pop and genotypes
-  write_delim(x = input, path = filename, delim = "\t", append = TRUE, 
+  readr::write_delim(x = input, path = filename, delim = "\t", append = TRUE, 
               col_names = FALSE)
   return(input)
 }# End write_hierfstat
