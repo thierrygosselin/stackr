@@ -42,7 +42,9 @@ if (getRversion() >= "2.15.1") {
       "ALLELE_REF_DEPTH_MIN", "ALLELE_REF_DEPTH_MAX", "ALLELE_ALT_DEPTH",
       "ALLELE_ALT_DEPTH_MEAN", "ALLELE_ALT_DEPTH_MIN", "ALLELE_ALT_DEPTH_MAX",
       "GL", "GL_MEAN", "ALLELE_SUM", "FIS", "FIS_MAX", "FIS_MIN", "FREQ", "HOM_ALT",
-      "fh", "HOM_REF", "BETAI", "HB", "HW", "NN", "NN_C", "N_POP", "N_POP_C"
+      "fh", "HOM_REF", "BETAI", "HB", "HW", "NN", "NN_C", "N_POP", "N_POP_C",
+      "DIFFERENT", "DISTANCE", "ID1", "ID2", "IDENTICAL", "IDENTICAL_GT",
+      "PAIRWISE", "POP_COMP", "PROP_IDENTICAL", "TOTAL_MARKERS_GENOTYPED"
     )
   )
 }
