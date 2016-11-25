@@ -38,28 +38,22 @@ if you want to help, see [contributions section](https://github.com/thierrygosse
 
 ## Use stackr to: import, explore, manipulate, visualize, filter, impute and export your GBS/RADseq data
 
-* **Import/Export** various supported genomic file formats: 
-    * *VCF*, *PLINK* , *genlight*, *genind*, *genepop*, *hierfstat*, *gtypes*, *betadiv*, *dadi*, *tidy*, *wide* and the haplotype file produced by [STACKS](http://catchenlab.life.illinois.edu/stacks/).
-    * easy integration with other software or R packages like [adegenet](https://github.com/thibautjombart/adegenet), [strataG](https://github.com/EricArcher/strataG), [hierfstat](https://github.com/jgx65/hierfstat), [pegas](https://github.com/emmanuelparadis/pegas), [poppr](https://github.com/grunwaldlab/poppr) and [assigner](https://github.com/thierrygosselin/assigner). 
-    * conversion functions are integrated with important filters, blacklist and whitelist.
+Most genomic analysis look for patterns and trends with various statistics. 
+Bias, noise and outliers can have bounded influence on estimators and interfere
+with polymorphism discovery. Avoid bad data exploration and control the impact
+of filters on your downstream genetic analysis.
+    
 
-* **Explore** and **filter** important variables caracteristics and statistics. Most genomic analysis look for patterns and trends with various statistics. Bias, noise and outliers can have bounded influence on estimators and interfere with polymorphism discovery. Avoid bad data exploration and control the impact of filters on your downstream genetic analysis:
-    * alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways.
-    * visualize patterns of missing data,
-    * read depth (coverage) of alleles and genotypes, 
-    * genotype likelihood,
-    * genotyped individuals and populations,
-    * minor allele frequency (local and global MAF),
-    * observed heterozygosity (Het obs), inbreeding coefficient (Fis) and Hardy-Weinberg Equilibrium expectations (HWE)
-    * find duplicate individuals
-    * detect potentially mixed samples
+| Caracteristics | Description |
+|:-------------------|:--------------------------------------------------------|
+| **Import** | Various supported genomic file formats:<br> [VCF](https://samtools.github.io/hts-specs/) (Danecek et al., 2011), [PLINK tped/tfam](http://pngu.mgh.harvard.edu/~purcell/plink/data.shtml#tr) (Purcell et al., 2007), [adegenet genind and genlight](https://github.com/thibautjombart/adegenet) (Jombart et al., 2010; Jombart and Ahmed, 2011), [strataG gtypes](https://github.com/EricArcher/strataG), [Genepop](http://genepop.curtin.edu.au) (Raymond and Rousset, 1995; Rousset, 2008), [STACKS haplotype file](http://catchenlab.life.illinois.edu/stacks/) (Catchen et al., 2011, 2013), dataframes of genotypes in wide or long/tidy format |
+| **Output** |Export back in the 8 formats mentionned above, with 5 additionnal formats for output: **betadiv** (Lamy, 2015), **dadi** (Gutenkunst et al., 2009), **structure** (Pritchard et al., 2000), **Arlequin** (Excoffier et al. 2005) and [hierfstat](https://github.com/jgx65/hierfstat) (Goudet, 2005)|
+|**Conversion functions**| `tidy_genomic_format` and `genomic_converter` are conversion functions integrated with important filters, blacklist and whitelist.|
+|**Explore** and **filter**| alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways.<br><br>`missing_visualization:` visualize patterns of missing data<br>`filter_coverage`: read depth (coverage) of alleles and genotypes<br>`filter_genotype_likelihood`: genotype likelihood<br>`filter_individual` and `filter_population`: genotyped individuals and populations<br>`filter_maf`: minor allele frequency (local and global MAF)<br>`filter_het`observed heterozygosity (Het obs), `filter_fis`: inbreeding coefficient (Fis) and `filter_hw`: Hardy-Weinberg Equilibrium expectations (HWE)<br>`find_duplicate_genome`:find duplicate individuals<br>`filter_het`: as an option to detect potentially mixed samples|
+|**Imputations**|**Map-independent** imputations of missing genotypes.<br>Using **Random Forest** or the most frequent category.<br> Imputations can be conducted **overall samples** or **by populations**.<br><br>Imputations are integrated in several functions and in a separate module: `stackr_imputations_module`|
+|**[ggplot2](http://ggplot2.org)-based plotting**|View assignment results and create publication-ready figures|
+|**Parallel**|Codes designed and optimized for fast computations running imputations, iterations, etc. in parallel|
 
-* **Map-independent imputation** of missing genotypes 
-using Random Forest or the most frequent genotype.
-
-* **Visualization:** `ggplot2`-based plotting for publication-ready figures.
-
- 
 ## Installation
 To try out the dev version of **stackr**, copy/paste the code below:
 
@@ -274,5 +268,3 @@ at the individual's heterozygosity (`filter_individual_het`) for outliers.
 * Use `missing_visualization` with your new blacklists (e.g. of genotypes, individuals) and with your whitelist of markers to examine patterns of missingness in your dataset after filtering (there is a vignette for this step)
 * The trick here is to use the `strata` argument to find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, etc).
 * Do you see a trend between your missing pattern and reads/samples ? Heterozygosity?
-
-
