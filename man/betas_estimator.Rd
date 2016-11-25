@@ -2,7 +2,7 @@
 % Please edit documentation in R/betas_estimator.R
 \name{betas_estimator}
 \alias{betas_estimator}
-\title{Estimate βs per population}
+\title{Estimate \eqn{\beta}s per population}
 \usage{
 betas_estimator(data, strata = NULL, monomorphic.out = TRUE,
   common.markers = TRUE, pop.levels = NULL, pop.labels = NULL,
@@ -120,12 +120,12 @@ Default: \code{verbose = FALSE}.}
 }
 \value{
 A list is created with 3 objects:
-betaiovl: Average β_i over loci, 
+betaiovl: Average \eqn{\beta_i} over loci, 
 Hw: Within population gene diversities
 Hb: Between populations gene diversities
 }
 \description{
-Estimate βs per population.
+Estimate \eqn{\beta}s per population.
 }
 \examples{
 \dontrun{

@@ -13,8 +13,6 @@ Description: stackr: an R package for the analysis of GBS/RADseq data.
 Depends:
     R (>= 3.2.3)
 Imports:
-    strataG,
-    adegenet,
     data.table,
     dplyr (>= 0.5.0),
     reshape2,
@@ -37,7 +35,9 @@ Imports:
     vcfR,
     magrittr,
     stats,
-    utils
+    utils,
+    strataG,
+    adegenet
 Suggests:
     knitr,
     rmarkdown

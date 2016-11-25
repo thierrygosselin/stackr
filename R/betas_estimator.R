@@ -1,6 +1,6 @@
 #' @name betas_estimator
-#' @title Estimate βs per population
-#' @description Estimate βs per population.
+#' @title Estimate \eqn{\beta}s per population
+#' @description Estimate \eqn{\beta}s per population.
 
 #' @inheritParams tidy_genomic_data
 
@@ -13,7 +13,7 @@
 #' Default: \code{common.markers = TRUE}
 
 #' @return A list is created with 3 objects:
-#' betaiovl: Average β_i over loci, 
+#' betaiovl: Average \eqn{\beta_i} over loci, 
 #' Hw: Within population gene diversities
 #' Hb: Between populations gene diversities
 
