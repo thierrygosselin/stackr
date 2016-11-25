@@ -117,6 +117,8 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
     biallelic <- TRUE
   }
   
+  marker.type <- NULL
+  
   # Function to calculate REF\ALT --------------------------------------------
   ref_compute <- function(data, new.ref) {
     input <- data %>%
@@ -166,6 +168,8 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
       dplyr::group_by(MARKERS) %>% 
       tidyr::spread(data = ., key = REF, value = ALLELES) %>% 
       dplyr::mutate(ALT = dplyr::if_else(is.na(ALT), REF, ALT))
+    
+    alleles.old <- NULL
     
     if (tibble::has_name(input, "REF")) {
       change.ref <- dplyr::distinct(.data = input, MARKERS, REF, ALT) %>% 
