@@ -419,29 +419,8 @@ genomic_converter <- function(
   res$tidy.data <- input
   
   # Biallelic detection --------------------------------------------------------
-  biallelic <- input %>% 
-    dplyr::ungroup(.) %>% 
-    dplyr::select(MARKERS, GT) %>%
-    dplyr::mutate(
-      A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
-      A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
-    ) %>%
-    dplyr::select(-GT) %>%
-    tidyr::gather(data = ., key = ALLELES, value = GT, -MARKERS) %>%
-    dplyr::filter(GT != "000") %>%
-    dplyr::distinct(MARKERS, GT) %>%
-    dplyr::group_by(MARKERS) %>%
-    dplyr::tally(.) %>%
-    dplyr::summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
-    purrr::flatten_chr(.x = .)
+  biallelic <- stackr::detect_biallelic_markers(data = input, verbose = TRUE)
   
-  if (biallelic > 4) {# potentially 4 allelic states
-    biallelic <- FALSE
-    message(stringi::stri_join("Biallelic data: ", biallelic))
-  } else {
-    biallelic <- TRUE
-    message(stringi::stri_join("Biallelic data: ", biallelic))
-  }
   
   # overide genind when marker number > 20K ------------------------------------
   if ("genind" %in% output) {
