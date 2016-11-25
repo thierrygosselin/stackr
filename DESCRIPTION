@@ -11,10 +11,10 @@ Authors@R: c(
 Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: stackr: an R package for the analysis of GBS/RADseq data.
 Depends:
-    R (>= 3.2.3),
-    strataG,
-    adegenet
+    R (>= 3.2.3)
 Imports:
+    strataG,
+    adegenet,
     data.table,
     dplyr (>= 0.5.0),
     reshape2,
