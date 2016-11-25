@@ -64,7 +64,7 @@ write_gtypes <- function(data) {
   if (missing(data)) stop("Input file necessary to write the hierfstat file is missing")
   
   # Import data ---------------------------------------------------------------
-  input <- stackr::read_long_tidy_wide(data = data)
+  input <- data
   
   colnames(input) <- stringi::stri_replace_all_fixed(
     str = colnames(input), 
