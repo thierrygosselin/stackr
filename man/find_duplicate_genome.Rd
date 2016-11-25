@@ -4,6 +4,10 @@
 \alias{find_duplicate_genome}
 \title{Compute pairwise genome similarity or distance between individuals 
 to highligh potential duplicate individuals}
+\usage{
+find_duplicate_genome(data, distance.method = "manhattan", genome = FALSE,
+  parallel.core = detectCores() - 1)
+}
 \arguments{
 \item{data}{A file in the working directory or object in the global environment 
 in wide or long (tidy) formats. 

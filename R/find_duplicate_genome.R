@@ -47,15 +47,17 @@
 
 #' @export
 #' @rdname find_duplicate_genome
-#' @import stringi
-#' @import dplyr
-#' @import utils
-#' @importFrom purrr map
+#' @importFrom stringi stri_paste stri_replace_all_fixed
+#' @importFrom dplyr rename select group_by filter mutate rename_ filter_ bind_cols bind_rows summarise
+#' @importFrom utils combn
 #' @importFrom stats na.omit
 #' @importFrom amap Dist
 #' @importFrom data.table fread
 #' @importFrom reshape2 melt
 #' @importFrom lazyeval interp
+#' @importFrom readr write_tsv
+#' @importFrom parallel mclapply
+#' @importFrom purrr flatten map
 
 #' @examples
 #' \dontrun{
@@ -98,19 +100,12 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-# required to pass the R CMD check and have 'no visible binding for global variable'
-if (getRversion() >= "2.15.1") {
-  utils::globalVariables(
-    c("ID1", "ID2", "IDENTICAL_GT", "IDENTICAL", "DIFFERENT", 
-      "TOTAL_MARKERS_GENOTYPED", "PROP_IDENTICAL", "PAIRWISE", "DISTANCE", 
-      "POP_COMP")
-  )
-}
-
-find_duplicate_genome <- function(data,
-                              distance.method = "manhattan",
-                              genome = FALSE,
-                              parallel.core = detectCores() - 1) {
+find_duplicate_genome <- function(
+  data,
+  distance.method = "manhattan",
+  genome = FALSE,
+  parallel.core = detectCores() - 1) {
+  
   cat("###############################################################################\n")
   cat("######################## stackr: find_duplicate_genome ########################\n")
   cat("###############################################################################\n")
@@ -124,7 +119,7 @@ find_duplicate_genome <- function(data,
   
   # manage different ways to name markers
   if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
-    input <- rename(.data = input, MARKERS = LOCUS)
+    input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
   # strata
@@ -140,8 +135,8 @@ find_duplicate_genome <- function(data,
     # Prep data 
     dist.computation <- suppressWarnings(
       x %>% 
-        select(MARKERS, INDIVIDUALS, GT) %>%
-        group_by(INDIVIDUALS) %>% 
+        dplyr::select(MARKERS, INDIVIDUALS, GT) %>%
+        dplyr::group_by(INDIVIDUALS) %>% 
         tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
         ungroup %>% 
         tibble::remove_rownames(.) %>% 
@@ -152,12 +147,12 @@ find_duplicate_genome <- function(data,
     # gain in speed between the 2 is very small on small data set
     if (n_distinct(x$MARKERS) > 30000) {
       if (requireNamespace("amap")) {
-      dist.computation <- suppressWarnings(amap::Dist(
-        x = dist.computation, 
-        method = distance.method, 
-        nbproc = parallel.core
-      )
-      )
+        dist.computation <- suppressWarnings(amap::Dist(
+          x = dist.computation, 
+          method = distance.method, 
+          nbproc = parallel.core
+        )
+        )
       } else {
         warning("amap not installed, using stats::dist instead")
         dist.computation <- stats::dist(
@@ -185,17 +180,17 @@ find_duplicate_genome <- function(data,
     
     # Include population info with strata
     ID1.pop <- suppressWarnings(dist.computation %>% 
-                                  select(INDIVIDUALS = ID1) %>% 
-                                  inner_join(strata, by = "INDIVIDUALS") %>% 
-                                  select(ID1_POP = POP_ID))
+                                  dplyr::select(INDIVIDUALS = ID1) %>% 
+                                  dplyr::inner_join(strata, by = "INDIVIDUALS") %>% 
+                                  dplyr::select(ID1_POP = POP_ID))
     
     ID2.pop <- suppressWarnings(dist.computation %>% 
-                                  select(INDIVIDUALS = ID2) %>% 
-                                  inner_join(strata, by = "INDIVIDUALS") %>% 
-                                  select(ID2_POP = POP_ID))
+                                  dplyr::select(INDIVIDUALS = ID2) %>% 
+                                  dplyr::inner_join(strata, by = "INDIVIDUALS") %>% 
+                                  dplyr::select(ID2_POP = POP_ID))
     
-    dist.computation <- bind_cols(dist.computation, ID1.pop, ID2.pop) %>% 
-      mutate(
+    dist.computation <- dplyr::bind_cols(dist.computation, ID1.pop, ID2.pop) %>% 
+      dplyr::mutate(
         POP_COMP = ifelse(ID1.pop == ID2.pop, "same pop", "different pop"),
         POP_COMP = factor(POP_COMP, levels = c("same pop", "different pop"), ordered = TRUE),
         PAIRWISE = rep("pairwise", n()),
@@ -207,43 +202,43 @@ find_duplicate_genome <- function(data,
   # pairwise genome similarity method
   pairwise_genome_similarity <- function(list.pair, ...) {
     # list.pair <- 2
-    id.select <- stri_paste(flatten(id.pairwise[list.pair]))
+    id.select <- stringi::stri_join(purrr::flatten(id.pairwise[list.pair]))
     
     id1 <- id.select[[1]]
     id2 <- id.select[[2]]
     
     identical.gt <- input %>%
-      filter_(lazyeval::interp(~ INDIVIDUALS == as.name(id1) | INDIVIDUALS == as.name(id2))) %>% 
-      select(MARKERS, INDIVIDUALS, GT) %>% 
+      dplyr::filter_(lazyeval::interp(~ INDIVIDUALS == as.name(id1) | INDIVIDUALS == as.name(id2))) %>% 
+      dplyr::select(MARKERS, INDIVIDUALS, GT) %>% 
       tidyr::spread(data = ., INDIVIDUALS, GT) %>%
-      rename_(ID1 = as.name(id1), ID2 = as.name(id2)) %>%
-      mutate(
-        ID1 = stri_replace_all_fixed(
+      dplyr::rename_(ID1 = as.name(id1), ID2 = as.name(id2)) %>%
+      dplyr::mutate(
+        ID1 = stringi::stri_replace_all_fixed(
           str = as.character(ID1), 
           pattern = c("/", ":", "_", "-", "."), 
           replacement = "", 
           vectorize_all = FALSE),
-        ID2 = stri_replace_all_fixed(
+        ID2 = stringi::stri_replace_all_fixed(
           str = as.character(ID2), 
           pattern = c("/", ":", "_", "-", "."), 
           replacement = "", 
           vectorize_all = FALSE)
       ) %>% 
-      filter(ID1 != "000000" | ID2 != "000000") %>% 
-      group_by(MARKERS) %>%
-      mutate(
+      dplyr::filter(ID1 != "000000" | ID2 != "000000") %>% 
+      dplyr::group_by(MARKERS) %>%
+      dplyr::mutate(
         IDENTICAL_GT = ifelse(ID1 == ID2, "IDENTICAL", "DIFFERENT")
       ) %>%
-      group_by(IDENTICAL_GT) %>% 
+      dplyr::group_by(IDENTICAL_GT) %>% 
       tally %>% 
       tidyr::spread(data = ., IDENTICAL_GT, n) %>% 
-      mutate(
+      dplyr::mutate(
         TOTAL_MARKERS_GENOTYPED = IDENTICAL + DIFFERENT,
         PROP_IDENTICAL = IDENTICAL/TOTAL_MARKERS_GENOTYPED,
         ID1 = id1,
         ID2 = id2
       ) %>% 
-      select(ID1, ID2, IDENTICAL, DIFFERENT, TOTAL_MARKERS_GENOTYPED, PROP_IDENTICAL)
+      dplyr::select(ID1, ID2, IDENTICAL, DIFFERENT, TOTAL_MARKERS_GENOTYPED, PROP_IDENTICAL)
     return(identical.gt)
   } # end duplicate pairwise
   
@@ -252,7 +247,7 @@ find_duplicate_genome <- function(data,
   
   # Compute distance between individuals --------------------------------------
   if (!is.null(distance.method)) {
-    message(stri_paste("Computing ", distance.method, " distances between individuals..."))
+    message(stringi::stri_join("Computing ", distance.method, " distances between individuals..."))
     # distance.method <- "euclidean"
     # distance.method <- "manhattan"
     # parallel.core <- 8
@@ -263,17 +258,17 @@ find_duplicate_genome <- function(data,
       parallel.core = parallel.core
     )
     res$distance <- dist.computation
-    write_tsv(
+    readr::write_tsv(
       x = dist.computation,
       path = "individuals.pairwise.dist.tsv",
       col_names = TRUE
-      )
+    )
     
     
     # Stats
     message("Generating summary statistics")
     distance.stats <- dist.computation %>% 
-      summarise(
+      dplyr::summarise(
         MEAN = mean(DISTANCE, na.rm = TRUE),
         MEDIAN = stats::median(DISTANCE, na.rm = TRUE),
         SE = round(sqrt(stats::var(DISTANCE, na.rm = TRUE)/length(stats::na.omit(DISTANCE))), 2),
@@ -285,11 +280,11 @@ find_duplicate_genome <- function(data,
         # OUTLIERS_HIGH = QUANTILE75 + (1.5 * (QUANTILE75 - QUANTILE25)) # outliers : higher the outlier boxplot
       )
     res$distance.stats <- distance.stats
-    write_tsv(
+    readr::write_tsv(
       x = distance.stats, 
       path = "individuals.pairwise.distance.stats.tsv", 
       col_names = TRUE
-      )
+    )
     
     message("Generating the plots")
     # violin plot
@@ -340,7 +335,7 @@ find_duplicate_genome <- function(data,
     id.list <- unique(input$INDIVIDUALS) # id list
     
     # all combination of individual pair
-    id.pairwise <- combn(unique(id.list), 2, simplify = FALSE) 
+    id.pairwise <- utils::combn(unique(id.list), 2, simplify = FALSE) 
     list.pair <- 1:length(id.pairwise)
     # list.pair <- 5
     # parallel.core<-8
@@ -353,40 +348,42 @@ find_duplicate_genome <- function(data,
       mc.cleanup = TRUE,
       mc.cores = parallel.core
     )
-    pairwise.genome.similarity <- bind_rows(pairwise.genome.similarity)
+    pairwise.genome.similarity <- dplyr::bind_rows(pairwise.genome.similarity)
     
     # Include population info with strata
-    ID1.pop <- suppressWarnings(pairwise.genome.similarity %>% 
-                                  select(INDIVIDUALS = ID1) %>% 
-                                  inner_join(strata, by = "INDIVIDUALS") %>% 
-                                  select(ID1_POP = POP_ID))
+    ID1.pop <- suppressWarnings(
+      pairwise.genome.similarity %>% 
+        dplyr::select(INDIVIDUALS = ID1) %>% 
+        dplyr::inner_join(strata, by = "INDIVIDUALS") %>% 
+        dplyr::select(ID1_POP = POP_ID))
     
-    ID2.pop <- suppressWarnings(pairwise.genome.similarity %>% 
-                                  select(INDIVIDUALS = ID2) %>% 
-                                  inner_join(strata, by = "INDIVIDUALS") %>% 
-                                  select(ID2_POP = POP_ID))
+    ID2.pop <- suppressWarnings(
+      pairwise.genome.similarity %>% 
+        dplyr::select(INDIVIDUALS = ID2) %>% 
+        dplyr::inner_join(strata, by = "INDIVIDUALS") %>% 
+        dplyr::select(ID2_POP = POP_ID))
     
-    pairwise.genome.similarity <- bind_cols(
+    pairwise.genome.similarity <- dplyr::bind_cols(
       pairwise.genome.similarity, ID1.pop, ID2.pop
-      ) %>% 
-      mutate(
+    ) %>% 
+      dplyr::mutate(
         POP_COMP = ifelse(ID1.pop == ID2.pop, "same pop", "different pop"),
         POP_COMP = factor(POP_COMP, levels = c("same pop", "different pop"), ordered = TRUE),
         PAIRWISE = rep("pairwise comparison", n()),
         METHOD = rep("genome similarity", n())
       )
-
+    
     res$pairwise.genome.similarity <- pairwise.genome.similarity
-    write_tsv(
+    readr::write_tsv(
       x = pairwise.genome.similarity, 
       path = "individuals.pairwise.genome.similarity.tsv", 
       col_names = TRUE
-      )
+    )
     
     # Stats
     message("Generating summary statistics")
     genome.stats <- pairwise.genome.similarity %>% 
-      summarise(
+      dplyr::summarise(
         MEAN = mean(PROP_IDENTICAL, na.rm = TRUE),
         MEDIAN = stats::median(PROP_IDENTICAL, na.rm = TRUE),
         SE = round(sqrt(stats::var(PROP_IDENTICAL, na.rm = TRUE)/length(na.omit(PROP_IDENTICAL))), 2),
@@ -398,11 +395,11 @@ find_duplicate_genome <- function(data,
         # OUTLIERS_HIGH = QUANTILE75 + (1.5 * (QUANTILE75 - QUANTILE25)) # outliers : higher the outlier boxplot
       )
     res$genome.stats <- genome.stats
-    write_tsv(
+    readr::write_tsv(
       x = genome.stats, 
       path = "individuals.pairwise.genome.stats.tsv", 
       col_names = TRUE
-      )
+    )
     
     # Visualization ------------------------------------------------------------
     message("Generating the plots")
@@ -470,7 +467,7 @@ individuals.pairwise.distance.stats.tsv
 individuals.pairwise.genome.similarity.tsv
 individuals.pairwise.genome.stats.tsv
 ")
-message(stri_paste("Working directory: ", getwd()))
+  message(stringi::stri_join("Working directory: ", getwd()))
   
   return(res)
   
