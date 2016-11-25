@@ -16,7 +16,6 @@ Depends:
     adegenet
 Imports:
     data.table,
-    plyr,
     dplyr (>= 0.5.0),
     reshape2,
     ggplot2,
@@ -27,23 +26,19 @@ Imports:
     ape,
     randomForestSRC,
     stringdist,
-    foreach,
     parallel,
-    doParallel,
     purrr,
     amap,
     tibble,
     methods,
     tidyverse,
     copula,
-    survival (>= 2.40-1),
-    Hmisc,
     gsl,
     vcfR,
-    magrittr
+    magrittr,
+    stats,
+    utils
 Suggests:
-    pegas,
-    hierfstat,
     knitr,
     rmarkdown
 License: GPL (>=2)

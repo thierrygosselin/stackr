@@ -226,14 +226,6 @@ stackr_imputations_module <- function(
       message("Compiling imputations results")
       input.imp <- suppressWarnings(dplyr::bind_rows(input.imp))
       
-      # Second round of imputations (globally) to remove introduced NA --------
-      # section commented because this introduces a huge bias when entire 
-      # population are not genotyped
-      # In case that some pop don't have the markers
-      # input.imp <- suppressWarnings(plyr::colwise(factor, exclude = NA)(input.imp)) # Make the columns factor
-      # input.imp <- impute_genotype_rf(input.imp) # impute globally
-      # input.imp <- plyr::colwise(as.character, exclude = NA)(input.imp)
-      
       # reintroduce the stratification
       input.imp <- suppressWarnings(
         dplyr::left_join(
