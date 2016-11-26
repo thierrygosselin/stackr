@@ -9,10 +9,18 @@ stackr: an R package for the analysis of GBS/RADseq data
 
 This is the development page of the **stackr**, if you want to help, see [contributions section](https://github.com/thierrygosselin/stackr#contributions)
 
-Use stackr to: import, explore, manipulate, visualize, filter, impute and export your GBS/RADseq data
------------------------------------------------------------------------------------------------------
+Most genomic analysis look for patterns and trends with various statistics. Bias, noise and outliers can have bounded influence on estimators and interfere with polymorphism discovery. Avoid bad data exploration and control the impact of filters on your downstream genetic analysis. Use stackr to: import, explore, manipulate, visualize, filter, impute and export your GBS/RADseq data.
 
-Most genomic analysis look for patterns and trends with various statistics. Bias, noise and outliers can have bounded influence on estimators and interfere with polymorphism discovery. Avoid bad data exploration and control the impact of filters on your downstream genetic analysis.
+Installation
+------------
+
+To try out the dev version of **stackr**, copy/paste the code below:
+
+``` r
+if (!require("devtools")) install.packages("devtools") # to install
+devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to install WITH vignettes
+library(stackr) # to load
+```
 
 <table style="width:100%;">
 <colgroup>
@@ -28,19 +36,27 @@ Most genomic analysis look for patterns and trends with various statistics. Bias
 <tbody>
 <tr class="odd">
 <td align="left"><strong>Import</strong></td>
-<td align="left">Various supported genomic file formats:<br> <a href="https://samtools.github.io/hts-specs/">VCF</a> (Danecek et al., 2011), <a href="http://pngu.mgh.harvard.edu/~purcell/plink/data.shtml#tr">PLINK tped/tfam</a> (Purcell et al., 2007), <a href="https://github.com/thibautjombart/adegenet">adegenet genind and genlight</a> (Jombart et al., 2010; Jombart and Ahmed, 2011), <a href="https://github.com/EricArcher/strataG">strataG gtypes</a>, <a href="http://genepop.curtin.edu.au">Genepop</a> (Raymond and Rousset, 1995; Rousset, 2008), <a href="http://catchenlab.life.illinois.edu/stacks/">STACKS haplotype file</a> (Catchen et al., 2011, 2013), dataframes of genotypes in wide or long/tidy format</td>
+<td align="left">Various supported genomic file formats with <code>tidy_genomic_format</code>:<br> <a href="https://samtools.github.io/hts-specs/">VCF</a> (Danecek et al., 2011)<br><a href="http://pngu.mgh.harvard.edu/~purcell/plink/data.shtml#tr">PLINK tped/tfam</a> (Purcell et al., 2007)<br><a href="https://github.com/thibautjombart/adegenet">adegenet genind and genlight</a> (Jombart et al., 2010; Jombart and Ahmed, 2011)<br><a href="https://github.com/EricArcher/strataG">strataG gtypes</a><br><a href="http://genepop.curtin.edu.au">Genepop</a> (Raymond and Rousset, 1995; Rousset, 2008)<br><a href="http://catchenlab.life.illinois.edu/stacks/">STACKS haplotype file</a> (Catchen et al., 2011, 2013)<br> Dataframes of genotypes in wide or long/tidy format</td>
 </tr>
 <tr class="even">
 <td align="left"><strong>Output</strong></td>
-<td align="left">Export back in the 8 formats mentionned above, with 5 additionnal formats for output: <strong>betadiv</strong> (Lamy, 2015), <strong>dadi</strong> (Gutenkunst et al., 2009), <strong>structure</strong> (Pritchard et al., 2000), <strong>Arlequin</strong> (Excoffier et al. 2005) and <a href="https://github.com/jgx65/hierfstat">hierfstat</a> (Goudet, 2005)</td>
+<td align="left">Export out of <strong>stackr</strong> in the 12 formats:<br><a href="https://samtools.github.io/hts-specs/">VCF</a> (Danecek et al., 2011)<br><a href="http://pngu.mgh.harvard.edu/~purcell/plink/data.shtml#tr">PLINK tped/tfam</a> (Purcell et al., 2007)<br><a href="https://github.com/thibautjombart/adegenet">adegenet genind and genlight</a> (Jombart et al., 2010; Jombart and Ahmed, 2011)<br><a href="https://github.com/EricArcher/strataG">strataG gtypes</a><br><a href="http://genepop.curtin.edu.au">Genepop</a> (Raymond and Rousset, 1995; Rousset, 2008)<br><a href="http://catchenlab.life.illinois.edu/stacks/">STACKS haplotype file</a> (Catchen et al., 2011, 2013)<br><a href="http://adn.biol.umontreal.ca/~numericalecology/Rcode/">betadiv</a> (Lamy, 2015)<br> <a href="http://gutengroup.mcb.arizona.edu/software/">δaδi</a> (Gutenkunst et al., 2009)<br> <a href="http://pritchardlab.stanford.edu/structure.html">structure</a> (Pritchard et al., 2000)<br> <a href="http://cmpg.unibe.ch/software/arlequin35/">Arlequin</a> (Excoffier et al. 2005)<br> <a href="https://github.com/jgx65/hierfstat">hierfstat</a> (Goudet, 2005)<br>Dataframes of genotypes in wide or long/tidy format</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>Conversion functions</strong></td>
-<td align="left"><code>tidy_genomic_format</code> and <code>genomic_converter</code> are conversion functions integrated with important filters, blacklist and whitelist.</td>
+<td align="left"><strong>Conversion function</strong></td>
+<td align="left"><code>genomic_converter</code> import/export genomic formats mentioned above. The function is also integrated with usefull filters, blacklist and whitelist.</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>Explore</strong> and <strong>filter</strong></td>
-<td align="left">alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways.<br><br><code>missing_visualization:</code> visualize patterns of missing data<br><code>filter_coverage</code>: read depth (coverage) of alleles and genotypes<br><code>filter_genotype_likelihood</code>: genotype likelihood<br><code>filter_individual</code> and <code>filter_population</code>: genotyped individuals and populations<br><code>filter_maf</code>: minor allele frequency (local and global MAF)<br><code>filter_het</code>observed heterozygosity (Het obs), <code>filter_fis</code>: inbreeding coefficient (Fis) and <code>filter_hw</code>: Hardy-Weinberg Equilibrium expectations (HWE)<br><code>find_duplicate_genome</code>:find duplicate individuals<br><code>filter_het</code>: as an option to detect potentially mixed samples</td>
+<td align="left"><strong>Outliers detection</strong></td>
+<td align="left"><code>detect_duplicate_genome</code>: Detect and remove duplicate individuals from your dataset <br><code>detect_mixed_individuals</code>: Detect and remove potentially mixed individuals<br><code>summary_haplotype</code> and <code>filter_snp_number</code>: Discard of outlier markers with <em>de novo</em> assembly artifact (e.g. markers with an extreme number of SNP per haplotype or with irregular number of alleles)</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>Pattern of missingness</strong></td>
+<td align="left"><code>missing_visualization</code>: Visualize patterns of missing data. Find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, homozygosity, etc)</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>Filters</strong></td>
+<td align="left">Alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways:<br><br><code>filter_coverage</code>: Discard markers based on read depth (coverage) of alleles and genotypes<br><code>filter_genotype_likelihood</code>: Discard markers based on genotype likelihood<br><code>filter_individual</code>: Discard markers based on proportion of genotyped individuals<br><code>filter_population</code>: Discard markers based on proportion of genotyped populations<br><code>filter_het</code>: Discard markers based on the observed heterozygosity (Het obs)<br><code>filter_fis</code>: Discard markers based on the inbreeding coefficient (Fis)<br><code>filter_hw</code>: Discard markers based on the Hardy-Weinberg Equilibrium expectations (HWE)<br><code>filter_maf</code>: Discard markers based on local or global (overall) minor allele frequency</td>
 </tr>
 <tr class="odd">
 <td align="left"><strong>Imputations</strong></td>
@@ -57,16 +73,7 @@ Most genomic analysis look for patterns and trends with various statistics. Bias
 </tbody>
 </table>
 
-Installation
-------------
-
-To try out the dev version of **stackr**, copy/paste the code below:
-
-``` r
-if (!require("devtools")) install.packages("devtools") # to install
-devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to install WITH vignettes
-library(stackr) # to load
-```
+\*\*[More in stackr workflow below](https://github.com/thierrygosselin/stackr#stackr-workflow)
 
 Prerequisite - Suggestions - Troubleshooting
 --------------------------------------------
@@ -335,8 +342,8 @@ Currently under construction. Come back soon!
 -   Remove *de novo* assembly artifact, by creating blacklist of genotypes or whitelist of markers:
     -   individuals with more than 2 alleles (use `summary_haplotypes`)
     -   outlier markers with extreme number of SNP/read or haplotype (use `filter_snp_number`)
--   Remove potential duplicated samples that went off your radar, try `find_duplicate_genome`.
--   Highlight outliers individual's heterozygosity that might represent mixed samples with `filter_individual_het`.
+-   Remove potential duplicated samples that went off your radar, try `detect_duplicate_genome`.
+-   Highlight outliers individual's heterozygosity that might represent mixed samples with `detect_mixed_individuals`.
 -   The metric you're using: a *de novo* artefact or a reliable signal of biological polymorphism?
 -   Should the statistic you are interested in be consistent throughout the read ?
 -   Will you consider haplotype or snp level statistics?
@@ -371,7 +378,7 @@ Currently under construction. Come back soon!
 -   Overall and/or per populations hwe, heterozygosity and Fis statistics can highlight: *de novo* assembly problems (oversplitting/undermerging), genotyping problems or biological problems.
 -   These filters allows to test rapidly if departure from realistic expectations are a problem for downstream analysis ?
 -   Choose your threshold wisely and test impact on pipeline.
--   Use `filter_het`, `filter_fis`, `filter_hwe` and look again at the individual's heterozygosity (`filter_individual_het`) for outliers.
+-   Use `filter_het`, `filter_fis`, `filter_hwe` and look again at the individual's heterozygosity (`detect_mixed_individuals`) for outliers.
 
 **Step 9 MAF**
 
