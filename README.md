@@ -64,7 +64,7 @@ library(stackr) # to load
 </tr>
 <tr class="even">
 <td align="left"><strong><a href="http://ggplot2.org">ggplot2</a>-based plotting</strong></td>
-<td align="left">View assignment results and create publication-ready figures</td>
+<td align="left">Visualize distribution of important metric and statistics and create publication-ready figures</td>
 </tr>
 <tr class="odd">
 <td align="left"><strong>Parallel</strong></td>
@@ -73,7 +73,7 @@ library(stackr) # to load
 </tbody>
 </table>
 
-\*\*[More in stackr workflow below](https://github.com/thierrygosselin/stackr#stackr-workflow)
+[More in stackr workflow below](https://github.com/thierrygosselin/stackr#stackr-workflow)
 
 Prerequisite - Suggestions - Troubleshooting
 --------------------------------------------
