@@ -63,10 +63,10 @@ library(stackr) # to load
 |**Pattern of missingness**|`missing_visualization`: Visualize patterns of missing data. Find patterns associated with different variables of your study (lanes, chips, sequencers, populations, sample sites, reads/samples, homozygosity, etc)|
 |**Filters**| Alleles, genotypes, markers, individuals and populations can be filtered and/or selected in several ways:<br><br>`filter_coverage`: Discard markers based on read depth (coverage) of alleles and genotypes<br>`filter_genotype_likelihood`: Discard markers based on genotype likelihood<br>`filter_individual`: Discard markers based on proportion of genotyped individuals<br>`filter_population`: Discard markers based on proportion of genotyped populations<br>`filter_het`: Discard markers based on the observed heterozygosity (Het obs)<br>`filter_fis`: Discard markers based on the inbreeding coefficient (Fis)<br>`filter_hw`: Discard markers based on the Hardy-Weinberg Equilibrium expectations (HWE)<br>`filter_maf`: Discard markers based on local or global (overall) minor allele frequency|
 |**Imputations**|**Map-independent** imputations of missing genotypes.<br>Using **Random Forest** or the most frequent category.<br> Imputations can be conducted **overall samples** or **by populations**.<br><br>Imputations are integrated in several functions and in a separate module: `stackr_imputations_module`|
-|**[ggplot2](http://ggplot2.org)-based plotting**|View assignment results and create publication-ready figures|
+|**[ggplot2](http://ggplot2.org)-based plotting**|Visualize distribution of important metric and statistics and create publication-ready figures|
 |**Parallel**|Codes designed and optimized for fast computations running imputations, iterations, etc. in parallel|
 
-**[More in stackr workflow below](https://github.com/thierrygosselin/stackr#stackr-workflow)
+[More in stackr workflow below](https://github.com/thierrygosselin/stackr#stackr-workflow)
 
 
 
