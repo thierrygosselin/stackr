@@ -175,7 +175,7 @@
 #' 
 #' \item Data frame
 #' To discriminate the long from the wide format, 
-#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
+#' the function \pkg{stackr} \code{\link[stackr]{tidy_wide}} searches 
 #' for \code{MARKERS or LOCUS} in column names (TRUE = long format).
 #' The data frame is tab delimitted.
 
@@ -698,7 +698,7 @@ tidy_genomic_data <- function(
     if (biallelic) {
       if (!is.null(pop.select) || !is.null(blacklist.id)) {
         if (verbose) message("Adjusting REF/ALT alleles to account for filters...")
-        input.temp <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
+        input.temp <- change_alleles(data = input, monomorphic.out = monomorphic.out)
         input <- input.temp$input
       }
     }# end re-computing the REF/ALT allele
@@ -901,7 +901,7 @@ tidy_genomic_data <- function(
     
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
-    input.temp <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
+    input.temp <- change_alleles(data = input, monomorphic.out = monomorphic.out)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
     
@@ -917,7 +917,7 @@ tidy_genomic_data <- function(
   # Import DF-------------------------------------------------------------------
   if (data.type == "tbl_df") { # DATA FRAME OF GENOTYPES
     message("Importing the data frame ...")
-    input <- stackr::read_long_tidy_wide(data = data, import.metadata = vcf.metadata)
+    input <- stackr::tidy_wide(data = data, import.metadata = vcf.metadata)
 
     # For long tidy format, switch LOCUS to MARKERS column name, if found MARKERS not found
     if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
@@ -991,7 +991,7 @@ tidy_genomic_data <- function(
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
     if (verbose) message("bi/multi allelic markers scan ...")
-    input.temp <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
+    input.temp <- change_alleles(data = input, monomorphic.out = monomorphic.out)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
   } # End import data frame of genotypes
@@ -1250,7 +1250,7 @@ tidy_genomic_data <- function(
     
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
-    input.temp <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
+    input.temp <- change_alleles(data = input, monomorphic.out = monomorphic.out)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
     
@@ -1423,7 +1423,7 @@ tidy_genomic_data <- function(
     
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
-    input.temp <- ref_alt_alleles(data = input, monomorphic.out = monomorphic.out)
+    input.temp <- change_alleles(data = input, monomorphic.out = monomorphic.out)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
     

@@ -187,7 +187,7 @@ To make the haplotype file population ready, you need the \code{strata} argument
 
 \item Data frame
 To discriminate the long from the wide format, 
-the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
+the function \pkg{stackr} \code{\link[stackr]{tidy_wide}} searches 
 for \code{MARKERS or LOCUS} in column names (TRUE = long format).
 The data frame is tab delimitted.
 \strong{Wide format:}

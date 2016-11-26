@@ -37,7 +37,7 @@
 #' \strong{Input data:}
 #'  
 #' To discriminate the long from the wide format, 
-#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
+#' the function \pkg{stackr} \code{\link[stackr]{tidy_wide}} searches 
 #' for \code{MARKERS or LOCUS} in column names (TRUE = long format).
 #' The data frame is tab delimitted.
 
@@ -246,7 +246,7 @@ vcf2dadi <- function(
   # We split the alleles here to prep for MAF
   # need to compute REF/ALT allele for non VCF file
   if (!tibble::has_name(input, "GT_VCF")) {
-    input.temp <- stackr::ref_alt_alleles(data = input)
+    input.temp <- stackr::change_alleles(data = input)
     ref.alt.alleles.change <- input.temp$input
     input <- dplyr::left_join(input, ref.alt.alleles.change, by = c("MARKERS", "INDIVIDUALS"))
   }

@@ -1,7 +1,7 @@
 # write a strataG gtypes object from a tidy data frame
 
 #' @name write_gtypes
-#' @title Write a \code{\link[strataG]{gtypes}} object from a tidy data
+#' @title Write a \code{\link[strataG]{gtypes}} object from a tidy data frame
 
 #' @description Write a \code{\link[strataG]{gtypes}} object from a tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
@@ -42,7 +42,7 @@ write_gtypes <- function(data) {
   
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+    input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
   } else {
     input <- data
   }

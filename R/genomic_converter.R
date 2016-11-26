@@ -317,7 +317,7 @@ genomic_converter <- function(
   
   # Import----------------------------------------------------------------------
   if (data.type == "tbl_df") {
-    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+    input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
     # For long tidy format, switch LOCUS to MARKERS column name, if found MARKERS not found
     if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
       input <- dplyr::rename(.data = input, MARKERS = LOCUS)

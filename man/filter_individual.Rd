@@ -178,7 +178,7 @@ set (long format) of any of these file format:
 vcf, plink (tped/tfam), stacks haplotype file, genind, 
 genepop, data frame in wide format. The function uses 
 \code{\link[stackr]{tidy_genomic_data}} and 
-\code{\link[stackr]{read_long_tidy_wide}} to load the file. For filtering
+\code{\link[stackr]{tidy_wide}} to load the file. For filtering
 you can consider the overall number of individuals (no concept of populations here),
 or the number of genotyped individuals per pop. The threshold can be a fixed 
 number of individuals, a proportion or a percentage.

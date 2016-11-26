@@ -12,7 +12,7 @@ find_duplicate_genome(data, distance.method = "manhattan", genome = FALSE,
 \item{data}{A file in the working directory or object in the global environment 
 in wide or long (tidy) formats. 
 For more info on the data dormat, the function uses
-\code{\link{read_long_tidy_wide}} to read the data. 
+\code{\link{tidy_wide}} to read the data. 
 To prepare your genomic data set in a tidy data frame use 
 \code{\link{tidy_genomic_data}} before running the function.}
 

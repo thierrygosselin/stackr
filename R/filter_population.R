@@ -5,7 +5,7 @@
 #' vcf, plink (tped/tfam), stacks haplotype file, genind, 
 #' genepop, data frame in wide format. The function uses 
 #' \code{\link[stackr]{tidy_genomic_data}} and 
-#' \code{\link[stackr]{read_long_tidy_wide}} to load the file. For filtering
+#' \code{\link[stackr]{tidy_wide}} to load the file. For filtering
 #' The threshold can be a fixed number of population, a proportion or a percentage.
 
 # Most arguments are inherited from tidy_genomic_data

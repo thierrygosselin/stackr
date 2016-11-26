@@ -167,7 +167,7 @@ Filter genotypes and markers based on genotype likelihood using
 a tidy data set (long format) and any VCF file both with GL information.
 The function uses 
 \code{\link[stackr]{tidy_genomic_data}} and 
-\code{\link[stackr]{read_long_tidy_wide}} to load the file.
+\code{\link[stackr]{tidy_wide}} to load the file.
 }
 \details{
 There is 4 steps in the interactive version:  

@@ -1,8 +1,8 @@
 # write an Arlequin file from a tidy data frame
 
 #' @name write_arlequin
-#' @title Used internally in stackr to write a arlequin file from a tidy data frame
-#' @description Write a arlequin file from a tidy data frame
+#' @title Write an arlequin file from a tidy data frame
+#' @description Write a arlequin file from a tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and \href{https://github.com/thierrygosselin/assigner}{assigner}
 #' and might be of interest for users.
@@ -49,7 +49,7 @@ write_arlequin <- function(
   
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data, import.metadata = FALSE)
+    input <- stackr::tidy_wide(data = data, import.metadata = FALSE)
   } else {
     input <- data
   }

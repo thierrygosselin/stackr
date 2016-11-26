@@ -18,7 +18,7 @@
 #' @param data A file in the working directory or object in the global environment 
 #' in wide or long (tidy) formats. To import, the function uses 
 #' \href{https://github.com/thierrygosselin/stackr}{stackr} 
-#' \code{\link[stackr]{read_long_tidy_wide}}. See details for more info.
+#' \code{\link[stackr]{tidy_wide}}. See details for more info.
 
 #' @param imputation.method (character, optional) 
 #' Methods available for map-independent imputations of missing genotype: 
@@ -121,7 +121,7 @@ stackr_imputations_module <- function(
   if (missing(data)) stop("Input file missing")
   
   # Import data ---------------------------------------------------------------
-  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
   
   # necessary steps to make sure we work with unique markers and not duplicated LOCUS
   if (!tibble::has_name(input, "MARKERS") && tibble::has_name(input, "LOCUS")) {
@@ -364,7 +364,7 @@ stackr_imputations_module <- function(
   # Compute REF/ALT allele... might have change depending on prop of missing values
   if (ref.column) {
     message("Adjusting REF/ALT alleles to account for imputations...")
-    input.temp <- ref_alt_alleles(data = input.imp)
+    input.temp <- stackr::change_alleles(data = input.imp)
     input.imp <- input.temp$input
     
   } # end computing REF/ALT

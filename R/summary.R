@@ -451,7 +451,7 @@ summary_genotype_likelihood <- function(
   # import data
   message("Importing data")
   
-  input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+  input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
   
   if (!tibble::has_name(input, "GL") & !tibble::has_name(input, "PL") ) {
     stop("GL or PL information is required") 

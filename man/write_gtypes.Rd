@@ -2,7 +2,7 @@
 % Please edit documentation in R/write_gtypes.R
 \name{write_gtypes}
 \alias{write_gtypes}
-\title{Write a \code{\link[strataG]{gtypes}} object from a tidy data}
+\title{Write a \code{\link[strataG]{gtypes}} object from a tidy data frame}
 \usage{
 write_gtypes(data)
 }

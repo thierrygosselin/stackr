@@ -1,10 +1,10 @@
 # read data frames in long/tidy and wide format
 
-#' @name read_long_tidy_wide
+#' @name tidy_wide
 
-#' @title **deprecated** use \code{\link[stackr]{tidy_wide}}
+#' @title Read/Import and tidy genomic data frames long or wide format
 
-#' @description Read genomic data frames in long/tidy and wide format.
+#' @description Read/Import and tidy genomic data frames long or wide format.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and \href{https://github.com/thierrygosselin/assigner}{assigner}
 #' and might be of interest for users.
@@ -25,7 +25,7 @@
 
 #' @return A tidy data frame in the global environment.
 #' @export
-#' @rdname read_long_tidy_wide
+#' @rdname tidy_wide
 #' @importFrom stringi stri_replace_all_fixed stri_pad_left
 #' @importFrom dplyr mutate select
 #' @importFrom data.table fread melt.data.table as.data.table
@@ -33,7 +33,7 @@
 #' @details \strong{Input data:}
 #'  
 #' To discriminate the long from the wide format, 
-#' the function \pkg{stackr} \code{\link[stackr]{read_long_tidy_wide}} searches 
+#' the function \pkg{stackr} \code{\link[stackr]{tidy_wide}} searches 
 #' for \code{MARKERS or LOCUS} in column names (TRUE = long format).
 #' The data frame is tab delimitted.
 
@@ -62,7 +62,7 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-read_long_tidy_wide <- function(data, import.metadata = FALSE, ...) {
+tidy_wide <- function(data, import.metadata = FALSE, ...) {
   
   # Checking for missing and/or default arguments ******************************
   if (missing(data)) stop("Input file argument is missing")

@@ -36,7 +36,7 @@ snp_ld <- function(data, snp.ld = "first") {
   # Import data ---------------------------------------------------------------
   
   if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data, import.metadata = FALSE)
+    input <- stackr::tidy_wide(data = data, import.metadata = FALSE)
   } else {
     input <- data
   }

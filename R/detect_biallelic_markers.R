@@ -37,7 +37,7 @@ detect_biallelic_markers <- function(data, verbose = FALSE) {
   
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+    input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
   } else {
     input <- data
   }

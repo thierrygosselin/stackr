@@ -2,7 +2,7 @@
 % Please edit documentation in R/write_arlequin.R
 \name{write_arlequin}
 \alias{write_arlequin}
-\title{Used internally in stackr to write a arlequin file from a tidy data frame}
+\title{Write an arlequin file from a tidy data frame}
 \usage{
 write_arlequin(data, pop.levels = NULL, filename = NULL, ...)
 }
@@ -25,7 +25,7 @@ the date and time is appended to \code{stackr_arlequin_}.}
 An arlequin file is saved to the working directory.
 }
 \description{
-Write a arlequin file from a tidy data frame
+Write a arlequin file from a tidy data frame.
 Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.

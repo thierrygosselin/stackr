@@ -13,7 +13,7 @@ stackr_imputations_module(data, imputation.method = NULL,
 \item{data}{A file in the working directory or object in the global environment 
 in wide or long (tidy) formats. To import, the function uses 
 \href{https://github.com/thierrygosselin/stackr}{stackr} 
-\code{\link[stackr]{read_long_tidy_wide}}. See details for more info.}
+\code{\link[stackr]{tidy_wide}}. See details for more info.}
 
 \item{imputation.method}{(character, optional) 
 Methods available for map-independent imputations of missing genotype: 

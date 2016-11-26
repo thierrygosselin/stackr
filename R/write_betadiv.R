@@ -39,7 +39,7 @@ write_betadiv <- function(data) {
   
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+    input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
   } else {
     input <- data
   }
@@ -61,7 +61,7 @@ write_betadiv <- function(data) {
   # We split the alleles here to prep for MAF
   # need to compute REF/ALT allele for non VCF file
   if (!tibble::has_name(input, "GT_VCF")) {
-    ref.alt.alleles.change <- stackr::ref_alt_alleles(data = input)
+    ref.alt.alleles.change <- stackr::change_alleles(data = input)
     input <- dplyr::left_join(input, ref.alt.alleles.change$input, by = c("MARKERS", "INDIVIDUALS"))
   }
   

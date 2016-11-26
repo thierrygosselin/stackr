@@ -6,7 +6,7 @@
 #' vcf, plink (tped/tfam), stacks haplotype file, genind, 
 #' genepop, data frame in wide format. The function uses 
 #' \code{\link[stackr]{tidy_genomic_data}} and 
-#' \code{\link[stackr]{read_long_tidy_wide}} to load the file.
+#' \code{\link[stackr]{tidy_wide}} to load the file.
 
 # Most arguments are inherited from tidy_genomic_data
 #' @inheritParams tidy_genomic_data

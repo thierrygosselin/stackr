@@ -10,7 +10,7 @@
 #' @param data A file in the working directory or object in the global environment 
 #' in wide or long (tidy) formats. 
 #' For more info on the data dormat, the function uses
-#' \code{\link{read_long_tidy_wide}} to read the data. 
+#' \code{\link{tidy_wide}} to read the data. 
 #' To prepare your genomic data set in a tidy data frame use 
 #' \code{\link{tidy_genomic_data}} before running the function.
 
@@ -115,7 +115,7 @@ find_duplicate_genome <- function(
   
   # Import data ----------------------------------------------------------------
   message("Importing data...")
-  input <- stackr::read_long_tidy_wide(data = data)
+  input <- stackr::tidy_wide(data = data)
   
   # manage different ways to name markers
   if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {

@@ -46,7 +46,7 @@ stackr_maf_module <- function(
   
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {
-    input <- stackr::read_long_tidy_wide(data = data, import.metadata = TRUE)
+    input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
   } else {
     input <- data
   }

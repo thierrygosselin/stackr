@@ -1,11 +1,11 @@
 # Compute the ref and alt alleles of a tidy dataset
 
-#' @name ref_alt_alleles
+#' @name change_alleles
 
-#' @title **deprecated** use \code{\link[stackr]{change_alleles}}
+#' @title Change REF and ALT alleles based on count
 
-#' @description compute the REF and ALT alleles from a biallelic
-#' genomic tidy data frame.
+#' @description Change REF and ALT alleles based on count, for biallelic data
+#' with REF or ALT info, the function will generate a REF and ALT columns.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and might be of interest for users.
 #' 
@@ -54,7 +54,7 @@
 
 
 #' @export
-#' @rdname ref_alt_alleles
+#' @rdname change_alleles
 #' @importFrom dplyr select mutate group_by ungroup rename tally filter if_else arrange summarise top_n distinct coalesce if_else full_join
 #' @importFrom stringi stri_replace_all_fixed stri_join stri_sub
 #' @importFrom data.table fread
@@ -64,7 +64,7 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
+change_alleles <- function(data, monomorphic.out = TRUE) {
   
   # Checking for missing and/or default arguments ------------------------------
   if (missing(data)) stop("Input file missing")
@@ -224,4 +224,4 @@ ref_alt_alleles <- function(data, monomorphic.out = TRUE) {
   }
   res <- list(input = input, biallelic = biallelic)
   return(res)
-}#End ref_alt_alleles
+}#End change_alleles
