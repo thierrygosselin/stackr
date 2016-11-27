@@ -4,13 +4,13 @@
 \alias{genomic_converter}
 \title{Conversion tool among several genomic formats}
 \usage{
-genomic_converter(data, output, filename = NULL, blacklist.id = NULL,
-  blacklist.genotype = NULL, whitelist.markers = NULL,
-  monomorphic.out = TRUE, snp.ld = NULL, common.markers = TRUE,
-  maf.thresholds = NULL, maf.pop.num.threshold = 1, maf.approach = "SNP",
-  maf.operator = "OR", max.marker = NULL, strata = NULL,
-  pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
-  imputation.method = NULL, impute = "genotype",
+genomic_converter(data, output = NULL, filename = NULL,
+  blacklist.id = NULL, blacklist.genotype = NULL,
+  whitelist.markers = NULL, monomorphic.out = TRUE, snp.ld = NULL,
+  common.markers = TRUE, maf.thresholds = NULL, maf.pop.num.threshold = 1,
+  maf.approach = "SNP", maf.operator = "OR", max.marker = NULL,
+  strata = NULL, pop.levels = NULL, pop.labels = NULL,
+  pop.select = NULL, imputation.method = NULL, impute = "genotype",
   imputations.group = "populations", num.tree = 100, iteration.rf = 10,
   split.number = 100, verbose = FALSE,
   parallel.core = parallel::detectCores() - 1)
@@ -22,10 +22,11 @@ plink, stacks haplotype file, genind (library(adegenet)),
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 and a data frame in wide format. \emph{See details}.}
 
-\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop,
+\item{output}{Several options: tidy (by default), genind, genlight, vcf, plink, genepop,
 structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
-output formats generated. The tidy format is generated automatically.}
+output formats generated. The tidy format is generated automatically.
+Default: \code{output = NULL}.}
 
 \item{filename}{(optional) The filename prefix for the objet in the global environment
 or the working directory. Default: \code{filename = NULL}. A default name will be used,

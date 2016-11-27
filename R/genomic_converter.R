@@ -18,10 +18,11 @@
 #'   \item \strong{Output:} 11 output file formats are supported (see \code{output} argument below)
 #' }
 
-#' @param output Several options: tidy, genind, genlight, vcf, plink, genepop,
+#' @param output Several options: tidy (by default), genind, genlight, vcf, plink, genepop,
 #' structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
 #' e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 #' output formats generated. The tidy format is generated automatically.
+#' Default: \code{output = NULL}.
 
 #' @param filename (optional) The filename prefix for the objet in the global environment
 #' or the working directory. Default: \code{filename = NULL}. A default name will be used,
@@ -144,7 +145,7 @@
 
 genomic_converter <- function(
   data,
-  output,
+  output = NULL,
   filename = NULL,
   blacklist.id = NULL,
   blacklist.genotype = NULL,
@@ -178,7 +179,6 @@ genomic_converter <- function(
   
   # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("Input file missing")
-  if (missing(output)) stop("At least 1 output format is required")
   if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
   
@@ -209,7 +209,11 @@ genomic_converter <- function(
     message(stringi::stri_join("Population labels: ", stringi::stri_join(pop.labels, collapse = ", ")))
   }
   
-  message(stringi::stri_join("Ouput format(s): ", stringi::stri_join(output, collapse = ", ")))
+  if (is.null(output)) {
+    message("Ouput format(s): tidy")
+  } else {
+    message(stringi::stri_join("Ouput format(s): tidy", stringi::stri_join(output, collapse = ", ")))
+  }
   
   if (is.null(filename)) {
     message("Filename prefix: no")

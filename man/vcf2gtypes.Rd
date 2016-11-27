@@ -21,10 +21,11 @@ plink, stacks haplotype file, genind (library(adegenet)),
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
 and a data frame in wide format. \emph{See details}.}
 
-\item{output}{Several options: tidy, genind, genlight, vcf, plink, genepop,
+\item{output}{Several options: tidy (by default), genind, genlight, vcf, plink, genepop,
 structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
-output formats generated. The tidy format is generated automatically.}
+output formats generated. The tidy format is generated automatically.
+Default: \code{output = NULL}.}
 
 \item{filename}{(optional) The filename prefix for the objet in the global environment
 or the working directory. Default: \code{filename = NULL}. A default name will be used,

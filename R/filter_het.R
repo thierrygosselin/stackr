@@ -1224,7 +1224,7 @@ number of populations in the dataset turns off the filter.\n")
   res$blacklist.markers <- blacklist.markers
   res$strata <- strata.df
   res$filters.parameters <- filters.parameters
-  res$individual.heterozigosity <- het.ind
+  res$individual.heterozygosity <- het.ind
   res$blacklist.ind.het <- blacklist.ind.het
   res$helper.table.het <- helper.table.het 
   res$individual.heterozygosity.boxplot <- individual.heterozygosity.boxplot

@@ -1,18 +1,16 @@
-# Find duplicate individual
+# Detect duplicate genomes
 
-#' @name find_duplicate_genome
+#' @name detect_duplicate_genomes
 #' @title Compute pairwise genome similarity or distance between individuals 
 #' to highligh potential duplicate individuals
 #' @description The function can compute two methods 
 #' to highligh potential duplicate individuals (1. distance between individuals
 #' or 2. pairwise genome similarity).
 
-#' @param data A file in the working directory or object in the global environment 
-#' in wide or long (tidy) formats. 
-#' For more info on the data dormat, the function uses
-#' \code{\link{tidy_wide}} to read the data. 
-#' To prepare your genomic data set in a tidy data frame use 
-#' \code{\link{tidy_genomic_data}} before running the function.
+#' @param data A tidy data frame object in the global environment or
+#' a tidy data frame in wide or long format in the working directory.
+#' \emph{How to get a tidy data frame ?}
+#' Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
 
 #' @param distance.method (character) The distance measure used inside \code{stats::dist} 
 #' (<= 30000 markers) or \code{amap::Dist} (> 30000 markers). 
@@ -46,7 +44,7 @@
 #' individuals.pairwise.genome.similarity.tsv, individuals.pairwise.genome.stats.tsv
 
 #' @export
-#' @rdname find_duplicate_genome
+#' @rdname detect_duplicate_genomes
 #' @importFrom stringi stri_paste stri_replace_all_fixed
 #' @importFrom dplyr rename select group_by filter mutate rename_ filter_ bind_cols bind_rows summarise
 #' @importFrom utils combn
@@ -62,7 +60,7 @@
 #' @examples
 #' \dontrun{
 #' # to get pairwise distance only, the simplest way to run:
-#' dup <- find_duplicate_genome(data = "wombat_tidy.tsv")
+#' dup <- detect_duplicate_genomes(data = "wombat_tidy.tsv")
 #' # This will use by defaul \code{distance.method = "manhattan"}, 
 #' \code{genome = FALSE}, and all my CPU -1 as default for \code{parallel.core}
 #' 
@@ -81,7 +79,7 @@
 #' 
 #' # To run the distance (with euclidean distance instead of the default manhattan, 
 #' # with the genome methods:
-#' dup <- find_duplicate_genome(
+#' dup <- detect_duplicate_genomes(
 #' data = "wombat_tidy.tsv", 
 #' distance.method = "euclidean",
 #' genome = TRUE
@@ -100,25 +98,37 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-find_duplicate_genome <- function(
+detect_duplicate_genomes <- function(
   data,
   distance.method = "manhattan",
   genome = FALSE,
   parallel.core = detectCores() - 1) {
   
   cat("###############################################################################\n")
-  cat("######################## stackr: find_duplicate_genome ########################\n")
+  cat("######################## stackr: detect_duplicate_genomes ########################\n")
   cat("###############################################################################\n")
+  timing <- proc.time()
   
   # manage missing arguments ---------------------------------------------------
   if (missing(data)) stop("missing data argument")
   
-  # Import data ----------------------------------------------------------------
-  message("Importing data...")
-  input <- stackr::tidy_wide(data = data)
+  # Import data ---------------------------------------------------------------
+  if (is.vector(data)) {
+    input <- stackr::tidy_wide(data = data, import.metadata = FALSE)
+  } else {
+    input <- data
+  }
   
-  # manage different ways to name markers
-  if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
+  # check genotype column naming
+  colnames(input) <- stringi::stri_replace_all_fixed(
+    str = colnames(input), 
+    pattern = "GENOTYPE", 
+    replacement = "GT", 
+    vectorize_all = FALSE
+  )
+  
+  # necessary steps to make sure we work with unique markers and not duplicated LOCUS
+  if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
@@ -179,15 +189,17 @@ find_duplicate_genome <- function(
       arrange(DISTANCE)
     
     # Include population info with strata
-    ID1.pop <- suppressWarnings(dist.computation %>% 
-                                  dplyr::select(INDIVIDUALS = ID1) %>% 
-                                  dplyr::inner_join(strata, by = "INDIVIDUALS") %>% 
-                                  dplyr::select(ID1_POP = POP_ID))
+    ID1.pop <- suppressWarnings(
+      dist.computation %>% 
+        dplyr::select(INDIVIDUALS = ID1) %>% 
+        dplyr::inner_join(strata, by = "INDIVIDUALS") %>% 
+        dplyr::select(ID1_POP = POP_ID))
     
-    ID2.pop <- suppressWarnings(dist.computation %>% 
-                                  dplyr::select(INDIVIDUALS = ID2) %>% 
-                                  dplyr::inner_join(strata, by = "INDIVIDUALS") %>% 
-                                  dplyr::select(ID2_POP = POP_ID))
+    ID2.pop <- suppressWarnings(
+      dist.computation %>% 
+        dplyr::select(INDIVIDUALS = ID2) %>% 
+        dplyr::inner_join(strata, by = "INDIVIDUALS") %>% 
+        dplyr::select(ID2_POP = POP_ID))
     
     dist.computation <- dplyr::bind_cols(dist.computation, ID1.pop, ID2.pop) %>% 
       dplyr::mutate(
@@ -468,7 +480,7 @@ individuals.pairwise.genome.similarity.tsv
 individuals.pairwise.genome.stats.tsv
 ")
   message(stringi::stri_join("Working directory: ", getwd()))
-  
+  message(stringi::stri_join("Computation time: ", round((proc.time() - timing)[[3]]), " sec"))
+  cat("############################## completed ##############################\n")
   return(res)
-  
-} # end function find_duplicate_genome
+} # end function detect_duplicate_genomes
