@@ -678,10 +678,10 @@ tidy_genomic_data <- function(
           GT = stringi::stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
           GT_VCF = GT,
           # Experimental (for genlight object)
-          GT_BIN = stringi::stri_replace_all_fixed(
+          GT_BIN = as.numeric(stringi::stri_replace_all_fixed(
             str = GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."),
             replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE
-          ),
+          )),
           GT = dplyr::if_else(GT == "0/0", stringi::stri_join(REF2, REF2, sep = ""),
                               dplyr::if_else(GT == "1/1", stringi::stri_join(ALT2, ALT2, sep = ""),
                                              dplyr::if_else(GT == "0/1", stringi::stri_join(REF2, ALT2, sep = ""),

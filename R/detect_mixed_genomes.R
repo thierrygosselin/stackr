@@ -1,7 +1,8 @@
 # detect mixed genomes
 #' @title Detect mixed genomes
-#' @description Highlight outliers individual's heterozygosity for a quick
-#' diagnostic of mixed samples.
+#' @description Highlight outliers individual's observed heterozygosity for a quick
+#' diagnostic of mixed samples or poor polymorphism discovery due to DNA quality,
+#' sequencing effort, etc.
 
 #' @param data A tidy data frame object in the global environment or
 #' a tidy data frame in wide or long format in the working directory.
@@ -10,28 +11,73 @@
 
 
 
-#' @param ind.heterozygosity.threshold (double, optional)
-#' Blacklist individuals based on observed heterozygosity of individuals 
-#' (averaged across markers).
-#' The value for the threshold is a proportion (0 to 1), where 1 is similar to the
-#' default, \code{ind.heterozygosity.threshold = NULL}, and turn off the filter
-#' (the function will only output the plots and table of heterozygosity).
-#' Individuals with mean heterozygosity higher (>) than the threshold
-#' will be blacklisted. 
+#' @param ind.heterozygosity.threshold (string, double, optional)
+#' Blacklist individuals based on observed heterozygosity (averaged across markers).
+#' 
+#' 
+#' The string contains 2 thresholds values (min and max). 
+#' The values are proportions (0 to 1), where 0 turns off the min threshold and
+#' 1 turns off the max threshold.
+#' Individuals with mean observed heterozygosity higher (>) or lower (<) 
+#' than the thresholds will be blacklisted. 
+#' 
+#' Default: \code{ind.heterozygosity.threshold = NULL} will turn off completely 
+#' the filter and the function will only output the plots and table of heterozygosity.
+
+#' @details To help discard an individual based on his observed heterozygosity
+#' (averaged across markers),
+#' use the manhanttan plot to:
+#' \enumerate{
+#' \item contrast the individual with population and overall samples.
+#' \item visualize the impact of missigness information (based on population or 
+#' overall number of markers) and the individual observed heterozygosity. The
+#' larger the point, the more missing genotypes.
+#' }
+#' \strong{Outlier above average:}
+#' \itemize{
+#' \item potentially represent two samples mixed together (action: blacklist), or...
+#' \item a sample with more sequecing effort (point size small): did you merge your replicates fq files ? (action : keep and monitor)
+#' \item a sample with poor sequencing effort (point size large) where the genotyped markers are
+#' all heterozygotes, verify this with missingness (action: discard)
+#' }
+#' In all cases, if there is no bias in the population sequencing effort,
+#' the size of the point will usually be "average" based on the population or
+#' overall number of markers.
+#' 
+#' 
+#' You can visualize individual observed heterozygosity, choose thresholds and
+#' then visualize, choose thresholds and filter markers based on observed 
+#' heterozygosity in one run with: \pkg{stackr} \code{\link{filter_het}}.
+
+#' 
+#' \strong{Outlier below average:}
+#' \itemize{
+#' \item A point with a size larger than the population or overall average (= lots of missing): 
+#' the poor polymorphism discovery of the sample is probably the result of bad
+#' DNA quality, a bias in sequencing effort, etc. (action: blacklist)
+#' \item A point with a size that looks average (not much missing): 
+#' this sample requires more attention (action: blacklist) and conduct more tests.
+#' e.g. for biallelic data, look for coverage imbalance between ALT/REF allele.
+#' At this point you need to distinguish between an artifact of poor polymorphism discovery 
+#' or a biological reason (highly inbred individual, etc.).
+#' }
+
 
 #' @return The function returns inside the global environment a list with
-#' 4 objects:
+#' 5 objects:
 #' 
 #' \enumerate{
-
-#' \item the individual's heterozigosity:\code{$individual.heterozigosity}
-#' \item the blacklisted individuals based on the individual's heterozigosity:\code{$blacklist.ind.het}
+#' \item the individual's heterozigosity (\code{$individual.heterozygosity})
+#' a dataframe containing for each individual, the population id, the number of 
+#' genotyped markers, the number of missing genotypes (based on the number of 
+#' markers of the population and overall), the number of markers genotyped as heterozygote
+#' and it's proportion based on the number of genotyped markers.
+#' \item the heterozygosity statistics per populations and overall:\code{$heterozygosity.statistics}
+#' \item the blacklisted individuals if \code{ind.heterozygosity.threshold} was selected: \code{$blacklist.ind.het}
 #' \item the boxplot of individual heterozygosity:\code{$individual.heterozygosity.boxplot}
-#' \item the manhattan plot of individual heterozygosity:\code{$individual.heterozygosity.manhattan.plot}
+#' \item the manhattan plot of individual heterozygosity (\code{$individual.heterozygosity.manhattan.plot})
+#' contrasted with missingness proportion based on the population or overall number of markers.
 #' }
-#' 
-#' 
-#' In the working directory, output is conditional to \code{interactive.filter} argument
 
 #' @rdname detect_mixed_genomes
 #' @export
@@ -44,36 +90,45 @@
 #' @importFrom tidyr complete gather unite spread nesting
 #' @importFrom stats median sd
 
-#' @seealso \link{plot_density_distribution_het}
-
 #' @examples
 #' \dontrun{
 #' #Step1: highlight outlier individuals, the simplest way to run:
+#' 
 #' outlier.ind.het <- detect_mixed_genomes(data = "wombat_tidy.tsv")
 #' 
-#' # this example without threshold will not produce a blacklist of individuals.
+#' #This example, without threshold, will not produce a blacklist of individuals.
 #' 
-#' # to look at the table with individual's heterozygosity
-#' outlier.ind.het$individual's heterozygosity
+#' #To look at the table with individual's heterozygosity:
+#' 
+#' outlier.ind.het$individual.heterozygosity
 #' 
 #' # To view the manhattan plot:
+#' 
 #' outlier.ind.het$individual.heterozygosity.manhattan.plot
 #' 
 #' # To view the box plot
 #' outlier.ind.het$$individual.heterozygosity.boxplot
 #' 
 #' # To save the boxplot:
-#' ggsave("individual.heterozygosity.boxplot.pdf", width = 15, height = 10, dpi = 600, units = "cm", useDingbats = F)
+#' 
+#' ggsave(
+#' "individual.heterozygosity.boxplot.pdf",
+#' width = 15, height = 10, dpi = 600, units = "cm",
+#' useDingbats = FALSE
+#' )
+#' 
 #' # prefer a PNG:
-#' ggsave("individual.heterozygosity.boxplot.png", width = 15, height = 10, dpi = 300, units = "cm")
+#' 
+#' ggsave(
+#' "individual.heterozygosity.boxplot.png",
+#' width = 15, height = 10, dpi = 300, units = "cm"
+#' )
 #' 
 #' 
 #' # Based on the look of the distribution using both jitter and boxplot,
 #' # choose a threshold to blacklist the outliers and re-run the function.
 #' 
-#' This can be done in one step with the interactive mode
-#' in \code{\link{filter_het}}.
-#' 
+#' # To keep the blacklist:
 #' readr::write_tsv(x = blacklist.ind.het, path = "blacklist.individuals.heterozygosity.tsv", col_names = TRUE)
 #' }
 
@@ -87,7 +142,7 @@ detect_mixed_genomes <- function(
   cat("#################### stackr::detect_mixed_genomes #####################\n")
   cat("#######################################################################\n")
   timing <- proc.time()
-  
+  message("Analyzing data...")
   # manage missing arguments ---------------------------------------------------
   if (missing(data)) stop("missing data argument")
   
@@ -111,43 +166,78 @@ detect_mixed_genomes <- function(
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
-  # # strata
-  # strata <- input %>% 
-  #   ungroup %>% 
-  #   distinct(POP_ID, INDIVIDUALS)
-  # 
+  # highlight heterozygote and missing (optimized for speed depending on input)
+  # you see the difference with > 30K SNP
   
-  # highlight heterozygote
-  het.summary <- dplyr::select(.data = input, POP_ID, INDIVIDUALS, GT) %>%
-    dplyr::filter(GT != "000000") %>%
-    dplyr::mutate(
+  n.markers.pop <- dplyr::filter(input, GT != "000000") %>% 
+    dplyr::distinct(MARKERS, POP_ID) %>%
+    dplyr::count(x = ., POP_ID)
+  
+  n.markers.overall <- dplyr::n_distinct(input$MARKERS[input$GT != "000000"])
+
+  if (tibble::has_name(input, "GT_BIN")) {
+    het.summary <- dplyr::mutate(
+      .data = input,
+      HET = dplyr::if_else(GT_BIN == 1, 1, 0, missing = 0)
+      ) %>%
+      dplyr::group_by(INDIVIDUALS) %>% 
+      dplyr::mutate(GENOTYPED = length(GT_BIN[!is.na(GT_BIN)])) %>% 
+      dplyr::ungroup(.)
+    
+  } else if (tibble::has_name(input, "GT_VCF")) {
+    het.summary <- dplyr::mutate(
+      .data = input,
+      HET = dplyr::if_else(GT_VCF %in% c("1/0", "0/1"), 1, 0)
+    ) %>%
+      dplyr::group_by(INDIVIDUALS) %>%
+      dplyr::mutate(GENOTYPED = length(INDIVIDUALS[GT_VCF != "./."])) %>% 
+      dplyr::ungroup(.)
+  } else {
+    het.summary <- dplyr::mutate(
+      .data = input,
       HET = dplyr::if_else(
         stringi::stri_sub(GT, 1, 3) != stringi::stri_sub(GT, 4, 6), 1, 0
       )
-    )
+    ) %>% 
+      dplyr::group_by(INDIVIDUALS) %>%
+      dplyr::mutate(GENOTYPED = length(INDIVIDUALS[GT != "000000"])) %>% 
+      dplyr::ungroup(.)
+  }
+  
   
   # Step 1. Highlight individual's heterozygosity  -----------------------------
   # Heterozygosity at the individual level before looking at the markers level per population
   # It's a good way to do outlier diagnostic ... mixed individuals
   
   # Create a new df with heterozygote info
-  het.ind <- het.summary %>% 
+  
+  het.ind <- dplyr::select(.data = het.summary, POP_ID, INDIVIDUALS, HET, GENOTYPED) %>% 
+    dplyr::full_join(n.markers.pop, by = "POP_ID") %>% 
+    dplyr::group_by(INDIVIDUALS) %>% 
+    dplyr::mutate(
+      MISSING_PROP_POP = (n - GENOTYPED) / n,
+      MISSING_PROP_OVERALL = (n.markers.overall - GENOTYPED) / n.markers.overall
+    ) %>% 
     dplyr::group_by(INDIVIDUALS, POP_ID) %>% 
     dplyr::summarise(
-      GENOTYPED = n(),
+      GENOTYPED = unique(GENOTYPED),
+      MISSING_PROP_POP = unique(MISSING_PROP_POP),
+      MISSING_PROP_OVERALL = unique(MISSING_PROP_OVERALL),
       HET_NUMBER = length(HET[HET == 1]),
       HET_PROP = HET_NUMBER / GENOTYPED
     ) %>%
-    dplyr::arrange(POP_ID, HET_PROP) %>% 
+    dplyr::arrange(POP_ID, HET_PROP) %>%
     dplyr::ungroup(.)
   
   het.ind.overall <- dplyr::mutate(.data = het.ind, POP_ID = as.character(POP_ID)) %>%
     dplyr::bind_rows(dplyr::mutate(.data = het.ind, POP_ID = rep("OVERALL", n()))) %>%
-    dplyr::mutate(POP_ID = factor(POP_ID, levels = c(levels(het.summary$POP_ID), "OVERALL")))
-    
+    dplyr::mutate(POP_ID = factor(POP_ID, levels = c(levels(het.ind$POP_ID), "OVERALL"))) %>% 
+    tidyr::gather(data = ., key = MISSING_GROUP, value = MISSING_PROP, -c(POP_ID, INDIVIDUALS, GENOTYPED, HET_NUMBER, HET_PROP)) %>% 
+    dplyr::mutate(MISSING_GROUP = factor(MISSING_GROUP, levels = c("MISSING_PROP_POP", "MISSING_PROP_OVERALL")))
+  
   
   # Get stats...
-  
+  message("Calculating statistics")
   het.ind.stats <- het.ind.overall %>%
     dplyr::group_by(POP_ID) %>%
     dplyr::summarise(
@@ -161,23 +251,30 @@ detect_mixed_genomes <- function(
     tidyr::unite(data = ., HET_RANGE, HET_MIN, HET_MAX, sep = " - ") %>% 
     dplyr::arrange(POP_ID, HET_MEAN)
   
+  
+  message("Generating plots")
+  
   rounder <- function(x, accuracy, f = round) {
     f(x / accuracy) * accuracy
   }
   y.breaks.by <- rounder(max(het.ind$HET_PROP)/10, 0.001, ceiling)
   y.breaks.max <- rounder(max(het.ind$HET_PROP), 0.001, ceiling)
-  y.breaks <- seq(0, y.breaks.max, by = y.breaks.by)
-
+  y.breaks <- seq(0, y.breaks.max + y.breaks.by , by = y.breaks.by)
   
-  individual.heterozygosity.manhattan.plot <- ggplot(data = het.ind.overall, aes(x = POP_ID, y = HET_PROP, colour = POP_ID)) + 
-    geom_jitter() + 
+  # labeller to rename in the facet_grid or facet_wrap call:
+  facet_names <- as_labeller(c(`MISSING_PROP_OVERALL` = "Missing (overall)", `MISSING_PROP_POP` = "Missing (populations)"))
+  
+  individual.heterozygosity.manhattan.plot <- ggplot(data = het.ind.overall, aes(x = POP_ID, y = HET_PROP, size = MISSING_PROP, colour = POP_ID)) + 
+    geom_jitter(alpha = 0.6) + 
     labs(y = "Individual's Mean Heterozygosity (proportion)") +
     # labs(x = "Populations") +
     # labs(colour = "Populations") +
-    scale_y_continuous(name = waiver(), breaks = y.breaks, limits = c(0, y.breaks.max), expand = c(0.06, 0)) +
+    scale_y_continuous(name = waiver(), breaks = y.breaks) +#, limits = c(0, y.breaks.max), expand = c(0.1, 0)) +
+    scale_color_discrete(guide = "none") +
+    scale_size_continuous(name = "Missing proportion") +
     # theme_minimal() +
     theme(
-      legend.position = "none",
+      # legend.position = "none",
       # panel.grid.major.y = element_line(linetype = "solid"),
       # panel.grid.minor.y = element_line(linetype = "longdash", size = 1),
       # panel.background = element_blank(),
@@ -194,7 +291,7 @@ detect_mixed_genomes <- function(
     geom_hline(mapping = aes(yintercept = HET_MEAN), het.ind.stats, linetype = "dotted", size = 0.6) + #mean
     # geom_hline(mapping = aes(yintercept = HET_sig_minus), het.ind.stats.pop, linetype = "dashed") + #3 sigma -
     # geom_hline(mapping = aes(yintercept = HET_sig_plus), het.ind.stats.pop, linetype = "dashed") + #3 sigma +
-    facet_grid(~ POP_ID, switch = "x", scales = "free")
+    facet_grid(MISSING_GROUP ~ POP_ID, switch = "x", scales = "free", labeller = labeller(MISSING_GROUP = facet_names))
   # individual.heterozygosity.manhattan.plot
   
   individual.heterozygosity.boxplot <- ggplot(data = het.ind.overall, aes(x = POP_ID, y = HET_PROP, colour = POP_ID)) + 
@@ -226,7 +323,7 @@ detect_mixed_genomes <- function(
       dplyr::distinct(INDIVIDUALS)
     
     message(stringi::stri_join("Filter individual's heterozygosity: ", length(blacklist.ind.het$INDIVIDUALS), " individual(s) blacklisted"))
-
+    
   } else {
     blacklist.ind.het <- "ind.heterozygosity.threshold is necessary to get a blacklist of individuals"
   }
@@ -234,7 +331,7 @@ detect_mixed_genomes <- function(
   cat("############################## completed ##############################\n")
   res <- list(
     individual.heterozygosity = het.ind,
-    individual.heterozygosity.statistics = het.ind.stats,
+    heterozygosity.statistics = het.ind.stats,
     blacklist.ind.het = blacklist.ind.het,
     individual.heterozygosity.boxplot = individual.heterozygosity.boxplot,
     individual.heterozygosity.manhattan.plot = individual.heterozygosity.manhattan.plot

@@ -97,10 +97,10 @@ change_alleles <- function(data, monomorphic.out = TRUE) {
   
   alleles.old <- dplyr::distinct(.data = input.genotyped.split, MARKERS, ALLELES) %>% 
     dplyr::arrange(MARKERS, ALLELES)
-
+  
   marker.type <- dplyr::distinct(.data = input.genotyped.split, MARKERS, ALLELES) %>%
     dplyr::count(x = ., MARKERS)
-
+  
   # monomorphic
   if (monomorphic.out) { 
     # monomorphic markers 
@@ -133,12 +133,12 @@ change_alleles <- function(data, monomorphic.out = TRUE) {
         GT_VCF_A1 = dplyr::if_else(A1 == REF, "0", "1", missing = "."),
         GT_VCF_A2 = dplyr::if_else(A2 == REF, "0", "1", missing = "."),
         GT_VCF = stringi::stri_join(GT_VCF_A1, GT_VCF_A2, sep = "/"),
-        GT_BIN = stringi::stri_replace_all_fixed(
+        GT_BIN = as.numeric(stringi::stri_replace_all_fixed(
           str = GT_VCF, 
           pattern = c("0/0", "1/1", "0/1", "1/0", "./."), 
           replacement = c("0", "2", "1", "1", NA), 
           vectorize_all = FALSE
-        ),
+        )),
         REF = stringi::stri_replace_all_fixed(
           str = REF, 
           pattern = c("001", "002", "003", "004"), 

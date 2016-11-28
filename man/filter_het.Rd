@@ -25,14 +25,17 @@ be interactive. With the default, the user is asked to see figures of
 distribution before making decisions for filtering with heterozygosity statistics.
 Default: \code{interactive.filter == TRUE}.}
 
-\item{ind.heterozygosity.threshold}{(double, optional)
+\item{ind.heterozygosity.threshold}{(string, double, optional)
 Blacklist individuals based on observed heterozygosity of individuals 
 (averaged across markers).
-The value for the threshold is a proportion (0 to 1, where 1 will turn off 
-the filter).
-Individuals with mean heterozygosity higher (>) than the threshold
-will be blacklisted.
-Default: \code{ind.heterozygosity.threshold = 1}.}
+The string contains 2 thresholds values (min and max). 
+The values are proportions (0 to 1), where 0 turns off the min threshold and
+1 turns off the max threshold.
+Default: \code{ind.heterozygosity.threshold = NULL} will turn completely 
+off the filter and the function will only output the plots 
+and table of heterozygosity.
+Individuals with mean heterozygosity higher (>) or lower (<) than the thresholds
+will be blacklisted.}
 
 \item{het.approach}{(Character string). First value, \code{"SNP"} or
 \code{"haplotype"}. The haplotype approach considers the statistic

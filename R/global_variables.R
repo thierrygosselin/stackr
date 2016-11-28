@@ -45,7 +45,8 @@ if (getRversion() >= "2.15.1") {
       "fh", "HOM_REF", "BETAI", "HB", "HW", "NN", "NN_C", "N_POP", "N_POP_C",
       "DIFFERENT", "DISTANCE", "ID1", "ID2", "IDENTICAL", "IDENTICAL_GT",
       "PAIRWISE", "POP_COMP", "PROP_IDENTICAL", "TOTAL_MARKERS_GENOTYPED", "X1",
-      "HET_RANGE"
+      "HET_RANGE", "MISSING_GROUP", "MISSING_PROP", "MISSING_PROP_OVERALL",
+      "MISSING_PROP_POP"
     )
   )
 }
