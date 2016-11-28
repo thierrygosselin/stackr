@@ -6,8 +6,8 @@
 
 #' @description Detect allele problems.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
-#' and might be of interest for users. The function compute allele counts and
-#' look for alleles bellow a certain threshold. The summary statistics for the
+#' and might be of interest for users. The function computes allele counts and
+#' looks for alleles bellow a certain threshold. The summary statistics for the
 #' markers with problematic allele is computed based on coverage and
 #' genotype likelihood. This function is very fast to highlight: i) bias in
 #' representation of allelic copies and unequal coverage and ii) type I error 
