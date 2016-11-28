@@ -1637,7 +1637,7 @@ tidy_genomic_data <- function(
     message(stringi::stri_join("Data format: ", data.type))
     message(stringi::stri_join("Biallelic data ? ", biallelic))
     message(stringi::stri_join("Number of markers: ", n.markers))
-    message(stringi::stri_join("Number of chromosome: ", n.chromosome))
+    message(stringi::stri_join("Number of chromosome/contig/scaffold: ", n.chromosome))
     message(stringi::stri_join("Number of individuals ", n.individuals))
     message(stringi::stri_join("Number of populations ", n.pop))
     timing <- proc.time() - timing

@@ -119,7 +119,7 @@
 #' outlier.ind.het$individual.heterozygosity.manhattan.plot
 #' 
 #' # To view the box plot
-#' outlier.ind.het$$individual.heterozygosity.boxplot
+#' outlier.ind.het$individual.heterozygosity.boxplot
 #' 
 #' # To save the boxplot:
 #' 

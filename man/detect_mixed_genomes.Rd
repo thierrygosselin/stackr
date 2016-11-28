@@ -114,7 +114,7 @@ outlier.ind.het$individual.heterozygosity
 outlier.ind.het$individual.heterozygosity.manhattan.plot
 
 # To view the box plot
-outlier.ind.het$$individual.heterozygosity.boxplot
+outlier.ind.het$individual.heterozygosity.boxplot
 
 # To save the boxplot:
 
@@ -149,6 +149,6 @@ path = "blacklist.individuals.heterozygosity.tsv", col_names = TRUE
 }
 }
 \author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
+Thierry Gosselin \email{thierrygosselin@icloud.com} and Peter Grewe \email{peter.grewe@csiro.au}
 }
 

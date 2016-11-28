@@ -26,16 +26,17 @@ distribution before making decisions for filtering with heterozygosity statistic
 Default: \code{interactive.filter == TRUE}.}
 
 \item{ind.heterozygosity.threshold}{(string, double, optional)
-Blacklist individuals based on observed heterozygosity of individuals 
-(averaged across markers).
+Blacklist individuals based on observed heterozygosity (averaged across markers).
+
+
 The string contains 2 thresholds values (min and max). 
 The values are proportions (0 to 1), where 0 turns off the min threshold and
 1 turns off the max threshold.
-Default: \code{ind.heterozygosity.threshold = NULL} will turn completely 
-off the filter and the function will only output the plots 
-and table of heterozygosity.
-Individuals with mean heterozygosity higher (>) or lower (<) than the thresholds
-will be blacklisted.}
+Individuals with mean observed heterozygosity higher (>) or lower (<) 
+than the thresholds will be blacklisted. 
+
+Default: \code{ind.heterozygosity.threshold = NULL} will turn off completely 
+the filter and the function will only output the plots and table of heterozygosity.}
 
 \item{het.approach}{(Character string). First value, \code{"SNP"} or
 \code{"haplotype"}. The haplotype approach considers the statistic
@@ -183,7 +184,7 @@ Default: \code{pop.select = NULL}}
 }
 \value{
 The function returns inside the global environment a list with
-14 objects, the objects names are found by using \code{names(your.list.name)}:
+15 objects, the objects names are found by using \code{names(your.list.name)}:
 
 \enumerate{
 \item filtered tidy data frame: \code{$tidy.filtered.het}
@@ -191,9 +192,10 @@ The function returns inside the global environment a list with
 \item the strata:\code{$strata}
 \item the filters parameters used:\code{$filters.parameters}
 \item the individual's heterozigosity:\code{$individual.heterozigosity}
+\item the heterozygosity statistics per populations and overall:\code{$heterozygosity.statistics}
 \item the blacklisted individuals based on the individual's heterozigosity:\code{$blacklist.ind.het}
 \item a list containing the helper tables:\code{$helper.table.het}
-\item the boxplot of individual heterozygosity:\code{$individual.heterozygosity.boxplot}
+\item the boxplot of individual observed heterozygosity:\code{$individual.heterozygosity.boxplot}
 \item the manhattan plot of individual heterozygosity:\code{$individual.heterozygosity.manhattan.plot}
 \item the boxplot of observed heterozygosity averaged across markers and pop:\code{$markers.pop.heterozygosity.boxplot}
 \item the density plot of observed heterozygosity averaged across markers and pop:\code{$markers.pop.heterozygosity.density.plot}
@@ -207,13 +209,14 @@ In the working directory, output is conditional to \code{interactive.filter} arg
 }
 \description{
 Observed Heterozygosity based filtering. 
-The filter arguments of \code{filter_het} allows you to test rapidly,
-with the use of blacklists of markers and individuals and whitelists of markers,
+The filter arguments of \code{filter_het} allows you to test rapidly
 if departure from realistic expectations of heterozygosity statistics 
 are a problem in downstream analysis.
 \enumerate{
-\item Highlight outliers individual's heterozygosity for a quick
-diagnostic of mixed samples. 
+\item Highlight outliers individual's observed heterozygosity for a quick
+diagnostic of mixed samples or poor polymorphism discovery. The statistic is
+also contrasted with missing data to help differentiate problems.
+(also computed in \link{detect_mixed_genomes})
 
 \item The observed heterozygosity in the dataset: an assembly artefact, 
 a genotyping problem, a problem of population groupings 
@@ -236,8 +239,8 @@ a decision on thresholds.
 There are 4 steps in the interactive version to visualize and filter
 the data based heterozygosity statistics:
 
-Step 1. Individual's heterozygosity: outliers that might represent mixed samples
-Step 2. Blacklist outliers based on a proportion threshold of mean heterozygosity
+Step 1. Individual's observed heterozygosity: outliers that might represent mixed samples
+Step 2. Blacklist outliers based on a proportion threshold of mean observed heterozygosity
 Step 3. Observed heterozygosity statistics per populations and overall
 Step 4: Blacklist markers based on observed heterozygosity
 
@@ -254,6 +257,45 @@ to keep, using \code{pop.num.threshold = 0.6} will lead to unwanted results
 and inconsistensis.
 It's easier to tolerate outliers with this new approach: 
 \code{outlier.pop.threshold = 2}.
+
+
+\strong{Individual observed heterozygosity (averaged across markers):}
+To help discard an individual based on his observed heterozygosity
+(averaged across markers),
+use the manhanttan plot to:
+\enumerate{
+\item contrast the individual with population and overall samples.
+\item visualize the impact of missigness information (based on population or 
+overall number of markers) and the individual observed heterozygosity. The
+larger the point, the more missing genotypes.
+}
+\strong{Outlier above average:}
+\itemize{
+\item potentially represent two samples mixed together (action: blacklist), or...
+\item a sample with more sequecing effort (point size small): did you merge your replicates fq files ? (action : keep and monitor)
+\item a sample with poor sequencing effort (point size large) where the genotyped markers are
+all heterozygotes, verify this with missingness (action: discard)
+}
+In all cases, if there is no bias in the population sequencing effort,
+the size of the point will usually be "average" based on the population or
+overall number of markers.
+
+
+You can visualize individual observed heterozygosity, choose thresholds and
+then visualize, choose thresholds and filter markers based on observed 
+heterozygosity in one run with: \pkg{stackr} \code{\link{filter_het}}.
+
+\strong{Outlier below average:}
+\itemize{
+\item A point with a size larger than the population or overall average (= lots of missing): 
+the poor polymorphism discovery of the sample is probably the result of bad
+DNA quality, a bias in sequencing effort, etc. (action: blacklist)
+\item A point with a size that looks average (not much missing): 
+this sample requires more attention (action: blacklist) and conduct more tests.
+e.g. for biallelic data, look for coverage imbalance between ALT/REF allele.
+At this point you need to distinguish between an artifact of poor polymorphism discovery 
+or a biological reason (highly inbred individual, etc.).
+}
 }
 \seealso{
 \link{plot_density_distribution_het}
