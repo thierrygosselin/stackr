@@ -663,7 +663,7 @@ tidy_genomic_data <- function(
     } else {#biallelic vcf
       input <- input %>%
         dplyr::mutate(
-          REF2 = stri_replace_all_fixed(
+          REF2 = stringi::stri_replace_all_fixed(
             str = REF, 
             pattern = c("A", "C", "G", "T"), 
             replacement = c("001", "002", "003", "004"), 
