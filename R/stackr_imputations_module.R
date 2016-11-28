@@ -71,7 +71,7 @@
 
 #' @export
 #' @rdname stackr_imputations_module
-#' @importFrom parallel detectCores mclapply
+#' @importFrom parallel detectCores
 #' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate mutate_all summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs bind_rows
 
 #' @importFrom tidyr spread gather separate
@@ -213,7 +213,7 @@ stackr_imputations_module <- function(
       } # End impute_rf_pop
       
       input.imp <- list()
-      input.imp <- parallel::mclapply(
+      input.imp <- .stackr_parallel(
         X = pop.list,
         FUN = impute_rf_pop,
         mc.preschedule = FALSE,

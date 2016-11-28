@@ -55,7 +55,7 @@
 
 #' @param parallel.core (optional) The number of core for parallel
 #' programming during Pi calculations. 
-#' Default: \code{parallel.core = detectCores() - 1}.
+#' Default: \code{parallel.core = parallel::detectCores() - 1}.
 
 #' @importFrom stringdist stringdist
 #' @importFrom utils combn count.fields
@@ -66,7 +66,7 @@
 #' @importFrom readr write_tsv read_tsv
 #' @importFrom tidyr separate gather
 #' @importFrom data.table fread melt.data.table as.data.table
-#' @import parallel
+#' @importFrom parallel detectCores
 
 #' @return The function returns a list with:
 #' \enumerate{
@@ -594,7 +594,7 @@ summary_haplotypes <- function(
       do(., pi(y = .$ALLELES, read.length = read.length))
     pi.res[[pop.list]] <- pi.pop.data
   }
-  pi.res <- mclapply(
+  pi.res <- .stackr_parallel(
     X = pop.list, 
     FUN = pi_pop, 
     mc.preschedule = FALSE, 

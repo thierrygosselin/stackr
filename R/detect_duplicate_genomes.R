@@ -54,7 +54,7 @@
 #' @importFrom reshape2 melt
 #' @importFrom lazyeval interp
 #' @importFrom readr write_tsv
-#' @importFrom parallel mclapply
+#' @importFrom parallel detectCores
 #' @importFrom purrr flatten map
 
 #' @examples
@@ -352,7 +352,7 @@ detect_duplicate_genomes <- function(
     # list.pair <- 5
     # parallel.core<-8
     message("Starting scan for duplicate genomes, take a break...")
-    pairwise.genome.similarity <- parallel::mclapply(
+    pairwise.genome.similarity <- .stackr_parallel(
       X = list.pair, 
       FUN = pairwise_genome_similarity, 
       mc.preschedule = FALSE, 
