@@ -94,7 +94,7 @@
 #' \dontrun{
 #' #Step1: highlight outlier individuals, the simplest way to run:
 #' 
-#' outlier.ind.het <- detect_mixed_genomes(data = "wombat_tidy.tsv")
+#' outlier.ind.het <- stackr::detect_mixed_genomes(data = "wombat_tidy.tsv")
 #' 
 #' # Or if you don't have a tidy df:
 #' 
@@ -140,12 +140,17 @@
 #' # Based on the look of the distribution using both jitter and boxplot,
 #' # choose a threshold to blacklist the outliers and re-run the function.
 #' 
-#' outlier.ind.het <- detect_mixed_genomes(data = "wombat_tidy.tsv", ind.heterozygosity.threshold = c(0.02, 0.2))
+#' outlier.ind.het <- stackr::detect_mixed_genomes(
+#' data = "wombat_tidy.tsv", ind.heterozygosity.threshold = c(0.02, 0.2)
+#' )
 #' 
 #' blacklist.ind.het <- outlier.ind.het$blacklist.ind.het
 #' 
 #' # To keep the blacklist:
-#' readr::write_tsv(x = blacklist.ind.het, path = "blacklist.individuals.heterozygosity.tsv", col_names = TRUE)
+#' readr::write_tsv(
+#' x = blacklist.ind.het,
+#' path = "blacklist.individuals.heterozygosity.tsv", col_names = TRUE
+#' )
 #' }
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
@@ -282,7 +287,7 @@ detect_mixed_genomes <- function(
   
   individual.heterozygosity.manhattan.plot <- ggplot(data = het.ind.overall, aes(x = POP_ID, y = HET_PROP, size = MISSING_PROP, colour = POP_ID)) + 
     geom_jitter(alpha = 0.6) + 
-    labs(y = "Individual's Mean Heterozygosity (proportion)") +
+    labs(y = "Individual's Mean Observed Heterozygosity (proportion)") +
     # labs(x = "Populations") +
     # labs(colour = "Populations") +
     scale_y_continuous(name = waiver(), breaks = y.breaks) +#, limits = c(0, y.breaks.max), expand = c(0.1, 0)) +
@@ -312,7 +317,7 @@ detect_mixed_genomes <- function(
   
   individual.heterozygosity.boxplot <- ggplot(data = het.ind.overall, aes(x = POP_ID, y = HET_PROP, colour = POP_ID)) + 
     geom_boxplot() + 
-    labs(y = "Individual's Mean Heterozygosity (proportion)") +
+    labs(y = "Individual's Mean Observed Heterozygosity (proportion)") +
     labs(x = "Populations") +
     labs(colour = "Populations") +
     scale_y_continuous(name = waiver(), breaks = y.breaks, limits = c(0, y.breaks.max), expand = c(0.06, 0)) +
