@@ -96,6 +96,18 @@
 #' 
 #' outlier.ind.het <- detect_mixed_genomes(data = "wombat_tidy.tsv")
 #' 
+#' # Or if you don't have a tidy df:
+#' 
+#' outlier.ind.het <- stackr::tidy_genomic_data(
+#' data = "wombat.vcf",
+#' strata = "strata.wombat.tsv",
+#' common.markers = FALSE,
+#' vcf.metadata = FALSE,
+#' verbose = TRUE
+#' ) %>% 
+#' stackr::detect_mixed_genomes(.)
+#' 
+#' 
 #' #This example, without threshold, will not produce a blacklist of individuals.
 #' 
 #' #To look at the table with individual's heterozygosity:
@@ -124,9 +136,13 @@
 #' width = 15, height = 10, dpi = 300, units = "cm"
 #' )
 #' 
-#' 
+#' #Step2: blacklist ind with min and max Het obs thresholds
 #' # Based on the look of the distribution using both jitter and boxplot,
 #' # choose a threshold to blacklist the outliers and re-run the function.
+#' 
+#' outlier.ind.het <- detect_mixed_genomes(data = "wombat_tidy.tsv", ind.heterozygosity.threshold = c(0.02, 0.2))
+#' 
+#' blacklist.ind.het <- outlier.ind.het$blacklist.ind.het
 #' 
 #' # To keep the blacklist:
 #' readr::write_tsv(x = blacklist.ind.het, path = "blacklist.individuals.heterozygosity.tsv", col_names = TRUE)
