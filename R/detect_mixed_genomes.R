@@ -153,7 +153,7 @@
 #' )
 #' }
 
-#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com} and Peter Grewe \email{peter.grewe@@csiro.au}
 
 detect_mixed_genomes <- function(
   data,
