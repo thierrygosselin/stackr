@@ -111,7 +111,7 @@ change_alleles <- function(data, monomorphic.out = TRUE) {
   # Biallelic marker detection -------------------------------------------------
   biallelic <- purrr::flatten_chr(.x = dplyr::summarise(.data = marker.type, BIALLELIC = max(n, na.rm = TRUE)))
   
-  if (biallelic > 4 ) {
+  if (biallelic > 4) {
     biallelic <- FALSE
   } else {
     biallelic <- TRUE
