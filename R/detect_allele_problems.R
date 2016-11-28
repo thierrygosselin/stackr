@@ -36,7 +36,6 @@
 #' allele.threshold = 3
 #' )
 #' # The default with this function:
-#' # vcf.metadata = TRUE # VCF metadata (read depth, etc. are imported)
 #' # monomorphic.out = TRUE # = discarded
 #' # common.markers = TRUE # markers not in common between pop are discarded
 #' }
@@ -54,7 +53,6 @@
 detect_allele_problems <- function(
   data,
   allele.threshold = 3,
-  vcf.metadata = TRUE,
   whitelist.markers = NULL,
   monomorphic.out = TRUE,
   blacklist.genotype = NULL,
