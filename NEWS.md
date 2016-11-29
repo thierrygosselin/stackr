@@ -1,3 +1,26 @@
+# stackr v.0.4.6
+
+* I'm pleased to announce that `stackr` parallel mode now works with **Windows**!
+Nothing to install, just need to choose the number of CPU,
+the rest is done automatically.
+* `haplo2colony` is deprecated. Use the new function called `write_colony`!
+* `write_colony`: works similarly to the deprecated function `haplo2colony`,
+      * with the major advantage that it's no longer restricted to STACKS 
+      haplotypes file. 
+      * The function is using the `tidy_genomic_data` module
+      to import files. So you can choose one of the 10 input file formats supported
+      by `stackr`!
+      * other benefits also include the possibility to efficiently test MAF, 
+      snp.ld, haplotypes/snp approach, whitelist of markes, 
+      blacklist of individuals, blacklist of genotypes, etc. with the buit-it
+      arguments.
+      * the function only **keeps markers in common** between populations/groups
+      and **is removing monomorphic markers**.
+      * **Note:** there are several *defaults* in the function and
+      it's a complicated file format, so make sure to read the function
+      documentation, please, and `COLONY` manual.
+
+
 # stackr v.0.4.5
 
 * temporary fix to `tidy_genomic_data` to read unconventional Tassel VCF

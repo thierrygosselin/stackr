@@ -268,19 +268,6 @@ For details about imputations, look into \pkg{stackr} \code{\link{stackr_imputat
 Please consider keeping just 1 SNP per read, \code{COLONY} doesn't like this
 kind of linkage... use the argument \code{snp.ld}.
 }
-\examples{
-\dontrun{
-tidy.vcf <- tidy_genomic_data(
-data = "batch_1.vcf",
-whitelist.markers = "whitelist.vcf.txt",
-snp.ld = NULL,
-common.markers = TRUE,
-blacklist.id = "blacklist.id.treefrog.tsv",
-strata = "strata.treefrog.tsv",
-pop.levels = c("PAN", "COS")
-)
-}
-}
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
