@@ -127,14 +127,27 @@
 
 #' @examples
 #' \dontrun{
-#' tidy.vcf <- tidy_genomic_data(
+#' # Simplest way to run the function:
+#' colony.file <- stackr::write_colony(
 #' data = "batch_1.vcf",
-#' whitelist.markers = "whitelist.vcf.txt",
-#' snp.ld = NULL,
-#' common.markers = TRUE,
-#' blacklist.id = "blacklist.id.treefrog.tsv",
+#' strata = "strata.treefrog.tsv"
+#' )
+#' 
+#' # With imputations and a STACKS haplotypes file:
+#' colony.file <- stackr::write_colony(
+#' data = "batch_1.haplotypes.tsv",
 #' strata = "strata.treefrog.tsv",
-#' pop.levels = c("PAN", "COS")
+#' imputation.method = "rf
+#' )
+#' 
+#' # Now using a whitelist of markers and keeping only the first SNP on each read:
+#' colony.file <- stackr::write_colony(
+#' data = "batch_1.haplotypes.tsv",
+#' strata = "strata.treefrog.tsv",
+#' whitelist.markers = "whitelist.vcf.txt",
+#' snp.ld = "first",
+#' common.markers = TRUE, # this is also a default...
+#' monomorphic.out = TRUE # this is also a default...
 #' )
 #' }
 
