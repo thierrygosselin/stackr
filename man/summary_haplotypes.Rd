@@ -44,7 +44,7 @@ Default: \code{pop.labels = NULL}.}
 
 \item{parallel.core}{(optional) The number of core for parallel
 programming during Pi calculations. 
-Default: \code{parallel.core = detectCores() - 1}.}
+Default: \code{parallel.core = parallel::detectCores() - 1}.}
 }
 \value{
 The function returns a list with:

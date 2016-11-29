@@ -15,7 +15,8 @@ betas_estimator(data, strata = NULL, monomorphic.out = TRUE,
 (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. \emph{See details}.}
+and a data frame in wide format. 
+\emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{strata}{(optional/required) Required for VCF and haplotypes files, 
 optional for the other file formats supported. 

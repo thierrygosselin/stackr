@@ -16,7 +16,8 @@ filter_population(data, vcf.metadata = FALSE, interactive.filter = TRUE,
 (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. \emph{See details}.}
+and a data frame in wide format. 
+\emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{vcf.metadata}{(optional, logical) For the VCF file, 
 with \code{vcf.metadata = FALSE}, only the genotype information is kept.

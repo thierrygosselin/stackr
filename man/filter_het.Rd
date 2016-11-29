@@ -5,7 +5,7 @@
 \title{Heterozygosity filter}
 \usage{
 filter_het(data, interactive.filter = TRUE,
-  ind.heterozygosity.threshold = 1, het.approach = c("haplotype",
+  ind.heterozygosity.threshold = NULL, het.approach = c("haplotype",
   "overall"), het.threshold = 1, het.dif.threshold = 1,
   outlier.pop.threshold = 1, helper.tables = FALSE, filename = NULL,
   vcf.metadata = FALSE, blacklist.id = NULL, blacklist.genotype = NULL,
@@ -18,7 +18,8 @@ filter_het(data, interactive.filter = TRUE,
 (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. \emph{See details}.}
+and a data frame in wide format. 
+\emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{interactive.filter}{(optional, logical) Do you want the filtering session to 
 be interactive. With the default, the user is asked to see figures of 

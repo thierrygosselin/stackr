@@ -199,7 +199,7 @@
 filter_het <- function(
   data,
   interactive.filter = TRUE,
-  ind.heterozygosity.threshold = 1,
+  ind.heterozygosity.threshold = NULL,
   het.approach = c("haplotype", "overall"),
   het.threshold = 1,
   het.dif.threshold = 1,
@@ -312,6 +312,15 @@ filter_het <- function(
     
     pop.number <- dplyr::n_distinct(input$POP_ID) # number of pop
     
+    
+    # scan for the columnn CHROM and keep the info to include it after imputations
+    if (tibble::has_name(input, "CHROM")) {
+      marker.meta <- dplyr::distinct(.data = input, MARKERS, CHROM, LOCUS, POS)
+    } else {
+      marker.meta <- NULL
+    }
+    
+
     # double check the approach vs the file used
     if (!tibble::has_name(input, "CHROM") & het.approach[1] == "haplotype") {
       stop("The haplotype approach during HET filtering requires LOCUS and SNP 
@@ -510,6 +519,7 @@ will be blacklisted. 1 turns off the max filter.
 Enter the values (proportion, e.g. 0.34 for max threshold:")
         threshold.max <- as.numeric(readLines(n = 1))
       }
+      ind.heterozygosity.threshold <- c(threshold.min, threshold.max)
     }
     
     if (!is.null(ind.heterozygosity.threshold)) {
@@ -532,16 +542,6 @@ Enter the values (proportion, e.g. 0.34 for max threshold:")
     }
     
     # Step 3. Markers observed heterozygosity statistics per populations and overall----
-    
-    # highlight heterozygote
-    het.summary <- input %>%
-      dplyr::filter(GT != "000000") %>%
-      dplyr::mutate(
-        HET = dplyr::if_else(
-          stringi::stri_sub(GT, 1, 3) != stringi::stri_sub(GT, 4, 6), 1, 0
-        )
-      )
-    
     # input <- NULL # no longer needed
     # decide approach
     # Haplotype or SNP approach ...
@@ -576,8 +576,38 @@ use the overall approach.\n")
       }
     }
     message("Computing heterozygosity summary statistics...")
+    
+    # For the next steps we keep only genotyped markers
+    het.summary <- dplyr::filter(.data = het.summary, GT != "000000")
+    
     if (tibble::has_name(het.summary, "LOCUS") & het.approach[1] == "haplotype") {
       # By pop
+      het.missing.pop <- dplyr::distinct(input, LOCUS, POP_ID, INDIVIDUALS, GT) %>% 
+        dplyr::group_by(LOCUS, POP_ID) %>% 
+        dplyr::summarise(
+          GENOTYPED = length(INDIVIDUALS[GT != "000000"]),
+          TOTAL = n(),
+          MISSING_PROP = (TOTAL - GENOTYPED)/TOTAL
+        ) %>%
+        dplyr::ungroup(.) %>% 
+        dplyr::filter(MISSING_PROP != 1) %>% 
+        dplyr::select(LOCUS, POP_ID, MISSING_PROP)
+      
+      
+      het.missing.overall <- dplyr::distinct(input, LOCUS, INDIVIDUALS, GT) %>% 
+        dplyr::group_by(LOCUS) %>% 
+        dplyr::summarise(
+          GENOTYPED = length(INDIVIDUALS[GT != "000000"]),
+          TOTAL = n(),
+          MISSING_PROP = (TOTAL - GENOTYPED)/TOTAL
+        ) %>% 
+        dplyr::select(LOCUS, MISSING_PROP) %>% 
+        dplyr::mutate(POP_ID = rep("OVERALL", n())) %>%
+        dplyr::bind_rows(dplyr::mutate(.data = het.missing.pop, POP_ID = as.character(POP_ID))) %>% 
+        dplyr::mutate(POP_ID = factor(POP_ID, levels = c(levels(het.missing.pop$POP_ID), "OVERALL")))
+      
+      het.missing.pop <- NULL
+      
       het.summary.pop <- het.summary %>%
         dplyr::group_by(MARKERS, LOCUS, POP_ID) %>%
         dplyr::summarise(HET_O = as.numeric(length(HET[HET == 1]) / n())) %>% 
@@ -622,15 +652,41 @@ use the overall approach.\n")
       )
     } else {
       # By pop
+      het.missing.pop <- input %>% 
+        dplyr::group_by(MARKERS, POP_ID) %>% 
+        dplyr::summarise(
+          GENOTYPED = length(INDIVIDUALS[GT != "000000"]),
+          TOTAL = n(),
+          MISSING_PROP = (TOTAL - GENOTYPED)/TOTAL
+        ) %>%
+        dplyr::ungroup(.) %>% 
+        # next step removes pop with 100% missing (not genotyped at all)
+        # no impact if common.markers was used.
+        dplyr::filter(MISSING_PROP != 1) %>%
+        dplyr::select(MARKERS, POP_ID, MISSING_PROP)
+
       het.summary.pop <- het.summary %>%
         dplyr::group_by(MARKERS, POP_ID) %>%
-        dplyr::summarise(HET_MEAN = as.numeric(length(HET[HET == 1]) / n()))
+        dplyr::summarise(HET_MEAN = as.numeric(length(HET[HET == 1]) / n())) %>% 
+        dplyr::full_join(het.missing.pop, by = c("MARKERS", "POP_ID"))
       
       # Overall
+      het.missing.overall <- input %>% 
+        dplyr::group_by(MARKERS) %>% 
+        dplyr::summarise(
+          GENOTYPED = length(INDIVIDUALS[GT != "000000"]),
+          TOTAL = n(),
+          MISSING_PROP = (TOTAL - GENOTYPED)/TOTAL
+        ) %>% 
+        dplyr::select(MARKERS, MISSING_PROP) %>% 
+        dplyr::mutate(POP_ID = rep("OVERALL", n()))
+
       het.summary.overall <- het.summary %>%
         dplyr::group_by(MARKERS) %>%
         dplyr::summarise(HET_MEAN = as.numeric(length(HET[HET == 1]) / n())) %>% 
-        dplyr::mutate(POP_ID = rep("OVERALL", n()))
+        dplyr::mutate(POP_ID = rep("OVERALL", n())) %>% 
+        dplyr::full_join(het.missing.overall, by = c("MARKERS", "POP_ID"))
+      
       
       het.summary.tidy <- suppressWarnings(
         dplyr::bind_rows(het.summary.pop, het.summary.overall) %>% 
@@ -638,12 +694,11 @@ use the overall approach.\n")
             data = ., 
             key = HET_GROUP, 
             value = VALUE, 
-            -c(MARKERS, POP_ID)
+            -c(MARKERS, POP_ID, MISSING_PROP)
           )
       )
     }
     # Tidy use for figures
-    
     # # unused object
     het.summary <- het.summary.pop 
     het.summary.pop <- NULL 
@@ -658,9 +713,10 @@ use the overall approach.\n")
     
     
     # Visualization --------------------------------------------------------------
+    # Density plot markers het obs -------------------------------------------------
     markers.pop.heterozygosity.density.plot <- ggplot(het.summary.tidy, aes(x = VALUE, na.rm = FALSE)) +
       geom_line(aes(y = ..scaled..), stat = "density", adjust = 0.3) +
-      labs(x = "Observed Heterozygosity") +
+      labs(x = "Markers Observed Heterozygosity") +
       labs(y = "Density of SNP (scaled)") +
       expand_limits(y = 0) +
       theme(
@@ -673,24 +729,32 @@ use the overall approach.\n")
       ) +
       facet_grid(POP_ID ~ HET_GROUP)
     
-    markers.pop.heterozygosity.manhattan.plot <- ggplot(data = het.summary.tidy, aes(x = POP_ID, y = VALUE, colour = POP_ID)) + 
-      geom_jitter() + 
-      labs(y = "Observed Heterozygosity") +
+    # manhattan plot markers het obs -------------------------------------------------
+    markers.pop.heterozygosity.manhattan.plot <- ggplot(data = het.summary.tidy, aes(x = POP_ID, y = VALUE, colour = POP_ID, size = MISSING_PROP)) + 
+      geom_jitter(alpha = 0.3) + 
+      labs(y = "Markers Observed Heterozygosity") +
       labs(x = "Populations") +
       labs(colour = "Populations") +
+      scale_color_discrete(guide = "none") +
+      scale_size_continuous(name = "Missing proportion") +
+      theme_minimal() +
       theme(
-        legend.position = "none",
+        panel.grid.major.y = element_line(linetype = "solid", colour = "black"),
+        panel.grid.minor.y = element_line(linetype = "dotted", colour = "blue"),
+        panel.grid.major.x = element_blank(),
+        # legend.position = "none",
         axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
         axis.text.x = element_text(size = 10, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
         axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
         axis.text.y = element_text(size = 8, family = "Helvetica")
       ) +
       facet_grid(~ HET_GROUP)
+    markers.pop.heterozygosity.manhattan.plot
     
-    
+    # box plot markers het obs -------------------------------------------------
     markers.pop.heterozygosity.boxplot <- ggplot(data = het.summary.tidy, aes(x = POP_ID, y = VALUE, colour = POP_ID)) + 
       geom_boxplot() + 
-      labs(y = "Observed Heterozygosity") +
+      labs(y = "Markers Observed Heterozygosity") +
       labs(x = "Populations") +
       labs(colour = "Populations") +
       theme(
@@ -1256,9 +1320,7 @@ maximum of 2 outlier populations (failing het.threshold and/or het.dif.threshold
 The lower the number, the more severe the filtering, while entering the 
 number of populations in the dataset turns off the filter.\n")
             message("Enter the outlier.pop.threshold:")
-            
             outlier.pop.threshold <- as.numeric(readLines(n = 1))
-            
           }
         }
       }
@@ -1345,6 +1407,12 @@ number of populations in the dataset turns off the filter.\n")
       whitelist.markers <- dplyr::ungroup(filter) %>%
         dplyr::distinct(MARKERS)
     }
+    
+    # Integrate marker.meta columns (double check from above)
+    if (!is.null(marker.meta)) {
+      whitelist.markers <- dplyr::left_join(whitelist.markers, marker.meta, by = "MARKERS")
+    }
+    
     readr::write_tsv(whitelist.markers, paste0(path.folder,"/whitelist.markers.het.tsv"), append = FALSE, col_names = TRUE)
     
     
@@ -1354,6 +1422,11 @@ number of populations in the dataset turns off the filter.\n")
       blacklist.markers <- dplyr::anti_join(markers.df, whitelist.markers, by = c("CHROM", "LOCUS", "POS"))
     } else {
       blacklist.markers <- dplyr::anti_join(markers.df, whitelist.markers, by = "MARKERS")
+    }
+    
+    # Integrate marker.meta columns (double check from above)
+    if (!is.null(marker.meta)) {
+      whitelist.markers <- dplyr::left_join(whitelist.markers, marker.meta, by = "MARKERS")
     }
     readr::write_tsv(blacklist.markers, paste0(path.folder,"/blacklist.markers.het.tsv"), append = FALSE, col_names = TRUE)
     

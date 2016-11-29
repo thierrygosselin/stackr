@@ -17,7 +17,8 @@ filter_individual(data, vcf.metadata = FALSE, interactive.filter = TRUE,
 (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. \emph{See details}.}
+and a data frame in wide format. 
+\emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{vcf.metadata}{(optional, logical) For the VCF file, 
 with \code{vcf.metadata = FALSE}, only the genotype information is kept.
@@ -212,7 +213,7 @@ turtle.ind <- filter_individual(
 data = "turtle.vcf",
 strata = "turtle.strata.tsv",
 ind.approach = "pop",
-ind.thresholds = 50,
+ind.threshold = 50,
 percent = TRUE,
 prob.pop.threshold = 2,
 filename = "tidy.data.turtle.tsv"

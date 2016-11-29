@@ -11,7 +11,8 @@ change_pop_names(data, pop.levels = NULL, pop.labels = NULL)
 (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. \emph{See details}.}
+and a data frame in wide format. 
+\emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
 case, the id of the pop.

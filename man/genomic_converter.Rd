@@ -20,7 +20,8 @@ genomic_converter(data, output = NULL, filename = NULL,
 (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. \emph{See details}.}
+and a data frame in wide format. 
+\emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{output}{Several options: tidy (by default), genind, genlight, vcf, plink, genepop,
 structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,

@@ -22,7 +22,8 @@ vcf2dadi(data, fasta.ingroup = NULL, fasta.outgroup = NULL,
 (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. \emph{See details}.}
+and a data frame in wide format. 
+\emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{fasta.ingroup}{(optional) The fasta output file from STACKS. This file is 
 required to use with an outgroup. Leave empty if no outgroup. 

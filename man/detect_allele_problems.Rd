@@ -4,31 +4,24 @@
 \alias{detect_allele_problems}
 \title{Detect allele problems}
 \usage{
-detect_allele_problems(data, allele.threshold = 3, vcf.metadata = TRUE,
-  whitelist.markers = NULL, monomorphic.out = TRUE,
-  blacklist.genotype = NULL, snp.ld = NULL, common.markers = TRUE,
-  maf.thresholds = NULL, maf.pop.num.threshold = 1, maf.approach = "SNP",
-  maf.operator = "OR", max.marker = NULL, blacklist.id = NULL,
-  pop.levels = NULL, pop.labels = NULL, strata = NULL,
-  pop.select = NULL, filename = NULL, verbose = FALSE)
+detect_allele_problems(data, allele.threshold = 3, whitelist.markers = NULL,
+  monomorphic.out = TRUE, blacklist.genotype = NULL, snp.ld = NULL,
+  common.markers = TRUE, maf.thresholds = NULL, maf.pop.num.threshold = 1,
+  maf.approach = "SNP", maf.operator = "OR", max.marker = NULL,
+  blacklist.id = NULL, pop.levels = NULL, pop.labels = NULL,
+  strata = NULL, pop.select = NULL, filename = NULL, verbose = FALSE)
 }
 \arguments{
 \item{data}{9 options: biallelic and haplotypic vcf
 (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. \emph{See details}.}
+and a data frame in wide format. 
+\emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{allele.threshold}{Threshold of allele copies. Below this threshold
 markers with those allele are blacklisted and summary statistics
 for read, ref and alt depth and genotype likelihood information is summarized.}
-
-\item{vcf.metadata}{(optional, logical) For the VCF file, 
-with \code{vcf.metadata = FALSE}, only the genotype information is kept.
-With default: \code{vcf.metadata = TRUE}, the metadata contained in the 
-\code{FORMAT} field will be kept in the tidy data file. Currently keeping only
-those metadata: \code{"DP", "AD", "GL", "PL"}. If you need different one, submit
-a request.}
 
 \item{whitelist.markers}{(optional) A whitelist containing CHROM (character
 or integer) and/or LOCUS (integer) and/or
@@ -184,7 +177,6 @@ strata = "strata.salmon.tsv",
 allele.threshold = 3
 )
 # The default with this function:
-# vcf.metadata = TRUE # VCF metadata (read depth, etc. are imported)
 # monomorphic.out = TRUE # = discarded
 # common.markers = TRUE # markers not in common between pop are discarded
 }

@@ -18,7 +18,8 @@ filter_genotype_likelihood(data, interactive.filter = TRUE, strata = NULL,
 (to make vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. \emph{See details}.}
+and a data frame in wide format. 
+\emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{interactive.filter}{(optional, logical) Do you want the filtering session to 
 be interactive. With default: \code{interactive.filter == TRUE}, the user is 
