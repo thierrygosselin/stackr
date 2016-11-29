@@ -15,7 +15,8 @@
 #' (to make vcf population ready, see details below),
 #' plink, stacks haplotype file, genind (library(adegenet)), 
 #' genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-#' and a data frame in wide format. \emph{See details}.
+#' and a data frame in wide format. 
+#' \emph{See details} of \code{\link{tidy_genomic_data}}.
 
 #' @param vcf.metadata (optional, logical) For the VCF file, 
 #' with \code{vcf.metadata = FALSE}, only the genotype information is kept.
@@ -236,7 +237,6 @@
 
 #' @export
 #' @rdname tidy_genomic_data
-#' @import parallel
 #' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs
 #' @importFrom adegenet genind2df is.genind
 #' @importFrom strataG as.data.frame is.gtypes
@@ -248,6 +248,7 @@
 #' @importFrom utils count.fields
 #' @importFrom readr write_tsv read_tsv
 #' @importFrom vcfR read.vcfR extract.gt vcf_field_names
+#' @importFrom tibble as_data_frame has_name
 
 #' @examples
 #' \dontrun{
@@ -998,7 +999,7 @@ tidy_genomic_data <- function(
 
   # Import haplo---------------------------------------------------------------
   if (data.type == "haplo.file") { # Haplotype file
-    message("Importing the stacks haplotype file")
+    message("Importing STACKS haplotype file")
     number.columns <- max(utils::count.fields(data, sep = "\t"))
     
     input <- data.table::fread(
