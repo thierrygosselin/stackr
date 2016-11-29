@@ -1,4 +1,4 @@
-#' @name .mclapply_win
+#' @name mclapply_win
 #' @title hack to switch function for parallel computation based on OS
 #' @description \code{parallel::mclapply} doesn't work on Windows,
 #' because forking is not supported.
@@ -30,7 +30,7 @@
 #' @importFrom parallel detectCores makeCluster clusterExport mclapply parLapply stopCluster
 #' @keywords internal
 
-.mclapply_win <- function(
+mclapply_win <- function(
   X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
   mc.silent = FALSE, mc.cores = NULL, mc.cleanup = TRUE, mc.allow.recursive = TRUE
 ) {
@@ -97,7 +97,7 @@
 # @export
 .stackr_parallel <- switch(
   Sys.info()[['sysname']],
-  Windows = {.mclapply_win},
+  Windows = {mclapply_win},
   Linux   = {parallel::mclapply},
   Darwin  = {parallel::mclapply}
 )
