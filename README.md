@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.4.5-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--11--27-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.4.6-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--11--29-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ library(stackr) # to load
 </tr>
 <tr class="even">
 <td align="left"><strong>Output</strong></td>
-<td align="left">Export genomic data out of <strong>stackr</strong> using <code>genomic_converter</code> or the separate modules (12 formats):<br><code>write_vcf</code>: <a href="https://samtools.github.io/hts-specs/">VCF</a> (Danecek et al., 2011)<br><code>write_plink</code>: <a href="http://pngu.mgh.harvard.edu/~purcell/plink/data.shtml#tr">PLINK tped/tfam</a> (Purcell et al., 2007)<br><code>write_genind</code>: <a href="https://github.com/thibautjombart/adegenet">adegenet genind and genlight</a> (Jombart et al., 2010; Jombart and Ahmed, 2011)<br><code>write_genlight</code>: <a href="https://github.com/thibautjombart/adegenet">genlight</a> (Jombart et al., 2010; Jombart and Ahmed, 2011)<br><code>write_gtypes</code>: <a href="https://github.com/EricArcher/strataG">strataG gtypes</a><br><code>write_genepop</code>: <a href="http://genepop.curtin.edu.au">Genepop</a> (Raymond and Rousset, 1995; Rousset, 2008)<br><a href="http://catchenlab.life.illinois.edu/stacks/">STACKS haplotype file</a> (Catchen et al., 2011, 2013)<br><code>write_betadiv</code>: <a href="http://adn.biol.umontreal.ca/~numericalecology/Rcode/">betadiv</a> (Lamy, 2015)<br> <code>vcf2dadi</code>: <a href="http://gutengroup.mcb.arizona.edu/software/">δaδi</a> (Gutenkunst et al., 2009)<br> <code>write_structure</code>: <a href="http://pritchardlab.stanford.edu/structure.html">structure</a> (Pritchard et al., 2000)<br> <code>write_arlequin</code>: <a href="http://cmpg.unibe.ch/software/arlequin35/">Arlequin</a> (Excoffier et al. 2005)<br> <code>write_hierfstat</code>: <a href="https://github.com/jgx65/hierfstat">hierfstat</a> (Goudet, 2005)<br>Dataframes of genotypes in wide or long/tidy format</td>
+<td align="left">Export genomic data out of <strong>stackr</strong> using <code>genomic_converter</code> or the separate modules (12 formats):<br><code>write_vcf</code>: <a href="https://samtools.github.io/hts-specs/">VCF</a> (Danecek et al., 2011)<br><code>write_plink</code>: <a href="http://pngu.mgh.harvard.edu/~purcell/plink/data.shtml#tr">PLINK tped/tfam</a> (Purcell et al., 2007)<br><code>write_genind</code>: <a href="https://github.com/thibautjombart/adegenet">adegenet genind and genlight</a> (Jombart et al., 2010; Jombart and Ahmed, 2011)<br><code>write_genlight</code>: <a href="https://github.com/thibautjombart/adegenet">genlight</a> (Jombart et al., 2010; Jombart and Ahmed, 2011)<br><code>write_gtypes</code>: <a href="https://github.com/EricArcher/strataG">strataG gtypes</a><br><code>write_colony</code>: <a href="https://www.zsl.org/science/software/colony">COLONY</a> (Jones and Wang, 2010; Wang, 2012)<br><code>write_genepop</code>: <a href="http://genepop.curtin.edu.au">Genepop</a> (Raymond and Rousset, 1995; Rousset, 2008)<br><a href="http://catchenlab.life.illinois.edu/stacks/">STACKS haplotype file</a> (Catchen et al., 2011, 2013)<br><code>write_betadiv</code>: <a href="http://adn.biol.umontreal.ca/~numericalecology/Rcode/">betadiv</a> (Lamy, 2015)<br> <code>vcf2dadi</code>: <a href="http://gutengroup.mcb.arizona.edu/software/">δaδi</a> (Gutenkunst et al., 2009)<br> <code>write_structure</code>: <a href="http://pritchardlab.stanford.edu/structure.html">structure</a> (Pritchard et al., 2000)<br> <code>write_arlequin</code>: <a href="http://cmpg.unibe.ch/software/arlequin35/">Arlequin</a> (Excoffier et al. 2005)<br> <code>write_hierfstat</code>: <a href="https://github.com/jgx65/hierfstat">hierfstat</a> (Goudet, 2005)<br>Dataframes of genotypes in wide or long/tidy format</td>
 </tr>
 <tr class="odd">
 <td align="left"><strong>Conversion function</strong></td>
@@ -68,7 +68,7 @@ library(stackr) # to load
 </tr>
 <tr class="odd">
 <td align="left"><strong>Parallel</strong></td>
-<td align="left">Codes designed and optimized for fast computations running imputations, iterations, etc. in parallel</td>
+<td align="left">Codes designed and optimized for fast computations running imputations, iterations, etc. in parallel. Works with all OS: Linux, Mac and now PC!</td>
 </tr>
 </tbody>
 </table>
@@ -126,6 +126,17 @@ New features
 ------------
 
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
+
+**v.0.4.6**
+
+-   I'm pleased to announce that `stackr` parallel mode now works with **Windows**! Nothing to install, just need to choose the number of CPU, the rest is done automatically.
+-   `haplo2colony` is deprecated. Use the new function called `write_colony`!
+-   `write_colony`: works similarly to the deprecated function `haplo2colony`,
+    -   with the major advantage that it's no longer restricted to STACKS haplotypes file.
+    -   The function is using the `tidy_genomic_data` module to import files. So you can choose one of the 10 input file formats supported by `stackr`!
+    -   other benefits also include the possibility to efficiently test MAF, snp.ld, haplotypes/snp approach, whitelist of markes, blacklist of individuals, blacklist of genotypes, etc. with the buit-it arguments.
+    -   the function only **keeps markers in common** between populations/groups and **is removing monomorphic markers**.
+    -   **Note:** there are several *defaults* in the function and it's a complicated file format, so make sure to read the function documentation, please, and `COLONY` manual.
 
 **v.0.4.5**
 
