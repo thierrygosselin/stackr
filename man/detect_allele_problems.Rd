@@ -2,7 +2,7 @@
 % Please edit documentation in R/detect_allele_problems.R
 \name{detect_allele_problems}
 \alias{detect_allele_problems}
-\title{Detect allele problems}
+\title{Detect alternate allele problems}
 \usage{
 detect_allele_problems(data, allele.threshold = 3, whitelist.markers = NULL,
   monomorphic.out = TRUE, blacklist.genotype = NULL, snp.ld = NULL,
@@ -19,9 +19,11 @@ genlight (library(adegenet)), gtypes (library(strataG)), genepop,
 and a data frame in wide format. 
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
-\item{allele.threshold}{Threshold of allele copies. Below this threshold
-markers with those allele are blacklisted and summary statistics
-for read, ref and alt depth and genotype likelihood information is summarized.}
+\item{allele.threshold}{(integer) Threshold of alternate allele copies.
+Below this threshold markers are blacklisted. Choose this threshold based
+on your tolerance for uninformative or unreliable information and 
+minor allele frequency. Summary statistics for this blacklist will be calculated.
+See details for more info.}
 
 \item{whitelist.markers}{(optional) A whitelist containing CHROM (character
 or integer) and/or LOCUS (integer) and/or
@@ -152,22 +154,73 @@ Default: \code{verbose = FALSE}.}
 }
 \value{
 A list with summary, plot and blacklist.
+Summary statistics for the blacklisted markers are generated and include 
+coverage and genotype likelihood information.
+
+\code{$alt.allele.count.plot}: Distribution of marker's alternate allele number.
+The shape is usually skewed right.
+
+\code{$alt.depth.count.distribution.plot}: Distribution of markers alternate
+allele depth (in number of read). The range showed on the plot is
+between 1 and 10, and you decide your tolerance for low coverage 
+and good genotype calls.
+
+This plot is associated with \code{$number.markers}, a table that shows the
+number of markers <= to your selected threshold. Also in the table, the 
+range of alternate allele read depth (1 to 10), same as plot but showing here
+the the cumulative number of markers. Again, would you trust a marker with only
+1 alternate allele (an heterozygote individual) with a read depth of 1 or 2 ?
 }
 \description{
-Detect allele problems.
+Detect alternate allele problems.
 Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
-and might be of interest for users. The function compute allele counts and
-look for alleles bellow a certain threshold. The summary statistics for the
+and might be of interest for users. The function computes alternate allele
+counts and looks for alternate alleles bellow a certain threshold. 
+The summary statistics for the
 markers with problematic allele is computed based on coverage and
 genotype likelihood. This function is very fast to highlight: i) bias in
 representation of allelic copies and unequal coverage and ii) type I error 
 during genotyping of heterozygote with low coverage data.
 }
 \details{
+\strong{Under developement, use with caution}
+
+
 \strong{Input files:} see \pkg{stackr} \code{\link[stackr]{tidy_genomic_data}}
 for detailed information about supported file format.
 
-\strong{Under developement, use with caution}
+
+\strong{allele.threshold}:
+
+An \code{allele.threshold = 1}, says that you want to check the statistics 
+for markers with only 1 copy of the alternate allele. Said differently,
+\code{allele.threshold = 1} = only 1 heterozygote individual is making this
+marker polymorphic, very thin line if this allele is backed by less than 3 reads.
+
+Similarly, a \code{allele.threshold = 2} can represent markers with
+2 heterozygote individuals calling the polymorphic markers or 1 individual
+homozygote for the alternate allele.
+
+
+Look for problem with :
+\itemize{
+\item read depth/coverage problem
+\item high imbalance between the alt and ref depth coverage
+\item genotype likelihood abnormally lower than normal
+\item alternate allele with NA for read depth information
+}
+
+\strong{Alternate allele with no depth information:}
+You can highlight those problematic genotypes with
+alt.no.depth <- dplyr::filter(your.object$allele.summary, is.na(ALLELE_ALT_DEPTH))
+
+
+Use the summary statistics of the blacklisted markers to refine update
+the blacklist of markers. You can decide to discard the markers or
+blacklist the problematic genotypes.
+\pkg{stackr} \code{\link[stackr]{tidy_genomic_data}} and 
+\code{\link[stackr]{genomic_converter}} allows to erase problematic genotypes
+using a blacklist of genotypes...
 }
 \examples{
 \dontrun{

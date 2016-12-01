@@ -14,7 +14,10 @@ vignette: >
 ## Parallel computing in R and stackr
 
 On Mac OSX using OpenMP greatly reduce the computation time for the imputations.
-To do the imputations in parallel, you need to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) (time: max 10 minutes).
+To do the imputations in parallel, you need to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html).
+Note that this also works to have 
+[data.table](https://github.com/Rdatatable/data.table) work in parallel. 
+(time: max 10 minutes).
 
 ### Option 1: From source (Linux & Mac OSX) [details here](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
 
@@ -40,7 +43,7 @@ SHLIB_OPENMP_CFLAGS = -fopenmp
 SHLIB_OPENMP_CXXFLAGS = -fopenmp
 SHLIB_OPENMP_FCFLAGS = -fopenmp
 SHLIB_OPENMP_FFLAGS = -fopenmp
-FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15.0.0/6.1.0/finclude # change according to your computer compiler version
+FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15.6.0/6.2.0/finclude # change according to your computer compiler version
 CFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 CXXFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 ```
@@ -48,7 +51,8 @@ CXXFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 4. You don't have the file ? Use sudo nano in the Terminal to create one:
 ```r
 cd ~
-nano .R/Makevars
+sudo mkdir ~/.R
+sudo nano ~/.R/Makevars
 ```
 Copy/paste the section in step 3. Save and Exit with: `crt-o`, `enter`, `crt-x`.
 

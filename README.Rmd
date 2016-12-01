@@ -72,8 +72,7 @@ library(stackr) # to load
 
 ## Prerequisite - Suggestions - Troubleshooting
   * **Parallel computing**: Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) 
-  to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)
- package to do imputations in parallel.
+  to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)  and [data.table](https://github.com/Rdatatable/data.table) packages (e.g. to do imputations in parallel).
   * **Installation problem:** see this
   [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
   * **Windows users**:  1. Install [Rtools](https://cran.r-project.org/bin/windows/Rtools/). 2. To have *stackr* run in parallel, use [parallelsugar](https://github.com/nathanvan/parallelsugar).
@@ -85,8 +84,7 @@ library(stackr) # to load
 Below, the combination of packages and how I install/load them :
 
 ```r
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(devtools, tidyverse, data.table, parallel, lazyeval, randomForestSRC)
+if (!require("devtools")) install.packages("devtools")
 devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)
 library("stackr")
 ```

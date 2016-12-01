@@ -257,7 +257,7 @@ detect_mixed_genomes <- function(
     dplyr::mutate(MISSING_GROUP = factor(MISSING_GROUP, levels = c("MISSING_PROP_POP", "MISSING_PROP_OVERALL")))
   
   
-  # Get stats...
+  #Stats------------------------------------------------------------------------
   message("Calculating statistics")
   het.ind.stats <- het.ind.overall %>%
     dplyr::group_by(POP_ID) %>%
@@ -272,7 +272,7 @@ detect_mixed_genomes <- function(
     tidyr::unite(data = ., HET_RANGE, HET_MIN, HET_MAX, sep = " - ") %>% 
     dplyr::arrange(POP_ID, HET_MEAN)
   
-  
+  # Plots ----------------------------------------------------------------------
   message("Generating plots")
   
   rounder <- function(x, accuracy, f = round) {
