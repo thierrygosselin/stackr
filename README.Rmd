@@ -176,11 +176,12 @@ For previous news:
 
 ## Roadmap of future developments:
 
-* Until publication **stackr** will change rapidly (see contributions below for bug reports).
-* Updated filters: more efficient, interactive and visualization included: *in progress*
+* Integrate more imputation method into `stackr_imputations_module` (`missRanger`, kNNi-LD approaches).
+* Updated filters: more efficient, interactive and visualization included: *in progress*.
 * Workflow tutorial that links functions and points to specific vignettes to further explore some problems: *in progress*
-* Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database.
-* Use Shiny and ggvis when subplots or facets becomes available...
+* Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database *in progress*.
+* Use Shiny and ggvis (when subplots and/or facets becomes available for ggvis).
+* Until publication **stackr** will change rapidly, stay updated with releases and contribute with bug reports.
 * Suggestions ?
 
 

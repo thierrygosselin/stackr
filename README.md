@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.4.6-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--12--01-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.4.6-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--12--03-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -161,11 +161,12 @@ For previous news: [NEWS.md file](https://github.com/thierrygosselin/stackr/blob
 Roadmap of future developments:
 -------------------------------
 
--   Until publication **stackr** will change rapidly (see contributions below for bug reports).
--   Updated filters: more efficient, interactive and visualization included: *in progress*
+-   Integrate more imputation method into `stackr_imputations_module` (`missRanger`, kNNi-LD approaches).
+-   Updated filters: more efficient, interactive and visualization included: *in progress*.
 -   Workflow tutorial that links functions and points to specific vignettes to further explore some problems: *in progress*
--   Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database.
--   Use Shiny and ggvis when subplots or facets becomes available...
+-   Integration of several functions with [STACKS](http://catchenlab.life.illinois.edu/stacks/) and [DArT](http://www.diversityarrays.com) database *in progress*.
+-   Use Shiny and ggvis (when subplots and/or facets becomes available for ggvis).
+-   Until publication **stackr** will change rapidly, stay updated with releases and contribute with bug reports.
 -   Suggestions ?
 
 Contributions:

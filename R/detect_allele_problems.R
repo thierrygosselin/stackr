@@ -103,6 +103,8 @@
 #' @importFrom tibble has_name
 #' @importFrom tidyr gather
 #' @importFrom readr write_tsv
+#' @importFrom ggplot2 ggplot aes geom_violin geom_boxplot stat_summary labs theme element_blank element_text geom_jitter scale_colour_manual scale_y_reverse theme_light geom_bar facet_grid
+
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
@@ -199,9 +201,7 @@ detect_allele_problems <- function(
   allele.count <- input %>%
     dplyr::filter(GT_BIN %in% c(1,2)) %>%
     dplyr::group_by(MARKERS) %>% 
-    dplyr::summarise(
-      n = sum(GT_BIN, na.rm = TRUE)
-    )
+    dplyr::summarise(n = sum(GT_BIN, na.rm = TRUE))
   
   # test
   # test <- dplyr::filter(.data = allele.count, n == 1) %>%
@@ -209,19 +209,19 @@ detect_allele_problems <- function(
   # dplyr::inner_join(input, by = "MARKERS")
   
   # Histogram of allele counts--------------------------------------------------
-  alt.allele.count.plot <- ggplot2::ggplot(allele.count, aes(n)) +
-    geom_bar() +
-    labs(x = "Alternate allele (copy)") +
-    labs(y = "Distribution (marker number)") +
+  alt.allele.count.plot <- ggplot2::ggplot(allele.count, ggplot2::aes(n)) +
+    ggplot2::geom_bar() +
+    ggplot2::labs(x = "Alternate allele (copy)") +
+    ggplot2::labs(y = "Distribution (marker number)") +
     # scale_x_continuous(breaks = c(0, 0.05, 0.1, 0.2, 0.5, 1),
     # labels = c("0", "0.05", "0.1", "0.2", "0.5", "1.0")) +
-    theme(
-      axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
-      axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"), 
-      legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
-      legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
-      strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold"),
-      axis.text.x = element_text(size = 8, family = "Helvetica")#, angle = 90, hjust = 1, vjust = 0.5) 
+    ggplot2::theme(
+      axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+      axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+      legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+      legend.text = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+      strip.text.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+      axis.text.x = ggplot2::element_text(size = 8, family = "Helvetica")#, angle = 90, hjust = 1, vjust = 0.5) 
     )
   # alt.allele.count.plot
   
@@ -308,20 +308,20 @@ detect_allele_problems <- function(
   )
   
   alt.depth.count.distribution.plot <- dplyr::filter(allele.summary, ALLELE_ALT_DEPTH <= 10) %>% 
-    ggplot2::ggplot(data = ., aes(ALLELE_ALT_DEPTH)) +
-    geom_bar(stat = "count", na.rm = TRUE) + #breaks = c(1:10), binwidth = 0.5, bins = 10) +
-    labs(x = "Alternate allele depth (read number)") +
-    labs(y = "Distribution (marker number)") +
-    scale_x_continuous(name = waiver(), breaks = 1:10, labels = 1:10) +
-    theme(
-      axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
-      axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"), 
-      legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
-      legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
-      strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold"),
-      axis.text.x = element_text(size = 8, family = "Helvetica")#, angle = 90, hjust = 1, vjust = 0.5) 
+    ggplot2::ggplot(data = ., ggplot2::aes(ALLELE_ALT_DEPTH)) +
+    ggplot2::geom_bar(stat = "count", na.rm = TRUE) + #breaks = c(1:10), binwidth = 0.5, bins = 10) +
+    ggplot2::labs(x = "Alternate allele depth (read number)") +
+    ggplot2::labs(y = "Distribution (marker number)") +
+    ggplot2::scale_x_continuous(name = waiver(), breaks = 1:10, labels = 1:10) +
+    ggplot2::theme(
+      axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+      axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+      legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+      legend.text = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+      strip.text.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+      axis.text.x = ggplot2::element_text(size = 8, family = "Helvetica")#, angle = 90, hjust = 1, vjust = 0.5) 
     ) +
-    facet_grid(~ ALLELE_COPIES)
+    ggplot2::facet_grid(~ ALLELE_COPIES)
   # alt.depth.count.distribution.plot
   
   readr::write_tsv(x = allele.summary, path = "problematic.allele.summary.stats.tsv")

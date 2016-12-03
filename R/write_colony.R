@@ -137,7 +137,7 @@
 #' colony.file <- stackr::write_colony(
 #' data = "batch_1.haplotypes.tsv",
 #' strata = "strata.treefrog.tsv",
-#' imputation.method = "rf
+#' imputation.method = "rf"
 #' )
 #' 
 #' # Now using a whitelist of markers and keeping only the first SNP on each read:

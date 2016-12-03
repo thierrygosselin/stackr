@@ -268,6 +268,32 @@ For details about imputations, look into \pkg{stackr} \code{\link{stackr_imputat
 Please consider keeping just 1 SNP per read, \code{COLONY} doesn't like this
 kind of linkage... use the argument \code{snp.ld}.
 }
+\examples{
+\dontrun{
+# Simplest way to run the function:
+colony.file <- stackr::write_colony(
+data = "batch_1.vcf",
+strata = "strata.treefrog.tsv"
+)
+
+# With imputations and a STACKS haplotypes file:
+colony.file <- stackr::write_colony(
+data = "batch_1.haplotypes.tsv",
+strata = "strata.treefrog.tsv",
+imputation.method = "rf"
+)
+
+# Now using a whitelist of markers and keeping only the first SNP on each read:
+colony.file <- stackr::write_colony(
+data = "batch_1.haplotypes.tsv",
+strata = "strata.treefrog.tsv",
+whitelist.markers = "whitelist.vcf.txt",
+snp.ld = "first",
+common.markers = TRUE, # this is also a default...
+monomorphic.out = TRUE # this is also a default...
+)
+}
+}
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }

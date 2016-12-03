@@ -12,7 +12,7 @@
 
 <meta name="author" content="Thierry Gosselin" />
 
-<meta name="date" content="2016-06-15" />
+<meta name="date" content="2016-12-03" />
 
 <title>Imputations in Parallel</title>
 
@@ -70,13 +70,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Imputations in Parallel</h1>
 <h4 class="author"><em>Thierry Gosselin</em></h4>
-<h4 class="date"><em>2016-06-15</em></h4>
+<h4 class="date"><em>2016-12-03</em></h4>
 
 
 
 <div id="parallel-computing-in-r-and-stackr" class="section level2">
 <h2>Parallel computing in R and stackr</h2>
-<p>On Mac OSX using OpenMP greatly reduce the computation time for the imputations. To do the imputations in parallel, you need to install an OpenMP enabled <a href="http://www.ccs.miami.edu/~hishwaran/rfsrc.html">randomForestSRC</a> (time: max 10 minutes).</p>
+<p>On Mac OSX using OpenMP greatly reduce the computation time for the imputations. To do the imputations in parallel, you need to install an OpenMP enabled <a href="http://www.ccs.miami.edu/~hishwaran/rfsrc.html">randomForestSRC</a>. Note that this also works to have <a href="https://github.com/Rdatatable/data.table">data.table</a> work in parallel. (time: max 10 minutes).</p>
 <div id="option-1-from-source-linux-mac-osx-details-here" class="section level3">
 <h3>Option 1: From source (Linux &amp; Mac OSX) <a href="http://www.ccs.miami.edu/~hishwaran/rfsrc.html">details here</a></h3>
 <ol style="list-style-type: decimal">
@@ -96,12 +96,13 @@ SHLIB_OPENMP_CFLAGS =<span class="st"> </span>-fopenmp
 SHLIB_OPENMP_CXXFLAGS =<span class="st"> </span>-fopenmp
 SHLIB_OPENMP_FCFLAGS =<span class="st"> </span>-fopenmp
 SHLIB_OPENMP_FFLAGS =<span class="st"> </span>-fopenmp
-FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15<span class="fl">.0.0</span>/<span class="fl">6.1.0</span>/finclude <span class="co"># change according to your computer compiler version</span>
+FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15<span class="fl">.6.0</span>/<span class="fl">6.2.0</span>/finclude <span class="co"># change according to your computer compiler version</span>
 CFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 CXXFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion</code></pre></div></li>
 <li><p>You don’t have the file ? Use sudo nano in the Terminal to create one:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cd ~
-nano .R/Makevars</code></pre></div>
+sudo mkdir ~<span class="er">/</span>.R
+sudo nano ~<span class="er">/</span>.R/Makevars</code></pre></div>
 <p>Copy/paste the section in step 3. Save and Exit with: <code>crt-o</code>, <code>enter</code>, <code>crt-x</code>.</p></li>
 <li><p>Download and compile randomForestSRC, from the Terminal:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cd ~<span class="er">/</span>Downloads

@@ -166,7 +166,7 @@ between 1 and 10, and you decide your tolerance for low coverage
 and good genotype calls.
 
 This plot is associated with \code{$number.markers}, a table that shows the
-number of markers <= to your selected threshold. Also in the table, the 
+number of markers <= \code{allele.threshold }. Also in the table, the 
 range of alternate allele read depth (1 to 10), same as plot but showing here
 the the cumulative number of markers. Again, would you trust a marker with only
 1 alternate allele (an heterozygote individual) with a read depth of 1 or 2 ?

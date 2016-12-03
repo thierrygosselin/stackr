@@ -254,7 +254,7 @@ ibdg_fh <- function(
       tidyr::gather(data = ., key = ALLELE_GROUP, value = ALLELES, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
       dplyr::group_by(MARKERS, ALLELES, POP_ID) %>%
       dplyr::tally(.) %>%
-      dplyr::ungroup() %>%
+      dplyr::ungroup(.) %>%
       tidyr::complete(data = ., POP_ID, tidyr::nesting(MARKERS, ALLELES), fill = list(n = 0)) %>%
       dplyr::group_by(MARKERS, POP_ID) %>%
       dplyr::mutate(

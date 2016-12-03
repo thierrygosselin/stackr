@@ -278,57 +278,57 @@ detect_mixed_genomes <- function(
   rounder <- function(x, accuracy, f = round) {
     f(x / accuracy) * accuracy
   }
-  y.breaks.by <- rounder(max(het.ind$HET_PROP)/10, 0.001, ceiling)
-  y.breaks.max <- rounder(max(het.ind$HET_PROP), 0.001, ceiling)
+  y.breaks.by <- rounder(max(het.ind$HET_PROP, na.rm = TRUE)/10, 0.001, ceiling)
+  y.breaks.max <- rounder(max(het.ind$HET_PROP, na.rm = TRUE), 0.001, ceiling)
   y.breaks <- seq(0, y.breaks.max + y.breaks.by , by = y.breaks.by)
   
   # labeller to rename in the facet_grid or facet_wrap call:
-  facet_names <- as_labeller(c(`MISSING_PROP_OVERALL` = "Missing (overall)", `MISSING_PROP_POP` = "Missing (populations)"))
+  facet_names <- ggplot2::as_labeller(c(`MISSING_PROP_OVERALL` = "Missing (overall)", `MISSING_PROP_POP` = "Missing (populations)"))
   
-  individual.heterozygosity.manhattan.plot <- ggplot(data = het.ind.overall, aes(x = POP_ID, y = HET_PROP, size = MISSING_PROP, colour = POP_ID)) + 
-    geom_jitter(alpha = 0.6) + 
-    labs(y = "Individual's Mean Observed Heterozygosity (proportion)") +
+  individual.heterozygosity.manhattan.plot <- ggplot2::ggplot(data = het.ind.overall, ggplot2::aes(x = POP_ID, y = HET_PROP, size = MISSING_PROP, colour = POP_ID)) + 
+    ggplot2::geom_jitter(alpha = 0.6) + 
+    ggplot2::labs(y = "Individual's Mean Observed Heterozygosity (proportion)") +
     # labs(x = "Populations") +
     # labs(colour = "Populations") +
-    scale_y_continuous(name = waiver(), breaks = y.breaks) +#, limits = c(0, y.breaks.max), expand = c(0.1, 0)) +
-    scale_color_discrete(guide = "none") +
-    scale_size_continuous(name = "Missing proportion") +
+    ggplot2::scale_y_continuous(name = ggplot2::waiver(), breaks = y.breaks) +#, limits = c(0, y.breaks.max), expand = c(0.1, 0)) +
+    ggplot2::scale_color_discrete(guide = "none") +
+    ggplot2::scale_size_continuous(name = "Missing proportion") +
     # theme_minimal() +
-    theme(
+    ggplot2::theme(
       # legend.position = "none",
       # panel.grid.major.y = element_line(linetype = "solid"),
       # panel.grid.minor.y = element_line(linetype = "longdash", size = 1),
       # panel.background = element_blank(),
-      panel.grid.major.x = element_blank(),
-      axis.line.x = element_blank(),
-      axis.title.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank(),
+      panel.grid.major.x = ggplot2::element_blank(),
+      axis.line.x = ggplot2::element_blank(),
+      axis.title.x = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_blank(),
+      axis.ticks.x = ggplot2::element_blank(),
       # axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
       # axis.text.x = element_text(size = 10, family = "Helvetica"),
-      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.y = element_text(size = 8, family = "Helvetica")
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
     ) +
-    geom_hline(mapping = aes(yintercept = HET_MEAN), het.ind.stats, linetype = "dotted", size = 0.6) + #mean
+    ggplot2::geom_hline(mapping = ggplot2::aes(yintercept = HET_MEAN), het.ind.stats, linetype = "dotted", size = 0.6) + #mean
     # geom_hline(mapping = aes(yintercept = HET_sig_minus), het.ind.stats.pop, linetype = "dashed") + #3 sigma -
     # geom_hline(mapping = aes(yintercept = HET_sig_plus), het.ind.stats.pop, linetype = "dashed") + #3 sigma +
-    facet_grid(MISSING_GROUP ~ POP_ID, switch = "x", scales = "free", labeller = labeller(MISSING_GROUP = facet_names))
+    ggplot2::facet_grid(MISSING_GROUP ~ POP_ID, switch = "x", scales = "free", labeller = ggplot2::labeller(MISSING_GROUP = facet_names))
   # individual.heterozygosity.manhattan.plot
   
-  individual.heterozygosity.boxplot <- ggplot(data = het.ind.overall, aes(x = POP_ID, y = HET_PROP, colour = POP_ID)) + 
-    geom_boxplot() + 
-    labs(y = "Individual's Mean Observed Heterozygosity (proportion)") +
-    labs(x = "Populations") +
-    labs(colour = "Populations") +
-    scale_y_continuous(name = waiver(), breaks = y.breaks, limits = c(0, y.breaks.max), expand = c(0.06, 0)) +
-    theme_classic() +
+  individual.heterozygosity.boxplot <- ggplot2::ggplot(data = het.ind.overall, ggplot2::aes(x = POP_ID, y = HET_PROP, colour = POP_ID)) + 
+    ggplot2::geom_boxplot() + 
+    ggplot2::labs(y = "Individual's Mean Observed Heterozygosity (proportion)") +
+    ggplot2::labs(x = "Populations") +
+    ggplot2::labs(colour = "Populations") +
+    ggplot2::scale_y_continuous(name = ggplot2::waiver(), breaks = y.breaks, limits = c(0, y.breaks.max), expand = c(0.06, 0)) +
+    ggplot2::theme_classic() +
     # theme_minimal() +
-    theme(
+    ggplot2::theme(
       legend.position = "none",
-      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.x = element_text(size = 10, family = "Helvetica"),
-      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.y = element_text(size = 8, family = "Helvetica")
+      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.x = ggplot2::element_text(size = 10, family = "Helvetica"),
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
     )
   # individual.heterozygosity.boxplot
   
