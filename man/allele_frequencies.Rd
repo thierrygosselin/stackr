@@ -4,13 +4,17 @@
 \alias{allele_frequencies}
 \title{Compute allele frequencies per markers and populations}
 \usage{
-allele_frequencies(data)
+allele_frequencies(data, verbose = TRUE)
 }
 \arguments{
 \item{data}{A tidy data frame object in the global environment or
 a tidy data frame in wide or long format in the working directory.
 \emph{How to get a tidy data frame ?}
 Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
+
+\item{verbose}{(optional, logical) \code{verbose = TRUE} to be chatty 
+during execution.
+Default: \code{verbose = TRUE}.}
 }
 \value{
 A list with allele frequencies in a data frame in long and wide format,

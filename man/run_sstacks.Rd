@@ -3,6 +3,12 @@
 \name{run_sstacks}
 \alias{run_sstacks}
 \title{Run STACKS sstacks module}
+\usage{
+run_sstacks(input.path = "06_ustacks_cstacks_sstacks", p = 4, b = 1,
+  catalog.prefix = "batch_1", sample.list = NULL,
+  o = "06_ustacks_cstacks_sstacks", g = FALSE, x = FALSE, v = FALSE,
+  h = FALSE, gapped = TRUE)
+}
 \arguments{
 \item{input.path}{Path to input file. 
 Default: \code{input.path = "06_ustacks_cstacks_sstacks"}}
@@ -86,5 +92,17 @@ run_sstacks (input.path = "/my/input/path", p = 32, b = 2, catalog.prefix = "bat
 sample.list = c("ind1", "ind2", "..."), o = "/my/output/path", g = FALSE,
 x = FALSE, gapped = FALSE)
 }
+}
+\references{
+Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
+Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
+G3, 1, 171-182.
+
+Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
+Stacks: an analysis tool set for population genomics. 
+Molecular Ecology, 22, 3124-3140.
+}
+\seealso{
+\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
 }
 
