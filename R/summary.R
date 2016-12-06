@@ -163,11 +163,14 @@ summary_stats_pop <- function(data, filename = NULL) {
 
 #' @rdname summary_coverage
 #' @importFrom stats median
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs rbind
+#' @importFrom readr read_tsv
+#' @importFrom reshape2 melt
 #' @export
 
 summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
   if (is.vector(data) == "TRUE") {
-    data <- read_tsv(data, col_names = T, col_types = "iiiiccddcdccddddc")
+    data <- readr::read_tsv(data, col_names = T, col_types = "iiiiccddcdccddddc")
     message("Using the file in your directory")
     
   } else {
@@ -192,7 +195,7 @@ summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
       ALT_MIN = min(ALLELE_ALT_DEPTH, na.rm = TRUE),
       ALT_MAX = max(ALLELE_ALT_DEPTH, na.rm = TRUE)
     ) %>%
-    melt(
+    reshape2::melt(
       id.vars = c("LOCUS", "POP_ID"),
       #     measure.vars = c(), # if left blank will use all the non id.vars
       variable.name = "COVERAGE_GROUP", 
@@ -202,7 +205,7 @@ summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
     coverage <- coverage.sum.loci
   } else {
     coverage <- coverage.sum.loci %>%
-      mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T))
+      dplyr::mutate(POP_ID = factor(POP_ID, levels = pop.levels, ordered = T))
   }
   
   # by pop
@@ -224,7 +227,7 @@ summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
     ) %>%
     dplyr::group_by(POP_ID) %>%
     dplyr::summarise_each_(dplyr::funs(mean), vars = c("READ_DEPTH_MEAN", "READ_DEPTH_MEDIAN", "READ_DEPTH_MIN", "READ_DEPTH_MAX", "ALLELE_REF_DEPTH_MEAN", "ALLELE_REF_DEPTH_MEDIAN", "ALLELE_REF_DEPTH_MIN", "ALLELE_REF_DEPTH_MAX", "ALLELE_ALT_DEPTH_MEAN", "ALLELE_ALT_DEPTH_MEDIAN", "ALLELE_ALT_DEPTH_MIN", "ALLELE_ALT_DEPTH_MAX")) %>%
-    melt(
+    reshape2::melt(
       id.vars = c("POP_ID"),
       variable.name = "GENOTYPE_LIKELIHOOD_GROUP", 
       value.name = "VALUE"
@@ -237,10 +240,10 @@ summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
   
   if (is.null(pop.levels)) {
     coverage.summary.pop.total <- coverage.sum.pop %>%
-      rbind(coverage.summary.total)
+      dplyr::rbind(coverage.summary.total)
   } else {
     coverage.summary.pop.total <- coverage.sum.pop %>%
-      rbind(coverage.summary.total) %>% 
+      dplyr::rbind(coverage.summary.total) %>% 
       dplyr::mutate(POP_ID = factor(POP_ID, levels = c(pop.levels, "TOTAL"), ordered = TRUE)) %>%
       dplyr::arrange(POP_ID)
   }
