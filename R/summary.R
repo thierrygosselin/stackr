@@ -163,7 +163,7 @@ summary_stats_pop <- function(data, filename = NULL) {
 
 #' @rdname summary_coverage
 #' @importFrom stats median
-#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs rbind
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs
 #' @importFrom readr read_tsv
 #' @importFrom reshape2 melt
 #' @export
@@ -240,10 +240,10 @@ summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
   
   if (is.null(pop.levels)) {
     coverage.summary.pop.total <- coverage.sum.pop %>%
-      dplyr::rbind(coverage.summary.total)
+      rbind(coverage.summary.total)
   } else {
     coverage.summary.pop.total <- coverage.sum.pop %>%
-      dplyr::rbind(coverage.summary.total) %>% 
+      rbind(coverage.summary.total) %>% 
       dplyr::mutate(POP_ID = factor(POP_ID, levels = c(pop.levels, "TOTAL"), ordered = TRUE)) %>%
       dplyr::arrange(POP_ID)
   }
