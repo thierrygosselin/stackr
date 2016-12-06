@@ -12,9 +12,9 @@
 #' \emph{How to get a tidy data frame ?}
 #' Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
 
-# @param verbose (optional, logical) \code{verbose = TRUE} to be chatty 
-# during execution. 
-# Default: \code{verbose = FALSE}.
+#' @param verbose (optional, logical) \code{verbose = TRUE} to be chatty 
+#' during execution.
+#' Default: \code{verbose = TRUE}.
 
 #' @return A list with allele frequencies in a data frame in long and wide format,
 #' and a matrix.
@@ -28,10 +28,15 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-allele_frequencies <- function(data) {
+allele_frequencies <- function(data, verbose = TRUE) {
   
-  timing <- proc.time()
-  
+  if (verbose) {
+    cat("#######################################################################\n")
+    cat("##################### stackr::allele_frequencies ######################\n")
+    cat("#######################################################################\n")
+    timing <- proc.time()
+    message("Calculating allele frequencies...")
+  }
   # Checking for missing and/or default arguments ------------------------------
   if (missing(data)) stop("Input file missing")
   
@@ -102,8 +107,10 @@ allele_frequencies <- function(data) {
       tibble::column_to_rownames(df = ., var = "POP_ID") %>% 
       as.matrix(.)
   )  
-  message(stringi::stri_join("Computation time: ", round((proc.time() - timing)[[3]]), " sec"))
-  cat("############################## completed ##############################\n")
+  if (verbose) {
+    message(stringi::stri_join("Computation time: ", round((proc.time() - timing)[[3]]), " sec"))
+    cat("############################## completed ##############################\n")
+  }
   res <- list(
     freq.long = input,
     freq.wide = freq.wide,
