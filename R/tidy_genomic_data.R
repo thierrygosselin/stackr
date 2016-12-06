@@ -1352,9 +1352,16 @@ tidy_genomic_data <- function(
       dplyr::rename(INDIVIDUALS = ids, POP_ID = strata) %>% 
       dplyr::mutate_all(.tbl = ., .funs = as.character) %>% 
       tidyr::gather(data = ., key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID)) %>% 
-      dplyr::mutate(GT = replace(GT, which(is.na(GT)), "000000"))
-    
-    
+      dplyr::mutate(
+        GT = stringi::stri_replace_all_regex(
+          str = GT,
+          pattern = c("A", "C", "G", "T"),
+          replacement = c("001", "002", "003", "004"),
+          vectorize_all = FALSE
+        ),
+        GT = replace(GT, which(is.na(GT)), "000000")
+      )
+
     # remove unwanted sep in id and pop.id names
     input <- input %>% 
       dplyr::mutate(
