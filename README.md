@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.4.6-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--12--03-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.4.6-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--12--06-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -80,7 +80,7 @@ Prerequisite - Suggestions - Troubleshooting
 
 -   **Parallel computing**: Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html) and [data.table](https://github.com/Rdatatable/data.table) packages (e.g. to do imputations in parallel).
 -   **Installation problem:** see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
--   **Windows users**: 1. Install [Rtools](https://cran.r-project.org/bin/windows/Rtools/). 2. To have *stackr* run in parallel, use [parallelsugar](https://github.com/nathanvan/parallelsugar). Easy to install and use ([instructions](https://github.com/nathanvan/parallelsugar#installation)).
+-   **Windows users**: Install [Rtools](https://cran.r-project.org/bin/windows/Rtools/).
 -   For a better experience in **stackr** and in R in general, I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/). The R GUI is unstable with functions using parallel ([more info](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html)).
 
 Below, the combination of packages and how I install/load them :

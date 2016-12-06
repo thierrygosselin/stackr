@@ -75,8 +75,7 @@ library(stackr) # to load
   to install an OpenMP enabled [randomForestSRC](http://www.ccs.miami.edu/~hishwaran/rfsrc.html)  and [data.table](https://github.com/Rdatatable/data.table) packages (e.g. to do imputations in parallel).
   * **Installation problem:** see this
   [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
-  * **Windows users**:  1. Install [Rtools](https://cran.r-project.org/bin/windows/Rtools/). 2. To have *stackr* run in parallel, use [parallelsugar](https://github.com/nathanvan/parallelsugar).
-  Easy to install and use ([instructions](https://github.com/nathanvan/parallelsugar#installation)).
+  * **Windows users**: Install [Rtools](https://cran.r-project.org/bin/windows/Rtools/).
   * For a better experience in **stackr** and in R in general, I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/). 
   The R GUI is unstable with functions using parallel ([more info](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html)). 
 
