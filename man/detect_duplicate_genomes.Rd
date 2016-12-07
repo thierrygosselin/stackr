@@ -6,7 +6,7 @@
 to highligh potential duplicate individuals}
 \usage{
 detect_duplicate_genomes(data, distance.method = "manhattan",
-  genome = FALSE, parallel.core = detectCores() - 1)
+  genome = FALSE, parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{data}{A tidy data frame object in the global environment or
@@ -18,8 +18,9 @@ Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
 (<= 30000 markers) or \code{amap::Dist} (> 30000 markers). 
 This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary".
 Using \code{distance.method = NULL} will not run this method.
-Default: \code{distance.method = "manhattan"}. This is very fast (max 5 min)
-compared to the genome similarity method.}
+Default: \code{distance.method = "manhattan"}. This is very fast
+compared to the genome similarity method. It uses allele counts and the codes
+are tailored for biallelic and multiallelic markers.}
 
 \item{genome}{(logical) Computes pairwise genome similarity in parallel.
 The proportion of the shared genotypes is averaged across shared markers between 
@@ -29,7 +30,7 @@ to run, even in parallel, so better to run overnight.
 Default: \code{genome = FALSE}.}
 
 \item{parallel.core}{(optional) The number of core for parallel computation.
-Default: \code{parallel.core = detectCores()-1}.}
+Default: \code{parallel.core = parallel::detectCores()-1}.}
 }
 \value{
 A list with potentially 8 objects: 
@@ -38,9 +39,9 @@ A list with potentially 8 objects:
 \code{$pairwise.genome.similarity}: results of the genome method
 \code{$genome.stats}: Summary statistics of the genome method
 \code{$violin.plot.distance}: violin plot showing the distribution of pairwise distances
-\code{$jitter.plot.distance}: same info different visual with jitter plot
+\code{$manhattan.plot.distance}: same info different visual with manhattan plot
 \code{$violin.plot.genome}: violin plot showing the distribution of pairwise genome similarities
-\code{$jitter.plot.genome}: same info different visual with jitter plot
+\code{$manhattan.plot.genome}: same info different visual with manhattan plot
 
 Saved in the working directory:
 individuals.pairwise.dist.tsv, individuals.pairwise.distance.stats.tsv, 
@@ -48,18 +49,57 @@ individuals.pairwise.genome.similarity.tsv, individuals.pairwise.genome.stats.ts
 }
 \description{
 The function can compute two methods 
-to highligh potential duplicate individuals (1. distance between individuals
-or 2. pairwise genome similarity).
+to highligh potential duplicate individuals.
+\enumerate{
+\item distance between individuals and/or
+\item pairwise genome similarity
+}
+}
+\details{
+Strategically, run the default first (\code{distance.method},
+but no \code{genome})
+
+\strong{\code{distance.method} argument is fast, but...}
+
+you don't know if the observed comparison (close or distant)
+is influenced by missing values/the number of markers in common
+between the pair compared. This is something that needs to be considered.
+Be suspicious of a \emph{distant outlier} from the same pop pairwise comparison,
+and similarly, be suspicious of a \emph{close outlier} from a different pop
+pairwise comparisons.
+
+If there is no outliers, don't bother with the other method (\code{genome = TRUE}).
+
+
+\strong{\code{genome = TRUE} argument is slower, but...}
+If you see outliers with the first run, take the time to run the function
+with \code{genome = TRUE}. Because this option is much better at detecting
+duplicated individuals and it also shows the impact of \strong{missingness}
+or the number of \strong{shared markers} between comparisons.
+
+Your outlier duo could well be the result of one of the individual having
+an extremely low number genotypes...
 }
 \examples{
 \dontrun{
-# to get pairwise distance only, the simplest way to run:
-dup <- detect_duplicate_genomes(data = "wombat_tidy.tsv")
-# This will use by defaul \\code{distance.method = "manhattan"}, 
-\\code{genome = FALSE}, and all my CPU -1 as default for \\code{parallel.core}
+# First run and simplest way (if you have the tidy df):
+dup <- stackr::detect_duplicate_genomes(data = "wombat_tidy.tsv")
 
-# To view the jitter plot:
-dup$jitter.plot.distance
+#If you need a tidy df:
+dup <- stackr::tidy_genomic_data(
+data = "wombat_tidy.tsv",
+strata = "wombat.strata.tsv",
+vcf.metadata = FALSE
+) \%>\%
+stackr::detect_duplicate_genomes(data = .)
+
+# This will use by defaul:
+distance.method = "manhattan"
+genome = FALSE
+#parallel.core = all my CPUs - 1 
+
+# To view the manhattan plot:
+dup$manhattan.plot.distance
 
 # to view the data stats
 dup.data.stats <- dup$distance.stats
@@ -67,24 +107,26 @@ dup.data.stats <- dup$distance.stats
 # to view the data
 dup.data <- dup$distance
 
-# Based on the look of the distribution using both jitter and boxplot, 
-I can filter the dataset to highlight potential duplicates: 
-dup.filtered <- filter(.data = dup.data, DISTANCE < 3000000)
+# Based on the look of the distribution using both manhattan and boxplot, 
+# I can filter the dataset to highlight potential duplicates: 
+dup.filtered <- dplyr::filter(.data = dup.data, DISTANCE_RELATIVE < 0.2)
 
 # To run the distance (with euclidean distance instead of the default manhattan, 
-# with the genome methods:
-dup <- detect_duplicate_genomes(
-data = "wombat_tidy.tsv", 
-distance.method = "euclidean",
-genome = TRUE
-)
+# and also carry the second analysis (with the genome method):
+dup <- stackr::tidy_genomic_data(
+data = "wombat_tidy.tsv",
+strata = "wombat.strata.tsv",
+vcf.metadata = FALSE
+) \%>\%
+stackr::detect_duplicate_genomes(data = ., distance.method = "euclidean", genome = TRUE)
+
 # to view the data of the genome data
 dup.data <- dup$pairwise.genome.similarity
 
-# Based on the look of the distribution using both jitter and boxplot, 
+# Based on the look of the distribution using both manhattan and boxplot, 
 # I can filter the dataset based on 98\% of identical genotype proportion, 
 # to highlight potential duplicates: 
-dup.filtered <- filter(.data = dup.data, PROP_IDENTICAL > 0.98)
+dup.filtered <- dplyr::filter(.data = dup.data, PROP_IDENTICAL > 0.98)
 
 # Get the list of duplicates id
 dup.list.names <- data.frame(INDIVIDUALS = unique(c(dup.filtered$ID1, dup.filtered$ID2)))

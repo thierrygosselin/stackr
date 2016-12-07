@@ -49,7 +49,7 @@ if (getRversion() >= "2.15.1") {
       "MISSING_PROP_POP", ".", "ALLELE", "ALLELE1", "ALLELE2", "ALLELES_FREQ",
       "Catalog ID", "Cnt", "GENOTYPE", "GROUP", "HAPLOTYPES", "MARKERS.ALLELE_GROUP",
       "POLYMORPHISM", "ALT_ALLELE_NUMBER", "PROB_HET", "PROB_HOM_ALT", "PROB_HOM_REF",
-      "NAPL"
+      "NAPL", "DISTANCE_RELATIVE", "MARKERS_COMMON", "id.pairwise", "input.prep"
     )
   )
 }

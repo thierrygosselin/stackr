@@ -25,9 +25,11 @@
 #' @param mc.allow.recursive see \pkg{parallel} \code{\link{mclapply}}
 
 
-#' @return For mclapply, a list of the same length as X and named by X.
+# @return For mclapply, a list of the same length as X and named by X.
 #' @importFrom utils sessionInfo
 #' @importFrom parallel detectCores makeCluster clusterExport mclapply parLapply stopCluster
+#' @rdname stackr_parallel
+#' @export
 #' @keywords internal
 
 mclapply_win <- function(
@@ -86,15 +88,16 @@ mclapply_win <- function(
 
 
 # Overwrite the serial version of mclapply on Windows only
-# @name assigner_parallel
+# @name .stackr_parallel
 # @title Enable parallel execution on Windows
 # @description Internal hack to enable parallel execution of \pkg{assigner}
-# functions on Windows.
+#' functions on Windows.
 # @inheritParams parallel::mclapply
-# @return For mclapply, a list of the same length as X and named by X.
+#' @return For mclapply, a list of the same length as X and named by X.
 # @importFrom parallel detectCores makeCluster clusterExport mclapply parLapply stopCluster
-# @rdname assigner_parallel
-# @export
+#' @rdname stackr_parallel
+#' @keywords internal
+#' @export
 .stackr_parallel <- switch(
   Sys.info()[['sysname']],
   Windows = {mclapply_win},
