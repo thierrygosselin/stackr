@@ -353,7 +353,7 @@ Currently under construction. Come back soon!
 -   Remove *de novo* assembly artifact, by creating blacklist of genotypes or whitelist of markers:
     -   individuals with more than 2 alleles (use `summary_haplotypes`)
     -   outlier markers with extreme number of SNP/read or haplotype (use `filter_snp_number`)
--   Remove potential duplicated samples that went off your radar, try `detect_duplicate_genome`.
+-   Remove potential duplicated samples that went off your radar, try `detect_duplicate_genomes`.
 -   Highlight outliers individual's heterozygosity that might represent mixed samples with `detect_mixed_individuals`.
 -   The metric you're using: a *de novo* artefact or a reliable signal of biological polymorphism?
 -   Should the statistic you are interested in be consistent throughout the read ?
