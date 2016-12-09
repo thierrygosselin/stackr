@@ -71,67 +71,68 @@ stackr_maf_module <- function(
     maf.local.threshold <- maf.thresholds[1]
     maf.global.threshold <- maf.thresholds[2]
     message("MAF filter: yes")
+  }
+  
+  if (tibble::has_name(input, "GT_VCF")) {
+    maf.local <- input %>%
+      dplyr::filter(GT_VCF != "./.") %>%
+      dplyr::group_by(MARKERS, POP_ID, REF, ALT) %>%
+      dplyr::summarise(
+        N = as.numeric(n()),
+        PQ = as.numeric(length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])),
+        QQ = as.numeric(length(GT_VCF[GT_VCF == "1/1"]))
+      ) %>%
+      dplyr::mutate(MAF_LOCAL = ((QQ * 2) + PQ) / (2 * N))
     
-    if (tibble::has_name(input, "GT_VCF")) {
-      maf.local <- input %>%
-        dplyr::filter(GT_VCF != "./.") %>%
-        dplyr::group_by(MARKERS, POP_ID, REF, ALT) %>%
-        dplyr::summarise(
-          N = as.numeric(n()),
-          PQ = as.numeric(length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])),
-          QQ = as.numeric(length(GT_VCF[GT_VCF == "1/1"]))
-        ) %>%
-        dplyr::mutate(MAF_LOCAL = ((QQ * 2) + PQ) / (2 * N))
-      
-      maf.global <- maf.local %>%
-        dplyr::group_by(MARKERS) %>%
-        dplyr::summarise_at(.tbl = ., .cols = c("N", "PQ", "QQ"), dplyr::funs(sum)) %>%
-        dplyr::mutate(MAF_GLOBAL = ((QQ * 2) + PQ) / (2 * N)) %>%
-        dplyr::select(MARKERS, MAF_GLOBAL)
-      
-      maf.data <- maf.global %>%
-        dplyr::left_join(maf.local, by = c("MARKERS")) %>%
-        dplyr::select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
-      
-      maf.local <- maf.global <- NULL
-    } else {
-      # We split the alleles here to prep for MAF
-      maf.data <- input %>%
-        dplyr::filter(GT != "000000") %>% 
-        dplyr::select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
-        dplyr::mutate(
-          A1 = stringi::stri_sub(GT, 1, 3),
-          A2 = stringi::stri_sub(GT, 4,6)
-        ) %>% 
-        dplyr::select(MARKERS, POP_ID, INDIVIDUALS, A1, A2) %>%
-        tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
-        dplyr::group_by(MARKERS, GT, POP_ID) %>%
-        dplyr::tally(.) %>%
-        dplyr::ungroup() %>%
-        tidyr::complete(data = ., POP_ID, tidyr::nesting(MARKERS, GT), fill = list(n = 0)) %>%
-        dplyr::rename(n.al.pop = n) %>% 
-        dplyr::arrange(MARKERS, GT) %>% 
-        dplyr::group_by(MARKERS, GT) %>%
-        dplyr::mutate(n.al.tot = sum(n.al.pop)) %>% 
-        dplyr::group_by(MARKERS) %>%
-        dplyr::mutate(MAF_GLOBAL = min(n.al.tot)/sum(n.al.pop)) %>%
-        dplyr::group_by(MARKERS, POP_ID) %>%
-        dplyr::mutate(MAF_LOCAL = n.al.pop/sum(n.al.pop)) %>% 
-        dplyr::arrange(MARKERS, POP_ID, GT) %>% 
-        dplyr::group_by(MARKERS, POP_ID) %>% 
-        dplyr::filter(n.al.pop == min(n.al.pop)) %>% 
-        dplyr::distinct(MARKERS, POP_ID, .keep_all = TRUE) %>% 
-        dplyr::select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
-    }# end maf calculations
+    maf.global <- maf.local %>%
+      dplyr::group_by(MARKERS) %>%
+      dplyr::summarise_at(.tbl = ., .cols = c("N", "PQ", "QQ"), dplyr::funs(sum)) %>%
+      dplyr::mutate(MAF_GLOBAL = ((QQ * 2) + PQ) / (2 * N)) %>%
+      dplyr::select(MARKERS, MAF_GLOBAL)
     
-    write_tsv(
-      x = maf.data, 
-      path = "maf.data.tsv",
-      col_names = TRUE, 
-      append = FALSE
-    )
-    message("The MAF table was written in your folder")
+    maf.data <- maf.global %>%
+      dplyr::left_join(maf.local, by = c("MARKERS")) %>%
+      dplyr::select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
     
+    maf.local <- maf.global <- NULL
+  } else {
+    # We split the alleles here to prep for MAF
+    maf.data <- input %>%
+      dplyr::filter(GT != "000000") %>% 
+      dplyr::select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
+      dplyr::mutate(
+        A1 = stringi::stri_sub(GT, 1, 3),
+        A2 = stringi::stri_sub(GT, 4,6)
+      ) %>% 
+      dplyr::select(MARKERS, POP_ID, INDIVIDUALS, A1, A2) %>%
+      tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
+      dplyr::group_by(MARKERS, GT, POP_ID) %>%
+      dplyr::tally(.) %>%
+      dplyr::ungroup() %>%
+      tidyr::complete(data = ., POP_ID, tidyr::nesting(MARKERS, GT), fill = list(n = 0)) %>%
+      dplyr::rename(n.al.pop = n) %>% 
+      dplyr::arrange(MARKERS, GT) %>% 
+      dplyr::group_by(MARKERS, GT) %>%
+      dplyr::mutate(n.al.tot = sum(n.al.pop)) %>% 
+      dplyr::group_by(MARKERS) %>%
+      dplyr::mutate(MAF_GLOBAL = min(n.al.tot)/sum(n.al.pop)) %>%
+      dplyr::group_by(MARKERS, POP_ID) %>%
+      dplyr::mutate(MAF_LOCAL = n.al.pop/sum(n.al.pop)) %>% 
+      dplyr::arrange(MARKERS, POP_ID, GT) %>% 
+      dplyr::group_by(MARKERS, POP_ID) %>% 
+      dplyr::filter(n.al.pop == min(n.al.pop)) %>% 
+      dplyr::distinct(MARKERS, POP_ID, .keep_all = TRUE) %>% 
+      dplyr::select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
+  }# end maf calculations
+  
+  write_tsv(
+    x = maf.data, 
+    path = "maf.data.tsv",
+    col_names = TRUE, 
+    append = FALSE
+  )
+  message("The MAF table was written in your folder")
+  if (!is.null(maf.thresholds)) {
     if (maf.approach == "haplotype") {
       if (!tibble::has_name(input, "CHROM")) {
         stop("The haplotype approach for maf needs locus and snp info from vcf")
@@ -218,7 +219,9 @@ stackr_maf_module <- function(
         " MARKERS"
       )
     )
-    res <- list(input = vcf.maf, maf.data = maf.data)
-    return(res)
-  } # End of MAF filters
-}# End function
+  } else {
+    vcf.maf <- "filtering not selected"
+  }#End maf filtering
+  res <- list(input = vcf.maf, maf.data = maf.data)
+  return(res)
+}#End stackr_maf_module
