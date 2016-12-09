@@ -18,7 +18,7 @@ Default: \code{verbose = TRUE}.}
 }
 \value{
 A list with allele frequencies in a data frame in long and wide format,
-and a matrix.
+and a matrix. Local (pop) and global minor allele frequency (MAF) is also computed.
 }
 \description{
 Compute allele frequencies per markers and populations. Also

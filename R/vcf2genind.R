@@ -20,12 +20,6 @@
 
 #' @export
 #' @rdname vcf2genind
-#' @import dplyr
-#' @import stringi
-#' @importFrom data.table fread
-#' @import parallel
-#' @import dplyr
-#' @import stringi
 
 #' @references Jombart T (2008) adegenet: a R package for the multivariate
 #' analysis of genetic markers. Bioinformatics, 24, 1403-1405.
@@ -35,6 +29,8 @@
 
 #' @seealso \code{adegenet} is available on CRAN \url{http://cran.r-project.org/web/packages/adegenet/} and github \url{https://github.com/thibautjombart/}
 #' \code{\link[stackr]{genomic_converter}}
+
+#' @importFrom parallel detectCores
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
@@ -64,7 +60,7 @@ vcf2genind <- function(
   iteration.rf = 10,
   split.number = 100,
   verbose = FALSE,
-  parallel.core = detectCores()-1
+  parallel.core = parallel::detectCores() - 1
 ) {
   
   res <- genomic_converter(
