@@ -1431,7 +1431,7 @@ tidy_genomic_data <- function(
     
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
-    input.temp <- change_alleles(data = input, monomorphic.out = monomorphic.out)
+    input.temp <- change_alleles(data = input, monomorphic.out = FALSE)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
     
