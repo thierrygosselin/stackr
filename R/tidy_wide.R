@@ -29,6 +29,7 @@
 #' @importFrom stringi stri_replace_all_fixed stri_pad_left
 #' @importFrom dplyr mutate select
 #' @importFrom data.table fread melt.data.table as.data.table
+#' @importFrom tibble as_data_frame has_name
 
 #' @details \strong{Input data:}
 #'  
@@ -101,7 +102,7 @@ tidy_wide <- function(data, import.metadata = FALSE, ...) {
         showProgress = FALSE,
         verbose = FALSE
       ) %>% 
-        as_data_frame()
+        tibble::as_data_frame()
       
       # switch GENOTYPE for GT in colnames if found
       if ("GENOTYPE" %in% colnames(input)) {
@@ -140,7 +141,7 @@ tidy_wide <- function(data, import.metadata = FALSE, ...) {
           variable.factor = FALSE, 
           value.factor = FALSE
         ) %>% 
-        as_data_frame()
+        tibble::as_data_frame()
     }
   } else {# object in global environment
     input <- data
@@ -182,12 +183,12 @@ tidy_wide <- function(data, import.metadata = FALSE, ...) {
         value.name = as.character("GT"), 
         variable.factor = FALSE, 
         value.factor = FALSE) %>% 
-        as_data_frame()
+        tibble::as_data_frame()
     }
   }
   
   # unused objects
-  scan.colnames <- import.colnames <- NULL
+  scan.colnames <- NULL
 
   # Remove unwanted sep in the genotype filed.
   input <- input %>% 
