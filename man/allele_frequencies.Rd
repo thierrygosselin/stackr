@@ -21,7 +21,8 @@ A list with allele frequencies in a data frame in long and wide format,
 and a matrix.
 }
 \description{
-Compute allele frequencies per markers and populations.
+Compute allele frequencies per markers and populations. Also
+compute minor 
 Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 and might be of interest for users.
 }
