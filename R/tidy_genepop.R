@@ -157,8 +157,7 @@ tidy_genepop <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
   
   # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("genepop file missing")
-  
-  
+
   # Import data ------------------------------------------------------------------
   if (is.vector(data)) {
     data <- data.table::fread(
@@ -169,12 +168,13 @@ tidy_genepop <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
       stringsAsFactors = FALSE,
       col.names = "data",
       strip.white = TRUE
-    ) %>% as_data_frame
+    ) %>% 
+      tibble::as_data_frame()
   } else {
     data <- data.table::as.data.table(data) %>%
       dplyr::rename(data = V1) %>%
       dplyr::slice(-1) %>% # removes genepop header
-      as_data_frame
+      tibble::as_data_frame()
   }
   
   # Replace white space with only 1 space
