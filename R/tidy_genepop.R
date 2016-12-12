@@ -251,8 +251,7 @@ tidy_genepop <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
     )
   
   # isolate the genotypes
-  data <- data %>%
-    dplyr::select(GENOTYPE) %>%
+  data <- dplyr::select(.data = data, GENOTYPE) %>%
     dplyr::mutate(
       GENOTYPE = stringi::stri_replace_all_fixed(
         str = GENOTYPE,

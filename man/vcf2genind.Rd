@@ -12,7 +12,8 @@ vcf2genind(data, output, filename = NULL, blacklist.id = NULL,
   pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
   imputation.method = NULL, impute = "genotype",
   imputations.group = "populations", num.tree = 100, iteration.rf = 10,
-  split.number = 100, verbose = FALSE, parallel.core = detectCores() - 1)
+  split.number = 100, verbose = FALSE,
+  parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{data}{9 options: biallelic and haplotypic vcf
