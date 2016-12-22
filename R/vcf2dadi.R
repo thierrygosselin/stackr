@@ -108,11 +108,8 @@
 #' sumstats.ingroup = "batch_1.sumstats.ingroup.tsv", 
 #' sumstats.outgroup = "batch_1.sumstats.outgroup.tsv",
 #' imputation.method = "max", 
-#' impute = "allele", 
 #' imputations.group = "populations", 
 #' num.tree = 100, 
-#' iteration.rf = 10, 
-#' split.number = 100, 
 #' verbose = FALSE, 
 #' parallel.core = 8
 #' )
@@ -166,11 +163,10 @@ vcf2dadi <- function(
   pop.labels = NULL,
   pop.select = NULL,
   imputation.method = NULL,
-  impute = "genotype",
   imputations.group = "populations",
-  num.tree = 100,
-  iteration.rf = 10,
-  split.number = 100,
+  num.tree = 50,
+  pred.mean.matching = 0,
+  random.seed = NULL,
   verbose = FALSE,
   parallel.core = parallel::detectCores() - 1
 ){
@@ -656,12 +652,10 @@ vcf2dadi <- function(
   if (!is.null(imputation.method)) {
     input.imp <- stackr::stackr_imputations_module(
       data = input, 
-      imputation.method = imputation.method, 
-      impute = impute, 
-      imputations.group = imputations.group, 
-      num.tree = num.tree, 
-      iteration.rf = iteration.rf, 
-      split.number = split.number, 
+      imputation.method = imputation.method,
+      imputations.group = imputations.group,
+      num.tree = num.tree,
+      pred.mean.matching = pred.mean.matching, 
       verbose = verbose, 
       parallel.core = parallel.core, 
       filename = NULL

@@ -10,9 +10,9 @@ vcf2gtypes(data, output, filename = NULL, blacklist.id = NULL,
   maf.thresholds = NULL, maf.pop.num.threshold = 1, maf.approach = "SNP",
   maf.operator = "OR", max.marker = NULL, strata = NULL,
   pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
-  imputation.method = NULL, impute = "genotype",
-  imputations.group = "populations", num.tree = 100, iteration.rf = 10,
-  split.number = 100, verbose = FALSE, parallel.core = detectCores() - 1)
+  imputation.method = NULL, imputations.group = "populations",
+  num.tree = 50, pred.mean.matching = 0, random.seed = NULL,
+  verbose = FALSE, parallel.core = detectCores() - 1)
 }
 \arguments{
 \item{data}{9 options: biallelic and haplotypic vcf
@@ -152,38 +152,44 @@ Default: \code{pop.select = NULL}}
 
 \item{imputation.method}{(character, optional) 
 Methods available for map-independent imputations of missing genotype: 
-(1) \code{"max"} to use the most frequent category for imputations.
-(2) \code{"rf"} using Random Forest algorithm. 
-Default: no imputation \code{imputation.method = NULL}.}
+(1) \code{imputation.method = "max"} to use the most frequent category for 
+the imputations.
+(2) \code{imputation.method = "rf"} using Random Forests algorithm.
+\code{imputation.method = NULL} will return the original dataset, without
+imputation.
+Default: \code{imputation.method = "rf"}.}
 
-\item{impute}{(character, optional) Imputation on missing genotype 
-\code{impute = "genotype"} or alleles \code{impute = "allele"}.
-Default: \code{"genotype"}.}
-
-\item{imputations.group}{(character, optional) \code{"global"} or \code{"populations"}.
-Should the imputations be computed globally or by populations. If you choose
-global, turn the verbose to \code{TRUE}, to see progress.
+\item{imputations.group}{(character, optional) \code{"global"} or
+\code{"populations"}.
+Should the imputations be computed globally or by populations. Note that
+imputing genotype globally can create huge bias for example by
+introducing foreign genotypes in some populations.
 Default = \code{"populations"}.}
 
-\item{num.tree}{(integer, optional) The number of trees to grow in Random Forest. 
-Default: \code{num.tree = 100}.}
+\item{num.tree}{(integer, optional) The number of trees to grow with the 
+Random Forests approach.
+Default: \code{num.tree = 50}.}
 
-\item{iteration.rf}{(integer, optional) The number of iterations of missing data algorithm
-in Random Forest. 
-Default: \code{iteration.rf = 10}.}
+\item{pred.mean.matching}{(integer, optional) Used in conjunction with 
+random Forests. Number of candidate non-missing
+value to sample from during the predictive mean matching step.
+A fast k-nearest neighbor searching algorithms is used with this approach.
+\code{pred.mean.matching = 3} will use 3 nighbors.
+Default: \code{pred.mean.matching = 0}, avoids this step.}
 
-\item{split.number}{(integer, optional) Non-negative integer value used to specify
-random splitting in Random Forest. 
-Default: \code{split.number = 100}.}
+\item{random.seed}{(integer, optional) For reproducibility, set an integer
+that will be used to initialize the random generator. With default,
+a random number is generated.
+Default: \code{random.seed = NULL}.}
 
 \item{verbose}{(optional, logical) When \code{verbose = TRUE} 
 the function is a little more chatty during execution.
 Default: \code{verbose = FALSE}.}
 
-\item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
-programming of Random Forest imputations. For more info on how to install the
-OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
-If not selected \code{detectCores()-1} is used as default.}
+\item{parallel.core}{(optional) The number of core used for parallel
+execution of Random Forests imputations.
+Markers are imputed in parallel, populations are processed sequentially.
+Default: \code{parallel::detectCores() - 1}.}
 }
 \description{
 For full details of the function, please use 

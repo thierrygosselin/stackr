@@ -49,13 +49,12 @@ vcf2betadiv <- function(
   pop.labels = NULL,
   pop.select = NULL,
   imputation.method = NULL,
-  impute = "genotype",
   imputations.group = "populations",
-  num.tree = 100,
-  iteration.rf = 10,
-  split.number = 100,
+  num.tree = 50,
+  pred.mean.matching = 0,
+  random.seed = NULL,
   verbose = FALSE,
-  parallel.core = detectCores()-1
+  parallel.core = detectCores() - 1
 ) {
   
   res <- genomic_converter(
@@ -78,11 +77,9 @@ vcf2betadiv <- function(
     pop.labels = pop.labels,
     pop.select = pop.select,
     imputation.method = imputation.method,
-    impute = impute,
     imputations.group = imputations.group,
     num.tree = num.tree,
-    iteration.rf = iteration.rf,
-    split.number = split.number,
+    pred.mean.matching = pred.mean.matching,
     verbose = verbose,
     parallel.core = parallel.core
   )

@@ -16,10 +16,9 @@ dart2df_genind_plink(data, strata, output, pop.levels = NULL,
   filter.markers.missing.ind = NULL, plot.markers.missing.ind = FALSE,
   filter.snp.ld = NULL, plot.number.snp.reads = FALSE,
   maf.thresholds = NULL, maf.pop.num.threshold = 1, maf.operator = "OR",
-  filename = NULL, imputation.method = NULL, impute = "genotype",
-  imputations.group = "populations", num.tree = 100, iteration.rf = 10,
-  split.number = 100, verbose = FALSE, parallel.core = detectCores() - 1,
-  ...)
+  filename = NULL, imputation.method = NULL,
+  imputations.group = "populations", pred.mean.matching = 0,
+  num.tree = 100, verbose = FALSE, parallel.core = detectCores() - 1)
 }
 \arguments{
 \item{data}{DArT output file in wide format or binary format tipically 
@@ -153,40 +152,39 @@ customized with the output file(s) selected.}
 
 \item{imputation.method}{(character, optional) 
 Methods available for map-independent imputations of missing genotype: 
-(1) \code{"max"} to use the most frequent category for imputations.
-(2) \code{"rf"} using Random Forest algorithm. 
-Default: no imputation \code{imputation.method = NULL}.}
+(1) \code{imputation.method = "max"} to use the most frequent category for 
+the imputations.
+(2) \code{imputation.method = "rf"} using Random Forests algorithm.
+\code{imputation.method = NULL} will return the original dataset, without
+imputation.
+Default: \code{imputation.method = "rf"}.}
 
-\item{impute}{(character, optional) Imputation on missing genotype 
-\code{impute = "genotype"} or alleles \code{impute = "allele"}.
-Default: \code{"genotype"}.}
-
-\item{imputations.group}{(character, optional) \code{"global"} or \code{"populations"}.
-Should the imputations be computed globally or by populations. If you choose
-global, turn the verbose to \code{TRUE}, to see progress.
+\item{imputations.group}{(character, optional) \code{"global"} or
+\code{"populations"}.
+Should the imputations be computed globally or by populations. Note that
+imputing genotype globally can create huge bias for example by
+introducing foreign genotypes in some populations.
 Default = \code{"populations"}.}
 
-\item{num.tree}{(integer, optional) The number of trees to grow in Random Forest. 
-Default: \code{num.tree = 100}.}
+\item{pred.mean.matching}{(integer, optional) Used in conjunction with 
+random Forests. Number of candidate non-missing
+value to sample from during the predictive mean matching step.
+A fast k-nearest neighbor searching algorithms is used with this approach.
+\code{pred.mean.matching = 3} will use 3 nighbors.
+Default: \code{pred.mean.matching = 0}, avoids this step.}
 
-\item{iteration.rf}{(integer, optional) The number of iterations of missing data algorithm
-in Random Forest. 
-Default: \code{iteration.rf = 10}.}
-
-\item{split.number}{(integer, optional) Non-negative integer value used to specify
-random splitting in Random Forest. 
-Default: \code{split.number = 100}.}
+\item{num.tree}{(integer, optional) The number of trees to grow with the 
+Random Forests approach.
+Default: \code{num.tree = 50}.}
 
 \item{verbose}{(optional, logical) When \code{verbose = TRUE} 
 the function is a little more chatty during execution.
-Default: \code{verbose = FALSE}.}
+Default: \code{verbose = TRUE}.}
 
-\item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
-programming of Random Forest imputations. For more info on how to install the
-OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
-If not selected \code{detectCores()-1} is used as default.}
-
-\item{...}{other parameters passed to the function.}
+\item{parallel.core}{(optional) The number of core used for parallel
+execution of Random Forests imputations.
+Markers are imputed in parallel, populations are processed sequentially.
+Default: \code{parallel::detectCores() - 1}.}
 }
 \value{
 The function returns an object (list). The content of the object 

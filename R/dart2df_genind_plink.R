@@ -213,14 +213,12 @@ dart2df_genind_plink <- function(
   maf.operator = "OR",
   filename = NULL,
   imputation.method = NULL,
-  impute = "genotype",
   imputations.group = "populations",
+  pred.mean.matching = 0,
   num.tree = 100,
-  iteration.rf = 10,
-  split.number = 100,
   verbose = FALSE,
-  parallel.core = detectCores()-1,
-  ...) {
+  parallel.core = detectCores() - 1
+  ) {
   
   cat("#######################################################################\n")
   cat("#################### stackr: dart2df_genind_plink #####################\n")
@@ -1243,12 +1241,10 @@ dart2df_genind_plink <- function(
     
     input.imp <- stackr::stackr_imputations_module(
       data = input, 
-      imputation.method = imputation.method, 
-      impute = impute, 
-      imputations.group = imputations.group, 
-      num.tree = num.tree, 
-      iteration.rf = iteration.rf, 
-      split.number = split.number, 
+      imputation.method = imputation.method,
+      imputations.group = imputations.group,
+      num.tree = num.tree,
+      pred.mean.matching = pred.mean.matching, 
       verbose = verbose, 
       parallel.core = parallel.core, 
       filename = NULL

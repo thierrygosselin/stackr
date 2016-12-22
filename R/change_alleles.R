@@ -103,7 +103,6 @@ change_alleles <- function(data, monomorphic.out = TRUE) {
   
   # monomorphic
   if (monomorphic.out) { 
-    # monomorphic markers 
     mono.markers <-  dplyr::filter(.data = marker.type, n == 1) %>% 
       dplyr::select(MARKERS)
   }

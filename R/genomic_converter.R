@@ -163,11 +163,10 @@ genomic_converter <- function(
   pop.labels = NULL,
   pop.select = NULL,
   imputation.method = NULL,
-  impute = "genotype",
   imputations.group = "populations",
-  num.tree = 100,
-  iteration.rf = 10,
-  split.number = 100,
+  num.tree = 50,
+  pred.mean.matching = 0,
+  random.seed = NULL,
   verbose = FALSE,
   parallel.core = parallel::detectCores() - 1
 ) {
@@ -183,24 +182,24 @@ genomic_converter <- function(
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
   
   message("Function arguments and values:")
-  message(stringi::stri_join("Working directory: ", getwd()))
+  message("Working directory: ", getwd())
   
   if (is.vector(data)) {
-    message(stringi::stri_join("Input file: ", data))
+    message("Input file: ", data)
   } else {
     message("Input file: from global environment")  
   }
   
   if (is.null(strata)) {
-    message(stringi::stri_join("Strata: no"))
+    message("Strata: no")
   } else {
-    message(stringi::stri_join("Strata: ", strata, ignore_null = FALSE))
+    message("Strata: ", strata)
   }
   
   if (is.null(pop.levels)) {
     message("Population levels: no")
   } else {
-    message(stringi::stri_join("Population levels: ", stringi::stri_join(pop.levels, collapse = ", ")))
+    message("Population levels: ", stringi::stri_join(pop.levels, collapse = ", "))
   }
   
   if (is.null(pop.levels)) {
@@ -218,7 +217,7 @@ genomic_converter <- function(
   if (is.null(filename)) {
     message("Filename prefix: no")
   } else {
-    message(stringi::stri_join("Filename prefix: ", filename, "\n"))
+    message("Filename prefix: ", filename, "\n")
   }
   
   
@@ -226,32 +225,32 @@ genomic_converter <- function(
   if (is.null(blacklist.id)) {
     message("Blacklist of individuals: no")
   } else {
-    message(stringi::stri_join("Blacklist of individuals: ", blacklist.id))
+    message("Blacklist of individuals: ", blacklist.id)
   }
   
   if (is.null(blacklist.genotype)) {
     message("Blacklist of genotypes: no")
   } else {
-    message(stringi::stri_join("Blacklist of genotypes: ", blacklist.genotype))
+    message("Blacklist of genotypes: ", blacklist.genotype)
   }
   
   if (is.null(whitelist.markers)) {
     message("Whitelist of markers: no")
   } else {
-    message(stringi::stri_join("Whitelist of markers: ", whitelist.markers))
+    message("Whitelist of markers: ", whitelist.markers)
   }
   
-  message(stringi::stri_join("monomorphic.out: ", monomorphic.out))
+  message("monomorphic.out: ", monomorphic.out)
   if (is.null(snp.ld)) {
     message("snp.ld: no")
   } else {
-    message(stringi::stri_join("snp.ld: ", snp.ld))
+    message("snp.ld: ", snp.ld)
   }
-  message(stringi::stri_join("common.markers: ", common.markers))
+  message("common.markers: ", common.markers)
   if (is.null(max.marker)) {
     message("max.marker: no")
   } else {
-    message(stringi::stri_join("max.marker: ", max.marker))
+    message("max.marker: ", max.marker)
   }
   
   if (is.null(pop.select)) {
@@ -263,24 +262,22 @@ genomic_converter <- function(
     message("maf.thresholds: no")
   } else {
     message(stringi::stri_join("maf.thresholds: ", stringi::stri_join(maf.thresholds, collapse = ", ")))
-    message(stringi::stri_join("maf.pop.num.threshold: ", maf.pop.num.threshold))
-    message(stringi::stri_join("maf.approach: ", maf.approach))
-    message(stringi::stri_join("maf.operator: ", maf.operator))
+    message("maf.pop.num.threshold: ", maf.pop.num.threshold)
+    message("maf.approach: ", maf.approach)
+    message("maf.operator: ", maf.operator)
   }
   
   message(stringi::stri_join("\n", "Imputations options:"))
   if (is.null(imputation.method)) {
     message("imputation.method: no")
   } else {
-    message(stringi::stri_join("imputation.method: ", imputation.method))
-    message(stringi::stri_join("impute: ", impute))
-    message(stringi::stri_join("imputations.group: ", imputations.group))
-    message(stringi::stri_join("num.tree: ", num.tree))
-    message(stringi::stri_join("iteration.rf: ", iteration.rf))
-    message(stringi::stri_join("split.number: ", split.number))
-    message(stringi::stri_join("verbose: ", verbose))
+    message("imputation.method: ", imputation.method)
+    message("imputations.group: ", imputations.group)
+    message("num.tree: ", num.tree)
+    message("pred.mean.matching: ", pred.mean.matching)
+    message("verbose: ", verbose)
   }
-  message(stringi::stri_join("\n", "parallel.core: ", parallel.core, "\n"))
+  message("\nparallel.core: ", parallel.core, "\n")
   cat("#######################################################################\n")
   
   
@@ -388,8 +385,8 @@ genomic_converter <- function(
           vectorize_all = FALSE
         )
       } else {
-        message(stringi::stri_join("IMPORTANT: you have > 20 000 markers (", marker.number, ")",
-                                   "\nDo you want the more suitable genlight object instead of the current genind? (y/n):"))
+        message("IMPORTANT: you have > 20 000 markers (", marker.number, ")",
+                                   "\nDo you want the more suitable genlight object instead of the current genind? (y/n):")
         overide.genind <- as.character(readLines(n = 1))
         if (overide.genind == "y") {
           output <- stringi::stri_replace_all_fixed(
@@ -409,11 +406,10 @@ genomic_converter <- function(
     input.imp <- stackr::stackr_imputations_module(
       data = input,
       imputation.method = imputation.method,
-      impute = impute,
       imputations.group = imputations.group,
       num.tree = num.tree,
-      iteration.rf = iteration.rf,
-      split.number = split.number,
+      pred.mean.matching = pred.mean.matching,
+      random.seed = random.seed,
       verbose = verbose,
       parallel.core = parallel.core,
       filename = NULL
@@ -597,14 +593,14 @@ genomic_converter <- function(
   cat("############################### RESULTS ###############################\n")
   message("Tidy data in your global environment")
   message("Depending on output selected, check the list in your global environment and your working directory")
-  message(stringi::stri_join("Data format of input: ", data.type))
-  message(stringi::stri_join("Biallelic data ? ", biallelic))
-  message(stringi::stri_join("Number of markers: ", n.markers))
-  message(stringi::stri_join("Number of chromosome: ", n.chromosome))
-  message(stringi::stri_join("Number of individuals ", n.individuals))
-  message(stringi::stri_join("Number of populations ", n.pop))
+  message("Data format of input: ", data.type)
+  message("Biallelic data ? ", biallelic)
+  message("Number of markers: ", n.markers)
+  message("Number of chromosome: ", n.chromosome)
+  message("Number of individuals ", n.individuals)
+  message("Number of populations ", n.pop)
   timing <- proc.time() - timing
-  message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
+  message("Computation time: ", round(timing[[3]]), " sec")
   cat("############################## completed ##############################\n")
   return(res)
 } # end genomic_converter

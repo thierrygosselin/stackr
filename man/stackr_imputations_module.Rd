@@ -4,98 +4,198 @@
 \alias{stackr_imputations_module}
 \title{Map-independent imputation of missing genotype}
 \usage{
-stackr_imputations_module(data, imputation.method = NULL,
-  impute = "genotype", imputations.group = "populations", num.tree = 100,
-  iteration.rf = 10, split.number = 100, verbose = FALSE,
-  parallel.core = parallel::detectCores() - 1, filename = NULL, ...)
+stackr_imputations_module(data, imputation.method = "rf",
+  imputations.group = "populations", num.tree = 50,
+  pred.mean.matching = 0, verbose = TRUE,
+  parallel.core = parallel::detectCores() - 1, random.seed = NULL,
+  filename = NULL)
 }
 \arguments{
 \item{data}{A file in the working directory or object in the global environment 
 in wide or long (tidy) formats. To import, the function uses 
 \href{https://github.com/thierrygosselin/stackr}{stackr} 
-\code{\link[stackr]{tidy_wide}}. See details for more info.}
+\code{\link[stackr]{tidy_wide}}.
+\emph{See details of this function for more info}.}
 
 \item{imputation.method}{(character, optional) 
 Methods available for map-independent imputations of missing genotype: 
-(1) \code{"max"} to use the most frequent category for imputations.
-(2) \code{"rf"} using Random Forest algorithm. 
-Default: no imputation \code{imputation.method = NULL}.}
+(1) \code{imputation.method = "max"} to use the most frequent category for 
+the imputations.
+(2) \code{imputation.method = "rf"} using Random Forests algorithm.
+\code{imputation.method = NULL} will return the original dataset, without
+imputation.
+Default: \code{imputation.method = "rf"}.}
 
-\item{impute}{(character, optional) Imputation on missing genotype 
-\code{impute = "genotype"} or alleles \code{impute = "allele"}.
-Default: \code{"genotype"}.}
-
-\item{imputations.group}{(character, optional) \code{"global"} or \code{"populations"}.
-Should the imputations be computed globally or by populations. If you choose
-global, turn the verbose to \code{TRUE}, to see progress.
+\item{imputations.group}{(character, optional) \code{"global"} or
+\code{"populations"}.
+Should the imputations be computed globally or by populations. Note that
+imputing genotype globally can create huge bias for example by
+introducing foreign genotypes in some populations.
 Default = \code{"populations"}.}
 
-\item{num.tree}{(integer, optional) The number of trees to grow in Random Forest. 
-Default: \code{num.tree = 100}.}
+\item{num.tree}{(integer, optional) The number of trees to grow with the 
+Random Forests approach.
+Default: \code{num.tree = 50}.}
 
-\item{iteration.rf}{(integer, optional) The number of iterations of missing data algorithm
-in Random Forest. 
-Default: \code{iteration.rf = 10}.}
+\item{pred.mean.matching}{(integer, optional) Used in conjunction with 
+random Forests. Number of candidate non-missing
+value to sample from during the predictive mean matching step.
+A fast k-nearest neighbor searching algorithms is used with this approach.
+\code{pred.mean.matching = 3} will use 3 nighbors.
+Default: \code{pred.mean.matching = 0}, avoids this step.}
 
-\item{split.number}{(integer, optional) Non-negative integer value used to specify
-random splitting in Random Forest. 
-Default: \code{split.number = 100}.}
+\item{verbose}{(optional, logical) When \code{verbose = TRUE} 
+the function is a little more chatty during execution.
+Default: \code{verbose = TRUE}.}
 
-\item{verbose}{(logical, optional) Should trace output be enabled on each iteration
-in Random Forest ? 
-Default: \code{verbose = FALSE}.}
+\item{parallel.core}{(optional) The number of core used for parallel
+execution of Random Forests imputations.
+Markers are imputed in parallel, populations are processed sequentially.
+Default: \code{parallel::detectCores() - 1}.}
 
-\item{parallel.core}{(optional) The number of core for OpenMP shared-memory parallel
-programming of Random Forest imputations. For more info on how to install the
-OpenMP version see \code{\link[randomForestSRC]{randomForestSRC-package}}.
-If not selected \code{detectCores()-1} is used as default.}
+\item{random.seed}{(integer, optional) For reproducibility, set an integer
+that will be used to initialize the random generator. With default,
+a random number is generated.
+Default: \code{random.seed = NULL}.}
 
 \item{filename}{(optional) The file name for the \strong{imputed} 
 tidy data frame written to the working directory.
 With missing argument or default: \code{filename = NULL}, the imputed 
 tidy data is in the global environment only 
 (i.e. not written in the working directory).}
-
-\item{...}{other parameters passed to the function.}
 }
 \value{
 The output in your global environment is the imputed tidy data frame.
 If \code{filename} is provided, the imputed tidy data frame is also 
-written to the working directory.
+written to the working directory. The original data is returned for markers
+with \emph{all} or \emph{no} NA.
 }
 \description{
-Map-independent imputation of missing genotype using Random Forest 
-or the most frequent category. Impute genotypes or alleles. Used internally 
-in \href{https://github.com/thierrygosselin/assigner}{assigner} and
+Used internally in \href{https://github.com/thierrygosselin/assigner}{assigner} and
 \href{https://github.com/thierrygosselin/stackr}{stackr} and 
-might be of interest for users. 
+might be of interest for users.
+The goal of this module is to provide a simple solution for
+a complicated problem: missing observations in RADseq genomic datasets.
+This function will compute \strong{map-independent imputations} of missing
+genotypes.
 
-The goal of \code{missing_visualization} is to provide a simple solution for a complicated
-problem: missing observations in genotype datasets. Before running this function
-to populate the original dataset with synthetic data you should try 
-\code{\link[stackr]{missing_visualization}} to detect patterns of missingness.
-Follow the vignette for more info.
+\strong{Key features:}
+
+\itemize{
+\item Random Forests (rf) or the most observed genotypes (~mean/mode).
+\item Imputations conducted by populations or globally.
+\item Haplotype/SNP approach: correlation among SNPs is accounted for during
+rf imputation, i.e. imputation is automatically conducted by haplotype
+when marker meta-information is avaialble (chromosome, locus and position,
+usually from VCF files). The alternative, considers all the markers independent
+and imputation is conducted by SNPs.
+\item Genotype likelihood (GL): when the GL info is detected
+(GL column in FORMAT field of VCF files),
+genotypes with higher likelihood will have higher probability during bootstrap
+samples of trees in random Forests. Note that the use of genotype likelihoods
+in the form of normalized, phred-scaled likelihoods (PL, e.g. from GATK)
+are not recognized, yet... it's still under development.
+\item Predictive mean matching: the rf option uses a fast k-nearest neighbor
+(KNN) searching algorithms (see argument documentation and details below).
+\item Optimized for speed: the package
+\href{https://github.com/imbs-hl/ranger}{ranger}
+(see Wright and Ziegler, 2016) provides a fast C++ version
+of the original implementation of rf from Breiman (2001), and
+imputations of genotypes are conducted in parallel across CPUs.
+A progress bar is now available to see if you have time for a coffee break!
+}
+
+
+Before running this function to populate the original dataset with synthetic
+data you should try \code{\link[stackr]{missing_visualization}}
+to detect patterns of missingness.
+Follow the \href{https://www.dropbox.com/s/4zf032g6yjatj0a/vignette_missing_data_analysis.nb.html?dl=0}{vignette}
+for more info.
+}
+\details{
+\strong{haplotype/SNP approach:}
+
+The \strong{haplotype approach} is automatically used when markers meta-information
+is detected (chromosome/CHROM, locus/ID and SNP/POS columns, usually from a VCF file).
+Missing genotypes from SNPs on the same locus or same RADseq read is undertaken
+simulteneously to account for the correlation of the linked SNPs.
+Alternatively, a \strong{snp approach} is used, and the SNP are considered
+independent. Imputations of genotypes is then conducted for each marker separately.
+
+
+\strong{Predictive mean matching:}
+
+Random Forests already behave like a nearest neighbor
+classifier, with adaptive metric. Now we have the option to conduct
+predictive mean matching on top of the prediction based missing value
+imputation.PMM tries to raise the variance in the resulting conditional
+distributions to a realistic level.
+The closest k predicted values are identified by a fast
+k-nearest neighbour approach using \code{\link[FNN]{knnx.index}} function
+wrapped in the package \code{\link[missRanger]{pmm}}.
+Returned value correspond to the mean value.
+}
+\note{
+\strong{Reference genome or linkage map available ?}
+
+Numerous approaches are available and more appropriate, please search
+the literature
+(\href{https://online.papersapp.com/collections/05d6e65a-73c9-49e6-9c75-289a818f76f3/share}{references}).
+
+
+\strong{Deprecated arguments:}
+
+\itemize{
+\item \code{impute} is no longer available.
+Imputing using \code{impute = "allele"} option was wrong because it
+was using F1 genotypes for imputations. Now imputation is only conducted at
+the genotype level.
+\item \code{iteration.rf} is no longer necessary and iteration is now set to a
+maximum of 10 000 wich is more than enough. Most RADseq dataset with Random
+Forests approach will reach consensus before 10 or 15 iterations.
+\item \code{split.number} is automatically set.
+}
 }
 \examples{
 \dontrun{
-# The simplest form:
-wolf.imputed.data <- stackr_imputations_module(data = "wolf.tidy.dataset.tsv")
-This will impute missing genotype by populations using random forest.
-The number of tree, iterations.rf, split.number and parallel.core used 
-will be the default.
+# The simplest way to run when you have a tidy dataset:
+
+wolf.imputed <- stackr::stackr_imputations_module(data = "wolf.tidy.dataset.tsv")
+
+# This will impute the missing genotypes by population using random Forests.
+# The remaining arguments will be the defaults.
+
+# When you start with a vcf file you can use magrittr \%>\% to `pipe` the
+# result, below an example with more arguments offered by the functions:
+
+wolf.imp <- stackr::tidy_genomic_data(
+    data = "batch_1.vcf",
+    strata = "strata.wolf.10pop.tsv",
+    vcf.metadata = TRUE,
+    whitelist.markers = "whitelist.loci.txt",
+    verbose = TRUE) \%>\%
+stackr::stackr_imputations_module(
+    data = wolf.tidy, pred.mean.matching = 3, parallel.core = 32)
 }
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
 \references{
-Ishwaran H. and Kogalur U.B. (2015). Random Forests for Survival,
- Regression and Classification (RF-SRC), R package version 1.6.1.
+Wright, M. N. & Ziegler, A. (2016).
+ranger: A Fast Implementation of Random Forests for High Dimensional Data
+in C++ and R.
+Journal of Statistical Software, in press. http://arxiv.org/abs/1508.04409.
 
-Ishwaran H. and Kogalur U.B. (2007). Random survival forests
-for R. R News 7(2), 25-31.
+Breiman, L. (2001). Random forests. Machine learning, 45(1), 5-32.
+}
+\seealso{
+\href{https://github.com/mayer79/missRanger}{missRanger}
 
-Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008).
-Random survival forests. Ann. Appl. Statist. 2(3), 841-860.
+\href{https://github.com/imbs-hl/ranger}{ranger}
+
+\href{https://github.com/stekhoven/missForest}{missForest}
+
+\href{https://github.com/kogalur/randomForestSRC}{randomForestSRC}
 }
 

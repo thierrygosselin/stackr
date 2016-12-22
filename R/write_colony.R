@@ -183,11 +183,10 @@ write_colony <- function(
   error.rate = 0.02,
   print.all.colony.opt = FALSE,
   imputation.method = NULL,
-  impute = "genotype",
   imputations.group = "populations",
-  num.tree = 100,
-  iteration.rf = 10,
-  split.number = 100,
+  num.tree = 50,
+  pred.mean.matching = 0,
+  random.seed = NULL,
   verbose = FALSE,
   parallel.core = parallel::detectCores() - 1,
   filename = NULL
@@ -306,11 +305,10 @@ write_colony <- function(
     input.imp <- stackr::stackr_imputations_module(
       data = dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT),
       imputation.method = imputation.method,
-      impute = impute,
       imputations.group = imputations.group,
       num.tree = num.tree,
-      iteration.rf = iteration.rf,
-      split.number = split.number,
+      pred.mean.matching = pred.mean.matching,
+      random.seed = random.seed,
       verbose = verbose,
       parallel.core = parallel.core,
       filename = NULL

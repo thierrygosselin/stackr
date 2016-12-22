@@ -22,7 +22,6 @@ Imports:
     tidyr,
     lazyeval,
     ape,
-    randomForestSRC,
     stringdist,
     parallel,
     purrr,
@@ -37,7 +36,11 @@ Imports:
     stats,
     utils,
     strataG,
-    adegenet
+    adegenet,
+    future,
+    pryr,
+    ranger (>= 0.6.0),
+    missRanger
 Suggests:
     knitr,
     rmarkdown
