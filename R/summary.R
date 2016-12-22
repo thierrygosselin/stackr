@@ -120,31 +120,31 @@ summary_stats_vcf_tidy <- function(data, filename = NULL) {
 # summary_stats_pop <- function(data, filename = NULL) {
   
   
-  N <- HET_O <- HET_E <- FREQ_REF <- FIS <- NULL
-  
-  vcf.summary <- data %>%
-    dplyr::group_by(POP_ID) %>%
-    dplyr::summarise(
-      SNP = length(unique(POS)),
-      LOCUS = length(unique(LOCUS)),
-      N = max(N, na.rm = TRUE),
-      FREQ_REF = mean(FREQ_REF, na.rm = TRUE),
-      HET_O = mean(HET_O, na.rm = TRUE),
-      HET_E = mean(HET_E, na.rm = TRUE),
-      FIS = mean(FIS, na.rm = TRUE)
-    ) %>%
-    dplyr::select(POP_ID, N, SNP, LOCUS, FREQ_REF, HET_O, HET_E, FIS)  
-  
-  
-  if (!is.null(filename)) {
-    message("Saving the file in your working directory...")
-    readr::write_tsv(vcf.summary, filename, append = FALSE, col_names = TRUE)
-    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
-  } else {
-    saving <- "Saving was not selected"
-  }
-  return(vcf.summary)
-}#End summary_stats_pop
+#   N <- HET_O <- HET_E <- FREQ_REF <- FIS <- NULL
+#   
+#   vcf.summary <- data %>%
+#     dplyr::group_by(POP_ID) %>%
+#     dplyr::summarise(
+#       SNP = length(unique(POS)),
+#       LOCUS = length(unique(LOCUS)),
+#       N = max(N, na.rm = TRUE),
+#       FREQ_REF = mean(FREQ_REF, na.rm = TRUE),
+#       HET_O = mean(HET_O, na.rm = TRUE),
+#       HET_E = mean(HET_E, na.rm = TRUE),
+#       FIS = mean(FIS, na.rm = TRUE)
+#     ) %>%
+#     dplyr::select(POP_ID, N, SNP, LOCUS, FREQ_REF, HET_O, HET_E, FIS)  
+#   
+#   
+#   if (!is.null(filename)) {
+#     message("Saving the file in your working directory...")
+#     readr::write_tsv(vcf.summary, filename, append = FALSE, col_names = TRUE)
+#     saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+#   } else {
+#     saving <- "Saving was not selected"
+#   }
+#   return(vcf.summary)
+# }#End summary_stats_pop
 
 
 
