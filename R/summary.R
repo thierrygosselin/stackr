@@ -56,15 +56,22 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
 #' @export
 
 summary_stats_vcf_tidy <- function(data, filename = NULL) {
+  cat("#######################################################################\n")
+  cat("################### stackr::summary_stats_vcf_tidy ####################\n")
+  cat("#######################################################################\n")
+  timing <- proc.time()
+  
+  # Checking for missing and/or default arguments-------------------------------
+  if (missing(data)) stop("Input file missing")
   
   vcf.summary <- data %>%
     dplyr::filter(GT_VCF != "./.") %>%
     dplyr::group_by(LOCUS, POS, POP_ID) %>%
     dplyr::summarise(
       N = as.numeric(n()),
-      PP = as.numeric(length(GT[GT == "0/0"])),
-      PQ = as.numeric(length(GT[GT == "1/0" | GT == "0/1"])),
-      QQ = as.numeric(length(GT[GT == "1/1"]))
+      PP = as.numeric(length(GT_VCF[GT_VCF == "0/0"])),
+      PQ = as.numeric(length(GT_VCF[GT_VCF == "1/0" | GT_VCF == "0/1"])),
+      QQ = as.numeric(length(GT_VCF[GT_VCF == "1/1"]))
     ) %>%
     dplyr::mutate(
       FREQ_REF = ((PP*2) + PQ)/(2*N),
@@ -80,36 +87,37 @@ summary_stats_vcf_tidy <- function(data, filename = NULL) {
     dplyr::mutate(GLOBAL_MAF = (PQ + (2 * QQ)) / (2*N)) %>%
     dplyr::select(LOCUS, POS, GLOBAL_MAF)
   
-  vcf.prep <- dplyr::left_join(global.maf, vcf.summary, by = c("LOCUS", "POS"))
+  vcf.summary <- dplyr::left_join(global.maf, vcf.summary, by = c("LOCUS", "POS"))
   
-  vcf.prep <- vcf.prep[c("LOCUS", "POS", "POP_ID", "N", "PP", "PQ", "QQ", "FREQ_REF", "FREQ_ALT", "GLOBAL_MAF", "HET_O", "HET_E", "FIS")]
+  vcf.summary <- vcf.summary[c("LOCUS", "POS", "POP_ID", "N", "PP", "PQ", "QQ", "FREQ_REF", "FREQ_ALT", "GLOBAL_MAF", "HET_O", "HET_E", "FIS")]
   
   if (!is.null(filename)) {
-    message("Saving the file in your working directory...")
-    readr::write_tsv(vcf.prep, filename, append = FALSE, col_names = TRUE)
-    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+    readr::write_tsv(vcf.summary, filename, append = FALSE, col_names = TRUE)
+    message("Writting the summary file in your working directory: \n", getwd())
   } else {
-    saving <- "Saving was not selected"
+    message("Writting the summary file to the working directory: not selected")
   }
-  
-  return(vcf.prep)
+  timing <- proc.time() - timing
+  message("Computation time: ", round(timing[[3]]), " sec")
+  cat("############################## completed ##############################\n")
+  return(vcf.summary)
 }#End summary_stats_vcf_tidy
 
-#' @title Summary statistics of a tidy VCF by population
-#' @description Summarise the tidy VCF. 
-#' The populations summary on :  frequency of the REF 
-#' and the ALT alleles, the observed and the expected heterozygosity 
-#' and the inbreeding coefficient. The Global MAF of Loci, 
-#' with STACKS GBS/RAD loci = read or de novo haplotypes, 
-#' is included and repeated over SNP.
+# #' @title Summary statistics of a tidy VCF by population
+# #' @description Summarise the tidy VCF. 
+# #' The populations summary on :  frequency of the REF 
+# #' and the ALT alleles, the observed and the expected heterozygosity 
+# #' and the inbreeding coefficient. The Global MAF of Loci, 
+# #' with STACKS GBS/RAD loci = read or de novo haplotypes, 
+# #' is included and repeated over SNP.
+# 
+# #' @param filename (optional) Name of the file written to the working directory.
+# #' @param data The tidy VCF file created with tidy_genomic_data.
+# 
+# #' @rdname summary_stats_pop
+# #' @export
 
-#' @param filename (optional) Name of the file written to the working directory.
-#' @param data The tidy VCF file created with tidy_genomic_data.
-
-#' @rdname summary_stats_pop
-#' @export
-
-summary_stats_pop <- function(data, filename = NULL) {
+# summary_stats_pop <- function(data, filename = NULL) {
   
   
   N <- HET_O <- HET_E <- FREQ_REF <- FIS <- NULL
