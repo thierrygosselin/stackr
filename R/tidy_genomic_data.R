@@ -89,11 +89,11 @@
 #' this argument is for the number of pop required to pass the maf thresholds
 #' to keep the locus. Default: \code{maf.pop.num.threshold = 1}
 
-#' @param max.marker An optional integer useful to subsample marker number in 
-#' large PLINK file. e.g. if the data set 
-#' contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
-#' subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
-#' keep specific markers.
+#' @param max.marker (integer, optional) For large PLINK files,
+#' useful to subsample marker number. e.g. if the data set 
+#' contains 200 000 markers and \code{max.marker = 10000}, 10000 markers are
+#' subsampled randomly from the 200000 markers. If you need specific markers,
+#' use \code{whitelist.markers} argument.
 #' Default: \code{max.marker = NULL}.
 
 #' @param blacklist.id (optional) A blacklist with individual ID and
@@ -453,11 +453,14 @@ tidy_genomic_data <- function(
       tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
     
     
-    #function to parse the format field and tidy the results
+    # nested function to parse the format field and tidy the results
     parse_genomic <- function(x, gather.data = FALSE) {
       format.name <- x
       if (verbose) message(paste("Parsing and tidying: ", format.name))
-      x <- tibble::as_data_frame(vcfR::extract.gt(x = vcf.data, element = x))
+      x <- tibble::as_data_frame(vcfR::extract.gt(
+        x = vcf.data,
+        element = x,
+        IDtoRowNames = FALSE, convertNA = FALSE))
       
       if (gather.data) {
         x <- dplyr::mutate(x, ID = seq(1, n()))
@@ -472,7 +475,7 @@ tidy_genomic_data <- function(
           dplyr::select(-ID, -INDIVIDUALS)
       }
       return(x)
-    }
+    }#End parse_genomic
     
     # GT field only
     input <- dplyr::bind_cols(
@@ -489,13 +492,7 @@ tidy_genomic_data <- function(
     ) %>% 
       tibble::as_data_frame()
     
-    # while waiting for fix with vcfR::extract.gt (if it's a bug or just following VCF norm)
-    gt.na <- dplyr::filter(.data = input, is.na(GT)) %>% dplyr::select(GT)
-    
-    if (nrow(gt.na) >= 1) {
-      input$GT <- stringi::stri_replace_na(str = input$GT, replacement = "./.")
-    }
-    gt.na <- NULL
+
     
     # metadata
     if (vcf.metadata) {
@@ -505,7 +502,7 @@ tidy_genomic_data <- function(
       want <- c("DP", "AD", "GL", "PL")
       parse.format.list <- purrr::keep(.x = have, .p = have %in% want)
       
-      input <- bind_cols(
+      input <- dplyr::bind_cols(
         input, 
         purrr::map(parse.format.list, parse_genomic, gather.data = TRUE) %>% 
           dplyr::bind_cols(.))
@@ -546,6 +543,11 @@ tidy_genomic_data <- function(
       replacement = c("-", "-"), 
       vectorize_all = FALSE
     )
+    
+    # check that names match between strata.df and input before going further
+    if (!identical(sort(unique(input$INDIVIDUALS)), sort(unique(strata.df$INDIVIDUALS)))) {
+      stop("The individuals in the strata file don't match the individuals in the vcf file")
+    }
     
     input <- dplyr::left_join(x = input, y = strata.df, by = "INDIVIDUALS")
     
