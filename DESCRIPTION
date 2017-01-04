@@ -31,16 +31,18 @@ Imports:
     tidyverse,
     copula,
     gsl,
-    vcfR,
+    vcfR (>= 1.3.0),
     magrittr,
     stats,
     utils,
     strataG,
     adegenet,
-    future,
     pryr,
     ranger (>= 0.6.0),
-    missRanger
+    missRanger,
+    pbmcapply (>= 1.1.3)
+Remotes:
+    github::mayer79/missRanger
 Suggests:
     knitr,
     rmarkdown
