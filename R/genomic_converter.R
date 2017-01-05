@@ -211,7 +211,7 @@ genomic_converter <- function(
   if (is.null(output)) {
     message("Ouput format(s): tidy")
   } else {
-    message(stringi::stri_join("Ouput format(s): tidy", stringi::stri_join(output, collapse = ", ")))
+    message(stringi::stri_join("Ouput format(s): tidy, ", stringi::stri_join(output, collapse = ", ")))
   }
   
   if (is.null(filename)) {
