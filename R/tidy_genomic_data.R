@@ -1339,34 +1339,56 @@ tidy_genomic_data <- function(
     
   } # End tidy genlight
   
-  
   # Import STRATAG gtypes ------------------------------------------------------
   if (data.type == "gtypes") { # DATA FRAME OF GENOTYPES
     message("Tidying the gtypes object ...")
     input <- strataG::as.data.frame(
       x = data, 
-      one.col = TRUE, 
-      sep = "",
+      one.col = FALSE, 
+      # sep = "",
       ids = TRUE,
       strata = TRUE
     ) %>% 
       tibble::remove_rownames(df = .) %>% 
       dplyr::rename(INDIVIDUALS = ids, POP_ID = strata) %>% 
       dplyr::mutate_all(.tbl = ., .funs = as.character) %>% 
-      tidyr::gather(data = ., key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID)) %>% 
-      dplyr::mutate(
-        GT = stringi::stri_replace_all_regex(
-          str = GT,
+      tidyr::gather(data = ., key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID))
+    
+    # For GT = c("A", "C", "G", "T")
+    if (identical(unique(input$GT), c("A", "C", "G", "T"))) {
+    input$GT <- stringi::stri_replace_all_regex(
+          str = input$GT,
           pattern = c("A", "C", "G", "T"),
           replacement = c("001", "002", "003", "004"),
           vectorize_all = FALSE
-        ),
-        GT = replace(GT, which(is.na(GT)), "000000")
-      )
+        )
+    }
+    
+    # For GT = c("1", "2")
+    if (identical(unique(input$GT), c("1", "2"))) {
+      input$GT <- stringi::stri_pad_left(str = input$GT, pad = "0", width = 3)
+    }
+    
+    # For GT coded with only 1 number
+    # gtypes.number <- unique(stringi::stri_count_boundaries(str = input$GT))
+    # unique(stringi::stri_count_boundaries(str = test))
+    # identical(unique(input$GT), c("A", "C", "G", "T"))
+    # identical(unique(input$GT), c("1", "2"))
+    # identical(unique(input$GT), c("001", "002", "003", "004"))
+    
+ 
+    # bind alleles
+    input <- tidyr::separate(data = input, col = MARKERS, into = c("MARKERS", "ALLELES"), sep = "\\.", remove = TRUE, extra = "drop") %>% 
+      dplyr::group_by(POP_ID, INDIVIDUALS, MARKERS) %>% 
+      tidyr::spread(data = ., key = ALLELES, value = GT) %>% 
+      tidyr::unite(data = ., col = GT, -INDIVIDUALS, -POP_ID, -MARKERS, sep = "") %>% 
+      dplyr::arrange(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
+      dplyr::ungroup(.)
 
     # remove unwanted sep in id and pop.id names
     input <- input %>% 
       dplyr::mutate(
+        GT = replace(GT, which(is.na(GT)), "000000"),
         INDIVIDUALS = stringi::stri_replace_all_fixed(
           str = INDIVIDUALS, 
           pattern = c("_", ":"), 
