@@ -213,7 +213,7 @@ dart2df_genind_plink <- function(
   maf.operator = "OR",
   filename = NULL,
   imputation.method = NULL,
-  imputations.group = "populations",
+  hierarchical.levels = "populations",
   pred.mean.matching = 0,
   num.tree = 100,
   verbose = FALSE,
@@ -1242,7 +1242,7 @@ dart2df_genind_plink <- function(
     input.imp <- stackr::stackr_imputations_module(
       data = input, 
       imputation.method = imputation.method,
-      imputations.group = imputations.group,
+      hierarchical.levels = hierarchical.levels,
       num.tree = num.tree,
       pred.mean.matching = pred.mean.matching, 
       verbose = verbose, 
