@@ -38,11 +38,9 @@ Imports:
     strataG,
     adegenet,
     pryr,
-    ranger (>= 0.6.0),
+    ranger,
     pbmcapply,
     xgboost
-Remotes:
-    github::mayer79/missRanger
 Suggests:
     knitr,
     rmarkdown
