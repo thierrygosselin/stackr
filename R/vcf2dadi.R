@@ -108,7 +108,7 @@
 #' sumstats.ingroup = "batch_1.sumstats.ingroup.tsv", 
 #' sumstats.outgroup = "batch_1.sumstats.outgroup.tsv",
 #' imputation.method = "max", 
-#' imputations.group = "populations", 
+#' hierarchical.levels = "populations", 
 #' num.tree = 100, 
 #' verbose = FALSE, 
 #' parallel.core = 8
@@ -163,7 +163,7 @@ vcf2dadi <- function(
   pop.labels = NULL,
   pop.select = NULL,
   imputation.method = NULL,
-  imputations.group = "populations",
+  hierarchical.levels = "populations",
   num.tree = 50,
   pred.mean.matching = 0,
   random.seed = NULL,
@@ -653,7 +653,7 @@ vcf2dadi <- function(
     input.imp <- stackr::stackr_imputations_module(
       data = input, 
       imputation.method = imputation.method,
-      imputations.group = imputations.group,
+      hierarchical.levels = hierarchical.levels,
       num.tree = num.tree,
       pred.mean.matching = pred.mean.matching, 
       verbose = verbose, 

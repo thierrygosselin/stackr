@@ -183,7 +183,7 @@ write_colony <- function(
   error.rate = 0.02,
   print.all.colony.opt = FALSE,
   imputation.method = NULL,
-  imputations.group = "populations",
+  hierarchical.levels = "populations",
   num.tree = 50,
   pred.mean.matching = 0,
   random.seed = NULL,
@@ -305,7 +305,7 @@ write_colony <- function(
     input.imp <- stackr::stackr_imputations_module(
       data = dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT),
       imputation.method = imputation.method,
-      imputations.group = imputations.group,
+      hierarchical.levels = hierarchical.levels,
       num.tree = num.tree,
       pred.mean.matching = pred.mean.matching,
       random.seed = random.seed,
