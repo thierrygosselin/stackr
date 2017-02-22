@@ -39,7 +39,6 @@ Imports:
     adegenet,
     pryr,
     ranger (>= 0.6.0),
-    missRanger (>= 0.1.1),
     pbmcapply,
     xgboost
 Remotes:
