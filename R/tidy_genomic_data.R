@@ -574,7 +574,7 @@ tidy_genomic_data <- function(
         replace(data, which(data == "."), NA)
       }
       
-      input <-  mutate_at(
+      input <-  dplyr::mutate_at(
         .tbl = input, 
         .cols = clean.columns, 
         .funs =  replace_by_na
@@ -701,7 +701,7 @@ tidy_genomic_data <- function(
     if (biallelic) {
       if (!is.null(pop.select) || !is.null(blacklist.id)) {
         if (verbose) message("Adjusting REF/ALT alleles to account for filters...")
-        input.temp <- change_alleles(data = input, monomorphic.out = FALSE)
+        input.temp <- change_alleles(data = input, monomorphic.out = FALSE, verbose = verbose)
         input <- input.temp$input
       }
     }# end re-computing the REF/ALT allele
@@ -904,10 +904,9 @@ tidy_genomic_data <- function(
     
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
-    input.temp <- change_alleles(data = input, monomorphic.out = FALSE)
+    input.temp <- change_alleles(data = input, monomorphic.out = FALSE, verbose = verbose)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
-    
   } # End import PLINK
   
   # Import genepop--------------------------------------------------------------
@@ -993,8 +992,7 @@ tidy_genomic_data <- function(
 
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
-    if (verbose) message("bi/multi allelic markers scan ...")
-    input.temp <- change_alleles(data = input, monomorphic.out = FALSE)
+    input.temp <- change_alleles(data = input, monomorphic.out = FALSE, verbose = verbose)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
   } # End import data frame of genotypes
@@ -1253,7 +1251,7 @@ tidy_genomic_data <- function(
     
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
-    input.temp <- change_alleles(data = input, monomorphic.out = FALSE)
+    input.temp <- change_alleles(data = input, monomorphic.out = FALSE, verbose = verbose)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
     
@@ -1342,48 +1340,63 @@ tidy_genomic_data <- function(
   # Import STRATAG gtypes ------------------------------------------------------
   if (data.type == "gtypes") { # DATA FRAME OF GENOTYPES
     message("Tidying the gtypes object ...")
-    input <- strataG::as.data.frame(
-      x = data, 
-      one.col = FALSE, 
-      # sep = "",
-      ids = TRUE,
-      strata = TRUE
-    ) %>% 
-      tibble::remove_rownames(df = .) %>% 
-      dplyr::rename(INDIVIDUALS = ids, POP_ID = strata) %>% 
-      dplyr::mutate_all(.tbl = ., .funs = as.character) %>% 
-      tidyr::gather(data = ., key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID))
+    # input <- strataG::as.data.frame(
+    #   x = data, 
+    #   one.col = FALSE, 
+    #   # sep = "",
+    #   ids = TRUE,
+    #   strata = TRUE
+    # ) %>% 
+    #   tibble::remove_rownames(df = .) %>% 
+    #   dplyr::rename(INDIVIDUALS = ids, POP_ID = strata) %>% 
+    #   dplyr::mutate_all(.tbl = ., .funs = as.character) %>% 
+    #   tidyr::gather(data = ., key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID))
+    
+    input <- suppressWarnings(
+      tibble::as_data_frame(data@data) %>%
+        dplyr::rename(INDIVIDUALS = ids, POP_ID = strata) %>%
+        dplyr::mutate(ALLELES = rep(c("A1", "A2"), nrow(.)/2)) %>%
+        tidyr::gather(data = ., key = MARKERS, value = GT, -c(POP_ID, INDIVIDUALS, ALLELES)))
     
     # For GT = c("A", "C", "G", "T")
-    if (identical(unique(input$GT), c("A", "C", "G", "T"))) {
-    input$GT <- stringi::stri_replace_all_regex(
-          str = input$GT,
-          pattern = c("A", "C", "G", "T"),
-          replacement = c("001", "002", "003", "004"),
-          vectorize_all = FALSE
-        )
+    gt.format <- sort(unique(input$GT))
+    
+    if (unique(gt.format %in% c("A", "C", "G", "T", NA))) {
+      input$GT <- stringi::stri_replace_all_regex(
+        str = input$GT,
+        pattern = c("A", "C", "G", "T"),
+        replacement = c("001", "002", "003", "004"),
+        vectorize_all = FALSE
+      )
     }
     
+    
     # For GT = c("1", "2")
-    if (identical(unique(input$GT), c("1", "2"))) {
+    if (unique(gt.format %in% c("1", "2", NA))) {
       input$GT <- stringi::stri_pad_left(str = input$GT, pad = "0", width = 3)
     }
     
     # For GT coded with only 1 number
     # gtypes.number <- unique(stringi::stri_count_boundaries(str = input$GT))
     # unique(stringi::stri_count_boundaries(str = test))
-    # identical(unique(input$GT), c("A", "C", "G", "T"))
-    # identical(unique(input$GT), c("1", "2"))
-    # identical(unique(input$GT), c("001", "002", "003", "004"))
-    
+
  
     # bind alleles
-    input <- tidyr::separate(data = input, col = MARKERS, into = c("MARKERS", "ALLELES"), sep = "\\.", remove = TRUE, extra = "drop") %>% 
-      dplyr::group_by(POP_ID, INDIVIDUALS, MARKERS) %>% 
-      tidyr::spread(data = ., key = ALLELES, value = GT) %>% 
-      tidyr::unite(data = ., col = GT, -INDIVIDUALS, -POP_ID, -MARKERS, sep = "") %>% 
-      dplyr::arrange(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
-      dplyr::ungroup(.)
+    # input <- tidyr::separate(data = input, col = MARKERS, into = c("MARKERS", "ALLELES"), sep = "\\.", remove = TRUE, extra = "drop") %>% 
+    #   dplyr::group_by(POP_ID, INDIVIDUALS, MARKERS) %>% 
+    #   tidyr::spread(data = ., key = ALLELES, value = GT) %>% 
+    #   tidyr::unite(data = ., col = GT, -INDIVIDUALS, -POP_ID, -MARKERS, sep = "") %>% 
+    #   dplyr::arrange(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
+    #   dplyr::ungroup(.)
+    
+    input <- data.table::dcast.data.table(
+      data = data.table::as.data.table(input),
+      formula = POP_ID + INDIVIDUALS + MARKERS ~ ALLELES,
+      value.var = "GT"
+    ) %>%
+      tibble::as_data_frame() %>%
+      tidyr::unite(data = ., col = GT, A1, A2, sep = "") %>%
+      dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT)
 
     # remove unwanted sep in id and pop.id names
     input <- input %>% 
@@ -1455,7 +1468,7 @@ tidy_genomic_data <- function(
     
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
-    input.temp <- change_alleles(data = input, monomorphic.out = FALSE)
+    input.temp <- change_alleles(data = input, monomorphic.out = FALSE, verbose = verbose)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
     
@@ -1664,16 +1677,16 @@ tidy_genomic_data <- function(
     cat("############################### RESULTS ###############################\n")
     message("Tidy data in your global environment")
     if (!is.null(filename)) {
-      message(stringi::stri_join("Tidy data written to your working directory: ", getwd()))
+      message("Tidy data written to your working directory: ", getwd())
     }
-    message(stringi::stri_join("Data format: ", data.type))
-    message(stringi::stri_join("Biallelic data ? ", biallelic))
-    message(stringi::stri_join("Number of markers: ", n.markers))
-    message(stringi::stri_join("Number of chromosome/contig/scaffold: ", n.chromosome))
-    message(stringi::stri_join("Number of individuals: ", n.individuals))
-    message(stringi::stri_join("Number of populations: ", n.pop))
+    message("Data format: ", data.type)
+    message("Biallelic data ? ", biallelic)
+    message("Number of markers: ", n.markers)
+    message("Number of chromosome/contig/scaffold: ", n.chromosome)
+    message("Number of individuals: ", n.individuals)
+    message("Number of populations: ", n.pop)
     timing <- proc.time() - timing
-    message(stringi::stri_join("Computation time: ", round(timing[[3]]), " sec"))
+    message("Computation time: ", round(timing[[3]]), " sec")
     cat("############################## completed ##############################\n")
   }
   res <- input

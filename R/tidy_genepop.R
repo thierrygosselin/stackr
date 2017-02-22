@@ -108,10 +108,10 @@
 #' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join slice bind_cols bind_rows
 #' @importFrom purrr invoke flatten_chr
 #' @importFrom data.table fread as.data.table
-#' @importFrom stringi stri_split_fixed stri_replace_all_fixed stri_join stri_trim_both stri_trim_right
+#' @importFrom stringi stri_split_fixed stri_replace_all_fixed stri_join stri_trim_both stri_trim_right stri_pad_left
 #' @importFrom readr write_tsv read_tsv
 #' @importFrom utils count.fields
-#' @importFrom tidyr separate gather
+#' @importFrom tidyr separate gather unite spread
 #' @importFrom tibble as_data_frame
 
 #' @examples
@@ -157,7 +157,7 @@ tidy_genepop <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
   
   # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("genepop file missing")
-
+  
   # Import data ------------------------------------------------------------------
   if (is.vector(data)) {
     data <- data.table::fread(
@@ -187,7 +187,7 @@ tidy_genepop <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
   
   # Remove unnecessary spaces
   data$data <- stringi::stri_trim_right(str = data$data, pattern = "\\P{Wspace}")
-
+  
   # Pop indices ----------------------------------------------------------------
   pop.indices <- which(data$data %in% c("Pop", "pop", "POP"))
   npop <- length(pop.indices)
@@ -340,9 +340,66 @@ tidy_genepop <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
   # combine the individuals back to the dataset
   data <- dplyr::bind_cols(individuals, data)
   
-  # Tidy -----------------------------------------------------------------------
-  if (tidy) {
-    data <- tidyr::gather(data = data, key = MARKERS, value = GENOTYPE, -c(POP_ID, INDIVIDUALS))
+  # Scan for genotype coding and tidy ------------------------------------------
+  gt.coding <- dplyr::select(data, -INDIVIDUALS, -POP_ID) %>%
+    purrr::flatten_chr(.) %>%
+    unique(.) %>%
+    nchar(.) %>% 
+    unique(.)
+  
+  if (length(gt.coding) != 1) stop("Mixed genotype codings are not supported:
+  use 1, 2 or 3 characters/numbers for alleles")
+  
+  if (gt.coding == 6) {
+    if (tidy) {
+      data <- tidyr::gather(data = data, key = MARKERS, value = GENOTYPE, -c(POP_ID, INDIVIDUALS))
+    }
+  }
+  
+  if (gt.coding == 4) {
+    data <- tidyr::gather(data = data, key = MARKERS, value = GENOTYPE, -c(POP_ID, INDIVIDUALS)) %>% 
+      tidyr::separate(
+        data = ., col = GENOTYPE, into = c("A1", "A2"), 
+        sep = 2, remove = TRUE, extra = "drop"
+      ) %>% 
+      dplyr::mutate(
+        A1 = stringi::stri_pad_left(str = A1, pad = "0", width = 3),
+        A2 = stringi::stri_pad_left(str = A2, pad = "0", width = 3)
+      ) %>%
+      tidyr::unite(data = ., col = GENOTYPE, A1, A2, sep = "") %>% 
+      dplyr::arrange(MARKERS, POP_ID, INDIVIDUALS)
+    
+    if (!tidy) {
+      data <- data.table::dcast.data.table(
+        data = data.table::as.data.table(data), 
+        formula = POP_ID + INDIVIDUALS ~ MARKERS, 
+        value.var = "GENOTYPE"
+      ) %>% 
+        tibble::as_data_frame()
+    }
+  }  
+  
+  if (gt.coding == 2) {
+    data <- tidyr::gather(data = data, key = MARKERS, value = GENOTYPE, -c(POP_ID, INDIVIDUALS)) %>% 
+      tidyr::separate(
+        data = ., col = GENOTYPE, into = c("A1", "A2"), 
+        sep = 1, remove = TRUE, extra = "drop"
+      ) %>% 
+      dplyr::mutate(
+        A1 = stringi::stri_pad_left(str = A1, pad = "0", width = 3),
+        A2 = stringi::stri_pad_left(str = A2, pad = "0", width = 3)
+      ) %>%
+      tidyr::unite(data = ., col = GENOTYPE, A1, A2, sep = "") %>% 
+      dplyr::arrange(MARKERS, POP_ID, INDIVIDUALS)
+    
+    if (!tidy) {
+      data <- data.table::dcast.data.table(
+        data = data.table::as.data.table(data), 
+        formula = POP_ID + INDIVIDUALS ~ MARKERS, 
+        value.var = "GENOTYPE"
+      ) %>% 
+        tibble::as_data_frame()
+    }
   }
   
   # writing to a file  ---------------------------------------------------------

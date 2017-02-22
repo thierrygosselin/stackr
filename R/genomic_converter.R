@@ -18,7 +18,7 @@
 #'   \item \strong{Output:} 11 output file formats are supported (see \code{output} argument below)
 #' }
 
-#' @param output Several options: tidy (by default), genind, genlight, vcf, plink, genepop,
+#' @param output Several options: tidy (by default), genind, genlight, vcf (biallelic), plink, genepop,
 #' structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
 #' e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 #' output formats generated. The tidy format is generated automatically.
@@ -163,7 +163,7 @@ genomic_converter <- function(
   pop.labels = NULL,
   pop.select = NULL,
   imputation.method = NULL,
-  imputations.group = "populations",
+  hierarchical.levels = "populations",
   num.tree = 50,
   pred.mean.matching = 0,
   random.seed = NULL,
@@ -272,7 +272,7 @@ genomic_converter <- function(
     message("imputation.method: no")
   } else {
     message("imputation.method: ", imputation.method)
-    message("imputations.group: ", imputations.group)
+    message("hierarchical.levels: ", hierarchical.levels)
     message("num.tree: ", num.tree)
     message("pred.mean.matching: ", pred.mean.matching)
     message("verbose: ", verbose)
@@ -406,7 +406,7 @@ genomic_converter <- function(
     input.imp <- stackr::stackr_imputations_module(
       data = input,
       imputation.method = imputation.method,
-      imputations.group = imputations.group,
+      hierarchical.levels = hierarchical.levels,
       num.tree = num.tree,
       pred.mean.matching = pred.mean.matching,
       random.seed = random.seed,
