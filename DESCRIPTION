@@ -40,7 +40,8 @@ Imports:
     pryr,
     ranger,
     pbmcapply,
-    xgboost
+    xgboost,
+    survival (>= 2.40-1)
 Suggests:
     knitr,
     rmarkdown
