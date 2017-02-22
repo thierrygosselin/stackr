@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.4.6-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2016--12--22-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.4.7-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--02--22-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ To try out the dev version of **stackr**, copy/paste the code below:
 
 ``` r
 if (!require("devtools")) install.packages("devtools") # to install
-devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)  # to install WITH vignettes
+devtools::install_github("thierrygosselin/stackr")
 library(stackr) # to load
 ```
 
@@ -78,35 +78,21 @@ library(stackr) # to load
 Prerequisite - Suggestions - Troubleshooting
 --------------------------------------------
 
--   **Parallel computing**: Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) to install [data.table](https://github.com/Rdatatable/data.table) packages (e.g. to do imputations in parallel).
+-   **Parallel computing**: Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) to install [data.table](https://github.com/Rdatatable/data.table) and [XGBoost](https://github.com/dmlc/xgboost) packages (e.g. to do imputations in parallel).
 -   **Installation problem:** see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
 -   **Windows users**: Install [Rtools](https://cran.r-project.org/bin/windows/Rtools/).
 -   For a better experience in **stackr** and in R in general, I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/). The R GUI is unstable with functions using parallel ([more info](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html)).
-
-Below, the combination of packages and how I install/load them :
-
-``` r
-if (!require("devtools")) install.packages("devtools")
-devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)
-library("stackr")
-```
 
 Vignettes, R Notebooks and examples
 -----------------------------------
 
 **Vignettes (in development, check periodically for updates):**
 
+-   Vignettes with real data for example in the form of R Notebooks take too much space to be included in package, without CRAN complaining. Consequently, vignettes are gradually being excluded from the package and distributed separately, follow the links below.
 -   [installation problems](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
 -   [parallel computing during imputations](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd)
 -   [vcf2dadi](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_vcf2dadi.Rmd)
 -   [haplo2genind](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_haplo2genind.Rmd)
-
-Vignettes can also be accessed inside R with:
-
-``` r
-browseVignettes("stackr") # To browse vignettes
-vignette("vignette_vcf2dadi") # To open specific vignette
-```
 
 **R Notebooks:**
 
@@ -125,6 +111,12 @@ New features
 ------------
 
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
+
+**v.0.4.7**
+
+-   Better parsing of genepop file with 2 characters for allele coding
+-   Only 10% of markers are now used for increase speed of bi-allelic markers detection
+-   Work on imputation module that will be functional in the next version bump
 
 **v.0.4.6**
 
