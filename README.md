@@ -117,6 +117,7 @@ Change log, version, new features and bug history now lives in the [NEWS.md file
 -   Better parsing of genepop file with 2 characters for allele coding
 -   Only 10% of markers are now used for increase speed of bi-allelic markers detection
 -   Work on imputation module that will be functional in the next version bump
+-   Better code for the progress bar (Linux and Mac only) that now shows an ETA along the progress.
 
 **v.0.4.6**
 
@@ -125,9 +126,9 @@ Change log, version, new features and bug history now lives in the [NEWS.md file
 -   `write_colony`: works similarly to the deprecated function `haplo2colony`,
     -   with the major advantage that it's no longer restricted to STACKS haplotypes file.
     -   The function is using the `tidy_genomic_data` module to import files. So you can choose one of the 10 input file formats supported by `stackr`!
-    -   other benefits also include the possibility to efficiently test MAF, snp.ld, haplotypes/snp approach, whitelist of markes, blacklist of individuals, blacklist of genotypes, etc. with the buit-it arguments.
+    -   other benefits also include the possibility to efficiently test MAF, snp.ld, haplotypes/snp approach, whitelist of markes, blacklist of individuals, blacklist of genotypes, etc. with the buit-in arguments.
     -   the function only **keeps markers in common** between populations/groups and **is removing monomorphic markers**.
-    -   **Note:** there are several *defaults* in the function and it's a complicated file format, so make sure to read the function documentation, please, and `COLONY` manual.
+    -   **Note:** there are several *defaults* in the function and it's a complicated file format... please, read the function documentation and `COLONY` manual.
 
 **v.0.4.5**
 
