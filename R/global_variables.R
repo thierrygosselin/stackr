@@ -50,7 +50,7 @@ if (getRversion() >= "2.15.1") {
       "Catalog ID", "Cnt", "GENOTYPE", "GROUP", "HAPLOTYPES", "MARKERS.ALLELE_GROUP",
       "POLYMORPHISM", "ALT_ALLELE_NUMBER", "PROB_HET", "PROB_HOM_ALT", "PROB_HOM_REF",
       "NAPL", "DISTANCE_RELATIVE", "MARKERS_COMMON", "id.pairwise", "input.prep",
-      "CHROM_LOCUS"
+      "CHROM_LOCUS", "NEW_MARKERS", "POP_ID_N", "INDIVIDUALS_N", "GT_N", "GT_IMP"
     )
   )
 }
