@@ -57,21 +57,47 @@ detect_biallelic_markers <- function(data, verbose = FALSE) {
   }
   
   # Detecting biallelic markers-------------------------------------------------
-  input <- dplyr::select(.data = input, MARKERS, GT) %>% 
+  
+  # 10% of the markers are randomly sampled
+  sampled.markers <- unique(input$MARKERS)
+  sampled.markers <- sample(x = sampled.markers,
+                            size = length(sampled.markers) * 0.10,
+                            replace = FALSE)
+  
+  # system.time(input2 <- dplyr::select(.data = input, MARKERS, GT) %>% 
+  #   dplyr::filter(GT != "000000") %>%
+  #   dplyr::distinct(MARKERS, GT) %>%
+  #   dplyr::mutate(A1 = stringi::stri_sub(GT, 1, 3), A2 = stringi::stri_sub(GT, 4,6)) %>% 
+  #   dplyr::select(-GT) %>% 
+  #   tidyr::gather(data = ., key = ALLELES_GROUP, value = ALLELES, -MARKERS) %>%
+  #   dplyr::distinct(MARKERS, ALLELES) %>% 
+  #   dplyr::count(x = ., MARKERS) %>%
+  #   dplyr::summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
+  #   purrr::flatten_chr(.x = .))
+  if (verbose) message("Scanning for number of alleles per marker...")
+  
+  biallelic <- dplyr::select(.data = input, MARKERS, GT) %>%
     dplyr::filter(GT != "000000") %>%
+    dplyr::filter(MARKERS %in% sampled.markers) %>%
     dplyr::distinct(MARKERS, GT) %>%
     dplyr::mutate(A1 = stringi::stri_sub(GT, 1, 3), A2 = stringi::stri_sub(GT, 4,6)) %>% 
     dplyr::select(-GT) %>% 
     tidyr::gather(data = ., key = ALLELES_GROUP, value = ALLELES, -MARKERS) %>%
     dplyr::distinct(MARKERS, ALLELES) %>% 
     dplyr::count(x = ., MARKERS) %>%
-    dplyr::summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
-    purrr::flatten_chr(.x = .)
+    dplyr::select(n) %>% 
+    # dplyr::summarise(BIALLELIC = max(n, na.rm = TRUE)) %>%
+    purrr::flatten_chr(.x = .) %>%
+    unique(.)
   
-  if (input > 4) {
+  if (length(biallelic) != 1) stop("Mix of bi- and multi-allelic markers is not supported")  
+
+  if (biallelic > 4) {
     biallelic <- FALSE
   } else {
     biallelic <- TRUE
   }
+  if (verbose) message("Biallelic data ? ", biallelic)
+  
   return(biallelic)
 } # End detect_biallelic_markers

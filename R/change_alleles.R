@@ -17,6 +17,10 @@
 #' markers present in the dataset be filtered out ? 
 #' Default: \code{monomorphic.out = TRUE}.
 
+#' @param verbose (optional, logical) \code{verbose = TRUE} to be chatty 
+#' during execution. 
+#' Default: \code{verbose = FALSE}.
+
 #' @return A tidy data frame with 6 columns: 
 #' \code{MARKERS, INDIVIDUALS, REF, ALT, GT_VCF, GT_BIN}.
 #' \code{GT_VCF}: the genotype in VCF format
@@ -64,7 +68,7 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-change_alleles <- function(data, monomorphic.out = TRUE) {
+change_alleles <- function(data, monomorphic.out = TRUE, verbose = FALSE) {
   
   # Checking for missing and/or default arguments ------------------------------
   if (missing(data)) stop("Input file missing")
@@ -86,6 +90,7 @@ change_alleles <- function(data, monomorphic.out = TRUE) {
   }
   
   # Detecting biallelic markers and removing monomorphic markers ---------------
+  if (verbose) message("Scanning for number of alleles per marker...")
   input.genotyped.split <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
     dplyr::filter(GT != "000000") %>% 
     dplyr::mutate(
@@ -108,12 +113,16 @@ change_alleles <- function(data, monomorphic.out = TRUE) {
   }
   
   # Biallelic marker detection -------------------------------------------------
-  biallelic <- purrr::flatten_chr(.x = dplyr::summarise(.data = marker.type, BIALLELIC = max(n, na.rm = TRUE)))
+  biallelic <- unique(marker.type$n)
+  if (length(biallelic) != 1) stop("Mix of bi- and multi-allelic markers is not supported")  
+  # biallelic <- purrr::flatten_chr(.x = dplyr::summarise(.data = marker.type, BIALLELIC = max(n, na.rm = TRUE)))
   
   if (biallelic > 4) {
     biallelic <- FALSE
+    if (verbose) message("Data is multiallellic")
   } else {
     biallelic <- TRUE
+    if (verbose) message("Data is biallellic")
   }
   
   marker.type <- NULL
@@ -155,6 +164,7 @@ change_alleles <- function(data, monomorphic.out = TRUE) {
   
   # Detection and change -------------------------------------------------------
   if (biallelic) {
+    if (verbose) message("Generating vcf-style coding")
     alleles.new.ref <- dplyr::select(.data = input.genotyped.split, MARKERS, ALLELES) %>%
       dplyr::count(x = ., MARKERS, ALLELES) %>%
       dplyr::group_by(MARKERS) %>%
@@ -188,7 +198,7 @@ change_alleles <- function(data, monomorphic.out = TRUE) {
         dplyr::select(MARKERS) %>% 
         purrr::flatten_chr(.)
       
-      message(stringi::stri_join("Number of markers with REF/ALT change = ", length(change.ref)))
+      if (verbose) message("Number of markers with REF/ALT change = ", length(change.ref))
       
       # switch ALLELE_REF_DEPTH/ALLELE_ALT_DEPTH
       if (length(change.ref) > 0 & tibble::has_name(input, "ALLELE_REF_DEPTH")) {
@@ -218,7 +228,6 @@ change_alleles <- function(data, monomorphic.out = TRUE) {
       }
     }
   } else {
-    message("Data is not biallellic")
     input <- input
   }
   res <- list(input = input, biallelic = biallelic)
