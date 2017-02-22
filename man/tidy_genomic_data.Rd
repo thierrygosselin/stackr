@@ -254,9 +254,6 @@ pop.levels = c("PAN", "COS")
 )
 }
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Catchen JM, Amores A, Hohenlohe PA et al. (2011)
 Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences.
@@ -295,4 +292,6 @@ strataG: An r package for manipulating, summarizing and analysing population
 genetic data.
 Molecular Ecology Resources. 2016. doi:10.1111/1755-0998.12559
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

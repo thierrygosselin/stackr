@@ -30,12 +30,11 @@ Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Excoffier, L.G. Laval, and S. Schneider (2005) 
 Arlequin ver. 3.0: An integrated software package for population genetics 
 data analysis. Evolutionary Bioinformatics Online 1:47-50.
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

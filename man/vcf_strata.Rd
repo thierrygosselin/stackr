@@ -28,9 +28,6 @@ correponding to the strata column(s).
 Include stratification metadata, e.g. population-level information,
 to the \code{FORMAT} field of a VCF file.
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Danecek P, Auton A, Abecasis G et al. (2011)
 The variant call format and VCFtools.
@@ -41,4 +38,6 @@ Bioinformatics, 27, 2156-2158.
 
 \href{VCF specification page}{https://vcftools.github.io/specs.html}
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

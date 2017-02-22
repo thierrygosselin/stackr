@@ -151,4 +151,3 @@ path = "blacklist.individuals.heterozygosity.tsv", col_names = TRUE
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com} and Peter Grewe \email{peter.grewe@csiro.au}
 }
-

@@ -16,4 +16,3 @@ plot_snp_position_read(data, aes.colour, y.title)
 \description{
 Distribution of SNP nucleotide position alond the read.
 }
-

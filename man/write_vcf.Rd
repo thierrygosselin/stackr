@@ -27,12 +27,11 @@ Write a vcf file from a tidy data frame.
 Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 and might be of interest for users.
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Danecek P, Auton A, Abecasis G et al. (2011)
 The variant call format and VCFtools.
 Bioinformatics, 27, 2156-2158.
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

@@ -96,11 +96,11 @@ de novo CHROM column with 'un' need to be changed to 1.
 In the VCF, the column ID is the LOCUS identification.
 Default \code{whitelist.markers = NULL} for no whitelist of markers.}
 
-\item{max.marker}{An optional integer useful to subsample marker number in 
-large PLINK file. e.g. if the data set 
-contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
-subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
-keep specific markers.
+\item{max.marker}{(integer, optional) For large PLINK files,
+useful to subsample marker number. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000}, 10000 markers are
+subsampled randomly from the 200000 markers. If you need specific markers,
+use \code{whitelist.markers} argument.
 Default: \code{max.marker = NULL}.}
 
 \item{snp.ld}{(optional) \strong{For VCF file only}. 
@@ -191,9 +191,6 @@ fh$fh.boxplot
 fh$fh.distribution.plot
 }
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Keller MC, Visscher PM, Goddard ME (2011)
 Quantification of inbreeding due to distant ancestors and its detection
@@ -207,4 +204,6 @@ Hedrick PW, Garcia-Dorado A. (2016)
 Understanding Inbreeding Depression, Purging, and Genetic Rescue.
 Trends in Ecology and Evolution. 2016; 31: 940-952.
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

@@ -17,7 +17,7 @@ dart2df_genind_plink(data, strata, output, pop.levels = NULL,
   filter.snp.ld = NULL, plot.number.snp.reads = FALSE,
   maf.thresholds = NULL, maf.pop.num.threshold = 1, maf.operator = "OR",
   filename = NULL, imputation.method = NULL,
-  imputations.group = "populations", pred.mean.matching = 0,
+  hierarchical.levels = "populations", pred.mean.matching = 0,
   num.tree = 100, verbose = FALSE, parallel.core = detectCores() - 1)
 }
 \arguments{
@@ -154,27 +154,28 @@ customized with the output file(s) selected.}
 Methods available for map-independent imputations of missing genotype: 
 (1) \code{imputation.method = "max"} to use the most frequent category for 
 the imputations.
-(2) \code{imputation.method = "rf"} using Random Forests algorithm.
+(2) \code{imputation.method = "rf"} for using Random Forests algorithm.
+(3) \code{imputation.method = "boost"} for using extreme gradient boosting trees.
 \code{imputation.method = NULL} will return the original dataset, without
 imputation.
 Default: \code{imputation.method = "rf"}.}
 
-\item{imputations.group}{(character, optional) \code{"global"} or
-\code{"populations"}.
+\item{hierarchical.levels}{(character, optional) \code{c("global", "populations")}.
 Should the imputations be computed globally or by populations. Note that
 imputing genotype globally can create huge bias for example by
-introducing foreign genotypes in some populations.
-Default = \code{"populations"}.}
+introducing foreign genotypes in some populations (see note for more info).
+Default: \code{hierarchical.levels = "populations"}.}
 
 \item{pred.mean.matching}{(integer, optional) Used in conjunction with 
-random Forests. Number of candidate non-missing
+random Forests (\code{imputation.method = "rf"}).
+Number of candidate non-missing
 value to sample from during the predictive mean matching step.
 A fast k-nearest neighbor searching algorithms is used with this approach.
 \code{pred.mean.matching = 3} will use 3 nighbors.
 Default: \code{pred.mean.matching = 0}, avoids this step.}
 
 \item{num.tree}{(integer, optional) The number of trees to grow with the 
-Random Forests approach.
+when \code{imputation.method = "rf"}.
 Default: \code{num.tree = 50}.}
 
 \item{verbose}{(optional, logical) When \code{verbose = TRUE} 
@@ -182,7 +183,7 @@ the function is a little more chatty during execution.
 Default: \code{verbose = TRUE}.}
 
 \item{parallel.core}{(optional) The number of core used for parallel
-execution of Random Forests imputations.
+execution when \code{imputation.method = "rf"}.
 Markers are imputed in parallel, populations are processed sequentially.
 Default: \code{parallel::detectCores() - 1}.}
 }
@@ -200,9 +201,6 @@ data frame of genotypes, genind object and/or PLINK \code{tped/tfam} format.
 \dontrun{
 testing
 }
-}
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
 \references{
 Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR, 
@@ -229,4 +227,6 @@ for R. R News 7(2), 25-31.
 Ishwaran H., Kogalur U.B., Blackstone E.H. and Lauer M.S. (2008).
 Random survival forests. Ann. Appl. Statist. 2(3), 841--860.
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

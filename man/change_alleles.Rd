@@ -4,7 +4,7 @@
 \alias{change_alleles}
 \title{Change REF and ALT alleles based on count}
 \usage{
-change_alleles(data, monomorphic.out = TRUE)
+change_alleles(data, monomorphic.out = TRUE, verbose = FALSE)
 }
 \arguments{
 \item{data}{A biallelic genomic data set in the working directory or 
@@ -14,6 +14,10 @@ See details for more info.}
 \item{monomorphic.out}{(optional) Should the monomorphic 
 markers present in the dataset be filtered out ? 
 Default: \code{monomorphic.out = TRUE}.}
+
+\item{verbose}{(optional, logical) \code{verbose = TRUE} to be chatty 
+during execution. 
+Default: \code{verbose = FALSE}.}
 }
 \value{
 A tidy data frame with 6 columns: 
@@ -60,4 +64,3 @@ in a tidy data frame.
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
-

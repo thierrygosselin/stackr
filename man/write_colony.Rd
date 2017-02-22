@@ -13,7 +13,7 @@ write_colony(data, strata = NULL, pop.levels = NULL, pop.labels = NULL,
   inbreeding = 0, mating.sys.males = 0, mating.sys.females = 0,
   clone = 0, run.length = 2, analysis = 1, allelic.dropout = 0,
   error.rate = 0.02, print.all.colony.opt = FALSE,
-  imputation.method = NULL, imputations.group = "populations",
+  imputation.method = NULL, hierarchical.levels = "populations",
   num.tree = 50, pred.mean.matching = 0, random.seed = NULL,
   verbose = FALSE, parallel.core = parallel::detectCores() - 1,
   filename = NULL)
@@ -132,11 +132,11 @@ When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
 
-\item{max.marker}{An optional integer useful to subsample marker number in 
-large PLINK file. e.g. if the data set 
-contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
-subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
-keep specific markers.
+\item{max.marker}{(integer, optional) For large PLINK files,
+useful to subsample marker number. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000}, 10000 markers are
+subsampled randomly from the 200000 markers. If you need specific markers,
+use \code{whitelist.markers} argument.
 Default: \code{max.marker = NULL}.}
 
 \item{sample.markers}{(number) \code{COLONY} can take a long time to run,
@@ -196,24 +196,25 @@ Default = \code{print.all.colony.opt = FALSE}.}
 Methods available for map-independent imputations of missing genotype: 
 (1) \code{imputation.method = "max"} to use the most frequent category for 
 the imputations.
-(2) \code{imputation.method = "rf"} using Random Forests algorithm.
+(2) \code{imputation.method = "rf"} for using Random Forests algorithm.
+(3) \code{imputation.method = "boost"} for using extreme gradient boosting trees.
 \code{imputation.method = NULL} will return the original dataset, without
 imputation.
 Default: \code{imputation.method = "rf"}.}
 
-\item{imputations.group}{(character, optional) \code{"global"} or
-\code{"populations"}.
+\item{hierarchical.levels}{(character, optional) \code{c("global", "populations")}.
 Should the imputations be computed globally or by populations. Note that
 imputing genotype globally can create huge bias for example by
-introducing foreign genotypes in some populations.
-Default = \code{"populations"}.}
+introducing foreign genotypes in some populations (see note for more info).
+Default: \code{hierarchical.levels = "populations"}.}
 
 \item{num.tree}{(integer, optional) The number of trees to grow with the 
-Random Forests approach.
+when \code{imputation.method = "rf"}.
 Default: \code{num.tree = 50}.}
 
 \item{pred.mean.matching}{(integer, optional) Used in conjunction with 
-random Forests. Number of candidate non-missing
+random Forests (\code{imputation.method = "rf"}).
+Number of candidate non-missing
 value to sample from during the predictive mean matching step.
 A fast k-nearest neighbor searching algorithms is used with this approach.
 \code{pred.mean.matching = 3} will use 3 nighbors.
@@ -229,7 +230,7 @@ the function is a little more chatty during execution.
 Default: \code{verbose = FALSE}.}
 
 \item{parallel.core}{(optional) The number of core used for parallel
-execution of Random Forests imputations.
+execution when \code{imputation.method = "rf"}.
 Markers are imputed in parallel, populations are processed sequentially.
 Default: \code{parallel::detectCores() - 1}.}
 
@@ -300,9 +301,6 @@ monomorphic.out = TRUE # this is also a default...
 )
 }
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
@@ -336,4 +334,6 @@ Parentage Assignment from Multilocus Marker Data. Genetics, 191, 183–194.
 CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/} 
 and github \url{https://github.com/ehrlinger/randomForestSRC}
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

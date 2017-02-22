@@ -11,4 +11,3 @@ pairwise_genome_similarity(list.pair, id.pairwise = NULL, input.prep = NULL,
 genome method
 }
 \keyword{internal}
-

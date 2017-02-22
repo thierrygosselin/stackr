@@ -20,9 +20,6 @@ Write a \code{\link[strataG]{gtypes}} object from a tidy data frame.
 Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 and might be of interest for users.
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Eric Archer, Paula Adams and Brita Schneiders (2016). 
 strataG: Summaries and Population Structure Analyses of
@@ -31,4 +28,6 @@ Genetic Data. R package version 1.0.5. https://CRAN.R-project.org/package=strata
 \seealso{
 \code{strataG.devel} is available on github \url{https://github.com/EricArcher/}
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

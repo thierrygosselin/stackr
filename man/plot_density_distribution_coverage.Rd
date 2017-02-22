@@ -18,4 +18,3 @@ e.g. aes(y = ..scaled.., color = COVERAGE_GROUP).}
 Create density distribution of coverage summary statistics.
 Use the coverage summary file created with coverage_summary function.
 }
-

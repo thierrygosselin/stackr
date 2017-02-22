@@ -23,4 +23,3 @@ genotype_likelihood_summary function ($gl.summary.long).
 \seealso{
 \link{summary_genotype_likelihood}
 }
-

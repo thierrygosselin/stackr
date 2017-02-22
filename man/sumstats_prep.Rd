@@ -25,4 +25,3 @@ sumstats_prep(sumstats, skip.line, pop.num, pop.col.types, pop.integer.equi,
 \description{
 Import STACKS sumstats.tsv and add useful info (frequency of REF allele, Global MAF) for subsequent use. to a tidy format.
 }
-

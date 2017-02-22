@@ -22,9 +22,6 @@ Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR, 
 Bender D, et al. 
@@ -32,4 +29,6 @@ PLINK: a tool set for whole-genome association and population-based linkage
 analyses. 
 American Journal of Human Genetics. 2007: 81: 559–575. doi:10.1086/519795
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

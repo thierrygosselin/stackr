@@ -17,4 +17,3 @@ e.g. aes.x.y = aes(x = factor(POP_ID), y = GENE_DIVERSITY, na.rm = T).}
 \description{
 GGPLOT2 Box plot of the diversity (Gene and Haplotypes).
 }
-

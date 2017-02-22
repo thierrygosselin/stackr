@@ -11,4 +11,3 @@ distance_individuals(x, strata = NULL, distance.method = "manhattan",
 distance method
 }
 \keyword{internal}
-

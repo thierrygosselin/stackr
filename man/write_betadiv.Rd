@@ -21,10 +21,6 @@ Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.
 }
-\author{
-Laura Benestan \email{laura.benestan@icloud.com} and
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Lamy T, Legendre P, Chancerelle Y, Siu G, Claudet J (2015) 
 Understanding the Spatio-Temporal Response of Coral Reef Fish Communities to 
@@ -34,4 +30,7 @@ PLoS ONE, 10, e0138696.
 \seealso{
 \code{beta.div} is available on Pierre Legendre web site \url{http://adn.biol.umontreal.ca/~numericalecology/Rcode/} \code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/} and github \url{https://github.com/ehrlinger/randomForestSRC}
 }
-
+\author{
+Laura Benestan \email{laura.benestan@icloud.com} and
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

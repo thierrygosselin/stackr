@@ -19,4 +19,3 @@ with one column named `LOCUS`.}
 This function use a blacklist of loci to filter
 a dataset (sumstats, tidy vcf, haplotype file).
 }
-

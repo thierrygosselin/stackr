@@ -88,9 +88,6 @@ filename = "genotypes.summary.tsv"
 )
 }
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
 Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
@@ -100,4 +97,6 @@ Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013)
 Stacks: an analysis tool set for population genomics. 
 Molecular Ecology, 22, 3124-3140.
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

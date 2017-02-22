@@ -116,11 +116,11 @@ Default \code{whitelist.markers = NULL} for no whitelist of markers.}
 markers present in the dataset be filtered out ? 
 Default: \code{monomorphic.out = TRUE}.}
 
-\item{max.marker}{An optional integer useful to subsample marker number in 
-large PLINK file. e.g. if the data set 
-contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
-subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
-keep specific markers.
+\item{max.marker}{(integer, optional) For large PLINK files,
+useful to subsample marker number. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000}, 10000 markers are
+subsampled randomly from the 200000 markers. If you need specific markers,
+use \code{whitelist.markers} argument.
 Default: \code{max.marker = NULL}.}
 
 \item{snp.ld}{(optional) \strong{For VCF file only}. 
@@ -192,9 +192,6 @@ ibm.koala$heatmap
 ibm.koala$ibm_plot
 }
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Legendre, P. and Legendre, L. (1998) Numerical Ecology, 
 2nd English edition. Amsterdam: Elsevier Science BV.
@@ -212,4 +209,6 @@ Understanding Inbreeding Depression, Purging, and Genetic Rescue.
 Trends in Ecology and Evolution. 2016;31: 940-952.
 doi:10.1016/j.tree.2016.09.005
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

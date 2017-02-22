@@ -105,4 +105,3 @@ Molecular Ecology, 22, 3124-3140.
 \seealso{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
 }
-

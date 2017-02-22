@@ -65,9 +65,6 @@ package = "hierfstat"
 )
 }
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Goudet J. (1995). 
 FSTAT (Version 1.2): A computer program to calculate F-statistics. 
@@ -76,4 +73,6 @@ Journal of Heredity 86:485-486
 \seealso{
 \href{https://github.com/jgx65/hierfstat}{hierfstat}
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

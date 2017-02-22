@@ -22,4 +22,3 @@ give the character equivalence}
 Import and summarise the batch_x.hapstats.tsv file.
 Necessary preparation for density distribution and box plot figures.
 }
-

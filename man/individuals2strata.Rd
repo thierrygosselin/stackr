@@ -59,4 +59,3 @@ filename = "strata.abalone.tsv"
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
-

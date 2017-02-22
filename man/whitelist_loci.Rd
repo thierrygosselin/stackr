@@ -18,10 +18,9 @@ your Environment.}
 This function creates a whitelist of loci, used after applying a filter
 to keep track of the loci kept by a filter.
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \seealso{
 \link{tidy_genomic_data} and  \link{summary_stats_vcf_tidy}
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

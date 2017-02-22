@@ -31,4 +31,3 @@ the two tables, use $. The table that summarise by populations was created
 using average nested: loci -> individuals -> populations.
 The long format is used for creating figures.
 }
-

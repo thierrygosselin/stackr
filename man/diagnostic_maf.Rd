@@ -24,4 +24,3 @@ Highly recommended to look at the distribution of MAF
 \seealso{
 \link{filter_maf}
 }
-

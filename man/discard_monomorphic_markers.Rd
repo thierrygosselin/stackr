@@ -27,4 +27,3 @@ and might be of interest for users.
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
-

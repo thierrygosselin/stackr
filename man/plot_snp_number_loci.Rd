@@ -14,4 +14,3 @@ plot_snp_number_loci(before.filter.data, after.filter.data)
 \description{
 Create density distribution of SNP per locus before and after filters.
 }
-

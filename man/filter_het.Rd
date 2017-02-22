@@ -123,11 +123,11 @@ Default \code{whitelist.markers = NULL} for no whitelist of markers.}
 markers present in the dataset be filtered out ? 
 Default: \code{monomorphic.out = TRUE}.}
 
-\item{max.marker}{An optional integer useful to subsample marker number in 
-large PLINK file. e.g. if the data set 
-contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
-subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
-keep specific markers.
+\item{max.marker}{(integer, optional) For large PLINK files,
+useful to subsample marker number. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000}, 10000 markers are
+subsampled randomly from the 200000 markers. If you need specific markers,
+use \code{whitelist.markers} argument.
 Default: \code{max.marker = NULL}.}
 
 \item{snp.ld}{(optional) \strong{For VCF file only}. 
@@ -301,4 +301,3 @@ or a biological reason (highly inbred individual, etc.).
 \seealso{
 \link{plot_density_distribution_het}
 }
-

@@ -14,4 +14,3 @@ Create box plots of genotype likelihood summary statistics.
 Use the genotype likelihood summary file created
 with genotype_likelihood_summary function.
 }
-

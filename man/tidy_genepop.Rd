@@ -131,9 +131,6 @@ package="adegenet"
 )
 }
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Raymond M. & Rousset F, (1995). 
 GENEPOP (version 1.2): population genetics software for exact tests 
@@ -150,4 +147,6 @@ doi:10.1111/j.1471-8286.2007.01931.x
 \seealso{
 \href{http://genepop.curtin.edu.au}{genepop}
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

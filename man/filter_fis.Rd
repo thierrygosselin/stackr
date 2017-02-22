@@ -31,4 +31,3 @@ Default by \code{"haplotype"}.}
 Inbreeding coefficient filter from a sumstats prepared file
 or a tidy VCF file.
 }
-

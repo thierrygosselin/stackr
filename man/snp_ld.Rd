@@ -26,4 +26,3 @@ For long distance linkage disequilibrium pruning, see details below.
 Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 and might be of interest for users.
 }
-

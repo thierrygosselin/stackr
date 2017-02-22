@@ -13,4 +13,3 @@ plot_boxplot_coverage(data)
 Create box plots of coverage summary statistics.
 Use the coverage summary file created with coverage_summary function.
 }
-

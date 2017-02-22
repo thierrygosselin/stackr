@@ -29,4 +29,3 @@ Detect file format of genomic data set.
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
-

@@ -44,4 +44,3 @@ Using the haplotype approach: The summary statistics are averaged
 and nested SNP -> individuals -> population -> loci. e.g. the mean GL is the average
 genotype likelihood for all individuals of pop x for loci x.
 }
-

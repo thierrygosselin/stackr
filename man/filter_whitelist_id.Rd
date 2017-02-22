@@ -28,4 +28,3 @@ in the name of your individual sample.}
 This function use a whitelist of individuals to filter
 a dataset.
 }
-

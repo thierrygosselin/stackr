@@ -10,7 +10,7 @@ vcf2genepop(data, output, filename = NULL, blacklist.id = NULL,
   maf.thresholds = NULL, maf.pop.num.threshold = 1, maf.approach = "SNP",
   maf.operator = "OR", max.marker = NULL, strata = NULL,
   pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
-  imputation.method = NULL, imputations.group = "populations",
+  imputation.method = NULL, hierarchical.levels = "populations",
   num.tree = 50, pred.mean.matching = 0, random.seed = NULL,
   verbose = FALSE, parallel.core = detectCores() - 1)
 }
@@ -22,7 +22,7 @@ genlight (library(adegenet)), gtypes (library(strataG)), genepop,
 and a data frame in wide format. 
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
-\item{output}{Several options: tidy (by default), genind, genlight, vcf, plink, genepop,
+\item{output}{Several options: tidy (by default), genind, genlight, vcf (biallelic), plink, genepop,
 structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 output formats generated. The tidy format is generated automatically.
@@ -101,11 +101,11 @@ When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
 
-\item{max.marker}{An optional integer useful to subsample marker number in 
-large PLINK file. e.g. if the data set 
-contains 200 000 markers and \code{max.marker = 10000} 10000 markers are
-subsampled randomly from the 200000 markers. Use \code{whitelist.markers} to
-keep specific markers.
+\item{max.marker}{(integer, optional) For large PLINK files,
+useful to subsample marker number. e.g. if the data set 
+contains 200 000 markers and \code{max.marker = 10000}, 10000 markers are
+subsampled randomly from the 200000 markers. If you need specific markers,
+use \code{whitelist.markers} argument.
 Default: \code{max.marker = NULL}.}
 
 \item{strata}{(optional/required) Required for VCF and haplotypes files, 
@@ -154,24 +154,25 @@ Default: \code{pop.select = NULL}}
 Methods available for map-independent imputations of missing genotype: 
 (1) \code{imputation.method = "max"} to use the most frequent category for 
 the imputations.
-(2) \code{imputation.method = "rf"} using Random Forests algorithm.
+(2) \code{imputation.method = "rf"} for using Random Forests algorithm.
+(3) \code{imputation.method = "boost"} for using extreme gradient boosting trees.
 \code{imputation.method = NULL} will return the original dataset, without
 imputation.
 Default: \code{imputation.method = "rf"}.}
 
-\item{imputations.group}{(character, optional) \code{"global"} or
-\code{"populations"}.
+\item{hierarchical.levels}{(character, optional) \code{c("global", "populations")}.
 Should the imputations be computed globally or by populations. Note that
 imputing genotype globally can create huge bias for example by
-introducing foreign genotypes in some populations.
-Default = \code{"populations"}.}
+introducing foreign genotypes in some populations (see note for more info).
+Default: \code{hierarchical.levels = "populations"}.}
 
 \item{num.tree}{(integer, optional) The number of trees to grow with the 
-Random Forests approach.
+when \code{imputation.method = "rf"}.
 Default: \code{num.tree = 50}.}
 
 \item{pred.mean.matching}{(integer, optional) Used in conjunction with 
-random Forests. Number of candidate non-missing
+random Forests (\code{imputation.method = "rf"}).
+Number of candidate non-missing
 value to sample from during the predictive mean matching step.
 A fast k-nearest neighbor searching algorithms is used with this approach.
 \code{pred.mean.matching = 3} will use 3 nighbors.
@@ -187,7 +188,7 @@ the function is a little more chatty during execution.
 Default: \code{verbose = FALSE}.}
 
 \item{parallel.core}{(optional) The number of core used for parallel
-execution of Random Forests imputations.
+execution when \code{imputation.method = "rf"}.
 Markers are imputed in parallel, populations are processed sequentially.
 Default: \code{parallel::detectCores() - 1}.}
 }
@@ -196,10 +197,9 @@ For full details of the function, please use
 \pkg{stackr} \code{\link[stackr]{genomic_converter}}. This function is a shorcut
 to output only genepop file.
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \seealso{
 \code{\link[stackr]{genomic_converter}}
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

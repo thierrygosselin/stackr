@@ -18,9 +18,6 @@ Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Jombart T (2008) adegenet: a R package for the multivariate
 analysis of genetic markers. Bioinformatics, 24, 1403-1405.
@@ -29,4 +26,6 @@ Jombart T, Ahmed I (2011) adegenet 1.3-1:
 new tools for the analysis of genome-wide SNP data. 
 Bioinformatics, 27, 3070-3071.
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

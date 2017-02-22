@@ -21,4 +21,3 @@ of class sumstats or a tidy VCF summarised.}
 \description{
 Filter the dataset (sumstats or tidy vcf) to remove loci with more than x SNP.
 }
-

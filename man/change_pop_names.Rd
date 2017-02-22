@@ -41,4 +41,3 @@ Transform into a factor the POP_ID column, change names and reorder the levels
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
-

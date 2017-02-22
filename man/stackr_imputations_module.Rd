@@ -5,10 +5,10 @@
 \title{Map-independent imputation of missing genotype}
 \usage{
 stackr_imputations_module(data, imputation.method = "rf",
-  imputations.group = "populations", num.tree = 50,
+  hierarchical.levels = "populations", num.tree = 50,
   pred.mean.matching = 0, verbose = TRUE,
   parallel.core = parallel::detectCores() - 1, random.seed = NULL,
-  filename = NULL)
+  filename = NULL, ...)
 }
 \arguments{
 \item{data}{A file in the working directory or object in the global environment 
@@ -21,24 +21,25 @@ in wide or long (tidy) formats. To import, the function uses
 Methods available for map-independent imputations of missing genotype: 
 (1) \code{imputation.method = "max"} to use the most frequent category for 
 the imputations.
-(2) \code{imputation.method = "rf"} using Random Forests algorithm.
+(2) \code{imputation.method = "rf"} for using Random Forests algorithm.
+(3) \code{imputation.method = "boost"} for using extreme gradient boosting trees.
 \code{imputation.method = NULL} will return the original dataset, without
 imputation.
 Default: \code{imputation.method = "rf"}.}
 
-\item{imputations.group}{(character, optional) \code{"global"} or
-\code{"populations"}.
+\item{hierarchical.levels}{(character, optional) \code{c("global", "populations")}.
 Should the imputations be computed globally or by populations. Note that
 imputing genotype globally can create huge bias for example by
-introducing foreign genotypes in some populations.
-Default = \code{"populations"}.}
+introducing foreign genotypes in some populations (see note for more info).
+Default: \code{hierarchical.levels = "populations"}.}
 
 \item{num.tree}{(integer, optional) The number of trees to grow with the 
-Random Forests approach.
+when \code{imputation.method = "rf"}.
 Default: \code{num.tree = 50}.}
 
 \item{pred.mean.matching}{(integer, optional) Used in conjunction with 
-random Forests. Number of candidate non-missing
+random Forests (\code{imputation.method = "rf"}).
+Number of candidate non-missing
 value to sample from during the predictive mean matching step.
 A fast k-nearest neighbor searching algorithms is used with this approach.
 \code{pred.mean.matching = 3} will use 3 nighbors.
@@ -49,7 +50,7 @@ the function is a little more chatty during execution.
 Default: \code{verbose = TRUE}.}
 
 \item{parallel.core}{(optional) The number of core used for parallel
-execution of Random Forests imputations.
+execution when \code{imputation.method = "rf"}.
 Markers are imputed in parallel, populations are processed sequentially.
 Default: \code{parallel::detectCores() - 1}.}
 
@@ -63,6 +64,9 @@ tidy data frame written to the working directory.
 With missing argument or default: \code{filename = NULL}, the imputed 
 tidy data is in the global environment only 
 (i.e. not written in the working directory).}
+
+\item{...}{(optional) To pass further argument to the extreme gradient tree
+boosting function \code{\link[xgboost]{xgboost}}. See details below.}
 }
 \value{
 The output in your global environment is the imputed tidy data frame.
@@ -76,53 +80,48 @@ Used internally in \href{https://github.com/thierrygosselin/assigner}{assigner} 
 might be of interest for users.
 The goal of this module is to provide a simple solution for
 a complicated problem: missing observations in RADseq genomic datasets.
-This function will compute \strong{map-independent imputations} of missing
+This function will performed \strong{map-independent imputations} of missing
 genotypes.
 
 \strong{Key features:}
 
 \itemize{
-\item Random Forests (rf) or the most observed genotypes (~mean/mode).
-\item Imputations conducted by populations or globally.
-\item Haplotype/SNP approach: correlation among SNPs is accounted for during
-rf imputation, i.e. imputation is automatically conducted by haplotype
+\item \strong{Algorithms: } Random forests (rf), extreme gradient tree boosting (boost),
+multiple correspondence analysis (mca) and the classic most observed genotypes (~max/mean/mode).
+\item \strong{Hierarchical level: } Imputations conducted by populations or globally.
+\item \strong{Haplotype/SNP approach: } Correlation among SNPs is accounted for during
+rf and tree boosting imputation, i.e. imputation is automatically conducted by haplotype
 when marker meta-information is avaialble (chromosome, locus and position,
 usually from VCF files). The alternative, considers all the markers independent
 and imputation is conducted by SNPs.
-\item Genotype likelihood (GL): when the GL info is detected
-(GL column in FORMAT field of VCF files),
-genotypes with higher likelihood will have higher probability during bootstrap
-samples of trees in random Forests. Note that the use of genotype likelihoods
+\item \strong{Genotype likelihood (GL): } The GL info is detected automatically
+(GL column in FORMAT field of VCF files). Genotypes with higher likelihood
+will have higher probability during bootstrap samples of trees in Random 
+forests. 
+Notes: (1) option only available with Random forests;
+(2) the use of genotype likelihoods
 in the form of normalized, phred-scaled likelihoods (PL, e.g. from GATK)
 are not recognized, yet... it's still under development.
-\item Predictive mean matching: the rf option uses a fast k-nearest neighbor
+\item \strong{Predictive mean matching: } the rf option uses a fast k-nearest neighbor
 (KNN) searching algorithms (see argument documentation and details below).
-\item Optimized for speed: the package
+\item \strong{Optimized for speed: } the package
 \href{https://github.com/imbs-hl/ranger}{ranger}
 (see Wright and Ziegler, 2016) provides a fast C++ version
-of the original implementation of rf from Breiman (2001), and
-imputations of genotypes are conducted in parallel across CPUs.
+of the original implementation of rf from Breiman (2001).
+The \href{https://github.com/dmlc/xgboost}{XGBoost} provides the fast C++
+implementation for the extreme gradient tree boosting algorithm.
+Imputations of genotypes are conducted in parallel across CPUs.
 A progress bar is now available to see if you have time for a coffee break!
 }
 
 
 Before running this function to populate the original dataset with synthetic
-data you should try \code{\link[stackr]{missing_visualization}}
-to detect patterns of missingness.
+data I highly recommend you look for patterns of missingness \code{\link[stackr]{missing_visualization}}
+and explore the reasons for their presence.
 Follow the \href{https://www.dropbox.com/s/4zf032g6yjatj0a/vignette_missing_data_analysis.nb.html?dl=0}{vignette}
 for more info.
 }
 \details{
-\strong{haplotype/SNP approach:}
-
-The \strong{haplotype approach} is automatically used when markers meta-information
-is detected (chromosome/CHROM, locus/ID and SNP/POS columns, usually from a VCF file).
-Missing genotypes from SNPs on the same locus or same RADseq read is undertaken
-simulteneously to account for the correlation of the linked SNPs.
-Alternatively, a \strong{snp approach} is used, and the SNP are considered
-independent. Imputations of genotypes is then conducted for each marker separately.
-
-
 \strong{Predictive mean matching:}
 
 Random Forests already behave like a nearest neighbor
@@ -134,6 +133,70 @@ The closest k predicted values are identified by a fast
 k-nearest neighbour approach using \code{\link[FNN]{knnx.index}} function
 wrapped in the package \code{\link[missRanger]{pmm}}.
 Returned value correspond to the mean value.
+
+
+\strong{haplotype/SNP approach:}
+
+The \strong{haplotype approach} is automatically used when markers meta-information
+is detected (chromosome/CHROM, locus/ID and SNP/POS columns, usually from a VCF file).
+Missing genotypes from SNPs on the same locus or same RADseq read is undertaken
+simulteneously to account for the correlation of the linked SNPs. When one or
+more SNPs on the same read/haplotype is missing, the haplotype is deleted and
+consequently, imputation might results in different genotype for those SNPs
+that were not missing. This approach is much safer than potentially creating
+weird chimeras during haplotype imputations.
+Alternatively, a \strong{snp approach} is used, and the SNP are considered
+independent. Imputations of genotypes is then conducted for each marker separately.
+
+\strong{\code{hierarchical.levels = "global"} considerations: }
+
+This argument will act differently depending on the \code{imputation.method}
+value selected.
+
+With \code{imputation.method = "max"}:
+Using \code{hierarchical.levels = "global"} will likely create bias.
+
+Example 1 (unbalanced sample size): Consider 2 populations evolving more
+by drift than selection: pop1 (n = 36) and pop2 (n = 50).
+You'll likely have a few polymorphic marker, where pop1 and pop2 are
+monomorphic for different alleles (pop1 is fixed for the minor/ALT allele and
+pop2 is fixed for the major/REF allele). Missing genotypes in pop1
+using the most common filling technique in the literature (using mean/mode/max),
+will result in pop1 having individuals with the REF allele.
+Not something you want... unless your population membership is not 100% accurate,
+(e.g. you might have migrants or wrong assignation), 
+which in this case you still don't want to impute with 
+\code{imputation.method = "max"} (see alternative below).
+
+Example 2 (balanced sample size): pop1 (n = 100) and pop2 (n = 100).
+For a particular marker, pop1 as 85 individuals genotyped and pop2 100.
+Again, if the populations are fixed for different alleles 
+(pop1 = ALT and pop2 = REF), you will end up having REF allele in your pop1,
+not something you want... unless your population membership is not 100% accurate,
+(e.g. you might have migrants or wrong assignation), 
+which in this case you still don't want to impute with 
+\code{imputation.method = "max"} (see alternative below).
+
+With \code{imputation.method = "rf"}:
+
+Random Forests use machine learning and you can take this into account while
+choosing argument values. Uncertain of the groupings ? Use random forests with
+\code{hierarchical.levels = "global"} and \code{markers.linkage == "multivariate"}.
+random forests will account for the potential linkage and correlation between
+markers and genotypes to make the best imputation available. This can potentially
+results in genotypes for a certain combo population/marker with new groupings
+(e.g. a new allele). This is much more accurate and not the same thing as 
+the \code{imputation.method = "max"} because the imputed genotype was validated
+after considering all the other genotype values of the individual. 
+\strong{Test the option and report bug if you find one.}
+
+\strong{... and arguments available for extreme gradient tree
+boosting:}
+
+Here is the list of arguments that can be further tailored for your imputations:
+\emph{eta, gamma, max_depth, min_child_weight, subsample, colsample_bytree, 
+num_parallel_tree, nrounds, save_name, early_stopping_rounds}.
+Refer to \code{\link[xgboost]{xgboost}} for arguments documentation.
 }
 \note{
 \strong{Reference genome or linkage map available ?}
@@ -143,9 +206,21 @@ the literature
 (\href{https://online.papersapp.com/collections/05d6e65a-73c9-49e6-9c75-289a818f76f3/share}{references}).
 
 
+\strong{simple imputation ?}
+
+Before conducting the imputations by populations with random forest or extreme
+gradient tree boosting, the data is first screened for markers that are
+monomorphic within populations. Because for those cases, it's clear what the
+missing genotypes should be, the imputations is very simple and missing
+genotypes are imputed with the only genotype found for the particular population.
+The small cost in time is worth it, because model random forest and extreme
+gradient tree boosting will benefit having more complete and reliable genotypes.
+
+
 \strong{Deprecated arguments:}
 
 \itemize{
+\item \code{imputations.group} is now replaced by \code{hierarchical.levels}
 \item \code{impute} is no longer available.
 Imputing using \code{impute = "allele"} option was wrong because it
 was using F1 genotypes for imputations. Now imputation is only conducted at
@@ -178,9 +253,6 @@ stackr::stackr_imputations_module(
     data = wolf.tidy, pred.mean.matching = 3, parallel.core = 32)
 }
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Wright, M. N. & Ziegler, A. (2016).
 ranger: A Fast Implementation of Random Forests for High Dimensional Data
@@ -188,6 +260,10 @@ in C++ and R.
 Journal of Statistical Software, in press. http://arxiv.org/abs/1508.04409.
 
 Breiman, L. (2001). Random forests. Machine learning, 45(1), 5-32.
+
+Chen T, Guestrin C. (2016).
+XGBoost: A scalable tree boosting system. arXivorg. 2016.
+doi:10.1145/2939672.2939785
 }
 \seealso{
 \href{https://github.com/mayer79/missRanger}{missRanger}
@@ -197,5 +273,9 @@ Breiman, L. (2001). Random forests. Machine learning, 45(1), 5-32.
 \href{https://github.com/stekhoven/missForest}{missForest}
 
 \href{https://github.com/kogalur/randomForestSRC}{randomForestSRC}
-}
 
+\href{https://github.com/dmlc/xgboost}{XGBoost}
+}
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

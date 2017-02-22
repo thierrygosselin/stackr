@@ -25,13 +25,12 @@ Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Goudet, J. (1995) FSTAT (Version 1.2): A computer program to 
 calculate F- statistics. Journal of Heredity, 86, 485-486.
 
 Goudet, J. (2005) hierfstat, a package for r to compute and test hierarchical F-statistics. Molecular Ecology Notes, 5, 184-186.
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

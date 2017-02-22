@@ -24,4 +24,3 @@ to keep track of the loci removed by a filter.
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
-

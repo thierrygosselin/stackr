@@ -141,4 +141,3 @@ k_len = NULL, report_mmatches = FALSE
 )
 }
 }
-

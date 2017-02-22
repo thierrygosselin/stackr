@@ -22,4 +22,3 @@ e.g. aes.colour = aes(y = ..scaled.., colour = POP_ID).}
 \description{
 GGPLOT2 Density distribution of diversity (Gene and Haplotypes).
 }
-

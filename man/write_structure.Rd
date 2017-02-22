@@ -39,12 +39,11 @@ Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com}
-}
 \references{
 Pritchard JK, Stephens M, Donnelly P. (2000)
 Inference of population structure using multilocus genotype data.
 Genetics. Genetics Society of America. 155: 945–959.
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}

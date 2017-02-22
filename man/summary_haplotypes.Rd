@@ -97,10 +97,6 @@ pop.levels = c("SKY", "LIM", "TWE"),
 read.length = 90)
 }
 }
-\author{
-Thierry Gosselin \email{thierrygosselin@icloud.com} and 
-Anne-Laure Ferchaud \email{annelaureferchaud@gmail.com}
-}
 \references{
 Keller MC, Visscher PM, Goddard ME (2011)
 Quantification of inbreeding due to distant ancestors and its detection
@@ -116,4 +112,7 @@ restriction endonucleases.
 Proceedings of the National Academy of Sciences of 
 the United States of America, 76, 5269–5273.
 }
-
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com} and 
+Anne-Laure Ferchaud \email{annelaureferchaud@gmail.com}
+}

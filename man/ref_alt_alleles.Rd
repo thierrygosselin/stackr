@@ -60,4 +60,3 @@ in a tidy data frame.
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
-

@@ -32,4 +32,3 @@ build_stacks_workflow_dir()
 build_stacks_workflow_dir(main.folder.name = "stacks_whiteshark", date = TRUE)
 }
 }
-
