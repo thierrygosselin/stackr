@@ -2,7 +2,7 @@
 
 language: r
 cache: packages
-warnings_are_errors: true
+warnings_are_errors: false
 sudo: required
 dist: trusty
 
@@ -20,10 +20,3 @@ before_install:
 
 install:
   - ./travis-tool.sh install_deps
-
-env:
-  global:
-    - R_BUILD_ARGS="--resave-data"
-    - R_CHECK_ARGS="--as-cran"
-    - WARNINGS_ARE_ERRORS=1
-    - _R_CHECK_FORCE_SUGGESTS_="FALSE"
