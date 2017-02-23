@@ -29,8 +29,6 @@ Imports:
     tibble,
     methods,
     tidyverse,
-    copula,
-    gsl,
     vcfR (>= 1.3.0),
     magrittr,
     stats,
