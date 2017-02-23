@@ -13,3 +13,21 @@ notifications:
 
 apt_packages:
   - libgsl0-dev
+
+before_install:
+  - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
+  - chmod 755 ./travis-tool.sh
+  - sudo add-apt-repository -y ppa:texlive-backports/ppa # This repository > default debian for R
+  - ./travis-tool.sh bootstrap
+  - sudo apt-get install tcl tk
+
+install:
+  - ./travis-tool.sh install_deps
+
+env:
+  global:
+    - R_BUILD_ARGS="--resave-data"
+    - R_CHECK_ARGS="--as-cran"
+    - WARNINGS_ARE_ERRORS=1
+    - _R_CHECK_FORCE_SUGGESTS_="FALSE"
+    - $BOOTSTRAP_LATEX="TRUE"
