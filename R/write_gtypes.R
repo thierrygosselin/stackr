@@ -18,7 +18,7 @@
 
 #' @export
 #' @rdname write_gtypes
-#' @import strataG
+# @import strataG
 
 #' @importFrom tidyr gather
 #' @importFrom methods new

@@ -2,7 +2,7 @@ Package: stackr
 Type: Package
 Title: GBS/RADseq Data Exploration, Manipulation and Visualization using R
 Version: 0.4.7
-Date: 2017-02-22
+Date: 2017-02-23
 Encoding: UTF-8
 Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
@@ -35,13 +35,11 @@ Imports:
     magrittr,
     stats,
     utils,
-    strataG,
     adegenet,
     pryr,
     ranger,
     pbmcapply,
-    xgboost,
-    survival (>= 2.40-1)
+    xgboost
 Suggests:
     knitr,
     rmarkdown
