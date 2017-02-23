@@ -25,6 +25,9 @@
 #' @importFrom stringi stri_replace_all_fixed stri_sub
 #' @importFrom dplyr select arrange rename mutate
 #' @importFrom data.table dcast.data.table as.data.table
+#' @importFrom purrr safely
+#' @importFrom utils installed.packages
+
 
 #' @seealso \code{strataG.devel} is available on github \url{https://github.com/EricArcher/}
 
@@ -37,6 +40,11 @@
 
 write_gtypes <- function(data) {
   
+  # Check that strataG is installed --------------------------------------------
+  if (!"strataG" %in% utils::installed.packages()[,"Package"]) {
+    stop("Please install strataG for this output option:\n  
+devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
+  }
   # Checking for missing and/or default arguments ------------------------------
   if (missing(data)) stop("Input file necessary to write the hierfstat file is missing")
   
@@ -88,8 +96,10 @@ write_gtypes <- function(data) {
   # tidyr::unite(data = ., MARKERS_ALLELES, MARKERS, ALLELES, sep = ".") %>% 
   # tidyr::spread(data = ., key = MARKERS_ALLELES, value = GT)
   
+  safe_gtypes <-  purrr::safely(.f = methods::new)
+  
   res <- suppressWarnings(
-    methods::new(
+    safe_gtypes(
       "gtypes",
       gen.data = input[, -(1:2)],
       ploidy = 2,
@@ -101,5 +111,12 @@ write_gtypes <- function(data) {
       other = NULL
     )
   )
+  
+  if (is.null(res$error)) {
+    res <- res$result
+  } else {
+    stop("strataG package must be installed and loaded: library('strataG')")
+  }
+  
   return(res)
 }# End write_gtypes

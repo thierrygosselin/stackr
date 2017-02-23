@@ -1,7 +1,7 @@
 Package: stackr
 Type: Package
 Title: GBS/RADseq Data Exploration, Manipulation and Visualization using R
-Version: 0.4.7
+Version: 0.4.8
 Date: 2017-02-23
 Encoding: UTF-8
 Authors@R: c(

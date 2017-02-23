@@ -1389,19 +1389,18 @@ tidy_genomic_data <- function(
     #   dplyr::arrange(POP_ID, INDIVIDUALS, MARKERS, GT) %>% 
     #   dplyr::ungroup(.)
     
-    input <- data.table::dcast.data.table(
-      data = data.table::as.data.table(input),
-      formula = POP_ID + INDIVIDUALS + MARKERS ~ ALLELES,
-      value.var = "GT"
-    ) %>%
+    input <- input %>% 
+      dplyr::mutate(GT = replace(GT, which(is.na(GT)), "000")) %>%
+      data.table::as.data.table(.) %>% 
+      data.table::dcast.data.table(
+        data = .,
+        formula = POP_ID + INDIVIDUALS + MARKERS ~ ALLELES,
+        value.var = "GT"
+      ) %>%
       tibble::as_data_frame() %>%
       tidyr::unite(data = ., col = GT, A1, A2, sep = "") %>%
-      dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT)
-
-    # remove unwanted sep in id and pop.id names
-    input <- input %>% 
+      dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT) %>%
       dplyr::mutate(
-        GT = replace(GT, which(is.na(GT)), "000000"),
         INDIVIDUALS = stringi::stri_replace_all_fixed(
           str = INDIVIDUALS, 
           pattern = c("_", ":"), 

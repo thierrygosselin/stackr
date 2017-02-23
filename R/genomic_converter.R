@@ -66,6 +66,7 @@
 #' @importFrom purrr flatten_chr
 #' @importFrom tidyr gather
 #' @import parallel
+#' @importFrom utils installed.packages
 
 #' @examples
 #' \dontrun{
@@ -175,6 +176,13 @@ genomic_converter <- function(
   cat("###################### stackr::genomic_converter ######################\n")
   cat("#######################################################################\n")
   timing <- proc.time()
+  
+  if ("gtypes" %in% output) {
+    if (!"strataG" %in% utils::installed.packages()[,"Package"]) {
+      stop("Please install strataG for this output option:\n  
+devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
+    }
+  }
   
   # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("Input file missing")

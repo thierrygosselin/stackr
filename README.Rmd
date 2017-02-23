@@ -105,6 +105,11 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+
+**v.0.4.8**
+* safer use and better parsing `strataG` to work with tidy data and pass Travis CI.
+
+
 **v.0.4.7**
 
 * Better parsing of genepop file with 2 characters for allele coding
