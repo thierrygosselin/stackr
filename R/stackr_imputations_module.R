@@ -511,7 +511,7 @@ stackr_imputations_module <- function(
   # SNP/haplotype approach -----------------------------------------------------
   # detect the presence of SNP/LOCUS info and combine SNPs on the same RADseq locus together 
   
-  if (tibble::has_name(input, "CHROM") && tibble::has_name(input, "LOCUS")) {
+  if (tibble::has_name(input, "CHROM") && tibble::has_name(input, "LOCUS") && imputation.method != "max") {
     input <- tidyr::unite(data = input, col = CHROM_LOCUS, CHROM, LOCUS) %>% 
       dplyr::select(-POS) # no longer necessary info in MARKERS
     
@@ -967,12 +967,18 @@ stackr_imputations_module <- function(
     columns.required <- c( "MARKERS", "CHROM", "LOCUS", "POS", "POP_ID",
                            "INDIVIDUALS", "REF", "ALT", "GT", "GT_VCF", "GT_BIN", "GL")
     
-    input.imp <- dplyr::left_join(
-      dplyr::rename(input.imp, NEW_MARKERS = MARKERS),
-      marker.meta, by = "NEW_MARKERS") %>%
-      dplyr::select(dplyr::one_of(columns.required)) %>% 
-      dplyr::arrange(CHROM, LOCUS, POS, POP_ID, INDIVIDUALS)
-    
+    if (tibble::has_name(marker.meta, "NEW_MARKERS")) {
+      input.imp <- dplyr::left_join(
+        dplyr::rename(input.imp, NEW_MARKERS = MARKERS),
+        marker.meta, by = "NEW_MARKERS") %>%
+        dplyr::select(dplyr::one_of(columns.required)) %>% 
+        dplyr::arrange(CHROM, LOCUS, POS, POP_ID, INDIVIDUALS)
+    } else {
+      input.imp <- suppressWarnings(
+        dplyr::left_join(input.imp,marker.meta, by = "MARKERS") %>%
+          dplyr::select(dplyr::one_of(columns.required)) %>% 
+          dplyr::arrange(CHROM, LOCUS, POS, POP_ID, INDIVIDUALS))
+    }
     columns.required <- NULL
   } else {
     input.imp <- dplyr::arrange(.data = input.imp, MARKERS, POP_ID, INDIVIDUALS)
