@@ -510,6 +510,8 @@ tidy_genomic_data <- function(
       if (verbose) message("Keeping vcf metadata: no")
     }
     
+    vcf.data <- NULL
+    
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
       input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
@@ -701,7 +703,7 @@ tidy_genomic_data <- function(
     if (biallelic) {
       if (!is.null(pop.select) || !is.null(blacklist.id)) {
         if (verbose) message("Adjusting REF/ALT alleles to account for filters...")
-        input.temp <- change_alleles(data = input, monomorphic.out = FALSE, verbose = verbose)
+        input.temp <- change_alleles(data = input, monomorphic.out = TRUE, verbose = verbose)
         input <- input.temp$input
       }
     }# end re-computing the REF/ALT allele

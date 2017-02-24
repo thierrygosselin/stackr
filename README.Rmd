@@ -105,9 +105,15 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.4.9**
+
+* bug fix with detection of mixed bi/multi allelic dataset. The bug was detected
+in `tidy_genomic_data` and `genomic_converter` functions.
+
 
 **v.0.4.8**
-* safer use and better parsing `strataG` to work with tidy data and pass Travis CI.
+
+* safer use and better parsing of `strataG` object to work with tidy data and pass Travis CI.
 
 
 **v.0.4.7**

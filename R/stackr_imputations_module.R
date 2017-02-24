@@ -198,8 +198,6 @@
 #' Refer to \code{\link[xgboost]{xgboost}} for arguments documentation.
 
 
-
-
 #' @note
 #' 
 #' \strong{Reference genome or linkage map available ?}
