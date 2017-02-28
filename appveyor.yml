@@ -12,6 +12,8 @@ install:
 
 # Adapt as necessary starting from here
 
+use_bioc: true
+
 build_script:
   - travis-tool.sh install_deps
 
@@ -40,5 +42,3 @@ artifacts:
 
   - path: '\*_*.zip'
     name: Bits
-
-use_bioc: true
