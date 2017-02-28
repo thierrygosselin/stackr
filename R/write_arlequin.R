@@ -45,7 +45,7 @@ write_arlequin <- function(
 ) {
   
   # Checking for missing and/or default arguments ******************************
-  if (missing(data)) stop("Input file necessary to write the arlequin file is missing")
+  if (missing(data)) stop("Input file missing")
   
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {

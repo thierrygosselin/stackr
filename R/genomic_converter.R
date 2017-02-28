@@ -171,124 +171,124 @@ genomic_converter <- function(
   verbose = FALSE,
   parallel.core = parallel::detectCores() - 1
 ) {
-  
-  cat("#######################################################################\n")
-  cat("###################### stackr::genomic_converter ######################\n")
-  cat("#######################################################################\n")
-  timing <- proc.time()
-  
-  if ("gtypes" %in% output) {
-    if (!"strataG" %in% utils::installed.packages()[,"Package"]) {
-      stop("Please install strataG for this output option:\n  
+  if (verbose) {
+    cat("#######################################################################\n")
+    cat("###################### stackr::genomic_converter ######################\n")
+    cat("#######################################################################\n")
+    timing <- proc.time()
+    
+    if ("gtypes" %in% output) {
+      if (!"strataG" %in% utils::installed.packages()[,"Package"]) {
+        stop("Please install strataG for this output option:\n  
 devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
+      }
     }
-  }
-  
-  # Checking for missing and/or default arguments-------------------------------
-  if (missing(data)) stop("Input file missing")
-  if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
-  if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
-  
-  message("Function arguments and values:")
-  message("Working directory: ", getwd())
-  
-  if (is.vector(data)) {
-    message("Input file: ", data)
-  } else {
-    message("Input file: from global environment")  
-  }
-  
-  if (is.null(strata)) {
-    message("Strata: no")
-  } else {
-    message("Strata: ", strata)
-  }
-  
-  if (is.null(pop.levels)) {
-    message("Population levels: no")
-  } else {
-    message("Population levels: ", stringi::stri_join(pop.levels, collapse = ", "))
-  }
-  
-  if (is.null(pop.levels)) {
-    message("Population labels: no")
-  } else {
-    message(stringi::stri_join("Population labels: ", stringi::stri_join(pop.labels, collapse = ", ")))
-  }
-  
-  if (is.null(output)) {
-    message("Ouput format(s): tidy")
-  } else {
-    message(stringi::stri_join("Ouput format(s): tidy, ", stringi::stri_join(output, collapse = ", ")))
-  }
-  
-  if (is.null(filename)) {
-    message("Filename prefix: no")
-  } else {
-    message("Filename prefix: ", filename, "\n")
-  }
-  
-  
-  message("Filters: ")
-  if (is.null(blacklist.id)) {
-    message("Blacklist of individuals: no")
-  } else {
-    message("Blacklist of individuals: ", blacklist.id)
-  }
-  
-  if (is.null(blacklist.genotype)) {
-    message("Blacklist of genotypes: no")
-  } else {
-    message("Blacklist of genotypes: ", blacklist.genotype)
-  }
-  
-  if (is.null(whitelist.markers)) {
-    message("Whitelist of markers: no")
-  } else {
-    message("Whitelist of markers: ", whitelist.markers)
-  }
-  
-  message("monomorphic.out: ", monomorphic.out)
-  if (is.null(snp.ld)) {
-    message("snp.ld: no")
-  } else {
-    message("snp.ld: ", snp.ld)
-  }
-  message("common.markers: ", common.markers)
-  if (is.null(max.marker)) {
-    message("max.marker: no")
-  } else {
-    message("max.marker: ", max.marker)
-  }
-  
-  if (is.null(pop.select)) {
-    message("pop.select: no")
-  } else {
-    message(stringi::stri_join("pop.select: ", stringi::stri_join(pop.select, collapse = ", ")))
-  }
-  if (is.null(maf.thresholds)) {
-    message("maf.thresholds: no")
-  } else {
-    message(stringi::stri_join("maf.thresholds: ", stringi::stri_join(maf.thresholds, collapse = ", ")))
-    message("maf.pop.num.threshold: ", maf.pop.num.threshold)
-    message("maf.approach: ", maf.approach)
-    message("maf.operator: ", maf.operator)
-  }
-  
-  message(stringi::stri_join("\n", "Imputations options:"))
-  if (is.null(imputation.method)) {
-    message("imputation.method: no")
-  } else {
-    message("imputation.method: ", imputation.method)
-    message("hierarchical.levels: ", hierarchical.levels)
-    message("num.tree: ", num.tree)
-    message("pred.mean.matching: ", pred.mean.matching)
-    message("verbose: ", verbose)
-  }
-  message("\nparallel.core: ", parallel.core, "\n")
-  cat("#######################################################################\n")
-  
-  
+    
+    # Checking for missing and/or default arguments-------------------------------
+    if (missing(data)) stop("Input file missing")
+    if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
+    if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
+    
+    message("Function arguments and values:")
+    message("Working directory: ", getwd())
+    
+    if (is.vector(data)) {
+      message("Input file: ", data)
+    } else {
+      message("Input file: from global environment")  
+    }
+    
+    if (is.null(strata)) {
+      message("Strata: no")
+    } else {
+      message("Strata: ", strata)
+    }
+    
+    if (is.null(pop.levels)) {
+      message("Population levels: no")
+    } else {
+      message("Population levels: ", stringi::stri_join(pop.levels, collapse = ", "))
+    }
+    
+    if (is.null(pop.levels)) {
+      message("Population labels: no")
+    } else {
+      message(stringi::stri_join("Population labels: ", stringi::stri_join(pop.labels, collapse = ", ")))
+    }
+    
+    if (is.null(output)) {
+      message("Ouput format(s): tidy")
+    } else {
+      message(stringi::stri_join("Ouput format(s): tidy, ", stringi::stri_join(output, collapse = ", ")))
+    }
+    
+    if (is.null(filename)) {
+      message("Filename prefix: no")
+    } else {
+      message("Filename prefix: ", filename, "\n")
+    }
+    
+    
+    message("Filters: ")
+    if (is.null(blacklist.id)) {
+      message("Blacklist of individuals: no")
+    } else {
+      message("Blacklist of individuals: ", blacklist.id)
+    }
+    
+    if (is.null(blacklist.genotype)) {
+      message("Blacklist of genotypes: no")
+    } else {
+      message("Blacklist of genotypes: ", blacklist.genotype)
+    }
+    
+    if (is.null(whitelist.markers)) {
+      message("Whitelist of markers: no")
+    } else {
+      message("Whitelist of markers: ", whitelist.markers)
+    }
+    
+    message("monomorphic.out: ", monomorphic.out)
+    if (is.null(snp.ld)) {
+      message("snp.ld: no")
+    } else {
+      message("snp.ld: ", snp.ld)
+    }
+    message("common.markers: ", common.markers)
+    if (is.null(max.marker)) {
+      message("max.marker: no")
+    } else {
+      message("max.marker: ", max.marker)
+    }
+    
+    if (is.null(pop.select)) {
+      message("pop.select: no")
+    } else {
+      message(stringi::stri_join("pop.select: ", stringi::stri_join(pop.select, collapse = ", ")))
+    }
+    if (is.null(maf.thresholds)) {
+      message("maf.thresholds: no")
+    } else {
+      message(stringi::stri_join("maf.thresholds: ", stringi::stri_join(maf.thresholds, collapse = ", ")))
+      message("maf.pop.num.threshold: ", maf.pop.num.threshold)
+      message("maf.approach: ", maf.approach)
+      message("maf.operator: ", maf.operator)
+    }
+    
+    message(stringi::stri_join("\n", "Imputations options:"))
+    if (is.null(imputation.method)) {
+      message("imputation.method: no")
+    } else {
+      message("imputation.method: ", imputation.method)
+      message("hierarchical.levels: ", hierarchical.levels)
+      message("num.tree: ", num.tree)
+      message("pred.mean.matching: ", pred.mean.matching)
+      message("verbose: ", verbose)
+    }
+    message("\nparallel.core: ", parallel.core, "\n")
+    cat("#######################################################################\n")
+  }  
+    
   # Filename -------------------------------------------------------------------
   # Get date and time to have unique filenaming
   if (is.null(filename)) {
@@ -350,7 +350,8 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       pop.levels = pop.levels,
       pop.labels = pop.labels,
       pop.select = pop.select,
-      filename = NULL
+      filename = NULL,
+      verbose = FALSE
     )
   }
   
@@ -374,7 +375,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   res$tidy.data <- input
   
   # Biallelic detection --------------------------------------------------------
-  biallelic <- stackr::detect_biallelic_markers(data = input, verbose = TRUE)
+  biallelic <- stackr::detect_biallelic_markers(data = input, verbose = verbose)
   
   
   # overide genind when marker number > 20K ------------------------------------
@@ -431,7 +432,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   
   # GENEPOP --------------------------------------------------------------------
   if ("genepop" %in% output) {
-    message("Generating genepop file without imputation")
+    if (verbose) message("Generating genepop file without imputation")
     stackr::write_genepop(
       data = input,
       pop.levels = pop.levels,
@@ -439,7 +440,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     )
     
     if (!is.null(imputation.method)) {
-      message("Generating genepop file WITH imputations")
+      if (verbose) message("Generating genepop file WITH imputations")
       stackr::write_genepop(
         data = input.imp,
         pop.levels = pop.levels,
@@ -450,14 +451,14 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   
   # hierfstat --------------------------------------------------------------------
   if ("hierfstat" %in% output) {
-    message("Generating hierfstat file without imputation")
+    if (verbose) message("Generating hierfstat file without imputation")
     res$hierfstat.no.imputation <- stackr::write_hierfstat(
       data = input,
       filename = filename
     )
     
     if (!is.null(imputation.method)) {
-      message("Generating hierfstat file WITH imputations")
+      if (verbose) message("Generating hierfstat file WITH imputations")
       res$hierfstat.imputed <- stackr::write_hierfstat(
         data = input.imp,
         filename = filename.imp
@@ -467,18 +468,18 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   
   # strataG --------------------------------------------------------------------
   if ("gtypes" %in% output) {
-    message("Generating strataG gtypes object without imputation")
+    if (verbose) message("Generating strataG gtypes object without imputation")
     res$gtypes.no.imputation <- stackr::write_gtypes(data = input)
     
     if (!is.null(imputation.method)) {
-      message("Generating strataG gtypes object WITH imputations")
+      if (verbose) message("Generating strataG gtypes object WITH imputations")
       res$gtypes.imputed <- stackr::write_gtypes(data = input.imp)
     }
   } # end strataG output
   
   # structure --------------------------------------------------------------------
   if ("structure" %in% output) {
-    message("Generating structure file without imputation")
+    if (verbose) message("Generating structure file without imputation")
     stackr::write_structure(
       data = input,
       pop.levels = pop.levels,
@@ -487,7 +488,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     )
     
     if (!is.null(imputation.method)) {
-      message("Generating structure file WITH imputations")
+      if (verbose) message("Generating structure file WITH imputations")
       stackr::write_structure(
         data = input.imp,
         pop.levels = pop.levels,
@@ -500,18 +501,18 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   # betadiv --------------------------------------------------------------------
   if ("betadiv" %in% output) {
     if (!biallelic) stop("betadiv output is currently implemented for biallelic data only")
-    message("Generating betadiv object without imputation")
+    if (verbose) message("Generating betadiv object without imputation")
     res$betadiv.no.imputation <- stackr::write_betadiv(data = input)
     
     if (!is.null(imputation.method)) {
-      message("Generating betadiv object WITH imputations")
+      if (verbose) message("Generating betadiv object WITH imputations")
       res$betadiv.imputed <- stackr::write_betadiv(data = input.imp)
     }
   } # end betadiv output
   
   # arlequin --------------------------------------------------------------------
   if ("arlequin" %in% output) {
-    message("Generating arlequin file without imputation")
+    if (verbose) message("Generating arlequin file without imputation")
     stackr::write_arlequin(
       data = input,
       pop.levels = pop.levels,
@@ -519,7 +520,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     )
     
     if (!is.null(imputation.method)) {
-      message("Generating arlequin file WITH imputations")
+      if (verbose) message("Generating arlequin file WITH imputations")
       stackr::write_arlequin(
         data = input.imp,
         pop.levels = pop.levels,
@@ -530,22 +531,22 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   
   # GENIND ---------------------------------------------------------------------
   if ("genind" %in% output) {
-    message("Generating adegenet genind object without imputation")
+    if (verbose) message("Generating adegenet genind object without imputation")
     res$genind.no.imputation <- stackr::write_genind(data = input)
     
     if (!is.null(imputation.method)) {
-      message("Generating adegenet genind object WITH imputations")
+      if (verbose) message("Generating adegenet genind object WITH imputations")
       res$genind.imputed <- stackr::write_genind(data = input.imp)
     }
   } # end genind
   
   # GENLIGHT ---------------------------------------------------------------------
   if ("genlight" %in% output) {
-    message("Generating adegenet genlight object without imputation")
+    if (verbose) message("Generating adegenet genlight object without imputation")
     res$genlight.no.imputation <- stackr::write_genlight(data = input)
     
     if (!is.null(imputation.method)) {
-      message("Generating adegenet genlight object WITH imputations")
+      if (verbose) message("Generating adegenet genlight object WITH imputations")
       res$genlight.imputed <- stackr::write_genlight(data = input.imp)
     }
   } # end genlight output
@@ -553,14 +554,14 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   # VCF ------------------------------------------------------------------------
   if ("vcf" %in% output) {
     if (!biallelic) stop("vcf output is currently implemented for biallelic data only")
-    message("Generating VCF file without imputation")
+    if (verbose) message("Generating VCF file without imputation")
     stackr::write_vcf(
       data = input,
       filename = filename
     )
     
     if (!is.null(imputation.method)) {
-      message("Generating VCF file WITH imputations")
+      if (verbose) message("Generating VCF file WITH imputations")
       stackr::write_vcf(
         data = input.imp,
         filename = filename.imp
@@ -570,14 +571,14 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   
   # PLINK --------------------------------------------------------------------
   if ("plink" %in% output) {
-    message("Generating PLINK tped/tfam files without imputation")
+    if (verbose) message("Generating PLINK tped/tfam files without imputation")
     stackr::write_plink(
       data = input,
       filename = filename
     )
     
     if (!is.null(imputation.method)) {
-      message("Generating PLINK tped/tfam files WITH imputations")
+      if (verbose) message("Generating PLINK tped/tfam files WITH imputations")
       stackr::write_plink(
         data = input.imp,
         filename = filename.imp
@@ -598,17 +599,23 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   n.individuals <- dplyr::n_distinct(input$INDIVIDUALS)
   n.pop <- dplyr::n_distinct(input$POP_ID)
   
-  cat("############################### RESULTS ###############################\n")
-  message("Tidy data in your global environment")
-  message("Depending on output selected, check the list in your global environment and your working directory")
-  message("Data format of input: ", data.type)
-  message("Biallelic data ? ", biallelic)
-  message("Number of markers: ", n.markers)
-  message("Number of chromosome: ", n.chromosome)
-  message("Number of individuals ", n.individuals)
-  message("Number of populations ", n.pop)
-  timing <- proc.time() - timing
-  message("Computation time: ", round(timing[[3]]), " sec")
-  cat("############################## completed ##############################\n")
+  if (verbose) {
+    cat("############################### RESULTS ###############################\n")
+    message("Tidy data in your global environment")
+    message("Depending on output selected, check the list in your global environment and your working directory")
+    message("Data format of input: ", data.type)
+    message("Biallelic data ? ", biallelic)
+    if (common.markers) {
+      message("Number of common markers: ", n.markers)
+    } else {
+      message("Number of markers: ", n.markers)
+    }
+    message("Number of chromosome/contig/scaffold: ", n.chromosome)
+    message("Number of individuals ", n.individuals)
+    message("Number of populations ", n.pop)
+    timing <- proc.time() - timing
+    message("Computation time: ", round(timing[[3]]), " sec")
+    cat("############################## completed ##############################\n")
+  }
   return(res)
 } # end genomic_converter

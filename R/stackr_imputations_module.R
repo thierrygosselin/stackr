@@ -642,7 +642,7 @@ stackr_imputations_module <- function(
       # First: dont' waist time imputing, some screening first
       # The small cost in time is worth it,
       # because model in RF and xgboost will benefit having more complete and reliable genotypes
-      if (verbose) message("Scanning dataset for population(s) with 1 genotype group...")
+      if (verbose) message("Scanning dataset for population(s) with monomorphic marker(s)...")
       # scanning for populations with one genotype group
       scan.pop <- dplyr::group_by(.data = input, MARKERS, POP_ID, GT) %>% 
         dplyr::tally(.)
@@ -1034,24 +1034,15 @@ stackr_imputer <- function(
 ) {
   # data <- input #test
   
-  # delete if not used
-  # message of progress for imputations by population
-  # if (verbose && hierarchical.levels == "populations") {
-  #   message("Imputations of pop: ", pops)
-  # }
-  
-  # data <- data %>% 
-  #   dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT_IMP) %>%
-  #   dplyr::group_by(INDIVIDUALS, POP_ID) %>% 
-  #   tidyr::spread(data = ., key = MARKERS, value = GT_IMP) %>% 
-  #   dplyr::ungroup(.) %>% 
-  #   dplyr::mutate_all(.funs = factor)
-  
-  data.na <- data %>% 
+  data <- data %>% 
     dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT) %>%
-    dplyr::group_by(INDIVIDUALS, POP_ID) %>% 
+    dplyr::group_by(INDIVIDUALS, POP_ID) %>%
+    dplyr::mutate(GT = replace(GT, which(is.na(GT)), "missing")) %>% 
     tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
-    dplyr::ungroup(.) #%>% dplyr::mutate_all(.funs = factor)
+    dplyr::ungroup(.)
+  
+  # data[is.na(data.model)] <- "missing"
+  
   
   data.gl <- NULL
   # if (tibble::has_name(data.pop, "GL")) {
@@ -1065,14 +1056,7 @@ stackr_imputer <- function(
   #   data.gl <- NULL
   # }
   
-  # replace NA with "missing" (new category of genotype)
-  data <- data %>% 
-    dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT) %>%
-    dplyr::mutate(GT = replace(GT, which(is.na(GT)), "missing")) %>% 
-    dplyr::group_by(INDIVIDUALS, POP_ID) %>% 
-    tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
-    dplyr::ungroup(.) %>% 
-    dplyr::mutate_all(.funs = factor)
+  
   
   
   # initiate while loop
@@ -1166,38 +1150,19 @@ impute_genotypes <- function(
 ) {
   # m <- "BINDED_M7114_M7115_M7116_M7117"
   # m <- "BINDED_M1_M2_M3_M4_M5"
+  # m <- "BINDED_M101_M102"
   # m <- "M993"
   m <- marker.list
   message("Marker: ", m)# for diagnostic
   
   # Handling complete and missing data ---------------------------------------
-  
-  # data.complete <- dplyr::filter_(
-  #   .data = data, lazyeval::interp(~m != "missing", m = as.name(m))) %>%
-  #   dplyr::select(dplyr::one_of(m), dplyr::everything(.)) %>% dplyr::ungroup(.)
-  # data.complete <- dplyr::select(.data = data, dplyr::one_of(m), dplyr::everything()) %>%
-    # dplyr::ungroup(.)
-  # data.complete <- data
-  # data.complete <- dplyr::filter_(.data = data, lazyeval::interp(~!is.na(m), m = as.name(m)))
-  
-  data.complete <- dplyr::filter_(.data = data.na, lazyeval::interp(~ !is.na(m), m = as.name(m)))
-  data.complete[is.na(data.complete)] <- "missing"
-  data.complete <- dplyr::mutate_all(.tbl = data.complete, .funs = factor)
-  
-  # mutate_call <- lazyeval::interp(~ replace(m, which(m == "missing"), NA), m = as.name(m))
-  # data.missing <- dplyr::filter_(
-  #   .data = data, lazyeval::interp(~m == "missing", m = as.name(m))) %>%
-  #   dplyr::mutate_(.dots = setNames(list(mutate_call), m)) %>%
-  #   dplyr::select(dplyr::one_of(m), dplyr::everything(.)) %>% dplyr::ungroup(.) 
-  
-  # data.missing <- data.complete
-  # data.missing <- data
-  # data.missing[,m] <- data.na[,m]
-  # data.missing <- data.na[,c("INDIVIDUALS",m)]
-  data.missing <- dplyr::filter_(.data = data.na, lazyeval::interp(~is.na(m), m = as.name(m)))
-  data.missing <- dplyr::select(data.missing, -dplyr::one_of(m))
-  data.missing[is.na(data.missing)] <- "missing"
-  # data.complete <- dplyr::filter_(.data = data.missing, lazyeval::interp(~!is.na(m), m = as.name(m)))
+  data.model <- dplyr::filter_(.data = data, lazyeval::interp(~ m != "missing", m = as.name(m))) %>%
+    dplyr::mutate_all(.tbl = ., .funs = factor)
+  data.missing <- dplyr::filter_(.data = data, lazyeval::interp(~ m == "missing", m = as.name(m))) %>%
+    dplyr::select(-dplyr::one_of(m))
+
+  # data.model <- dplyr::filter_(.data = data, lazyeval::interp(~ !is.na(m), m = as.name(m)))
+  # data.missing <- dplyr::filter_(.data = data, lazyeval::interp(~is.na(m), m = as.name(m))) %>%
   
   # test <- is.na(data.na)
   
@@ -1238,12 +1203,13 @@ impute_genotypes <- function(
         # discard.columns <- c(m, "POP_ID", "INDIVIDUALS")
         # discard.columns <- c(m, "POP_ID")
         # model.columns <- setdiff(colnames(data.complete), discard.columns)
-        model.columns <- setdiff(colnames(data.complete), m)
+        model.columns <- setdiff(colnames(data.model), m)
         rf.formula <- stats::as.formula(
           stringi::stri_join(m, " ~ ",
                              stringi::stri_join(model.columns, collapse = "+")))
         always.split.variables <- NULL
-      # } else {
+        always.split.variables <- "POP_ID"
+        # } else {
       #   discard.columns <- c(m, "INDIVIDUALS")
       #   model.columns <- setdiff(colnames(data.complete), discard.columns)
       #   model.columns <- setdiff(colnames(data.complete), m)
@@ -1266,9 +1232,9 @@ impute_genotypes <- function(
     # RF -----------------------------------------------------------------------
     system.time(ranger.res <- ranger::ranger(
       formula = rf.formula,
-      data = data.complete,
-      num.trees = 1000,
-      # num.trees = num.tree,
+      data = data.model,
+      # num.trees = 1000,
+      num.trees = num.tree,
       case.weights = case.weights,
       split.select.weights = split.select.weights,
       always.split.variables = always.split.variables,

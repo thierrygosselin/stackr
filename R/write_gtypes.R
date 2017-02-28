@@ -46,7 +46,7 @@ write_gtypes <- function(data) {
 devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   }
   # Checking for missing and/or default arguments ------------------------------
-  if (missing(data)) stop("Input file necessary to write the hierfstat file is missing")
+  if (missing(data)) stop("Input file missing")
   
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {

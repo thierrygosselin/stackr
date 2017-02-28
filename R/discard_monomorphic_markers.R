@@ -57,8 +57,9 @@ discard_monomorphic_markers <- function(data, verbose = FALSE) {
   if (tibble::has_name(input, "CHROM")) {
   markers.df <- dplyr::distinct(.data = input, MARKERS, CHROM, LOCUS, POS)
   }
-  if (verbose) message(stringi::stri_join("    Number of markers before = ", dplyr::n_distinct(input$MARKERS)))
-  if (verbose) message("    Scanning for monomorphic markers...")
+  if (verbose) message("Scanning for monomorphic markers...")
+  if (verbose) message("    Number of markers before = ", dplyr::n_distinct(input$MARKERS))
+  
   mono.markers <- dplyr::select(.data = input, MARKERS, GT) %>% 
     dplyr::filter(GT != "000000") %>%
     dplyr::distinct(MARKERS, GT) %>%

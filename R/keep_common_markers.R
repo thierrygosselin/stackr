@@ -14,6 +14,10 @@
 #' \emph{How to get a tidy data frame ?}
 #' Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
 
+#' @param plot (optional, logical) \code{plot = TRUE} will produce an
+#' \href{https://github.com/hms-dbmi/UpSetR}{UpSet plot} to visualize the number
+#' of markers between populations.
+#' Default: \code{plot = FALSE}.
 
 #' @param verbose (optional, logical) \code{verbose = TRUE} to be chatty 
 #' during execution. 
@@ -23,16 +27,16 @@
 #' present in the data set.
 
 
-
 #' @export
 #' @rdname keep_common_markers
 #' @importFrom dplyr select mutate group_by ungroup rename tally filter semi_join n_distinct
 #' @importFrom stringi stri_replace_all_fixed stri_join
 #' @importFrom tibble has_name
+#' @importFrom UpSetR upset
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
-keep_common_markers <- function(data, verbose = FALSE) {
+keep_common_markers <- function(data, plot = FALSE, verbose = FALSE) {
   
   # Checking for missing and/or default arguments ------------------------------
   if (missing(data)) stop("Input file missing")
@@ -71,10 +75,24 @@ keep_common_markers <- function(data, verbose = FALSE) {
   markers.in.common <- nrow(pop.filter)
   blacklist.markers.common <- markers.input - markers.in.common
   
-  if (verbose) message(stringi::stri_join("    Number of markers before = ", markers.input))
-  if (verbose) message(stringi::stri_join("    Number of markers removed = ", blacklist.markers.common))
-  if (verbose) message(stringi::stri_join("    Number of markers after (common between populations) = ", markers.in.common))
+  if (verbose) message("    Number of markers before = ", markers.input)
+  if (verbose) message("    Number of markers removed = ", blacklist.markers.common)
+  if (verbose) message("    Number of markers after (common between populations) = ", markers.in.common)
 
+  if (plot) {
+    pops <- unique(input$POP_ID)
+    
+    plot.data <- dplyr::filter(input, GT != "000000") %>% 
+      dplyr::distinct(MARKERS, POP_ID) %>%
+      dplyr::mutate(
+        n = rep(1, n()),
+        POP_ID = stringi::stri_join("POP_", POP_ID)
+      ) %>%
+      tidyr::spread(data = ., key = POP_ID, value = n, fill = 0) %>% 
+      data.frame(.)
+    
+    UpSetR::upset(plot.data, nsets = length(pops), order.by = "freq", empty.intersections = "on")
+  }
   
   if (blacklist.markers.common > 0) {
     input <- suppressWarnings(dplyr::semi_join(input, pop.filter, by = "MARKERS"))

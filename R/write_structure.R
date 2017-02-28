@@ -57,7 +57,7 @@ write_structure <- function(
 ) {
   
   # Checking for missing and/or default arguments ******************************
-  if (missing(data)) stop("Input file necessary to write the structure file is missing")
+  if (missing(data)) stop("Input file missing")
   
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {

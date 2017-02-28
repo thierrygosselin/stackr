@@ -4,13 +4,18 @@
 \alias{keep_common_markers}
 \title{Keep markers in common between all populations}
 \usage{
-keep_common_markers(data, verbose = FALSE)
+keep_common_markers(data, plot = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{data}{A tidy data frame object in the global environment or
 a tidy data frame in wide or long format in the working directory.
 \emph{How to get a tidy data frame ?}
 Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
+
+\item{plot}{(optional, logical) \code{plot = TRUE} will produce an
+\href{https://github.com/hms-dbmi/UpSetR}{UpSet plot} to visualize the number
+of markers between populations.
+Default: \code{plot = FALSE}.}
 
 \item{verbose}{(optional, logical) \code{verbose = TRUE} to be chatty 
 during execution. 

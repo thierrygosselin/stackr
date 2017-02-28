@@ -424,7 +424,7 @@ tidy_genomic_data <- function(
   
   # Import VCF------------------------------------------------------------------
   if (data.type == "vcf.file") { # VCF
-    message("Importing and tidying the VCF...")
+    if (verbose) message("Importing and tidying the VCF...")
     
     # import vcf
     suppressMessages(
@@ -723,7 +723,7 @@ tidy_genomic_data <- function(
   
   # Import PLINK ---------------------------------------------------------------
   if (data.type == "plink.file") { # PLINK
-    message("Importing the PLINK files...")
+    if (verbose) message("Importing the PLINK files...")
     tfam <- data.table::fread(
       input = stringi::stri_replace_all_fixed(
         str = data, 
@@ -913,14 +913,14 @@ tidy_genomic_data <- function(
   
   # Import genepop--------------------------------------------------------------
   if (data.type == "genepop.file") {
-    message("Tidying the genepop file ...")
+    if (verbose) message("Tidying the genepop file ...")
     data <- stackr::tidy_genepop(data = data, tidy = TRUE)
     data.type <- "tbl_df"
   }
   
   # Import DF-------------------------------------------------------------------
   if (data.type == "tbl_df") { # DATA FRAME OF GENOTYPES
-    message("Importing the data frame ...")
+    if (verbose) message("Importing the data frame ...")
     input <- stackr::tidy_wide(data = data, import.metadata = vcf.metadata)
 
     # For long tidy format, switch LOCUS to MARKERS column name, if found MARKERS not found
@@ -1001,7 +1001,7 @@ tidy_genomic_data <- function(
 
   # Import haplo---------------------------------------------------------------
   if (data.type == "haplo.file") { # Haplotype file
-    message("Importing STACKS haplotype file")
+    if (verbose) message("Importing STACKS haplotype file")
     number.columns <- max(utils::count.fields(data, sep = "\t"))
     
     input <- data.table::fread(
@@ -1158,7 +1158,7 @@ tidy_genomic_data <- function(
   
   # Import GENIND--------------------------------------------------------------
   if (data.type == "genind") { # DATA FRAME OF GENOTYPES
-    message("Tidying the genind object ...")
+    if (verbose) message("Tidying the genind object ...")
     input <- adegenet::genind2df(data) %>% 
       tibble::rownames_to_column("INDIVIDUALS") %>% 
       dplyr::rename(POP_ID = pop)
@@ -1264,7 +1264,7 @@ tidy_genomic_data <- function(
 
   # Import GENLIGHT ------------------------------------------------------------
   if (data.type == "genlight") { # DATA FRAME OF GENOTYPES
-    message("Tidying the genlight object ...")
+    if (verbose) message("Tidying the genlight object ...")
     input <- stackr::tidy_genlight(data = data)
     
     # remove unwanted sep in id and pop.id names
@@ -1341,7 +1341,7 @@ tidy_genomic_data <- function(
   
   # Import STRATAG gtypes ------------------------------------------------------
   if (data.type == "gtypes") { # DATA FRAME OF GENOTYPES
-    message("Tidying the gtypes object ...")
+    if (verbose) message("Tidying the gtypes object ...")
     # input <- strataG::as.data.frame(
     #   x = data, 
     #   one.col = FALSE, 
@@ -1579,7 +1579,7 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         sample_n(size = 1, replace = FALSE)
-      if (verbose) message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
+      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
     }
     
     # Fist SNP on the read
@@ -1587,7 +1587,7 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         dplyr::summarise(POS = min(POS))
-      if (verbose) message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
+      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
     }
     
     # Last SNP on the read
@@ -1595,7 +1595,7 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         dplyr::summarise(POS = max(POS))
-      if (verbose) message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
+      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
     }
     
     # filtering the VCF to minimize LD
@@ -1626,13 +1626,13 @@ tidy_genomic_data <- function(
   
   # Markers in common between all populations (optional) -----------------------
   if (common.markers) { # keep only markers present in all pop
-    input <- stackr::keep_common_markers(input, verbose = verbose)
+    input <- stackr::keep_common_markers(input, verbose = TRUE)
   } # End common markers
   
   # Removing monomorphic markers------------------------------------------------
   if (monomorphic.out) {
     if (verbose) message("Removing monomorphic markers: yes")
-    mono.out <- discard_monomorphic_markers(input, verbose = verbose)
+    mono.out <- stackr::discard_monomorphic_markers(input, verbose = TRUE)
     mono.markers <- mono.out$blacklist.momorphic.markers
     if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
       if (data.type == "haplo.file") {
@@ -1682,7 +1682,11 @@ tidy_genomic_data <- function(
     }
     message("Data format: ", data.type)
     message("Biallelic data ? ", biallelic)
-    message("Number of markers: ", n.markers)
+    if (common.markers) {
+      message("Number of common markers: ", n.markers)
+    } else {
+      message("Number of markers: ", n.markers)
+    }
     message("Number of chromosome/contig/scaffold: ", n.chromosome)
     message("Number of individuals: ", n.individuals)
     message("Number of populations: ", n.pop)

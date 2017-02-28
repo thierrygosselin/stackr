@@ -2,7 +2,7 @@ Package: stackr
 Type: Package
 Title: GBS/RADseq Data Exploration, Manipulation and Visualization using R
 Version: 0.4.9
-Date: 2017-02-24
+Date: 2017-02-27
 Encoding: UTF-8
 Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
@@ -37,10 +37,14 @@ Imports:
     pryr,
     ranger,
     pbmcapply,
-    xgboost
+    xgboost,
+    SNPRelate,
+    UpSetR
 Suggests:
     knitr,
     rmarkdown
+Remotes:
+    github::zhengxwen/SNPRelate
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr
