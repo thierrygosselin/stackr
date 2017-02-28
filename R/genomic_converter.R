@@ -8,7 +8,7 @@
 #' reality of GBS/RADseq data while maintaining a reproducible workflow.
 #'
 #' \itemize{
-#'   \item \strong{Input file:} various file formats are supported (see \code{data} argument below)
+#'   \item \strong{Input file:} 10 file formats are supported (see \code{data} argument below)
 #'   \item \strong{Filters:} genotypes, markers, individuals and populations can be
 #'   filtered and/or selected in several ways using blacklist,
 #'   whitelist and other arguments
@@ -18,8 +18,10 @@
 #'   \item \strong{Output:} 11 output file formats are supported (see \code{output} argument below)
 #' }
 
-#' @param output Several options: tidy (by default), genind, genlight, vcf (biallelic), plink, genepop,
-#' structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
+#' @param output 16 genomic data formats can be exported: tidy (by default),
+#' genind, genlight, vcf (biallelic), plink, genepop,
+#' structure, arlequin, hierfstat, gtypes, betadiv, SNPRelate's GDS.
+#' Use a character string,
 #' e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 #' output formats generated. The tidy format is generated automatically.
 #' Default: \code{output = NULL}.
@@ -39,6 +41,7 @@
 #' @inheritParams write_gtypes
 #' @inheritParams write_hierfstat
 #' @inheritParams stackr_imputations_module
+#' @inheritParams write_snprelate
 
 
 #' @details
@@ -137,6 +140,13 @@
 #' strataG: Summaries and Population Structure Analyses of
 #' Genetic Data. R package version 1.0.5. https://CRAN.R-project.org/package=strataG
 
+#' @references Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS.
+#' A high-performance computing toolset for relatedness and principal component
+#' analysis of SNP data. Bioinformatics. 2012;28: 3326-3328.
+#' doi:10.1093/bioinformatics/bts606
+
+
+
 #' @seealso \code{beta.div} is available on Pierre Legendre web site \url{http://adn.biol.umontreal.ca/~numericalecology/Rcode/}
 #' \code{randomForestSRC} is available on CRAN \url{http://cran.r-project.org/web/packages/randomForestSRC/}
 #' and github \url{https://github.com/ehrlinger/randomForestSRC}
@@ -177,10 +187,19 @@ genomic_converter <- function(
     cat("#######################################################################\n")
     timing <- proc.time()
     
+    # Check that strataG is installed
     if ("gtypes" %in% output) {
       if (!"strataG" %in% utils::installed.packages()[,"Package"]) {
         stop("Please install strataG for this output option:\n  
 devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
+      }
+    }
+    
+    # Check that snprelate is installed
+    if ("snprelate" %in% output) {
+      if (!"SNPRelate" %in% utils::installed.packages()[,"Package"]) {
+        stop("Please install SNPRelate:\n
+           github::zhengxwen/SNPRelate")
       }
     }
     
@@ -540,7 +559,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     }
   } # end genind
   
-  # GENLIGHT ---------------------------------------------------------------------
+  # GENLIGHT -------------------------------------------------------------------
   if ("genlight" %in% output) {
     if (verbose) message("Generating adegenet genlight object without imputation")
     res$genlight.no.imputation <- stackr::write_genlight(data = input)
@@ -569,7 +588,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     }
   } # end vcf output
   
-  # PLINK --------------------------------------------------------------------
+  # PLINK ----------------------------------------------------------------------
   if ("plink" %in% output) {
     if (verbose) message("Generating PLINK tped/tfam files without imputation")
     stackr::write_plink(
@@ -586,7 +605,18 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     }
   } # end plink output
   
-  # dadi --------------------------------------------------------------------
+  
+  # SNPRelate ------------------------------------------------------------------
+  if ("snprelate" %in% output) {
+    if (verbose) message("Generating SNPRelate object without imputation")
+    res$snprelate.no.imputation <- stackr::write_snprelate(data = input)
+    if (!is.null(imputation.method)) {
+      if (verbose) message("Generating SNPRelate object WITH imputations")
+      res$snprelate.imputed <- stackr::write_snprelate(data = input.imp)
+    }
+  }
+  
+  # dadi -----------------------------------------------------------------------
   # not yet implemented, use vcf2dadi
   
   # outout results -------------------------------------------------------------

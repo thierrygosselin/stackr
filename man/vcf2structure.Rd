@@ -22,8 +22,10 @@ genlight (library(adegenet)), gtypes (library(strataG)), genepop,
 and a data frame in wide format. 
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
-\item{output}{Several options: tidy (by default), genind, genlight, vcf (biallelic), plink, genepop,
-structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
+\item{output}{16 genomic data formats can be exported: tidy (by default),
+genind, genlight, vcf (biallelic), plink, genepop,
+structure, arlequin, hierfstat, gtypes, betadiv, SNPRelate's GDS.
+Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 output formats generated. The tidy format is generated automatically.
 Default: \code{output = NULL}.}

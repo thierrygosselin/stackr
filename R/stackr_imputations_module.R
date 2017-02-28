@@ -1057,6 +1057,7 @@ stackr_imputer <- function(
   # }
   
   
+  data.na <- NULL # remove after test
   
   
   # initiate while loop
@@ -1171,6 +1172,9 @@ impute_genotypes <- function(
     
     # GL
     data.gl <- NULL
+    
+    data.complete <- NULL # remove after test
+    
     if (!is.null(data.gl)) {
       # mean GL per sample
       case.weights <- suppressWarnings(

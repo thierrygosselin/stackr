@@ -23,8 +23,10 @@ genlight (library(adegenet)), gtypes (library(strataG)), genepop,
 and a data frame in wide format. 
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
-\item{output}{Several options: tidy (by default), genind, genlight, vcf (biallelic), plink, genepop,
-structure, arlequin, hierfstat, gtypes, betadiv. Use a character string,
+\item{output}{16 genomic data formats can be exported: tidy (by default),
+genind, genlight, vcf (biallelic), plink, genepop,
+structure, arlequin, hierfstat, gtypes, betadiv, SNPRelate's GDS.
+Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 output formats generated. The tidy format is generated automatically.
 Default: \code{output = NULL}.}
@@ -204,7 +206,7 @@ The arguments in the \code{genomic_converter} function were tailored for the
 reality of GBS/RADseq data while maintaining a reproducible workflow.
 
 \itemize{
-  \item \strong{Input file:} various file formats are supported (see \code{data} argument below)
+  \item \strong{Input file:} 10 file formats are supported (see \code{data} argument below)
   \item \strong{Filters:} genotypes, markers, individuals and populations can be
   filtered and/or selected in several ways using blacklist,
   whitelist and other arguments
@@ -295,6 +297,11 @@ Goudet, J. (2005) hierfstat, a package for r to compute and test hierarchical F-
 Eric Archer, Paula Adams and Brita Schneiders (2016).
 strataG: Summaries and Population Structure Analyses of
 Genetic Data. R package version 1.0.5. https://CRAN.R-project.org/package=strataG
+
+Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS.
+A high-performance computing toolset for relatedness and principal component
+analysis of SNP data. Bioinformatics. 2012;28: 3326-3328.
+doi:10.1093/bioinformatics/bts606
 }
 \seealso{
 \code{beta.div} is available on Pierre Legendre web site \url{http://adn.biol.umontreal.ca/~numericalecology/Rcode/}
