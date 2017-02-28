@@ -12,9 +12,6 @@ install:
 
 # Adapt as necessary starting from here
 
-use_bioc: true
-bioc_required: true
-
 build_script:
   - travis-tool.sh install_deps
 
