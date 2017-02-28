@@ -20,3 +20,10 @@ before_install:
 
 install:
   - ./travis-tool.sh install_deps
+
+use_bioc: true
+bioc_required: true
+
+# Install packages from github
+r_github_packages:
+  - zhengxwen/gdsfmt
