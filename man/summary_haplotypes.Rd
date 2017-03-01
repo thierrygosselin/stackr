@@ -4,8 +4,8 @@
 \alias{summary_haplotypes}
 \title{Haplotypes file summary}
 \usage{
-summary_haplotypes(data, strata, whitelist.markers = NULL,
-  blacklist.id = NULL, pop.levels = NULL, pop.labels = NULL, read.length,
+summary_haplotypes(data, strata, read.length, whitelist.markers = NULL,
+  blacklist.id = NULL, pop.levels = NULL, pop.labels = NULL,
   parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
@@ -18,8 +18,10 @@ To create a strata file see \code{\link[stackr]{individuals2strata}}.
 If you have already run 
 \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
 the strata file is similar to a stacks `population map file`, make sure you 
-have the required column names (\code{INDIVIDUALS} and \code{STRATA}).
-Default: \code{strata = NULL}.}
+have the required column names (\code{INDIVIDUALS} and \code{STRATA}).}
+
+\item{read.length}{(number) The length in nucleotide of your reads 
+(e.g. \code{read.length = 100}).}
 
 \item{whitelist.markers}{(optional) A whitelist of loci with a column name
 'LOCUS'. The whitelist is located in the global environment or in the 
@@ -33,14 +35,26 @@ a column header 'INDIVIDUALS'. The blacklist is in the global environment
 or in the directory (with "blacklist.txt").
 Default: \code{blacklist.id = NULL}.}
 
-\item{pop.levels}{An optional character string with your populations ordered.
+\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
+case, the id of the pop.
+Use this argument to have the pop ordered your way instead of the default 
+alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
+instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+White spaces in population names are replaced by underscore.
 Default: \code{pop.levels = NULL}.}
 
-\item{pop.labels}{An optional character string with new populations names.
-Default: \code{pop.labels = NULL}.}
-
-\item{read.length}{(number) The length in nucleotide of your reads 
-(e.g. \code{read.length = 100}).}
+\item{pop.labels}{(optional, string) Use this argument to rename/relabel
+your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
+into a new pop called \code{"NEW"}:
+(1) First, define the levels for your pop with \code{pop.levels} argument: 
+\code{pop.levels = c("QUE", "ONT", "ALB")}. 
+(2) then, use \code{pop.labels} argument: 
+\code{pop.levels = c("NEW", "NEW", "ALB")}.
+To rename \code{"QUE"} to \code{"TAS"}:
+\code{pop.labels = c("TAS", "ONT", "ALB")}.
+Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
+\code{strata} argument that can do the same thing, see below.
+White spaces in population names are replaced by underscore.}
 
 \item{parallel.core}{(optional) The number of core for parallel
 programming during Pi calculations. 
@@ -50,10 +64,10 @@ Default: \code{parallel.core = parallel::detectCores() - 1}.}
 The function returns a list with:
 \enumerate{
 \item $summary
-\item $artifacts.pop
-\item $artifacts.loci
-\item $consensus.pop
-\item $consensus.loci
+\item $artifacts.pop # if artifacts are found
+\item $artifacts.loci # if artifacts are found
+\item $consensus.pop # if consensus locus are found
+\item $consensus.loci # if consensus locus are found
 \item $fh.pi.individuals: the individual's info for FH and Pi
 }
 Also in the list 3 plots:
@@ -63,9 +77,10 @@ Also in the list 3 plots:
 \item $boxplot.fh
 }
 use $ to access each #' objects in the list.
-The function potentially write 3 files in the working directory:
-blacklist of unique loci with assembly artifacts and/or sequencing errors and unique consensus loci 
-and a summary of the haplotypes file by population.
+The function potentially write 4 files in the working directory:
+blacklist of unique loci with assembly artifacts and/or sequencing errors
+(per individuals and globally), a blacklist of unique consensus loci 
+and a summary of the haplotype file by population.
 }
 \description{
 STACKS batch_x.haplotypes.tsv file summary.
@@ -90,10 +105,10 @@ consensus loci in the catalog (no variation between population sequences).
 }
 \examples{
 \dontrun{
+# The simplest way to run the function:
 sum <- summary_haplotypes(
 data = "batch_1.haplotypes.tsv", 
 strata = "strata_brook_charr.tsv", 
-pop.levels = c("SKY", "LIM", "TWE"), 
 read.length = 90)
 }
 }
