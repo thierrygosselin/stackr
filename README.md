@@ -114,7 +114,7 @@ New features
 
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
-**v.0.5.0** \* better parallelization of `summary_haplotypes` function. With progress bar...
+**v.0.5.0** \* better parallelization of `summary_haplotypes` function. With progress bar... \* bug fix with `summary_haplotypes` not properly summarizing info when no assembly artifacts were found
 
 **v.0.4.9**
 
