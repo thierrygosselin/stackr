@@ -129,8 +129,8 @@
 #' imputation.PMM tries to raise the variance in the resulting conditional
 #' distributions to a realistic level.
 #' The closest k predicted values are identified by a fast
-#' k-nearest neighbour approach using \code{\link[FNN]{knnx.index}} function
-#' wrapped in the package \code{\link[missRanger]{pmm}}.
+#' k-nearest neighbour approach wrapped in the package 
+#' \href{https://github.com/mayer79/missRanger}{missRanger}
 #' Returned value correspond to the mean value.
 #' 
 #' 
