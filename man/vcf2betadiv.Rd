@@ -23,7 +23,7 @@ and a data frame in long/tidy or wide format.
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{output}{16 genomic data formats can be exported: tidy (by default),
-genind, genlight, vcf (biallelic), plink, genepop,
+genind, genlight, vcf (biallelic, for file format version, see details below), plink, genepop,
 structure, arlequin, hierfstat, gtypes, betadiv, SNPRelate's GDS.
 Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred

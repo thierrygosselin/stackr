@@ -19,7 +19,7 @@
 #' }
 
 #' @param output 16 genomic data formats can be exported: tidy (by default),
-#' genind, genlight, vcf (biallelic), plink, genepop,
+#' genind, genlight, vcf (biallelic, for file format version, see details below), plink, genepop,
 #' structure, arlequin, hierfstat, gtypes, betadiv, SNPRelate's GDS.
 #' Use a character string,
 #' e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
@@ -49,6 +49,7 @@
 #'
 #'
 #' \strong{Imputations details:}
+#' 
 #' The imputations using Random Forest requires more time to compute and can take several
 #' minutes and hours depending on the size of the dataset and polymorphism of
 #' the species used. e.g. with a low polymorphic taxa, and a data set
