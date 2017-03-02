@@ -97,7 +97,8 @@
 #' Default: \code{max.marker = NULL}.
 
 #' @param blacklist.id (optional) A blacklist with individual ID and
-#' a column header 'INDIVIDUALS'. The blacklist is in the working directory
+#' a column header 'INDIVIDUALS'. The blacklist is an object in your
+#' global environment or a file in the working directory
 #' (e.g. "blacklist.txt").
 #' Default: \code{blacklist.id = NULL}.
 
@@ -346,7 +347,7 @@ tidy_genomic_data <- function(
   }
   
   # File type detection----------------------------------------------------------
-
+  
   data.type <- detect_genomic_format(data)
   
   if (data.type == "haplo.file") {
@@ -392,7 +393,13 @@ tidy_genomic_data <- function(
   
   # Import blacklist id --------------------------------------------------------
   if (!is.null(blacklist.id)) {# With blacklist of ID
-    suppressMessages(blacklist.id <- readr::read_tsv(blacklist.id, col_names = TRUE))
+    if (is.vector(strata)) {
+      suppressMessages(blacklist.id <- readr::read_tsv(blacklist.id, col_names = TRUE))
+    } else {
+      if (!tibble::has_name(blacklist.id, "INDIVIDUALS")) {
+        stop("Blacklist of individuals should have 1 column named: INDIVIDUALS")
+      }
+    }
   }
   
   # population levels and strata------------------------------------------------
@@ -492,7 +499,7 @@ tidy_genomic_data <- function(
     ) %>% 
       tibble::as_data_frame()
     
-
+    
     
     # metadata
     if (vcf.metadata) {
@@ -707,7 +714,7 @@ tidy_genomic_data <- function(
         input <- input.temp$input
       }
     }# end re-computing the REF/ALT allele
-
+    
     # Re ordering columns
     if (vcf.metadata) {
       # Re order columns
@@ -922,12 +929,12 @@ tidy_genomic_data <- function(
   if (data.type == "tbl_df") { # DATA FRAME OF GENOTYPES
     if (verbose) message("Importing the data frame ...")
     input <- stackr::tidy_wide(data = data, import.metadata = vcf.metadata)
-
+    
     # For long tidy format, switch LOCUS to MARKERS column name, if found MARKERS not found
     if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
       input <- dplyr::rename(.data = input, MARKERS = LOCUS)
     }
-
+    
     # Change individuals names containing special character
     input$INDIVIDUALS <- stringi::stri_replace_all_fixed(
       str = input$INDIVIDUALS, 
@@ -935,13 +942,13 @@ tidy_genomic_data <- function(
       replacement = c("-", "-"),
       vectorize_all = FALSE
     )
-
+    
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
       if (verbose) message("Filtering with whitelist of markers")
       input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
     }
-
+    
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       if (verbose) message("Filtering with blacklist of individuals")
@@ -953,7 +960,7 @@ tidy_genomic_data <- function(
       )
       input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
-
+    
     # population levels and strata
     if (!is.null(strata)) {
       strata.df$INDIVIDUALS <- stringi::stri_replace_all_fixed(
@@ -967,7 +974,7 @@ tidy_genomic_data <- function(
         dplyr::select(-POP_ID) %>% 
         dplyr::left_join(strata.df, by = "INDIVIDUALS")
     }
-
+    
     # Change potential problematic POP_ID space
     input$POP_ID = stringi::stri_replace_all_fixed(
       input$POP_ID, 
@@ -982,7 +989,7 @@ tidy_genomic_data <- function(
         stop("The number of groups in your POP_ID column file must match the number of groups in pop.levels")
       }
     }
-
+    
     # using pop.levels and pop.labels info if present
     input <- change_pop_names(data = input, pop.levels = pop.levels, pop.labels = pop.labels)
     
@@ -991,14 +998,14 @@ tidy_genomic_data <- function(
       if (verbose) message(stringi::stri_join(length(pop.select), "population(s) selected", sep = " "))
       input <- suppressWarnings(input %>% dplyr::filter(POP_ID %in% pop.select))
     }
-
+    
     # detect if biallelic give vcf style genotypes
     # biallelic <- stackr::detect_biallelic_markers(input)
     input.temp <- change_alleles(data = input, monomorphic.out = FALSE, verbose = verbose)
     input <- input.temp$input
     biallelic <- input.temp$biallelic
   } # End import data frame of genotypes
-
+  
   # Import haplo---------------------------------------------------------------
   if (data.type == "haplo.file") { # Haplotype file
     if (verbose) message("Importing STACKS haplotype file")
@@ -1261,7 +1268,7 @@ tidy_genomic_data <- function(
     data.type <- "tbl_df" # for subsequent steps
     
   } # End tidy genind
-
+  
   # Import GENLIGHT ------------------------------------------------------------
   if (data.type == "genlight") { # DATA FRAME OF GENOTYPES
     if (verbose) message("Tidying the genlight object ...")
@@ -1381,8 +1388,8 @@ tidy_genomic_data <- function(
     # For GT coded with only 1 number
     # gtypes.number <- unique(stringi::stri_count_boundaries(str = input$GT))
     # unique(stringi::stri_count_boundaries(str = test))
-
- 
+    
+    
     # bind alleles
     # input <- tidyr::separate(data = input, col = MARKERS, into = c("MARKERS", "ALLELES"), sep = "\\.", remove = TRUE, extra = "drop") %>% 
     #   dplyr::group_by(POP_ID, INDIVIDUALS, MARKERS) %>% 

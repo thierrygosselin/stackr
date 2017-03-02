@@ -36,7 +36,8 @@ or the working directory. Default: \code{filename = NULL}. A default name will b
 customized with the output file(s) selected.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the working directory
+a column header 'INDIVIDUALS'. The blacklist is an object in your
+global environment or a file in the working directory
 (e.g. "blacklist.txt").
 Default: \code{blacklist.id = NULL}.}
 
@@ -226,6 +227,7 @@ reality of GBS/RADseq data while maintaining a reproducible workflow.
 
 
 \strong{Imputations details:}
+
 The imputations using Random Forest requires more time to compute and can take several
 minutes and hours depending on the size of the dataset and polymorphism of
 the species used. e.g. with a low polymorphic taxa, and a data set

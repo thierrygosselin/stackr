@@ -64,7 +64,8 @@ Default: \code{pop.labels = NULL}. If you find this too complicated, there is al
 White spaces in population names are replaced by underscore.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the working directory
+a column header 'INDIVIDUALS'. The blacklist is an object in your
+global environment or a file in the working directory
 (e.g. "blacklist.txt").
 Default: \code{blacklist.id = NULL}.}
 

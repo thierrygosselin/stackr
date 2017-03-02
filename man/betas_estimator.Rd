@@ -69,7 +69,8 @@ and \code{ONT} population samples (out of 20 pops).
 Default: \code{pop.select = NULL}}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the working directory
+a column header 'INDIVIDUALS'. The blacklist is an object in your
+global environment or a file in the working directory
 (e.g. "blacklist.txt").
 Default: \code{blacklist.id = NULL}.}
 
