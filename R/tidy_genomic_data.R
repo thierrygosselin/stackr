@@ -11,11 +11,11 @@
 #' and \href{https://github.com/thierrygosselin/assigner}{assigner}
 #' and might be of interest for users.
 
-#' @param data 9 options: biallelic and haplotypic vcf
-#' (to make vcf population ready, see details below),
+#' @param data 11 options: VCF (SNPs or Haplotypes, 
+#' to make the vcf population ready, see details below),
 #' plink, stacks haplotype file, genind (library(adegenet)), 
 #' genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-#' and a data frame in wide format. 
+#' and a data frame in long/tidy or wide format. 
 #' \emph{See details} of \code{\link{tidy_genomic_data}}.
 
 #' @param vcf.metadata (optional, logical) For the VCF file, 

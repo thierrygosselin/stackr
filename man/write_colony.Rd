@@ -19,11 +19,11 @@ write_colony(data, strata = NULL, pop.levels = NULL, pop.labels = NULL,
   filename = NULL)
 }
 \arguments{
-\item{data}{9 options: biallelic and haplotypic vcf
-(to make vcf population ready, see details below),
+\item{data}{11 options: VCF (SNPs or Haplotypes, 
+to make the vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. 
+and a data frame in long/tidy or wide format. 
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{strata}{(optional/required) Required for VCF and haplotypes files, 
@@ -193,11 +193,16 @@ Default:\code{error.rate = 0.02}.}
 Default = \code{print.all.colony.opt = FALSE}.}
 
 \item{imputation.method}{(character, optional) 
-Methods available for map-independent imputations of missing genotype: 
-(1) \code{imputation.method = "max"} to use the most frequent category for 
-the imputations.
-(2) \code{imputation.method = "rf"} for using Random Forests algorithm.
-(3) \code{imputation.method = "boost"} for using extreme gradient boosting trees.
+Methods available for map-independent imputations of missing genotype:
+
+(1) \code{imputation.method = "max"} the most frequently occurring
+non-missing value (ties are broken at random) is used. Also called Strawman
+imputation.
+
+(2) \code{imputation.method = "rf"} Random Forests algorithm is used.
+
+(3) \code{imputation.method = "boost"} extreme gradient boosting trees is used.
+
 \code{imputation.method = NULL} will return the original dataset, without
 imputation.
 Default: \code{imputation.method = "rf"}.}

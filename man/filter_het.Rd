@@ -14,11 +14,11 @@ filter_het(data, interactive.filter = TRUE,
   pop.levels = NULL, pop.labels = NULL, pop.select = NULL)
 }
 \arguments{
-\item{data}{9 options: biallelic and haplotypic vcf
-(to make vcf population ready, see details below),
+\item{data}{11 options: VCF (SNPs or Haplotypes, 
+to make the vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. 
+and a data frame in long/tidy or wide format. 
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{interactive.filter}{(optional, logical) Do you want the filtering session to 

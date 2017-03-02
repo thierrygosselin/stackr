@@ -16,11 +16,11 @@ genomic_converter(data, output = NULL, filename = NULL,
   parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
-\item{data}{9 options: biallelic and haplotypic vcf
-(to make vcf population ready, see details below),
+\item{data}{11 options: VCF (SNPs or Haplotypes, 
+to make the vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. 
+and a data frame in long/tidy or wide format. 
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{output}{16 genomic data formats can be exported: tidy (by default),
@@ -154,11 +154,16 @@ and \code{ONT} population samples (out of 20 pops).
 Default: \code{pop.select = NULL}}
 
 \item{imputation.method}{(character, optional) 
-Methods available for map-independent imputations of missing genotype: 
-(1) \code{imputation.method = "max"} to use the most frequent category for 
-the imputations.
-(2) \code{imputation.method = "rf"} for using Random Forests algorithm.
-(3) \code{imputation.method = "boost"} for using extreme gradient boosting trees.
+Methods available for map-independent imputations of missing genotype:
+
+(1) \code{imputation.method = "max"} the most frequently occurring
+non-missing value (ties are broken at random) is used. Also called Strawman
+imputation.
+
+(2) \code{imputation.method = "rf"} Random Forests algorithm is used.
+
+(3) \code{imputation.method = "boost"} extreme gradient boosting trees is used.
+
 \code{imputation.method = NULL} will return the original dataset, without
 imputation.
 Default: \code{imputation.method = "rf"}.}
@@ -206,7 +211,7 @@ The arguments in the \code{genomic_converter} function were tailored for the
 reality of GBS/RADseq data while maintaining a reproducible workflow.
 
 \itemize{
-  \item \strong{Input file:} 10 file formats are supported (see \code{data} argument below)
+  \item \strong{Input file:} 11 file formats are supported (see \code{data} argument below)
   \item \strong{Filters:} genotypes, markers, individuals and populations can be
   filtered and/or selected in several ways using blacklist,
   whitelist and other arguments
@@ -226,6 +231,14 @@ minutes and hours depending on the size of the dataset and polymorphism of
 the species used. e.g. with a low polymorphic taxa, and a data set
 containing 30\% missing data, 5 000 haplotypes loci and 500 individuals
 will require 15 min.
+
+
+\strong{VCF file format version:}
+
+If you need a different file format version than the current one, just change
+the version inside the newly created VCF, that should do the trick.
+\href{https://vcftools.github.io/specs.html}{For more
+information on Variant Call Format specifications}.
 }
 \examples{
 \dontrun{

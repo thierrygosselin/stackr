@@ -8,7 +8,7 @@
 #' reality of GBS/RADseq data while maintaining a reproducible workflow.
 #'
 #' \itemize{
-#'   \item \strong{Input file:} 10 file formats are supported (see \code{data} argument below)
+#'   \item \strong{Input file:} 11 file formats are supported (see \code{data} argument below)
 #'   \item \strong{Filters:} genotypes, markers, individuals and populations can be
 #'   filtered and/or selected in several ways using blacklist,
 #'   whitelist and other arguments
@@ -54,6 +54,14 @@
 #' the species used. e.g. with a low polymorphic taxa, and a data set
 #' containing 30\% missing data, 5 000 haplotypes loci and 500 individuals
 #' will require 15 min.
+#'
+#'
+#' \strong{VCF file format version:}
+#' 
+#' If you need a different file format version than the current one, just change
+#' the version inside the newly created VCF, that should do the trick.
+#' \href{https://vcftools.github.io/specs.html}{For more
+#' information on Variant Call Format specifications}.
 
 #' @return The function returns an object (list). The content of the object
 #' can be listed with \code{names(object)} and use \code{$} to isolate specific

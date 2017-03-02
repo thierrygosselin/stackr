@@ -2,7 +2,8 @@
 
 #' @name write_vcf
 #' @title Write a vcf file from a tidy data frame
-#' @description Write a vcf file from a tidy data frame.
+#' @description Write a vcf file (file format version 4.3, see details below)
+#' from a tidy data frame.
 #' Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
 #' and might be of interest for users.
 
@@ -14,13 +15,21 @@
 
 #' @param pop.info (optional, logical) Should the population information be 
 #' included in the FORMAT field (along the GT info for each samples ?). To make
-#' the VCF population-ready use \code{pop.info = TRUE}. The populatio information
+#' the VCF population-ready use \code{pop.info = TRUE}. The population information
 #' must be included in the \code{POP_ID} column of the tidy dataset.
 #' Default: \code{pop.info = FALSE}.
 
 #' @param filename (optional) The file name prefix for the vcf file 
 #' written to the working directory. With default: \code{filename = NULL}, 
 #' the date and time is appended to \code{stackr_vcf_file_}.
+
+#' @details \strong{VCF file format version:}
+#' 
+#' If you need a different file format version than the current one, just change
+#' the version inside the newly created VCF, that should do the trick.
+#' \href{https://vcftools.github.io/specs.html}{For more
+#' information on Variant Call Format specifications}.
+
 
 #' @export
 #' @rdname write_vcf

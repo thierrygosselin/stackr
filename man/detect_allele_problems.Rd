@@ -12,11 +12,11 @@ detect_allele_problems(data, allele.threshold = 3, whitelist.markers = NULL,
   strata = NULL, pop.select = NULL, filename = NULL, verbose = FALSE)
 }
 \arguments{
-\item{data}{9 options: biallelic and haplotypic vcf
-(to make vcf population ready, see details below),
+\item{data}{11 options: VCF (SNPs or Haplotypes, 
+to make the vcf population ready, see details below),
 plink, stacks haplotype file, genind (library(adegenet)), 
 genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in wide format. 
+and a data frame in long/tidy or wide format. 
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{allele.threshold}{(integer) Threshold of alternate allele copies.

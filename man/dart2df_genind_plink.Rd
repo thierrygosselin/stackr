@@ -151,11 +151,16 @@ or the working directory. Default: \code{filename = NULL}. A default name will b
 customized with the output file(s) selected.}
 
 \item{imputation.method}{(character, optional) 
-Methods available for map-independent imputations of missing genotype: 
-(1) \code{imputation.method = "max"} to use the most frequent category for 
-the imputations.
-(2) \code{imputation.method = "rf"} for using Random Forests algorithm.
-(3) \code{imputation.method = "boost"} for using extreme gradient boosting trees.
+Methods available for map-independent imputations of missing genotype:
+
+(1) \code{imputation.method = "max"} the most frequently occurring
+non-missing value (ties are broken at random) is used. Also called Strawman
+imputation.
+
+(2) \code{imputation.method = "rf"} Random Forests algorithm is used.
+
+(3) \code{imputation.method = "boost"} extreme gradient boosting trees is used.
+
 \code{imputation.method = NULL} will return the original dataset, without
 imputation.
 Default: \code{imputation.method = "rf"}.}
