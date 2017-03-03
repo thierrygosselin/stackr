@@ -38,8 +38,7 @@ Imports:
     pbmcapply,
     xgboost,
     SNPRelate,
-    UpSetR,
-    strataG
+    UpSetR
 Suggests:
     knitr,
     rmarkdown
