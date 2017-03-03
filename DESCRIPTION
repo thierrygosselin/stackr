@@ -13,23 +13,22 @@ Description: stackr: an R package for the analysis of GBS/RADseq data.
 Depends:
     R (>= 3.2.3)
 Imports:
-    data.table,
     dplyr (>= 0.5.0),
-    reshape2,
-    ggplot2,
+    purrr,
     readr,
-    stringi,
+    tibble,
     tidyr,
+    ggplot2,
+    vcfR (>= 1.3.0),
+    data.table,
+    reshape2,
+    stringi,
     lazyeval,
     ape,
     stringdist,
     parallel,
-    purrr,
     amap,
-    tibble,
     methods,
-    tidyverse,
-    vcfR (>= 1.3.0),
     magrittr,
     stats,
     utils,
@@ -39,7 +38,8 @@ Imports:
     pbmcapply,
     xgboost,
     SNPRelate,
-    UpSetR
+    UpSetR,
+    strataG
 Suggests:
     knitr,
     rmarkdown
