@@ -43,7 +43,7 @@ SHLIB_OPENMP_CFLAGS = -fopenmp
 SHLIB_OPENMP_CXXFLAGS = -fopenmp
 SHLIB_OPENMP_FCFLAGS = -fopenmp
 SHLIB_OPENMP_FFLAGS = -fopenmp
-FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15.6.0/6.2.0/finclude # change according to your computer compiler version
+FLIBS=-L/usr/local/lib/gcc/x86_64-apple-darwin15.6.0/6.3.0/finclude # change according to your computer compiler version
 CFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 CXXFLAGS=-mtune=native -g -O2 -Wall -pedantic -Wconversion
 ```
@@ -60,8 +60,8 @@ Copy/paste the section in step 3. Save and Exit with: `crt-o`, `enter`, `crt-x`.
 5. Download and compile randomForestSRC, from the Terminal:
 ```r
 cd ~/Downloads
-curl -O https://cran.r-project.org/src/contrib/randomForestSRC_2.2.0.tar.gz
-tar -zxvf randomForestSRC_2.2.0.tar.gz
+curl -O https://cran.r-project.org/src/contrib/randomForestSRC_2.4.2.tar.gz
+tar -zxvf randomForestSRC_2.4.2.tar.gz
 cd randomForestSRC
 autoconf
 ```
@@ -75,9 +75,9 @@ devtools::install_local(path = "~/Downloads/randomForestSRC")
 ```r
 # NOTES: their is currently a bug with pre-compiled binaries below. Use option 1 until further notice
 # Mac OSX
-devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.2.0.tgz")
+devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.4.2.tgz")
 # Windows
-devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.2.0.zip")
+devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.4.2.zip")
 ```
 
 
