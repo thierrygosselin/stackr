@@ -400,6 +400,12 @@ tidy_genomic_data <- function(
         stop("Blacklist of individuals should have 1 column named: INDIVIDUALS")
       }
     }
+    blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
+      str = blacklist.id$INDIVIDUALS, 
+      pattern = c("_", ":"), 
+      replacement = c("-", "-"), 
+      vectorize_all = FALSE
+    )
   }
   
   # population levels and strata------------------------------------------------
@@ -532,18 +538,6 @@ tidy_genomic_data <- function(
       vectorize_all = FALSE
     )
     
-    # Filter blacklisted individuals
-    if (!is.null(blacklist.id)) {
-      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
-        str = blacklist.id$INDIVIDUALS, 
-        pattern = c("_", ":"), 
-        replacement = c("-", "-"), 
-        vectorize_all = FALSE
-      )
-      input <- dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS")
-      n_distinct(input$INDIVIDUALS)
-    }
-    
     # Population levels and strata
     if (verbose) message("Making the vcf population-wise...")
     strata.df$INDIVIDUALS <- stringi::stri_replace_all_fixed(
@@ -552,6 +546,16 @@ tidy_genomic_data <- function(
       replacement = c("-", "-"), 
       vectorize_all = FALSE
     )
+    
+    # Filter blacklisted individuals
+    if (!is.null(blacklist.id)) {
+      input <- dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS")
+      # n_distinct(input$INDIVIDUALS)
+      
+      strata.df <- dplyr::anti_join(strata.df, blacklist.id, by = "INDIVIDUALS")
+    }
+    
+    
     
     # check that names match between strata.df and input before going further
     if (!identical(sort(unique(input$INDIVIDUALS)), sort(unique(strata.df$INDIVIDUALS)))) {
@@ -799,14 +803,6 @@ tidy_genomic_data <- function(
     tped.header.integer <- c(2, tped.header.prep$NUMBER)
     
     if (!is.null(blacklist.id)) { # using the blacklist of individuals
-      # remove unwanted sep in individual name and replace with "-"
-      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
-        str = blacklist.id$INDIVIDUALS, 
-        pattern = c("_", ":"), 
-        replacement = c("-", "-"), 
-        vectorize_all = FALSE
-      )
-      
       whitelist.id <- tped.header.prep %>% 
         dplyr::anti_join(blacklist.id, by = "INDIVIDUALS") %>% 
         dplyr::arrange(NUMBER)
@@ -952,12 +948,6 @@ tidy_genomic_data <- function(
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       if (verbose) message("Filtering with blacklist of individuals")
-      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
-        str = blacklist.id$INDIVIDUALS, 
-        pattern = c("_", ":"), 
-        replacement = c("-", "-"),
-        vectorize_all = FALSE
-      )
       input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
     
@@ -1067,14 +1057,6 @@ tidy_genomic_data <- function(
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       if (verbose) message("Filtering with blacklist of individuals")
-      
-      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
-        str = blacklist.id$INDIVIDUALS, 
-        pattern = c("_", ":"), 
-        replacement = c("-", "-"),
-        vectorize_all = FALSE
-      )
-      
       input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
     
@@ -1215,14 +1197,6 @@ tidy_genomic_data <- function(
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       if (verbose) message("Filtering with blacklist of individuals")
-      
-      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
-        str = blacklist.id$INDIVIDUALS, 
-        pattern = c("_", ":"), 
-        replacement = c("-", "-"),
-        vectorize_all = FALSE
-      )
-      
       input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
     
@@ -1298,14 +1272,6 @@ tidy_genomic_data <- function(
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       if (verbose) message("Filtering with blacklist of individuals")
-      
-      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
-        str = blacklist.id$INDIVIDUALS, 
-        pattern = c("_", ":"), 
-        replacement = c("-", "-"),
-        vectorize_all = FALSE
-      )
-      
       input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
     
@@ -1431,14 +1397,6 @@ tidy_genomic_data <- function(
     # Filter with blacklist of individuals
     if (!is.null(blacklist.id)) {
       if (verbose) message("Filtering with blacklist of individuals")
-      
-      blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
-        str = blacklist.id$INDIVIDUALS, 
-        pattern = c("_", ":"), 
-        replacement = c("-", "-"),
-        vectorize_all = FALSE
-      )
-      
       input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
     
