@@ -215,8 +215,10 @@ in a tidy data frame.
 
 \item PLINK file in 
 \code{tped/tfam} format (e.g. \code{data =  "data.assignment.tped"}). 
-The first 2 columns of the \code{tfam} file will be used for the 
-\code{strata} argument below, unless a new one is provided. 
+The \code{tfam} file is found based on the name prefix of the supplied
+\code{tped} file. The first 2 columns of the \code{tfam} file will be used
+for the \code{strata} (population identification), unless the \code{strata}
+argument is provided.
 Columns 1, 3 and 4 of the \code{tped} are discarded. The remaining columns 
 correspond to the genotype in the format \code{01/04} 
 where \code{A = 01, C = 02, G = 03 and T = 04}. For \code{A/T} format, use 

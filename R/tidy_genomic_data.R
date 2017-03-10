@@ -204,8 +204,10 @@
 #' 
 #' \item PLINK file in 
 #' \code{tped/tfam} format (e.g. \code{data =  "data.assignment.tped"}). 
-#' The first 2 columns of the \code{tfam} file will be used for the 
-#' \code{strata} argument below, unless a new one is provided. 
+#' The \code{tfam} file is found based on the name prefix of the supplied
+#' \code{tped} file. The first 2 columns of the \code{tfam} file will be used
+#' for the \code{strata} (population identification), unless the \code{strata}
+#' argument is provided.
 #' Columns 1, 3 and 4 of the \code{tped} are discarded. The remaining columns 
 #' correspond to the genotype in the format \code{01/04} 
 #' where \code{A = 01, C = 02, G = 03 and T = 04}. For \code{A/T} format, use 
@@ -393,13 +395,15 @@ tidy_genomic_data <- function(
   
   # Import blacklist id --------------------------------------------------------
   if (!is.null(blacklist.id)) {# With blacklist of ID
-    if (is.vector(strata)) {
+    if (is.vector(blacklist.id)) {
       suppressMessages(blacklist.id <- readr::read_tsv(blacklist.id, col_names = TRUE))
     } else {
       if (!tibble::has_name(blacklist.id, "INDIVIDUALS")) {
         stop("Blacklist of individuals should have 1 column named: INDIVIDUALS")
       }
     }
+    # not for plink file, where it's done after.
+    # see plink section to understand
     blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
       str = blacklist.id$INDIVIDUALS, 
       pattern = c("_", ":"), 
@@ -1026,6 +1030,7 @@ tidy_genomic_data <- function(
       input <- dplyr::select(.data = input, -`Seg Dist`)
     }
     
+    # tidy df, individuals in 1 column
     input <- data.table::melt.data.table(
       data = data.table::as.data.table(input), 
       id.vars = "LOCUS", 
