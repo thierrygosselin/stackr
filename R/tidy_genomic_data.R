@@ -473,7 +473,7 @@ tidy_genomic_data <- function(
     # nested function to parse the format field and tidy the results
     parse_genomic <- function(x, gather.data = FALSE) {
       format.name <- x
-      if (verbose) message(paste("Parsing and tidying: ", format.name))
+      if (verbose) message("Parsing and tidying: ", format.name)
       x <- tibble::as_data_frame(vcfR::extract.gt(
         x = vcf.data,
         element = x,
@@ -515,7 +515,8 @@ tidy_genomic_data <- function(
     if (vcf.metadata) {
       if (verbose) message("Keeping vcf metadata: yes")
       # detect FORMAT fields available
-      have <- vcfR::vcf_field_names(vcf.data, tag = "FORMAT")$ID
+      have <- suppressWarnings(vcfR::vcf_field_names(vcf.data, tag = "FORMAT")$ID)
+      # current version doesn't deal well with PL with 3 fields separated with ","
       want <- c("DP", "AD", "GL", "PL")
       parse.format.list <- purrr::keep(.x = have, .p = have %in% want)
       
@@ -899,7 +900,7 @@ tidy_genomic_data <- function(
     
     untyped.markers <- dplyr::n_distinct(input$LOCUS) - dplyr::n_distinct(remove.missing.gt$LOCUS)
     if (untyped.markers > 0) {
-      if (verbose) message(paste0("Number of marker with 100 % missing genotypes: ", untyped.markers))
+      if (verbose) message("Number of marker with 100 % missing genotypes: ", untyped.markers)
       input <- suppressWarnings(
         dplyr::semi_join(input, 
                          remove.missing.gt %>% 
@@ -1051,7 +1052,7 @@ tidy_genomic_data <- function(
     if (length(consensus.markers$LOCUS) > 0) {
       input <- suppressWarnings(dplyr::anti_join(input, consensus.markers, by = "LOCUS"))
     }
-    if (verbose) message(stringi::stri_join("Consensus markers removed: ", dplyr::n_distinct(consensus.markers$LOCUS)))
+    if (verbose) message("Consensus markers removed: ", dplyr::n_distinct(consensus.markers$LOCUS))
     
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
@@ -1093,7 +1094,7 @@ tidy_genomic_data <- function(
       dplyr::filter(POLYMORPHISM > 1) %>% 
       dplyr::select(LOCUS, INDIVIDUALS)
     
-    if (verbose) message(stringi::stri_join("Number of genotypes with more than 2 alleles: ", length(blacklist.paralogs$LOCUS), sep = ""))
+    if (verbose) message("Number of genotypes with more than 2 alleles: ", length(blacklist.paralogs$LOCUS))
     
     if (length(blacklist.paralogs$LOCUS) > 0) {
       input <- input %>% 
@@ -1549,7 +1550,7 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         sample_n(size = 1, replace = FALSE)
-      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
+      message("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS))
     }
     
     # Fist SNP on the read
@@ -1557,7 +1558,7 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         dplyr::summarise(POS = min(POS))
-      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
+      message("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS))
     }
     
     # Last SNP on the read
@@ -1565,7 +1566,7 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         dplyr::summarise(POS = max(POS))
-      message(stringi::stri_join("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS)))
+      message("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS))
     }
     
     # filtering the VCF to minimize LD
@@ -1631,7 +1632,7 @@ tidy_genomic_data <- function(
   
   # Write to working directory -------------------------------------------------
   if (!is.null(filename)) {
-    if (verbose) message(stringi::stri_join("Writing the tidy data to the working directory: \n"), filename)
+    if (verbose) message("Writing the tidy data to the working directory: \n", filename)
     readr::write_tsv(x = input, path = filename, col_names = TRUE)
   }
   # messages -------------------------------------------------------------------

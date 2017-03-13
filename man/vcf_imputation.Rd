@@ -151,9 +151,8 @@ Default: \code{pop.select = NULL}}
 \item{imputation.method}{(character, optional) 
 Methods available for map-independent imputations of missing genotype:
 
-(1) \code{imputation.method = "max"} the most frequently occurring
-non-missing value (ties are broken at random) is used. Also called Strawman
-imputation.
+(1) \code{imputation.method = "max"} for Strawman imputation,
+the most frequently observed genotypes (ties are broken at random) is used.
 
 (2) \code{imputation.method = "rf"} Random Forests algorithm is used.
 
