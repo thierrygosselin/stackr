@@ -116,7 +116,11 @@ Change log, version, new features and bug history now lives in the [NEWS.md file
 
 **v.0.5.1** 2017-03-21
 
-Major work on `tidy_genomic_data`: \* `platypus` vcf files are correctly imported \* more efficient when working with vcf files \* better parallelization during parsing and cleaning
+Major work on `tidy_genomic_data`:
+
+-   `platypus` vcf files are correctly imported
+-   more efficient when working with vcf files
+-   better parallelization during parsing and cleaning
 
 **v.0.5.0**
 
