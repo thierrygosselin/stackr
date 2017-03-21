@@ -1,3 +1,37 @@
+# stackr v.0.5.1 2017-03-21
+Major work on `tidy_genomic_data`:
+* `platypus` vcf files are correctly imported
+* more efficient when working with vcf files
+* better parallelization during parsing and cleaning
+
+# stackr v.0.5.0
+
+* better parallelization of `summary_haplotypes` function. With progress bar...
+* bug fix with `summary_haplotypes` not properly summarizing info when no assembly artifacts were found
+
+
+
+# stackr v.0.4.9
+
+* bug fix with detection of mixed bi/multi allelic dataset. The bug was detected
+in `tidy_genomic_data` and `genomic_converter` functions.
+
+
+# stackr v.0.4.8
+
+* safer use and better parsing of `strataG` object to work with tidy data and pass Travis CI.
+
+
+# stackr v.0.4.7
+
+* Better parsing of genepop file with 2 characters for allele coding
+* Only 10% of markers are now used for increase speed of bi-allelic markers detection
+* Work on imputation module that will be functional in the next version bump
+* Better code for the progress bar (Linux and Mac only) that now shows an ETA along the progress.
+
+
+
+
 # stackr v.0.4.6
 
 * I'm pleased to announce that `stackr` parallel mode now works with **Windows**!

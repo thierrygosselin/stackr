@@ -107,82 +107,19 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+
+**v.0.5.1** 2017-03-21
+Major work on `tidy_genomic_data`:
+* `platypus` vcf files are correctly imported
+* more efficient when working with vcf files
+* better parallelization during parsing and cleaning
+
 **v.0.5.0**
 
 * better parallelization of `summary_haplotypes` function. With progress bar...
 * bug fix with `summary_haplotypes` not properly summarizing info when no assembly artifacts were found
 
-**v.0.4.9**
 
-* bug fix with detection of mixed bi/multi allelic dataset. The bug was detected
-in `tidy_genomic_data` and `genomic_converter` functions.
-
-
-**v.0.4.8**
-
-* safer use and better parsing of `strataG` object to work with tidy data and pass Travis CI.
-
-
-**v.0.4.7**
-
-* Better parsing of genepop file with 2 characters for allele coding
-* Only 10% of markers are now used for increase speed of bi-allelic markers detection
-* Work on imputation module that will be functional in the next version bump
-* Better code for the progress bar (Linux and Mac only) that now shows an ETA along the progress.
-
-
-**v.0.4.6**
-
-* I'm pleased to announce that `stackr` parallel mode now works with **Windows**!
-Nothing to install, just need to choose the number of CPU,
-the rest is done automatically.
-* `haplo2colony` is deprecated. Use the new function called `write_colony`!
-* `write_colony`: works similarly to the deprecated function `haplo2colony`,
-      * with the major advantage that it's no longer restricted to STACKS 
-      haplotypes file. 
-      * The function is using the `tidy_genomic_data` module
-      to import files. So you can choose one of the 10 input file formats supported
-      by `stackr`!
-      * other benefits also include the possibility to efficiently test MAF, 
-      snp.ld, haplotypes/snp approach, whitelist of markes, 
-      blacklist of individuals, blacklist of genotypes, etc. with the buit-in
-      arguments.
-      * the function only **keeps markers in common** between populations/groups
-      and **is removing monomorphic markers**.
-      * **Note:** there are several *defaults* in the function and
-      it's a complicated file format... please, read the function
-      documentation and `COLONY` manual.
-
-
-**v.0.4.5**
-
-* temporary fix to `tidy_genomic_data` to read unconventional Tassel VCF
-
-* new function `ibdg_fh` computes the FH measure that was previously
-computed in `summary_haplotypes`.
-It now works with biallelic and multiallelic data.
-
-    The FH measure is based on the excess in the observed number of homozygous
-genotypes within an individual relative to the mean number of homozygous
-genotypes expected under random mating (see function for details). The `IBDg` in
-the name is because the measure is a proxy of the realized proportion of the genome
-that is identical by descent by reference to the current population 
-under hypothetical random mating.
-
-* `missing_visualization` now computes the FH measure and look for correlation
-with average missingness per individual.
-* `tidy_stacks_haplotypes_vcf` is now deprecated in favor of using `tidy_genomic_data`
-that will import haplotypic vcf files.
-
-**v.0.4.4**
-
-* several updates to make functions faster.
-* `stackr_imputations_module` no longer imputes globally after imputations
-by populations. Instead, use `common.markers` or not to test impacts.
-*  bug fix with `change_alleles` that was not working properly inside
-the imputation module.
-* `snp_ld` is not a separate module available for users. Check documentation.
-* `missing_visualization` now show the proportion of variance with plot axis text.
 
 For previous news:
 [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
