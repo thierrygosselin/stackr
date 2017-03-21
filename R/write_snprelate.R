@@ -56,16 +56,16 @@ write_snprelate <- function(data) {
   # }
   
   # if (is.null(filename)) {
-    file.date <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
-    file.date <- stringi::stri_replace_all_fixed(
-      str = file.date,
-      pattern = c("-", " ", ":"),
-      replacement = c("", "_", ""), 
-      vectorize_all = FALSE
-    )
-    filename <- stringi::stri_join("stackr_", file.date, ".gds", sep = "")
+  file.date <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
+  file.date <- stringi::stri_replace_all_fixed(
+    str = file.date,
+    pattern = c("-", " ", ":"),
+    replacement = c("", "_", ""), 
+    vectorize_all = FALSE
+  )
+  filename <- stringi::stri_join("stackr_", file.date, ".gds", sep = "")
   # }
-
+  
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {
     input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
@@ -101,6 +101,24 @@ write_snprelate <- function(data) {
     dplyr::arrange(MARKERS) %>%
     purrr::flatten_chr(.)
   
+  if (tibble::has_name(input, "CHROM")) {
+    snp.chromosome <- dplyr::distinct(.data = input, CHROM) %>%
+      dplyr::arrange(CHROM) %>%
+      purrr::flatten_chr(.)
+  } else {
+    snp.chromosome <- NULL
+  }
+  
+  
+  if (tibble::has_name(input, "REF")) {
+    snp.allele <- dplyr::distinct(.data = input, MARKERS, REF, ALT) %>%
+      dplyr::mutate(REF_ALT = stringi::stri_join(REF, ALT, sep = "/")) %>% 
+      purrr::flatten_chr(.)
+  } else {
+    snp.allele <- NULL
+  }
+  
+  
   input <- suppressWarnings(
     dplyr::select(.data = input, MARKERS, INDIVIDUALS, GT_BIN) %>%
       dplyr::group_by(MARKERS) %>% 
@@ -118,9 +136,9 @@ write_snprelate <- function(data) {
     sample.id = strata.df$INDIVIDUALS,
     snp.id = snp.id,
     snp.rs.id = NULL,
-    snp.chromosome = NULL,
+    snp.chromosome = snp.chromosome,
     snp.position = NULL,
-    snp.allele = NULL,
+    snp.allele = snp.allele,
     snpfirstdim = TRUE,
     compress.annotation = "ZIP_RA.max",
     compress.geno = "",
@@ -128,10 +146,10 @@ write_snprelate <- function(data) {
   )
   
   gds.file.connection <- SNPRelate::snpgdsOpen(filename)
-
+  
   message("\nNote: \n
 GDS filename: ", filename)
-
+  
   message("\nTo close the connection use SNPRelate::snpgdsClose(OBJECT_NAME)")
   return(gds.file.connection)
 } # End write_snprelate
