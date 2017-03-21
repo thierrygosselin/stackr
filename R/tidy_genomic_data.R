@@ -522,11 +522,14 @@ tidy_genomic_data <- function(
     # Scan and filter with FILTER column
     filter.check <- dplyr::distinct(input, FILTER)
     
-    if (nrow(filter.check > 1)) {
+    if (nrow(filter.check) > 1) {
       message("Filtering markers based on VCF FILTER column")
       nrow.before <- nrow(input)
       input <- dplyr::filter(input, FILTER %in% "PASS")
-      message("    Number of markers removed that didn't PASS the filter: ", nrow.before - nrow(input))
+      nrow.after <- nrow(input)
+      message("    Number of markers before = ", nrow.before)
+      message("    Number of markers removed = ", nrow.before - nrow.after)
+      message("    Number of markers after = ", nrow.after)
     }
     
     # GATK VCF file sometimes have "." in the LOCUS column: replace by CHROM
@@ -552,6 +555,7 @@ tidy_genomic_data <- function(
     
     # import genotypes
     if (import.pegas) {
+      if (verbose) message("Working on the vcf...")
       input.gt <- pegas::read.vcf(file = data, which.loci = keep.markers, quiet = verbose) %>%
         `colnames<-`(input$MARKERS) %>% 
         tibble::rownames_to_column(., var = "INDIVIDUALS") %>%
@@ -575,8 +579,10 @@ tidy_genomic_data <- function(
           pattern = c("_", ":"), 
           replacement = c("-", "-"), 
           vectorize_all = FALSE)
-        )
-      
+        ) %>% 
+        dplyr::mutate(GT = stringi::stri_replace_na(
+          str = GT, replacement = "./."))
+
       input.gt <- filter.check <- NULL
     } else {
       # filter the vcf.data
@@ -603,6 +609,7 @@ tidy_genomic_data <- function(
       parse_genomic <- function(
         x, data = vcf.data, mask = FALSE, gather.data = FALSE, return.alleles = FALSE) {
         format.name <- x
+        
         if (verbose) message("Parsing and tidying: ", format.name)
         x <- tibble::as_data_frame(vcfR::extract.gt(
           x = data, element = x, mask = mask, return.alleles = return.alleles,
@@ -633,13 +640,13 @@ tidy_genomic_data <- function(
       }#End parse_genomic
       
       # GT field only
-      if (biallelic) {
-        input <- dplyr::bind_cols(input, parse_genomic(x = "GT"))
-      } else {#multi-allelic
-        input <- dplyr::bind_cols(
-          input,
-          parse_genomic(x = "GT", return.alleles = TRUE))
-      }
+      # if (biallelic) {
+      #   input <- dplyr::bind_cols(input, parse_genomic(x = "GT"))
+      # } else {#multi-allelic
+      input <- dplyr::bind_cols(
+        input,
+        parse_genomic(x = "GT", return.alleles = TRUE))
+      # }
       
       input <- data.table::melt.data.table(
         data = data.table::as.data.table(input), 
@@ -737,99 +744,50 @@ tidy_genomic_data <- function(
     
     # recoding genotype
     if (biallelic) {# biallelic VCF
-      message("Converting bi-allelic VCF coding...")
-      n.row <- nrow(input)
-      # as.integer is usually twice as light as numeric vector...
-      split.vec <- as.integer(floor((parallel.core * 3 * (1:n.row - 1) / n.row) + 1))
-      n.row <- NULL
-      
-      biallelic2integers <- function(x) {
-        res <- x %>%
-          dplyr::mutate(
-            REF2 = stringi::stri_replace_all_fixed(
-              str = REF, 
-              pattern = c("A", "C", "G", "T"), 
-              replacement = c("001", "002", "003", "004"), 
-              vectorize_all = FALSE
-            ), # replace nucleotide with numbers
-            ALT2 = stringi::stri_replace_all_fixed(
-              str = ALT, pattern = c("A", "C", "G", "T"), 
-              replacement = c("001", "002", "003", "004"), 
-              vectorize_all = FALSE
-            ),# replace nucleotide with numbers
-            # Replace phased info to the regular unphased GT, not useful here
-            GT = stringi::stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
-            GT_VCF = GT,
-            # Experimental (for genlight object)
-            GT_BIN = as.numeric(stringi::stri_replace_all_fixed(
-              str = GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."),
-              replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE
-            )),
-            GT = dplyr::if_else(GT == "0/0", stringi::stri_join(REF2, REF2, sep = ""),
-                                dplyr::if_else(GT == "1/1", stringi::stri_join(ALT2, ALT2, sep = ""),
-                                               dplyr::if_else(GT == "0/1", stringi::stri_join(REF2, ALT2, sep = ""),
-                                                              dplyr::if_else(GT == "1/0", stringi::stri_join(ALT2, REF2, sep = ""),
-                                                                             dplyr::if_else(GT == "./.", "000000", GT)))))
-          ) %>% 
-          dplyr::select(-REF2, -ALT2) %>% 
-          tibble::as_data_frame()
-        return(res)
-      }#End biallelic2integers
-      
-      input <- dplyr::bind_cols(
-        dplyr::select(input, -c(REF, ALT, GT)),
-        dplyr::select(input, REF, ALT, GT) %>%
-          split(x = ., f = split.vec) %>% 
-          .stackr_parallel(
-            # parallel::mclapply(
-            X = .,
-            FUN = biallelic2integers,
-            mc.cores = parallel.core
-          ) %>%
-          dplyr::bind_rows(.))
-      split.vec <- NULL
+      if (verbose) message("Recoding bi-allelic VCF...")
     } else {#multi-allelic vcf
-      message("Converting VCF haplotype coding...")
-      # haplotype conversion to integer
-      haplo2integers <- function(x) {
-        res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>%
-          dplyr::filter(GT_VCF_NUC != "./.") %>% 
-          tidyr::separate(col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/") %>% 
-          tidyr::gather(data = ., key = ALLELES_GROUP, value = ALLELES, -MARKERS) %>% 
-          dplyr::select(-ALLELES_GROUP) %>%
-          dplyr::group_by(MARKERS, ALLELES) %>% 
-          dplyr::tally(.) %>% 
-          dplyr::arrange(-n) %>% 
-          dplyr::mutate(INTEGERS = seq(0, n() - 1)) %>%
-          dplyr::select(-n) %>% 
-          dplyr::arrange(MARKERS, INTEGERS) %>% 
-          dplyr::ungroup(.)
-        
-        ref.alleles <- res %>%
-          dplyr::filter(INTEGERS == 0) %>% 
-          dplyr::mutate(REF = ALLELES) %>% 
-          dplyr::distinct(MARKERS, REF)
-        
-        alt.alleles <- res %>%
-          dplyr::filter(INTEGERS != 0) %>%
-          dplyr::group_by(MARKERS) %>% 
-          dplyr::mutate(ALT = stringi::stri_join(ALLELES, collapse = ",")) %>%
-          dplyr::ungroup(.) %>% 
-          dplyr::distinct(MARKERS, ALT)
-        
-        res <- dplyr::left_join(
-          res,
-          dplyr::left_join(ref.alleles, alt.alleles, by = "MARKERS")
-          , by = "MARKERS"
-        ) %>% 
-          dplyr::arrange(MARKERS, INTEGERS)
-        return(res)
-      }#End haplo2integers
+      if (verbose) message("Recoding VCF haplotype...")
+    }
+
+    nuc2integers <- function(x) {
+      res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>%
+        dplyr::filter(GT_VCF_NUC != "./.") %>% 
+        tidyr::separate(col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/") %>% 
+        tidyr::gather(data = ., key = ALLELES_GROUP, value = ALLELES, -MARKERS) %>% 
+        dplyr::select(-ALLELES_GROUP) %>%
+        dplyr::group_by(MARKERS, ALLELES) %>% 
+        dplyr::tally(.) %>% 
+        dplyr::arrange(-n) %>% 
+        dplyr::mutate(INTEGERS = seq(0, n() - 1)) %>%
+        dplyr::select(-n) %>% 
+        dplyr::arrange(MARKERS, INTEGERS) %>% 
+        dplyr::ungroup(.)
       
-      # split data for 3 rounds of CPU
-      # to work, same markers in same split...
+      ref.alleles <- res %>%
+        dplyr::filter(INTEGERS == 0) %>% 
+        dplyr::mutate(REF = ALLELES) %>% 
+        dplyr::distinct(MARKERS, REF)
       
-      haplo.conversion <- dplyr::select(input, MARKERS, GT_VCF_NUC = GT) %>%
+      alt.alleles <- res %>%
+        dplyr::filter(INTEGERS != 0) %>%
+        dplyr::group_by(MARKERS) %>% 
+        dplyr::mutate(ALT = stringi::stri_join(ALLELES, collapse = ",")) %>%
+        dplyr::ungroup(.) %>% 
+        dplyr::distinct(MARKERS, ALT)
+      
+      res <- dplyr::left_join(
+        res,
+        dplyr::left_join(ref.alleles, alt.alleles, by = "MARKERS")
+        , by = "MARKERS"
+      ) %>% 
+        dplyr::arrange(MARKERS, INTEGERS)
+      return(res)
+    }#End nuc2integers
+    
+    # split data for 3 rounds of CPU
+    # to work, same markers in same split...
+    if (verbose) message("Calculating REF/ALT alleles...")
+    conversion.df <- dplyr::select(input, MARKERS, GT_VCF_NUC = GT) %>%
         dplyr::left_join(
           dplyr::distinct(input, MARKERS) %>%
             dplyr::mutate(
@@ -839,26 +797,26 @@ tidy_genomic_data <- function(
         .stackr_parallel(
           # parallel::mclapply(
           X = .,
-          FUN = haplo2integers,
+          FUN = nuc2integers,
           mc.cores = parallel.core
         ) %>%
         dplyr::bind_rows(.)
       
       # if monomorphic markers, ALT column will have NA: check and tag
-      if (anyNA(haplo.conversion)) {
+      if (anyNA(conversion.df)) {
         # fill ALT with REF
-        haplo.conversion <- dplyr::bind_rows(
-          dplyr::filter(haplo.conversion, is.na(ALT)) %>% 
+        conversion.df <- dplyr::bind_rows(
+          dplyr::filter(conversion.df, is.na(ALT)) %>% 
             dplyr::mutate(
               ALT = REF,
               POLYMORPHIC = rep(FALSE, n())),
-          dplyr::filter(haplo.conversion, !is.na(ALT)) %>% 
+          dplyr::filter(conversion.df, !is.na(ALT)) %>% 
             dplyr::mutate(POLYMORPHIC = rep(TRUE, n()))) %>% 
           dplyr::arrange(MARKERS, INTEGERS)
       }
       
-      ref.alt.mono <- dplyr::distinct(haplo.conversion, MARKERS, REF, ALT, POLYMORPHIC)
-      haplo.conversion <- dplyr::select(haplo.conversion, MARKERS, ALLELES, INTEGERS)
+      ref.alt.mono <- dplyr::distinct(conversion.df, MARKERS, REF, ALT, POLYMORPHIC)
+      conversion.df <- dplyr::select(conversion.df, MARKERS, ALLELES, INTEGERS)
       
       input <- dplyr::select(input, -c(REF, ALT)) %>% 
         dplyr::left_join(ref.alt.mono, by = "MARKERS") %>% 
@@ -866,52 +824,82 @@ tidy_genomic_data <- function(
       
       ref.alt.mono <- NULL
       
-      haplo2gt <- function(x, conversion.data = NULL) {
-        res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>% 
-          tidyr::separate(data = ., col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/", remove = FALSE) %>%
-          dplyr::left_join(dplyr::rename(conversion.data, A1 = ALLELES), by = c("MARKERS", "A1")) %>% 
-          dplyr::rename(A1_NUC = INTEGERS) %>% 
-          dplyr::left_join(dplyr::rename(conversion.data, A2 = ALLELES), by = c("MARKERS", "A2")) %>% 
-          dplyr::rename(A2_NUC = INTEGERS) %>%
-          dplyr::mutate(
-            GT_VCF = stringi::stri_join(A1_NUC, A2_NUC, sep = "/"),
-            A1_NUC = as.character(A1_NUC + 1),
-            A2_NUC = as.character(A2_NUC + 1),
-            A1_NUC = stringi::stri_pad_left(str = A1_NUC, pad = "0", width = 3),
-            A2_NUC = stringi::stri_pad_left(str = A2_NUC, pad = "0", width = 3)
-          ) %>% 
-          tidyr::unite(data = ., col = GT, A1_NUC, A2_NUC, sep = "") %>% 
-          dplyr::select(-A1, -A2)
+      # Integrating new coding
+      if (verbose) message("Integrating new genotype codings...")
+      nuc2gt <- function(x, conversion.data = NULL, biallelic = TRUE) {
+        if (biallelic) {
+          res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>% 
+            tidyr::separate(data = ., col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/", remove = FALSE) %>%
+            dplyr::left_join(dplyr::rename(conversion.data, A1 = ALLELES), by = c("MARKERS", "A1")) %>% 
+            dplyr::rename(A1_NUC = INTEGERS) %>% 
+            dplyr::left_join(dplyr::rename(conversion.data, A2 = ALLELES), by = c("MARKERS", "A2")) %>% 
+            dplyr::rename(A2_NUC = INTEGERS) %>%
+            dplyr::mutate(
+              GT_VCF = stringi::stri_join(A1_NUC, A2_NUC, sep = "/"),
+              GT_VCF = stringi::stri_replace_na(str = GT_VCF, replacement = "./."),
+              A1_NUC = as.character(A1_NUC + 1),
+              A2_NUC = as.character(A2_NUC + 1),
+              A1_NUC = stringi::stri_replace_na(str = A1_NUC, replacement = "0"),
+              A2_NUC = stringi::stri_replace_na(str = A2_NUC, replacement = "0"),
+              A1_NUC = stringi::stri_pad_left(str = A1_NUC, pad = "0", width = 3),
+              A2_NUC = stringi::stri_pad_left(str = A2_NUC, pad = "0", width = 3),
+              GT_BIN = as.numeric(stringi::stri_replace_all_fixed(
+                str = GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."),
+                replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE))
+            ) %>% 
+            tidyr::unite(data = ., col = GT, A1_NUC, A2_NUC, sep = "") %>% 
+            dplyr::select(-A1, -A2)
+        } else {
+          res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>% 
+            tidyr::separate(data = ., col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/", remove = FALSE) %>%
+            dplyr::left_join(dplyr::rename(conversion.data, A1 = ALLELES), by = c("MARKERS", "A1")) %>% 
+            dplyr::rename(A1_NUC = INTEGERS) %>% 
+            dplyr::left_join(dplyr::rename(conversion.data, A2 = ALLELES), by = c("MARKERS", "A2")) %>% 
+            dplyr::rename(A2_NUC = INTEGERS) %>%
+            dplyr::mutate(
+              GT_VCF = stringi::stri_join(A1_NUC, A2_NUC, sep = "/"),
+              A1_NUC = as.character(A1_NUC + 1),
+              A2_NUC = as.character(A2_NUC + 1),
+              A1_NUC = stringi::stri_replace_na(str = A1_NUC, replacement = "0"),
+              A2_NUC = stringi::stri_replace_na(str = A2_NUC, replacement = "0"),
+              A1_NUC = stringi::stri_pad_left(str = A1_NUC, pad = "0", width = 3),
+              A2_NUC = stringi::stri_pad_left(str = A2_NUC, pad = "0", width = 3)
+            ) %>% 
+            tidyr::unite(data = ., col = GT, A1_NUC, A2_NUC, sep = "") %>% 
+            dplyr::select(-A1, -A2) %>% 
+            dplyr::mutate(
+              GT_VCF = stringi::stri_replace_na(str = GT_VCF, replacement = "./."),
+              GT_BIN = as.numeric(rep(NA, n())))
+        }
         return(res)
       }
-      
       # apply the conversion of haplo to gt in parallel
       
-      haplo.gt <- dplyr::distinct(input, MARKERS, GT_VCF_NUC) %>%
+      new.gt <- dplyr::distinct(input, MARKERS, GT_VCF_NUC) %>%
         dplyr::mutate(SPLIT_VEC = dplyr::ntile(x = 1:nrow(.), n = parallel.core * 3)) %>% 
         split(x = ., f = .$SPLIT_VEC) %>% 
         .stackr_parallel(
           # parallel::mclapply(
           X = .,
-          FUN = haplo2gt,
+          FUN = nuc2gt,
           mc.cores = parallel.core,
-          conversion.data = haplo.conversion
+          conversion.data = conversion.df,
+          biallelic = biallelic
         ) %>%
         dplyr::bind_rows(.)
       
-      input <- dplyr::left_join(input, haplo.gt, by = c("MARKERS", "GT_VCF_NUC")) %>%
-        dplyr::mutate(GT_BIN = as.numeric(rep(NA, n())))
-      haplo.gt <- haplo.conversion <- NULL
-    }
+      input <- dplyr::left_join(input, new.gt, by = c("MARKERS", "GT_VCF_NUC"))
+      new.gt <- conversion.df <- NULL
     
-    # re-computing the REF/ALT allele
-    if (biallelic) {
-      if (!is.null(pop.select) || !is.null(blacklist.id)) {
-        if (verbose) message("Adjusting REF/ALT alleles to account for filters...")
-        input.temp <- change_alleles(data = input, monomorphic.out = TRUE, verbose = verbose)
-        input <- input.temp$input
-      }
-    }# end re-computing the REF/ALT allele
+    
+    # # re-computing the REF/ALT allele
+    # if (biallelic) {
+    #   if (!is.null(pop.select) || !is.null(blacklist.id)) {
+    #     if (verbose) message("Adjusting REF/ALT alleles to account for filters...")
+    #     input.temp <- change_alleles(data = input, monomorphic.out = TRUE, verbose = verbose)
+    #     input <- input.temp$input
+    #   }
+    # }# end re-computing the REF/ALT allele
     
     # Re ordering columns
     want <- c("MARKERS", "CHROM", "LOCUS", "POS", "INDIVIDUALS", "POP_ID",
