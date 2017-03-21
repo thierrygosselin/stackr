@@ -20,9 +20,8 @@ in wide or long (tidy) formats. To import, the function uses
 \item{imputation.method}{(character, optional) 
 Methods available for map-independent imputations of missing genotype:
 
-(1) \code{imputation.method = "max"} the most frequently occurring
-non-missing value (ties are broken at random) is used. Also called Strawman
-imputation.
+(1) \code{imputation.method = "max"} for Strawman imputation,
+the most frequently observed genotypes (ties are broken at random) is used.
 
 (2) \code{imputation.method = "rf"} Random Forests algorithm is used.
 
@@ -84,15 +83,18 @@ Used internally in \href{https://github.com/thierrygosselin/assigner}{assigner} 
 \href{https://github.com/thierrygosselin/stackr}{stackr} and 
 might be of interest for users.
 The goal of this module is to provide a simple solution for
-a complicated problem: missing observations in RADseq genomic datasets.
+a complicated problem: missing genotypes in RADseq genomic datasets.
 This function will performed \strong{map-independent imputations} of missing
 genotypes.
 
 \strong{Key features:}
 
 \itemize{
-\item \strong{Algorithms: } Random forests (rf), extreme gradient tree boosting (boost),
-multiple correspondence analysis (mca) and the classic most observed genotypes (~max/mean/mode).
+\item \strong{Imputation algorithms/methods: } Random forests (on-the-fly-imputation, ),
+Extreme gradient tree boosting,
+Multiple Correspondence Analysis and
+the classic Strawman imputation
+(~ max/mean/mode: the most frequently observed, i.e. non-missing, genotypes is used).
 \item \strong{Hierarchical level: } Imputations conducted by populations or globally.
 \item \strong{Haplotype/SNP approach: } Correlation among SNPs is accounted for during
 rf and tree boosting imputation, i.e. imputation is automatically conducted by haplotype
@@ -195,7 +197,18 @@ the \code{imputation.method = "max"} because the imputed genotype was validated
 after considering all the other genotype values of the individual. 
 \strong{Test the option and report bug if you find one.}
 
-\strong{... and arguments available for extreme gradient tree
+\strong{random forest with on-the-fly-imputation (rf): }the technique is described
+in Tang and Ishwaran (2017). Non-missing genotypes are used for
+the split-statistics. Daughter node assignation membership use random 
+non-missing genotypes from the inbag data. Missing genotypes are imputed at
+terminal nodes using maximal class rule with out-of-bag non-missing genotypes.
+
+#' \strong{random forest as a prediction problem (rf_pred): }markers with 
+missing genotypes are imputed one at a time. The fitted forest is used to
+predict missing genotypes. Missingness in the response variables are 
+incorporated as attributes for growing the forest.
+
+\strong{... :arguments available for extreme gradient tree
 boosting:}
 
 Here is the list of arguments that can be further tailored for your imputations:

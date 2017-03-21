@@ -19,12 +19,17 @@ genlight (library(adegenet)), gtypes (library(strataG)), genepop,
 and a data frame in long/tidy or wide format. 
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
-\item{vcf.metadata}{(optional, logical) For the VCF file, 
-with \code{vcf.metadata = FALSE}, only the genotype information is kept.
-With default: \code{vcf.metadata = TRUE}, the metadata contained in the 
-\code{FORMAT} field will be kept in the tidy data file. Currently keeping only
-those metadata: \code{"DP", "AD", "GL", "PL"}. If you need different one, submit
-a request.}
+\item{vcf.metadata}{(optional, logical or string) For VCF files only.
+With \code{logical, TRUE/FALSE}, \code{vcf.metadata = FALSE}, only the genotype
+information is kept (GT field). With \code{vcf.metadata = TRUE},
+all the metadata contained in the \code{FORMAT} field will be kept in
+the tidy data file. stackr is currently keeping/cleaning only these metadata: 
+\code{"DP", "AD", "GL", "PL", "GQ", "GOF", "NR", "NV"}.
+If you need different one, submit a request.
+With \code{string}, explicitely ask for a particular FORMAT field you want
+to keep (except the GT field that is always imported).
+e.g. \code{vcf.metadata = "PL"} or \code{vcf.metadata = c("DP", "GL")}.
+Default: \code{vcf.metadata = FALSE}.}
 
 \item{whitelist.markers}{(optional) A whitelist containing CHROM (character
 or integer) and/or LOCUS (integer) and/or
@@ -152,7 +157,7 @@ in the global environment only (i.e. not written in the working directory).}
 
 \item{verbose}{(optional, logical) When \code{verbose = TRUE} 
 the function is a little more chatty during execution.
-Default: \code{verbose = FALSE}.}
+Default: \code{verbose = TRUE}.}
 }
 \value{
 A list with 2 tables: the long format of loci and populations

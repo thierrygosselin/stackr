@@ -4,12 +4,13 @@
 \alias{tidy_genomic_data}
 \title{Transform common genomic dataset format in a tidy data frame}
 \usage{
-tidy_genomic_data(data, vcf.metadata = TRUE, whitelist.markers = NULL,
+tidy_genomic_data(data, vcf.metadata = FALSE, whitelist.markers = NULL,
   monomorphic.out = TRUE, blacklist.genotype = NULL, snp.ld = NULL,
   common.markers = TRUE, maf.thresholds = NULL, maf.pop.num.threshold = 1,
   maf.approach = "SNP", maf.operator = "OR", max.marker = NULL,
   blacklist.id = NULL, pop.levels = NULL, pop.labels = NULL,
-  strata = NULL, pop.select = NULL, filename = NULL, verbose = FALSE)
+  strata = NULL, pop.select = NULL, filename = NULL,
+  parallel.core = parallel::detectCores() - 1, verbose = TRUE)
 }
 \arguments{
 \item{data}{11 options: VCF (SNPs or Haplotypes, 
@@ -19,12 +20,17 @@ genlight (library(adegenet)), gtypes (library(strataG)), genepop,
 and a data frame in long/tidy or wide format. 
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
-\item{vcf.metadata}{(optional, logical) For the VCF file, 
-with \code{vcf.metadata = FALSE}, only the genotype information is kept.
-With default: \code{vcf.metadata = TRUE}, the metadata contained in the 
-\code{FORMAT} field will be kept in the tidy data file. Currently keeping only
-those metadata: \code{"DP", "AD", "GL", "PL"}. If you need different one, submit
-a request.}
+\item{vcf.metadata}{(optional, logical or string) For VCF files only.
+With \code{logical, TRUE/FALSE}, \code{vcf.metadata = FALSE}, only the genotype
+information is kept (GT field). With \code{vcf.metadata = TRUE},
+all the metadata contained in the \code{FORMAT} field will be kept in
+the tidy data file. stackr is currently keeping/cleaning only these metadata: 
+\code{"DP", "AD", "GL", "PL", "GQ", "GOF", "NR", "NV"}.
+If you need different one, submit a request.
+With \code{string}, explicitely ask for a particular FORMAT field you want
+to keep (except the GT field that is always imported).
+e.g. \code{vcf.metadata = "PL"} or \code{vcf.metadata = c("DP", "GL")}.
+Default: \code{vcf.metadata = FALSE}.}
 
 \item{whitelist.markers}{(optional) A whitelist containing CHROM (character
 or integer) and/or LOCUS (integer) and/or
@@ -150,9 +156,13 @@ written to the working directory.
 Default: \code{filename = NULL}, the tidy data is 
 in the global environment only (i.e. not written in the working directory).}
 
+\item{parallel.core}{(optional) The number of core used for parallel
+execution during vcf import.
+Default: \code{parallel::detectCores() - 1}.}
+
 \item{verbose}{(optional, logical) When \code{verbose = TRUE} 
 the function is a little more chatty during execution.
-Default: \code{verbose = FALSE}.}
+Default: \code{verbose = TRUE}.}
 }
 \value{
 The output in your global environment is a tidy data frame. 

@@ -3,40 +3,22 @@
 \name{run_cstacks}
 \alias{run_cstacks}
 \title{Run STACKS cstacks module}
+\usage{
+run_cstacks(input.path = "06_ustacks_cstacks_sstacks",
+  o = "06_ustacks_cstacks_sstacks", b = 1, catalog.path = NULL,
+  sample.list, g = FALSE, m = FALSE, n = 1, p = 32, h = FALSE,
+  gapped = TRUE, max_gaps = 2, min_aln_len = 0.8, k_len = NULL,
+  report_mmatches = FALSE)
+}
 \arguments{
 \item{input.path}{Path to input file. 
 Default: \code{input.path = "06_ustacks_cstacks_sstacks"}}
 
-\item{sample.list}{This is for the \code{s} option in
-\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{cstacks}. 
-\code{s: Filename prefix from which to load loci in the catalog}.
-Here, you have 2 choices: 1. you leave empty and let the function use the 
-default:\code{sample.list = NULL} which will scan for the files in the 
-\code{input.path} folder given above. 2. you supply a character string of the
-samples. This could come from the \code{INDIVIDUALS_REP} column of the 
-project info file, e.g. \code{sample.list = project.info$INDIVIDUALS_REP}.}
-
-\item{b}{MySQL ID of this batch. 
-Default: \code{b = 1}.}
-
 \item{o}{output path to write results.
 Default: \code{o = "06_ustacks_cstacks_sstacks"}}
 
-\item{g}{Base catalog matching on genomic location, not sequence identity.
-Default: \code{g = FALSE}}
-
-\item{m}{Include tags in the catalog that match to more than one entry.
-Default: \code{m = FALSE}}
-
-\item{n}{Number of mismatches allowed between sample tags when generating 
-the catalog.
-Default: \code{n = 1}}
-
-\item{p}{Enable parallel execution with num_threads threads. 
-Default: \code{p = 4}}
-
-\item{h}{Display this help messsage.
-Default: \code{h = FALSE}}
+\item{b}{MySQL ID of this batch. 
+Default: \code{b = 1}.}
 
 \item{catalog.path}{This is for the "Catalog editing" part in cstacks where 
 you can provide the path to an existing catalog.
@@ -56,6 +38,31 @@ will be added in this catalog. The catalog is made of 3 files:
 \code{batch_1.catalog.alleles.tsv.gz, 
 batch_1.catalog.snps.tsv.gz, 
 batch_1.catalog.tags.tsv.gz}}
+
+\item{sample.list}{This is for the \code{s} option in
+\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{cstacks}. 
+\code{s: Filename prefix from which to load loci in the catalog}.
+Here, you have 2 choices: 1. you leave empty and let the function use the 
+default:\code{sample.list = NULL} which will scan for the files in the 
+\code{input.path} folder given above. 2. you supply a character string of the
+samples. This could come from the \code{INDIVIDUALS_REP} column of the 
+project info file, e.g. \code{sample.list = project.info$INDIVIDUALS_REP}.}
+
+\item{g}{Base catalog matching on genomic location, not sequence identity.
+Default: \code{g = FALSE}}
+
+\item{m}{Include tags in the catalog that match to more than one entry.
+Default: \code{m = FALSE}}
+
+\item{n}{Number of mismatches allowed between sample tags when generating 
+the catalog.
+Default: \code{n = 1}}
+
+\item{p}{Enable parallel execution with num_threads threads. 
+Default: \code{p = 4}}
+
+\item{h}{Display this help messsage.
+Default: \code{h = FALSE}}
 
 \item{gapped}{Gapped assembly options: do you want to preform 
 gapped alignments between stacks.
@@ -140,4 +147,16 @@ gapped = TRUE, max_gaps = 2, min_aln_len = 0.8,
 k_len = NULL, report_mmatches = FALSE
 )
 }
+}
+\references{
+Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
+Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
+G3, 1, 171-182.
+
+Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
+Stacks: an analysis tool set for population genomics. 
+Molecular Ecology, 22, 3124-3140.
+}
+\seealso{
+\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
 }

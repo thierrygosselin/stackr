@@ -117,7 +117,7 @@ written to the working directory.}
 
 \item{verbose}{(optional, logical) When \code{verbose = TRUE} 
 the function is a little more chatty during execution.
-Default: \code{verbose = FALSE}.}
+Default: \code{verbose = TRUE}.}
 }
 \value{
 A list is created with 6 objects (function call, tables, manhattan,

@@ -89,7 +89,31 @@ mclapply_win <- function(
 }#End mclapply_win
 
 
-# .stackr_parallel--------------------------------------------------------------
+# .stackr_parallel_mc--------------------------------------------------------------
+# Overwrite the serial version of mclapply on Windows only
+# @name .stackr_parallel
+# @title Enable parallel execution on Windows
+# @description Internal hack to enable parallel execution of \pkg{assigner}
+#' functions on Windows.
+# @inheritParams parallel::mclapply
+#' @return For mclapply, a list of the same length as X and named by X.
+# @importFrom parallel detectCores makeCluster clusterExport mclapply parLapply stopCluster
+# @importFrom pbmcapply pbmclapply
+#' @rdname stackr_parallel
+#' @keywords internal
+#' @export
+.stackr_parallel_mc <- switch(
+  Sys.info()[['sysname']],
+  Windows = {mclapply_win},
+  # Linux   = {mclapply_progress_bar},
+  Linux   = {parallel::mclapply},
+  # Linux   = {pbmcapply::pbmclapply},
+  # Darwin  = {mclapply_progress_bar}
+  Darwin  = {parallel::mclapply}
+  # Darwin  = {pbmcapply::pbmclapply}
+)
+
+# .stackr_parallel with progress bar -------------------------------------------
 # Overwrite the serial version of mclapply on Windows only
 # @name .stackr_parallel
 # @title Enable parallel execution on Windows
@@ -112,4 +136,3 @@ mclapply_win <- function(
   # Darwin  = {parallel::mclapply}
   Darwin  = {pbmcapply::pbmclapply}
 )
-

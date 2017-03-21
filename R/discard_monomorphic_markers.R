@@ -75,11 +75,11 @@ discard_monomorphic_markers <- function(data, verbose = FALSE) {
     dplyr::distinct(MARKERS)
   
   # Remove the markers from the dataset
-  if (verbose) message(stringi::stri_join("    Number of monomorphic markers removed = ", nrow(mono.markers)))
+  if (verbose) message("    Number of monomorphic markers removed = ", nrow(mono.markers))
   
   if (length(mono.markers$MARKERS) > 0) {
     input <- dplyr::anti_join(input, mono.markers, by = "MARKERS")
-    if (verbose) message(stringi::stri_join("    Number of markers after = ", dplyr::n_distinct(input$MARKERS)))
+    if (verbose) message("    Number of markers after = ", dplyr::n_distinct(input$MARKERS))
   }
   
   if (tibble::has_name(input, "CHROM")) {

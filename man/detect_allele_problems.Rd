@@ -151,7 +151,7 @@ in the global environment only (i.e. not written in the working directory).}
 
 \item{verbose}{(optional, logical) When \code{verbose = TRUE} 
 the function is a little more chatty during execution.
-Default: \code{verbose = FALSE}.}
+Default: \code{verbose = TRUE}.}
 }
 \value{
 A list with summary, plot and blacklist.

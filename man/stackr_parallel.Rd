@@ -2,12 +2,17 @@
 % Please edit documentation in R/stackr_parallel.R
 \name{mclapply_win}
 \alias{mclapply_win}
+\alias{.stackr_parallel_mc}
 \alias{.stackr_parallel}
 \title{hack to switch function for parallel computation based on OS}
 \usage{
 mclapply_win(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
   mc.silent = FALSE, mc.cores = NULL, mc.cleanup = TRUE,
   mc.allow.recursive = TRUE)
+
+.stackr_parallel_mc(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
+  mc.silent = FALSE, mc.cores = getOption("mc.cores", 2L),
+  mc.cleanup = TRUE, mc.allow.recursive = TRUE)
 
 .stackr_parallel(X, FUN, ..., mc.style = "ETA", mc.substyle = NA,
   mc.cores = getOption("mc.cores", 2L),
@@ -34,6 +39,8 @@ mclapply_win(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
 }
 \value{
 For mclapply, a list of the same length as X and named by X.
+
+For mclapply, a list of the same length as X and named by X.
 }
 \description{
 \code{parallel::mclapply} doesn't work on Windows,
@@ -47,6 +54,8 @@ The code below was inspired from
 \href{https://github.com/kvnkuang/pbmcapply}{Kevin Kuang},
 \href{https://github.com/psolymos/pbapply}{Peter Solymos} and 
 \href{https://github.com/EricArcher/}{Eric Archer}.
+
+functions on Windows.
 
 functions on Windows.
 }

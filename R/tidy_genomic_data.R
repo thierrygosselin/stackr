@@ -18,12 +18,17 @@
 #' and a data frame in long/tidy or wide format. 
 #' \emph{See details} of \code{\link{tidy_genomic_data}}.
 
-#' @param vcf.metadata (optional, logical) For the VCF file, 
-#' with \code{vcf.metadata = FALSE}, only the genotype information is kept.
-#' With default: \code{vcf.metadata = TRUE}, the metadata contained in the 
-#' \code{FORMAT} field will be kept in the tidy data file. Currently keeping only
-#' those metadata: \code{"DP", "AD", "GL", "PL"}. If you need different one, submit
-#' a request.
+#' @param vcf.metadata (optional, logical or string) For VCF files only.
+#' With \code{logical, TRUE/FALSE}, \code{vcf.metadata = FALSE}, only the genotype
+#' information is kept (GT field). With \code{vcf.metadata = TRUE},
+#' all the metadata contained in the \code{FORMAT} field will be kept in
+#' the tidy data file. stackr is currently keeping/cleaning only these metadata: 
+#' \code{"DP", "AD", "GL", "PL", "GQ", "GOF", "NR", "NV"}.
+#' If you need different one, submit a request.
+#' With \code{string}, explicitely ask for a particular FORMAT field you want
+#' to keep (except the GT field that is always imported).
+#' e.g. \code{vcf.metadata = "PL"} or \code{vcf.metadata = c("DP", "GL")}.
+#' Default: \code{vcf.metadata = FALSE}.
 
 #' @param whitelist.markers (optional) A whitelist containing CHROM (character
 #' or integer) and/or LOCUS (integer) and/or
@@ -152,9 +157,14 @@
 #' Default: \code{filename = NULL}, the tidy data is 
 #' in the global environment only (i.e. not written in the working directory).
 
+#' @param parallel.core (optional) The number of core used for parallel
+#' execution during vcf import.
+#' Default: \code{parallel::detectCores() - 1}.
+
+
 #' @param verbose (optional, logical) When \code{verbose = TRUE} 
 #' the function is a little more chatty during execution.
-#' Default: \code{verbose = FALSE}.
+#' Default: \code{verbose = TRUE}.
 
 
 #' @details 
@@ -252,6 +262,8 @@
 #' @importFrom readr write_tsv read_tsv
 #' @importFrom vcfR read.vcfR extract.gt vcf_field_names
 #' @importFrom tibble as_data_frame has_name
+#' @importFrom parallel detectCores
+#' @importFrom pegas VCFloci read.vcf
 
 #' @examples
 #' \dontrun{
@@ -301,7 +313,7 @@
 
 tidy_genomic_data <- function(
   data, 
-  vcf.metadata = TRUE,
+  vcf.metadata = FALSE,
   whitelist.markers = NULL,
   monomorphic.out = TRUE,
   blacklist.genotype = NULL,
@@ -318,7 +330,8 @@ tidy_genomic_data <- function(
   strata = NULL,
   pop.select = NULL,
   filename = NULL,
-  verbose = FALSE
+  parallel.core = parallel::detectCores() - 1,
+  verbose = TRUE
 ) {
   
   if (verbose) {
@@ -391,8 +404,17 @@ tidy_genomic_data <- function(
       whitelist.markers <- dplyr::select(.data = whitelist.markers, LOCUS)
       columns.names.whitelist <- colnames(whitelist.markers)
     }
+    nrow.before <- nrow(whitelist.markers)
+    whitelist.markers <- dplyr::distinct(whitelist.markers)
+    nrow.after <- nrow(whitelist.markers)
+    duplicate.whitelist.markers <- nrow.before - nrow.after
+    if (duplicate.whitelist.markers > 0) {
+      message("Whitelist of markers with ", duplicate.whitelist.markers, " duplicated identifiers...")
+      message("    Creating unique whitelist")
+      message("    Warning: downstream results might be impacted by this, check how you made your VCF file...")
+    }
+    nrow.before <- nrow.after <- duplicate.whitelist.markers <- NULL
   }
-  
   # Import blacklist id --------------------------------------------------------
   if (!is.null(blacklist.id)) {# With blacklist of ID
     if (is.vector(blacklist.id)) {
@@ -410,6 +432,10 @@ tidy_genomic_data <- function(
       replacement = c("-", "-"), 
       vectorize_all = FALSE
     )
+    
+    # remove potential duplicate id
+    blacklist.id <- dplyr::distinct(.data = blacklist.id, INDIVIDUALS)
+    message("Number of individuals in blacklist: ", nrow(blacklist.id))
   }
   
   # population levels and strata------------------------------------------------
@@ -443,105 +469,237 @@ tidy_genomic_data <- function(
   if (data.type == "vcf.file") { # VCF
     if (verbose) message("Importing and tidying the VCF...")
     
-    # import vcf
-    suppressMessages(
-      vcf.data <- vcfR::read.vcfR(
-        file = data,
-        verbose = FALSE
-      )
-    )
-    
-    # change names of columns and CHROM column modif
-    input <- tibble::as_data_frame(vcf.data@fix) %>%
-      dplyr::select(-QUAL, -FILTER, -INFO) %>%
-      dplyr::rename(LOCUS = ID) %>% 
-      dplyr::mutate(
-        CHROM = stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1")
-      )
-    
-    # GATK VCF file sometimes have "." in the LOCUS column, replace with 1
-    if (length(unique(input$LOCUS)) <= 1) {
-      input$LOCUS <- input$CHROM
+    if (is.logical(vcf.metadata) && !vcf.metadata) {
+      import.pegas <- TRUE
+    } else {
+      import.pegas <- FALSE
     }
     
-    # Isolate the fix section of vcf
+    # import vcf with pegas (fastest, but only GT no metadata)
+    if (import.pegas) {
+      # change names of columns and CHROM column modif
+      input <- pegas::VCFloci(file = data, quiet = verbose) %>%
+        dplyr::select(-QUAL, -INFO, -FORMAT) %>%
+        dplyr::rename(LOCUS = ID) %>% 
+        dplyr::mutate(
+          CHROM = stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1")
+        ) %>% 
+        dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
+        tibble::rownames_to_column(df = ., var = "KEEP") %>% 
+        dplyr::mutate(KEEP = as.integer(KEEP))
+    } else {# import with vcfR
+      suppressMessages(vcf.data <- vcfR::read.vcfR(file = data, verbose = FALSE))
+      input <- tibble::as_data_frame(vcf.data@fix) %>%
+        dplyr::select(-QUAL, -INFO) %>%
+        dplyr::rename(LOCUS = ID) %>% 
+        dplyr::mutate(
+          CHROM = stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1")
+        ) %>%
+        tibble::rownames_to_column(df = ., var = "KEEP") %>%
+        dplyr::mutate(KEEP = as.integer(KEEP))
+    }
+    
+    # Check for duplicate indentifiers
+    duplicate.markers <- nrow(input) - nrow(dplyr::distinct(input, CHROM, LOCUS, POS))
+    
+    if (duplicate.markers > 0) {
+      duplicate.markers <- input %>% 
+        dplyr::group_by(CHROM, LOCUS, POS) %>% 
+        dplyr::tally(.) %>% 
+        dplyr::filter(n > 1) %>% 
+        dplyr::arrange(CHROM, LOCUS, POS)
+      readr::write_tsv(x = duplicate.markers, path = "duplicated.markers.tsv")
+      stop("VCF file contains duplicated CHROM, ID and POS\n
+             A file named: duplicated.markers.tsv was written in the directory")
+    }
+    
+    # Filter with whitelist of markers and FILTER column
+    if (!is.null(whitelist.markers)) {
+      message("Filtering: ", nrow(whitelist.markers), " markers in whitelist")
+      input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
+    }
+    
+    # Scan and filter with FILTER column
+    filter.check <- dplyr::distinct(input, FILTER)
+    
+    if (nrow(filter.check > 1)) {
+      message("Filtering markers based on VCF FILTER column")
+      nrow.before <- nrow(input)
+      input <- dplyr::filter(input, FILTER %in% "PASS")
+      message("    Number of markers removed that didn't PASS the filter: ", nrow.before - nrow(input))
+    }
+    
+    # GATK VCF file sometimes have "." in the LOCUS column: replace by CHROM
+    # platypus VCF file sometimes have NA in LOCUS column: replace by POS
+    weird.locus <- unique(input$LOCUS)
+    if (length(weird.locus) <= 1) {
+      if (is.na(weird.locus)) {
+        input$LOCUS <- input$POS
+      } else {
+        input$LOCUS <- input$CHROM
+      }
+    }
+    weird.locus <- NULL #unused object
+    
     input <- input %>% 
       dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>% 
       tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
     
+    # keep vector
+    keep.markers <- dplyr::select(input, KEEP) %>%
+      dplyr::arrange(KEEP) %>% 
+      purrr::flatten_int(.)
     
-    # nested function to parse the format field and tidy the results
-    parse_genomic <- function(x, gather.data = FALSE) {
-      format.name <- x
-      if (verbose) message("Parsing and tidying: ", format.name)
-      x <- tibble::as_data_frame(vcfR::extract.gt(
-        x = vcf.data,
-        element = x,
-        IDtoRowNames = FALSE, convertNA = FALSE))
-      
-      if (gather.data) {
-        x <- dplyr::mutate(x, ID = seq(1, n()))
-        x <- data.table::melt.data.table(
-          data = data.table::as.data.table(x), 
-          id.vars = c("ID"), 
-          variable.name = "INDIVIDUALS",
+    # import genotypes
+    if (import.pegas) {
+      input.gt <- pegas::read.vcf(file = data, which.loci = keep.markers, quiet = verbose) %>%
+        `colnames<-`(input$MARKERS) %>% 
+        tibble::rownames_to_column(., var = "INDIVIDUALS") %>%
+        data.table::as.data.table(.) %>% 
+        data.table::melt.data.table(
+          data = ., 
+          id.vars = "INDIVIDUALS", 
+          variable.name = "MARKERS",
           variable.factor = FALSE,
-          value.name = format.name
+          value.name = as.character("GT")
         ) %>% 
-          tibble::as_data_frame() %>% 
-          dplyr::select(-ID, -INDIVIDUALS)
-      }
-      return(x)
-    }#End parse_genomic
-    
-    # GT field only
-    input <- dplyr::bind_cols(
-      input,
-      purrr::map(.x = list("GT"), parse_genomic) %>% 
-        dplyr::bind_cols(.)
-    )
-    input <- data.table::melt.data.table(
-      data = data.table::as.data.table(input), 
-      id.vars = c("MARKERS", "CHROM", "LOCUS", "POS", "REF", "ALT"), 
-      variable.name = "INDIVIDUALS",
-      variable.factor = FALSE,
-      value.name = "GT"
-    ) %>% 
-      tibble::as_data_frame()
-    
-    
-    
-    # metadata
-    if (vcf.metadata) {
-      if (verbose) message("Keeping vcf metadata: yes")
-      # detect FORMAT fields available
-      have <- suppressWarnings(vcfR::vcf_field_names(vcf.data, tag = "FORMAT")$ID)
-      # current version doesn't deal well with PL with 3 fields separated with ","
-      want <- c("DP", "AD", "GL", "PL")
-      parse.format.list <- purrr::keep(.x = have, .p = have %in% want)
+        tibble::as_data_frame(.)
       
-      input <- dplyr::bind_cols(
-        input, 
-        purrr::map(parse.format.list, parse_genomic, gather.data = TRUE) %>% 
-          dplyr::bind_cols(.))
+      # input.gt <- pegas::read.vcf(file = data, from = 1, to = nrow(input), quiet = FALSE) %>%
+      #   `colnames<-`(input$MARKERS)
+      
+      input <- dplyr::full_join(input.gt, input, by = "MARKERS") %>%
+        dplyr::select(MARKERS, CHROM, LOCUS, POS, REF, ALT, INDIVIDUALS, GT) %>% 
+        dplyr::mutate(INDIVIDUALS = stringi::stri_replace_all_fixed(
+          str = INDIVIDUALS, 
+          pattern = c("_", ":"), 
+          replacement = c("-", "-"), 
+          vectorize_all = FALSE)
+        )
+      
+      input.gt <- filter.check <- NULL
     } else {
-      if (verbose) message("Keeping vcf metadata: no")
+      # filter the vcf.data
+      vcf.data <- vcf.data[keep.markers,]
+      input <- dplyr::select(
+        .data = input,
+        MARKERS, CHROM, LOCUS, POS, REF, ALT)
+        
+      filter.check <- NULL
     }
     
-    vcf.data <- NULL
+    # bi- or multi-alllelic VCF
+    alt.num <- max(unique(
+      stringi::stri_count_fixed(str = unique(input$ALT), pattern = ","))) + 1
     
-    # Filter with whitelist of markers
-    if (!is.null(whitelist.markers)) {
-      input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
+    if (alt.num > 1) {
+      biallelic <- FALSE
+    } else {
+      biallelic <- TRUE
     }
     
-    # Clean the individuals names
-    input$INDIVIDUALS <- stringi::stri_replace_all_fixed(
-      str = input$INDIVIDUALS, 
-      pattern = c("_", ":"), 
-      replacement = c("-", "-"), 
-      vectorize_all = FALSE
-    )
+    if (!import.pegas) {
+      # nested function to parse the format field and tidy the results
+      parse_genomic <- function(
+        x, data = vcf.data, mask = FALSE, gather.data = FALSE, return.alleles = FALSE) {
+        format.name <- x
+        if (verbose) message("Parsing and tidying: ", format.name)
+        x <- tibble::as_data_frame(vcfR::extract.gt(
+          x = data, element = x, mask = mask, return.alleles = return.alleles,
+          IDtoRowNames = FALSE, convertNA = FALSE))
+        
+        if (format.name == "GT") {
+          colnames(x) <- stringi::stri_replace_all_fixed(
+            str = colnames(x), 
+            pattern = c("_", ":"), 
+            replacement = c("-", "-"), 
+            vectorize_all = FALSE
+          )
+        }
+        
+        if (gather.data) {
+          x <- dplyr::mutate(x, ID = seq(1, n()))
+          x <- data.table::melt.data.table(
+            data = data.table::as.data.table(x), 
+            id.vars = c("ID"), 
+            variable.name = "INDIVIDUALS",
+            variable.factor = FALSE,
+            value.name = format.name
+          ) %>% 
+            tibble::as_data_frame() %>% 
+            dplyr::select(-ID, -INDIVIDUALS)
+        }
+        return(x)
+      }#End parse_genomic
+      
+      # GT field only
+      if (biallelic) {
+        input <- dplyr::bind_cols(input, parse_genomic(x = "GT"))
+      } else {#multi-allelic
+        input <- dplyr::bind_cols(
+          input,
+          parse_genomic(x = "GT", return.alleles = TRUE))
+      }
+      
+      input <- data.table::melt.data.table(
+        data = data.table::as.data.table(input), 
+        id.vars = c("MARKERS", "CHROM", "LOCUS", "POS", "REF", "ALT"), 
+        variable.name = "INDIVIDUALS",
+        variable.factor = FALSE,
+        value.name = "GT"
+      ) %>% 
+        tibble::as_data_frame()
+      
+      # metadata
+      if (is.logical(vcf.metadata)) {
+        overwrite.metadata <- NULL
+      } else {
+        overwrite.metadata <- vcf.metadata
+        vcf.metadata <- TRUE
+      }
+      
+      if (vcf.metadata) {
+        if (verbose) message("Keeping vcf metadata: yes")
+        # detect FORMAT fields available
+        have <- suppressWarnings(vcfR::vcf_field_names(vcf.data, tag = "FORMAT")$ID)
+        # current version doesn't deal well with PL with 3 fields separated with ","
+        want <- c("DP", "AD", "GL", "PL", "GQ", "GOF", "NR", "NV")
+        if (!is.null(overwrite.metadata)) want <- overwrite.metadata
+        parse.format.list <- purrr::keep(.x = have, .p = have %in% want)
+        
+        # work on parallelization of this part
+        # if (length(parse.format.list) <= 2) {
+        input <- dplyr::bind_cols(
+          input, 
+          purrr::map(parse.format.list, parse_genomic, data = vcf.data, gather.data = TRUE) %>% 
+            dplyr::bind_cols(.))
+        
+        # some VCF are too big to fit in memory multiple times for parallel processing...
+        # } else {
+        # if (length(parse.format.list) < parallel.core) {
+        # parallel.core.parse <- length(parse.format.list)
+        # } else {
+        # parallel.core.parse <- parallel.core
+        # }
+        #   if (verbose) message("Parsing and tidying: ", stringi::stri_join(parse.format.list, collapse = ", "))
+        #   parsed.format <- list()
+        #   parsed.format <- .stackr_parallel(
+        #   # parsed.format <- parallel::mclapply(
+        #     X = parse.format.list,
+        #     FUN = parse_genomic,
+        #     mc.cores = parallel.core.parse,
+        #     data = vcf.data,
+        #     gather.data = TRUE
+        #   ) %>% dplyr::bind_cols(.)
+        #   input <- dplyr::bind_cols(input, parsed.format)
+        #   parsed.format <- NULL
+        # }
+      } else {
+        if (verbose) message("Keeping vcf metadata: no")
+      }
+      vcf.data <- NULL
+    }#End vcfR GT and metadata import
+    
     
     # Population levels and strata
     if (verbose) message("Making the vcf population-wise...")
@@ -555,12 +713,8 @@ tidy_genomic_data <- function(
     # Filter blacklisted individuals
     if (!is.null(blacklist.id)) {
       input <- dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS")
-      # n_distinct(input$INDIVIDUALS)
-      
       strata.df <- dplyr::anti_join(strata.df, blacklist.id, by = "INDIVIDUALS")
     }
-    
-    
     
     # check that names match between strata.df and input before going further
     if (!identical(sort(unique(input$INDIVIDUALS)), sort(unique(strata.df$INDIVIDUALS)))) {
@@ -579,140 +733,175 @@ tidy_genomic_data <- function(
       input$POP_ID <- droplevels(input$POP_ID)
     }
     
-    
-    # check, parse and cleane FORMAT columns
-    if (vcf.metadata) {
-      # Detect the columns that need a check, parsing and cleaning
-      have <- colnames(input)
-      want <- c("DP", "AD", "GL", "PL")
-      clean.columns <- purrr::keep(.x = have, .p = have %in% want)
-      
-      # Fast cleaning columns
-      replace_by_na <- function(data) {
-        replace(data, which(data == "."), NA)
-      }
-      
-      input <-  dplyr::mutate_at(
-        .tbl = input, 
-        .cols = clean.columns, 
-        .funs =  replace_by_na
-      )
-      
-      # Cleaning AD (ALLELES_DEPTH)
-      if (tibble::has_name(input, "AD")) {
-        # if (length(unlist(stringi::stri_extract_all_fixed(str = format.headers, pattern = "AD", omit_no_match = TRUE))) > 0) {
-        if (verbose) message("AD column: splitting coverage info into ALLELE_REF_DEPTH and ALLELE_ALT_DEPTH")
-        input <- input %>%
-          dplyr::mutate(AD = dplyr::if_else(GT == "./.", NA_character_, AD)) %>% 
-          tidyr::separate(AD, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"), sep = ",", extra = "drop") %>% 
-          dplyr::mutate(
-            ALLELE_REF_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(ALLELE_REF_DEPTH, "^0$", "NA", vectorize_all = TRUE))),
-            ALLELE_ALT_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(ALLELE_ALT_DEPTH, "^0$", "NA", vectorize_all = TRUE)))
-            # dplyr::mutate coverage ratio for allelic imbalance
-            # ALLELE_COVERAGE_RATIO = suppressWarnings(
-            # as.numeric(ifelse(GT == "./." | GT == "0/0" | GT == "1/1", "NA",
-            # ((ALLELE_ALT_DEPTH - ALLELE_REF_DEPTH)/(ALLELE_ALT_DEPTH + ALLELE_REF_DEPTH)))))
-          )
-      } # end cleaning AD column
-      
-      # Cleaning DP and changing name to READ_DEPTH
-      if (tibble::has_name(input, "DP")) {
-        if (verbose) message("DP column: cleaning and renaming to READ_DEPTH")
-        input <- dplyr::rename(.data = input, READ_DEPTH = DP) %>% 
-          dplyr::mutate(
-            READ_DEPTH = dplyr::if_else(GT == "./.", as.numeric(NA_character_), as.numeric(READ_DEPTH))
-          )
-        # READ_DEPTH = suppressWarnings(as.numeric(stringi::stri_replace_all_regex(READ_DEPTH, "^0$", "NA", vectorize_all = FALSE))),
-      }
-      
-      
-      # PL for biallelic as 3 values:
-      if (tibble::has_name(input, "PL")) {
-        if (verbose) message("PL column (normalized, phred-scaled likelihoods for genotypes): separating into PROB_HOM_REF, PROB_HET and PROB_HOM_ALT")
-        # Value 1: probability that the site is homozgyous REF
-        # Value 2: probability that the sample is heterzygous
-        # Value 2: probability that it is homozygous ALT
-        input <- input %>% 
-          dplyr::mutate(PL = dplyr::if_else(GT == "./.", NA_character_, PL)) %>% 
-          tidyr::separate(data = ., PL, c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"), sep = ",", extra = "drop", remove = FALSE) %>%
-          dplyr::mutate_at(.tbl = ., .cols = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"), .funs = as.numeric) 
-      }
-      
-      # GL cleaning
-      if (tibble::has_name(input, "GL")) {
-        if (verbose) message("GL column: cleaning Genotype Likelihood column")
-        input <- input %>% 
-          dplyr::mutate(
-            GL = dplyr::if_else(GT == "./.", NA_character_, GL),
-            GL = suppressWarnings(as.numeric(stringi::stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all = FALSE)))
-          )
-      } # end cleaning GL column
-      
-      # GQ
-      if (tibble::has_name(input, "GQ")) {
-        if (verbose) message("GQ column: Genotype Quality")
-        input <- dplyr::mutate(
-          input, 
-          GQ = dplyr::if_else(GT == "./.", as.numeric(NA_character_), as.numeric(GQ))
-        )
-      }
-    }# end cleaning columns
-    
     # Haplotypes or biallelic VCF----------------------------------------------
+    
     # recoding genotype
-    if (length(unique(input$GT)) > 5) {#haplotype vcf
-      input <- input %>%
-        dplyr::mutate(
-          GT_VCF = GT,
-          GT = stringi::stri_replace_all_fixed(str = GT, pattern = "./.", replacement = "-1/-1", vectorize_all = FALSE)
-        ) %>% 
-        tidyr::separate(data = ., col = GT, into = c("A1", "A2"), sep = "/", remove = TRUE, extra = "drop") %>% 
-        dplyr::mutate(
-          A1 = as.numeric(A1),
-          A2 = as.numeric(A2),
-          A1 = A1 + 1,
-          A2 = A2 + 1,
-          A1 = stringi::stri_pad_left(str = A1, pad = "0", width = 3),
-          A2 = stringi::stri_pad_left(str = A2, pad = "0", width = 3),
-          GT_BIN = rep(NA, n())
-        ) %>% 
-        tidyr::unite(data = ., GT, A1, A2, sep = "") %>% 
-        tibble::as_data_frame()
+    if (biallelic) {# biallelic VCF
+      message("Converting bi-allelic VCF coding...")
+      n.row <- nrow(input)
+      # as.integer is usually twice as light as numeric vector...
+      split.vec <- as.integer(floor((parallel.core * 3 * (1:n.row - 1) / n.row) + 1))
+      n.row <- NULL
       
-      biallelic <- FALSE # for other part of the script
+      biallelic2integers <- function(x) {
+        res <- x %>%
+          dplyr::mutate(
+            REF2 = stringi::stri_replace_all_fixed(
+              str = REF, 
+              pattern = c("A", "C", "G", "T"), 
+              replacement = c("001", "002", "003", "004"), 
+              vectorize_all = FALSE
+            ), # replace nucleotide with numbers
+            ALT2 = stringi::stri_replace_all_fixed(
+              str = ALT, pattern = c("A", "C", "G", "T"), 
+              replacement = c("001", "002", "003", "004"), 
+              vectorize_all = FALSE
+            ),# replace nucleotide with numbers
+            # Replace phased info to the regular unphased GT, not useful here
+            GT = stringi::stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
+            GT_VCF = GT,
+            # Experimental (for genlight object)
+            GT_BIN = as.numeric(stringi::stri_replace_all_fixed(
+              str = GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."),
+              replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE
+            )),
+            GT = dplyr::if_else(GT == "0/0", stringi::stri_join(REF2, REF2, sep = ""),
+                                dplyr::if_else(GT == "1/1", stringi::stri_join(ALT2, ALT2, sep = ""),
+                                               dplyr::if_else(GT == "0/1", stringi::stri_join(REF2, ALT2, sep = ""),
+                                                              dplyr::if_else(GT == "1/0", stringi::stri_join(ALT2, REF2, sep = ""),
+                                                                             dplyr::if_else(GT == "./.", "000000", GT)))))
+          ) %>% 
+          dplyr::select(-REF2, -ALT2) %>% 
+          tibble::as_data_frame()
+        return(res)
+      }#End biallelic2integers
       
-    } else {#biallelic vcf
-      input <- input %>%
-        dplyr::mutate(
-          REF2 = stringi::stri_replace_all_fixed(
-            str = REF, 
-            pattern = c("A", "C", "G", "T"), 
-            replacement = c("001", "002", "003", "004"), 
-            vectorize_all = FALSE
-          ), # replace nucleotide with numbers
-          ALT2 = stringi::stri_replace_all_fixed(
-            str = ALT, pattern = c("A", "C", "G", "T"), 
-            replacement = c("001", "002", "003", "004"), 
-            vectorize_all = FALSE
-          ),# replace nucleotide with numbers
-          # Replace phased info to the regular unphased GT, not useful here
-          GT = stringi::stri_replace_all_fixed(str = GT, pattern = "|", replacement = "/", vectorized_all = FALSE),
-          GT_VCF = GT,
-          # Experimental (for genlight object)
-          GT_BIN = as.numeric(stringi::stri_replace_all_fixed(
-            str = GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."),
-            replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE
-          )),
-          GT = dplyr::if_else(GT == "0/0", stringi::stri_join(REF2, REF2, sep = ""),
-                              dplyr::if_else(GT == "1/1", stringi::stri_join(ALT2, ALT2, sep = ""),
-                                             dplyr::if_else(GT == "0/1", stringi::stri_join(REF2, ALT2, sep = ""),
-                                                            dplyr::if_else(GT == "1/0", stringi::stri_join(ALT2, REF2, sep = ""),
-                                                                           dplyr::if_else(GT == "./.", "000000", GT)))))
+      input <- dplyr::bind_cols(
+        dplyr::select(input, -c(REF, ALT, GT)),
+        dplyr::select(input, REF, ALT, GT) %>%
+          split(x = ., f = split.vec) %>% 
+          .stackr_parallel(
+            # parallel::mclapply(
+            X = .,
+            FUN = biallelic2integers,
+            mc.cores = parallel.core
+          ) %>%
+          dplyr::bind_rows(.))
+      split.vec <- NULL
+    } else {#multi-allelic vcf
+      message("Converting VCF haplotype coding...")
+      # haplotype conversion to integer
+      haplo2integers <- function(x) {
+        res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>%
+          dplyr::filter(GT_VCF_NUC != "./.") %>% 
+          tidyr::separate(col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/") %>% 
+          tidyr::gather(data = ., key = ALLELES_GROUP, value = ALLELES, -MARKERS) %>% 
+          dplyr::select(-ALLELES_GROUP) %>%
+          dplyr::group_by(MARKERS, ALLELES) %>% 
+          dplyr::tally(.) %>% 
+          dplyr::arrange(-n) %>% 
+          dplyr::mutate(INTEGERS = seq(0, n() - 1)) %>%
+          dplyr::select(-n) %>% 
+          dplyr::arrange(MARKERS, INTEGERS) %>% 
+          dplyr::ungroup(.)
+        
+        ref.alleles <- res %>%
+          dplyr::filter(INTEGERS == 0) %>% 
+          dplyr::mutate(REF = ALLELES) %>% 
+          dplyr::distinct(MARKERS, REF)
+        
+        alt.alleles <- res %>%
+          dplyr::filter(INTEGERS != 0) %>%
+          dplyr::group_by(MARKERS) %>% 
+          dplyr::mutate(ALT = stringi::stri_join(ALLELES, collapse = ",")) %>%
+          dplyr::ungroup(.) %>% 
+          dplyr::distinct(MARKERS, ALT)
+        
+        res <- dplyr::left_join(
+          res,
+          dplyr::left_join(ref.alleles, alt.alleles, by = "MARKERS")
+          , by = "MARKERS"
         ) %>% 
-        dplyr::select(-REF2, -ALT2) %>% 
-        tibble::as_data_frame()
+          dplyr::arrange(MARKERS, INTEGERS)
+        return(res)
+      }#End haplo2integers
       
-      biallelic <- TRUE # for other part of the script
+      # split data for 3 rounds of CPU
+      # to work, same markers in same split...
+      
+      haplo.conversion <- dplyr::select(input, MARKERS, GT_VCF_NUC = GT) %>%
+        dplyr::left_join(
+          dplyr::distinct(input, MARKERS) %>%
+            dplyr::mutate(
+              SPLIT_VEC = dplyr::ntile(x = 1:nrow(.), n = parallel.core * 3))
+          , by = "MARKERS") %>% 
+        split(x = ., f = .$SPLIT_VEC) %>% 
+        .stackr_parallel(
+          # parallel::mclapply(
+          X = .,
+          FUN = haplo2integers,
+          mc.cores = parallel.core
+        ) %>%
+        dplyr::bind_rows(.)
+      
+      # if monomorphic markers, ALT column will have NA: check and tag
+      if (anyNA(haplo.conversion)) {
+        # fill ALT with REF
+        haplo.conversion <- dplyr::bind_rows(
+          dplyr::filter(haplo.conversion, is.na(ALT)) %>% 
+            dplyr::mutate(
+              ALT = REF,
+              POLYMORPHIC = rep(FALSE, n())),
+          dplyr::filter(haplo.conversion, !is.na(ALT)) %>% 
+            dplyr::mutate(POLYMORPHIC = rep(TRUE, n()))) %>% 
+          dplyr::arrange(MARKERS, INTEGERS)
+      }
+      
+      ref.alt.mono <- dplyr::distinct(haplo.conversion, MARKERS, REF, ALT, POLYMORPHIC)
+      haplo.conversion <- dplyr::select(haplo.conversion, MARKERS, ALLELES, INTEGERS)
+      
+      input <- dplyr::select(input, -c(REF, ALT)) %>% 
+        dplyr::left_join(ref.alt.mono, by = "MARKERS") %>% 
+        dplyr::rename(GT_VCF_NUC = GT)
+      
+      ref.alt.mono <- NULL
+      
+      haplo2gt <- function(x, conversion.data = NULL) {
+        res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>% 
+          tidyr::separate(data = ., col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/", remove = FALSE) %>%
+          dplyr::left_join(dplyr::rename(conversion.data, A1 = ALLELES), by = c("MARKERS", "A1")) %>% 
+          dplyr::rename(A1_NUC = INTEGERS) %>% 
+          dplyr::left_join(dplyr::rename(conversion.data, A2 = ALLELES), by = c("MARKERS", "A2")) %>% 
+          dplyr::rename(A2_NUC = INTEGERS) %>%
+          dplyr::mutate(
+            GT_VCF = stringi::stri_join(A1_NUC, A2_NUC, sep = "/"),
+            A1_NUC = as.character(A1_NUC + 1),
+            A2_NUC = as.character(A2_NUC + 1),
+            A1_NUC = stringi::stri_pad_left(str = A1_NUC, pad = "0", width = 3),
+            A2_NUC = stringi::stri_pad_left(str = A2_NUC, pad = "0", width = 3)
+          ) %>% 
+          tidyr::unite(data = ., col = GT, A1_NUC, A2_NUC, sep = "") %>% 
+          dplyr::select(-A1, -A2)
+        return(res)
+      }
+      
+      # apply the conversion of haplo to gt in parallel
+      
+      haplo.gt <- dplyr::distinct(input, MARKERS, GT_VCF_NUC) %>%
+        dplyr::mutate(SPLIT_VEC = dplyr::ntile(x = 1:nrow(.), n = parallel.core * 3)) %>% 
+        split(x = ., f = .$SPLIT_VEC) %>% 
+        .stackr_parallel(
+          # parallel::mclapply(
+          X = .,
+          FUN = haplo2gt,
+          mc.cores = parallel.core,
+          conversion.data = haplo.conversion
+        ) %>%
+        dplyr::bind_rows(.)
+      
+      input <- dplyr::left_join(input, haplo.gt, by = c("MARKERS", "GT_VCF_NUC")) %>%
+        dplyr::mutate(GT_BIN = as.numeric(rep(NA, n())))
+      haplo.gt <- haplo.conversion <- NULL
     }
     
     # re-computing the REF/ALT allele
@@ -725,16 +914,13 @@ tidy_genomic_data <- function(
     }# end re-computing the REF/ALT allele
     
     # Re ordering columns
-    if (vcf.metadata) {
-      # Re order columns
-      common.colnames <- c("MARKERS", "CHROM", "LOCUS", "POS", "POP_ID", "INDIVIDUALS", "GT_VCF", "GT_BIN", "REF", "ALT")
-      vcf.headers <- colnames(input)
-      metadata.colnames <- purrr::discard(.x = colnames(input), .p = vcf.headers %in% common.colnames)
-      input <- input[c(common.colnames, metadata.colnames)]
-      
-    } else {
-      input <- input %>% dplyr::select(MARKERS, CHROM, LOCUS, POS, POP_ID, INDIVIDUALS, GT_VCF, GT_BIN, REF, ALT, GT)
-    }
+    want <- c("MARKERS", "CHROM", "LOCUS", "POS", "INDIVIDUALS", "POP_ID",
+              "REF", "ALT", "GT_VCF", "GT_VCF_NUC", "GT", "GT_BIN",
+              "POLYMORPHIC")
+    
+    input <- suppressWarnings(
+      dplyr::select(input, dplyr::one_of(want), dplyr::everything()))
+    
   } # End import VCF
   
   # Import PLINK ---------------------------------------------------------------
@@ -929,7 +1115,7 @@ tidy_genomic_data <- function(
   # Import DF-------------------------------------------------------------------
   if (data.type == "tbl_df") { # DATA FRAME OF GENOTYPES
     if (verbose) message("Importing the data frame ...")
-    input <- stackr::tidy_wide(data = data, import.metadata = vcf.metadata)
+    input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
     
     # For long tidy format, switch LOCUS to MARKERS column name, if found MARKERS not found
     if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
@@ -1527,9 +1713,26 @@ tidy_genomic_data <- function(
         dplyr::mutate(ERASE = stringi::stri_replace_na(str = ERASE, replacement = "ok"))
     )
     
-    input <- input %>% 
-      dplyr::mutate(GT = ifelse(ERASE == "erase", "000000", GT)) %>% 
-      dplyr::select(-ERASE)
+    input <- dplyr::mutate(
+      input, GT = dplyr::if_else(ERASE == "erase", "000000", GT))
+    
+    if (tibble::has_name(input, "GT_VCF")) {
+      input <- dplyr::mutate(
+        input, GT_VCF = dplyr::if_else(ERASE == "erase", "./.", GT_VCF))
+    }
+    
+    if (tibble::has_name(input, "GT_VCF_NUC")) {
+      input <- dplyr::mutate(
+        input, GT_VCF_NUC = dplyr::if_else(ERASE == "erase", "./.", GT_VCF_NUC))
+    }
+    
+    if (tibble::has_name(input, "GT_BIN")) {
+      input <- dplyr::mutate(
+        input, GT_BIN = dplyr::if_else(ERASE == "erase",
+                                       as.numeric(NA_character_), GT_BIN))
+    }
+    
+    input <- dplyr::select(input, -ERASE)
   } # End erase genotypes
   
   # dump unused object
@@ -1539,8 +1742,9 @@ tidy_genomic_data <- function(
   if (!is.null(snp.ld)) {
     if (!tibble::has_name(input, "POS")) {
       stop("snp.ld is only available for VCF file, use stackr package for 
-             haplotype file and create a whitelist, for other file type, use 
-             PLINK linkage disequilibrium based SNP pruning option")
+           haplotype file and create a whitelist, for other file type, use 
+           SNPRelate package or PLINK linkage disequilibrium based SNP pruning
+           option")
     }
     if (verbose) message("Minimizing LD...")
     snp.locus <- input %>% dplyr::distinct(LOCUS, POS)
@@ -1550,7 +1754,12 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         sample_n(size = 1, replace = FALSE)
-      message("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS))
+      message(
+        "Number of original SNP = ",
+        dplyr::n_distinct(snp.locus$POS), "\n", 
+        "Number of SNP randomly selected to keep 1 SNP per read/haplotype = ",
+        dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ",
+        dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS))
     }
     
     # Fist SNP on the read
@@ -1558,7 +1767,12 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         dplyr::summarise(POS = min(POS))
-      message("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS))
+      message(
+        "Number of original SNP = ",
+        dplyr::n_distinct(snp.locus$POS), "\n",
+        "Number of SNP after keeping the first SNP on the read/haplotype = ",
+        dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ",
+        dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS))
     }
     
     # Last SNP on the read
@@ -1566,7 +1780,11 @@ tidy_genomic_data <- function(
       snp.select <- snp.locus %>%
         dplyr::group_by(LOCUS) %>%
         dplyr::summarise(POS = max(POS))
-      message("Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n", "Number of SNP after keeping the first SNP on the read/haplotype = ", dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ", dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS))
+      message(
+        "Number of original SNP = ", dplyr::n_distinct(snp.locus$POS), "\n",
+        "Number of SNP after keeping the first SNP on the read/haplotype = ",
+        dplyr::n_distinct(snp.select$POS), "\n", "Number of SNP removed = ",
+        dplyr::n_distinct(snp.locus$POS) - dplyr::n_distinct(snp.select$POS))
     }
     
     # filtering the VCF to minimize LD
@@ -1603,15 +1821,31 @@ tidy_genomic_data <- function(
   # Removing monomorphic markers------------------------------------------------
   if (monomorphic.out) {
     if (verbose) message("Removing monomorphic markers: yes")
-    mono.out <- stackr::discard_monomorphic_markers(input, verbose = TRUE)
-    mono.markers <- mono.out$blacklist.momorphic.markers
-    if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
-      if (data.type == "haplo.file") {
-        mono.markers <- dplyr::rename(.data = mono.markers, LOCUS = MARKERS)
+    if (tibble::has_name(input, "POLYMORPHIC")) {
+      if (verbose) message("Scanning for monomorphic markers...")
+      if (verbose) message("    Number of markers before = ", dplyr::n_distinct(input$MARKERS))
+      mono.markers <- dplyr::filter(input, !POLYMORPHIC) %>% 
+        dplyr::distinct(MARKERS, CHROM, LOCUS, POS)
+      if (nrow(mono.markers) > 0) {
+        if (verbose) message("    Number of monomorphic markers removed = ", nrow(mono.markers))
+        input <- dplyr::filter(input, POLYMORPHIC)
+        readr::write_tsv(mono.markers, "blacklist.momorphic.markers.tsv")
+        if (verbose) message("    Number of markers after = ", dplyr::n_distinct(input$MARKERS))
       }
-      input <- mono.out$input
-      readr::write_tsv(mono.markers, "blacklist.momorphic.markers.tsv")
+      input <- dplyr::select(input, -POLYMORPHIC)
+    } else {
+      mono.out <- stackr::discard_monomorphic_markers(input, verbose = TRUE)
+      mono.markers <- mono.out$blacklist.momorphic.markers
+      if (dplyr::n_distinct(mono.markers$MARKERS) > 0) {
+        if (data.type == "haplo.file") {
+          mono.markers <- dplyr::rename(.data = mono.markers, LOCUS = MARKERS)
+        }
+        input <- mono.out$input
+        readr::write_tsv(mono.markers, "blacklist.momorphic.markers.tsv")
+      }
+      mono.out <- NULL
     }
+    mono.markers <- NULL
   } # End monomorphic out
   
   # Minor Allele Frequency filter ----------------------------------------------
@@ -1629,6 +1863,249 @@ tidy_genomic_data <- function(
     # maf.data <- maf.info$maf.data
     maf.info <- NULL
   } # End of MAF filters
+  
+  # More VCF cleaning here -----------------------------------------------------
+  # check, parse and clean FORMAT columns
+  # Note to myself: why not do this at the same time as importing from vcf object?
+  # Some software that produce vcf do strange thing and don't follow convention
+  # You need the GT field to clean correctly the remaining fields...
+  
+  if (vcf.metadata) {
+    # save.image("testing.haplo.RData")
+    
+    # for parallel cleaning
+    # system.time(split.vec <- dplyr::ntile(x = 1:nrow(input), n = parallel.core * 3))
+    n.row <- nrow(input)
+    # as.integer is usually twice as light as numeric vector...
+    split.vec <- as.integer(floor((parallel.core * 3 * (1:n.row - 1) / n.row) + 1))
+    n.row <- NULL
+    
+    # chunk <- parallel.core * 3
+    # num.row <- nrow(input)
+    # split.vec <- rep(1:ceiling(num.row/chunk), each = chunk)[1:num.row]
+    
+    # Detect the columns that need a check, parsing and cleaning
+    # have <- colnames(input)
+    # want <- c("DP", "AD", "GL", "PL", "GQ", "GOF", "NR", "NV")
+    # clean.columns <- purrr::keep(.x = have, .p = have %in% want)
+    
+    # Fast cleaning columns
+    replace_by_na <- function(data, what = ".") {
+      replace(data, which(data == what), NA)
+    }
+    
+    input <-  dplyr::mutate_at(
+      .tbl = input, .cols = parse.format.list, .funs =  replace_by_na)
+    
+    # Cleaning AD (ALLELES_DEPTH)
+    if (tibble::has_name(input, "AD")) {
+      
+      if (verbose) message("AD column: splitting coverage info into ALLELE_REF_DEPTH and ALLELE_ALT_DEPTH")
+      
+      clean_ad <- function(x) {
+        res <- suppressWarnings(
+          x %>%
+            dplyr::mutate(
+              AD = dplyr::if_else(GT == "./.", NA_character_, AD)) %>% 
+            tidyr::separate(AD, c("ALLELE_REF_DEPTH", "ALLELE_ALT_DEPTH"),
+                            sep = ",", extra = "drop") %>% 
+            dplyr::mutate(
+              ALLELE_REF_DEPTH = as.numeric(
+                stringi::stri_replace_all_regex(
+                  ALLELE_REF_DEPTH, "^0$", "NA", vectorize_all = TRUE)),
+              ALLELE_ALT_DEPTH = as.numeric(
+                stringi::stri_replace_all_regex(
+                  ALLELE_ALT_DEPTH, "^0$", "NA", vectorize_all = TRUE))
+            )
+        )
+        return(res)
+      }#End clean_ad
+      
+      input <- dplyr::bind_cols(
+        input,
+        dplyr::ungroup(input) %>%
+          dplyr::select(AD) %>%
+          split(x = ., f = split.vec) %>% 
+          .stackr_parallel(
+            # parallel::mclapply(
+            X = ., FUN = clean_ad, mc.cores = parallel.core) %>%
+          dplyr::bind_rows(.))
+    }#End cleaning AD column
+    
+    # Cleaning DP and changing name to READ_DEPTH
+    if (tibble::has_name(input, "DP")) {
+      if (verbose) message("DP column: cleaning and renaming to READ_DEPTH")
+      input <- dplyr::rename(.data = input, READ_DEPTH = DP) %>% 
+        dplyr::mutate(
+          READ_DEPTH = dplyr::if_else(GT == "./.", as.numeric(NA_character_),
+                                      as.numeric(READ_DEPTH))
+        )
+    }#End cleaning DP column
+    
+    # PL for biallelic as 3 values:
+    if (tibble::has_name(input, "PL")) {
+      if (verbose) message("PL column (normalized, phred-scaled likelihoods for genotypes): separating into PROB_HOM_REF, PROB_HET and PROB_HOM_ALT")
+      # Value 1: probability that the site is homozgyous REF
+      # Value 2: probability that the sample is heterzygous
+      # Value 2: probability that it is homozygous ALT
+      
+      clean_pl <- function(x) {
+        res <- x %>%
+          dplyr::mutate(
+            PL = dplyr::if_else(GT == "./.", NA_character_, PL)) %>% 
+          tidyr::separate(
+            data = ., PL, c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
+            sep = ",", extra = "drop", remove = FALSE) %>%
+          dplyr::mutate_at(
+            .tbl = ., .cols = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
+            .funs = as.numeric)
+        return(res)
+      }#End clean_pl
+      
+      input <- dplyr::bind_cols(
+        dplyr::select(input, -PL),
+        dplyr::ungroup(input) %>%
+          dplyr::select(PL) %>%
+          split(x = ., f = split.vec) %>%
+          .stackr_parallel(
+            # parallel::mclapply(
+            X = ., FUN = clean_pl, mc.cores = parallel.core) %>%
+          dplyr::bind_rows(.))
+    }#End cleaning PL column
+    
+    # GL cleaning
+    if (tibble::has_name(input, "GL")) {
+      if (verbose) message("GL column: cleaning Genotype Likelihood column")
+      input <- input %>% 
+        dplyr::mutate(
+          GL = dplyr::if_else(GT == "./.", NA_character_, GL),
+          GL = suppressWarnings(stringi::stri_replace_all_fixed(GL, c(".,.,.", ".,", ",."), c("NA", "", ""), vectorize_all = FALSE))
+        )
+      
+      gl.clean <- max(
+        unique(stringi::stri_count_fixed(
+          str = unique(sample(x = input$GL, size = 100, replace = FALSE)),
+          pattern = ",")
+        ), na.rm = TRUE
+      )
+      
+      if (gl.clean == 2) {
+        if (verbose) message("GL column: separating into PROB_HOM_REF, PROB_HET and PROB_HOM_ALT")
+        # Value 1: probability that the site is homozgyous REF
+        # Value 2: probability that the sample is heterzygous
+        # Value 2: probability that it is homozygous ALT
+        # system.time(input2 <- input %>% 
+        #   tidyr::separate(data = ., GL, c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"), sep = ",", extra = "drop", remove = FALSE) %>%
+        #   dplyr::mutate_at(.tbl = ., .cols = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"), .funs = as.numeric)
+        # )
+        clean_gl <- function(x) {
+          res <- x %>% 
+            tidyr::separate(
+              data = ., GL, c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
+              sep = ",", extra = "drop", remove = FALSE) %>%
+            dplyr::mutate_at(
+              .tbl = ., .cols = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
+              .funs = as.numeric)
+          return(res)
+        }
+        input <- dplyr::bind_cols(
+          dplyr::select(input, -GL),
+          dplyr::ungroup(input) %>%
+            dplyr::select(GL) %>%
+            split(x = ., f = split.vec) %>% 
+            .stackr_parallel(
+              # parallel::mclapply(
+              X = ., FUN = clean_gl, mc.cores = parallel.core) %>%
+            dplyr::bind_rows(.))
+        
+      } else {
+        input$GL <- as.numeric(input$GL)
+      }
+      gl.clean <- NULL
+    }#End cleaning GL column
+    
+    # Cleaning GQ: Genotype quality as phred score
+    if (tibble::has_name(input, "GQ")) {
+      if (verbose) message("GQ column: Genotype Quality")
+      input <- dplyr::mutate(
+        input, 
+        GQ = dplyr::if_else(GT == "./.", as.numeric(NA_character_), as.numeric(GQ))
+      )
+    }#End cleaning GQ column
+    
+    # Cleaning GOF: Goodness of fit value
+    if (tibble::has_name(input, "GOF")) {
+      if (verbose) message("GOF column: Goodness of fit value")
+      input <- dplyr::mutate(
+        input, 
+        GOF = dplyr::if_else(GT == "./.", as.numeric(NA_character_), as.numeric(GOF))
+      )
+    }#End cleaning GOF column
+    
+    # Cleaning NR: Number of reads covering variant location in this sample
+    if (tibble::has_name(input, "NR")) {
+      if (verbose) message("NR column: splitting column into the number of variant")
+      nr.col <- max(unique(stringi::stri_count_fixed(str = unique(input$NR), pattern = ","))) + 1
+      nr.col.names <- stringi::stri_join(rep("NR_", nr.col), seq(1:nr.col))
+      nr.col <- NULL
+      
+      clean_nr <- function(x, nr.col.names = NULL) {
+        res <- tidyr::separate(data = x, col = NR, into = nr.col.names,
+                               sep = ",", extra = "drop", remove = FALSE)
+        return(res)
+      }#End clean_nr
+      
+      input <- dplyr::bind_cols(
+        dplyr::select(input, -NR),
+        dplyr::ungroup(input) %>%
+          dplyr::mutate(NR = dplyr::if_else(GT == "./.", NA_character_, NR)) %>%
+          dplyr::select(NR) %>%
+          split(x = ., f = split.vec) %>%
+          .stackr_parallel_mc(
+            # parallel::mclapply(
+            X = ., FUN = clean_nr, mc.cores = parallel.core,
+            nr.col.names = nr.col.names) %>%
+          dplyr::bind_rows(.))
+    }#End cleaning NR column
+    
+    # Cleaning NV: Number of reads containing variant in this sample
+    if (tibble::has_name(input, "NV")) {
+      if (verbose) message("NV column: splitting column into the number of variant")
+      nv.col <- max(unique(stringi::stri_count_fixed(str = unique(input$NV), pattern = ","))) + 1
+      nv.col.names <- stringi::stri_join(rep("NV_", nv.col), seq(1:nv.col))
+      nv.col <- NULL
+      
+      clean_nv <- function(x, nv.col.names = NULL) {
+        res <- tidyr::separate(
+          data = x, col = NV, into = nv.col.names,
+          sep = ",", extra = "drop", remove = FALSE)
+        return(res)
+      }
+      
+      input <- dplyr::bind_cols(
+        dplyr::select(input, -NV), 
+        dplyr::ungroup(input) %>%
+          dplyr::mutate(NV = dplyr::if_else(GT == "./.", NA_character_, NV)) %>%
+          dplyr::select(NV) %>%
+          split(x = ., f = split.vec) %>% 
+          .stackr_parallel_mc(
+            # parallel::mclapply(
+            X = ., FUN = clean_nv, mc.cores = parallel.core,
+            nv.col.names = nv.col.names) %>%
+          dplyr::bind_rows(.))
+    }#End cleaning NV column
+    
+    split.vec <- NULL
+    
+    # Re ordering columns
+    want <- c("MARKERS", "CHROM", "LOCUS", "POS", "INDIVIDUALS", "POP_ID",
+              "REF", "ALT", "GT_VCF", "GT_VCF_NUC", "GT", "GT_BIN")
+    
+    input <- suppressWarnings(
+      dplyr::select(input, dplyr::one_of(want), dplyr::everything()))
+    
+  }# end cleaning columns
+  
   
   # Write to working directory -------------------------------------------------
   if (!is.null(filename)) {
@@ -1652,7 +2129,11 @@ tidy_genomic_data <- function(
       message("Tidy data written to your working directory: ", getwd())
     }
     message("Data format: ", data.type)
-    message("Biallelic data ? ", biallelic)
+    if (biallelic) {
+      message("Biallelic data")
+    } else{
+      message("Multiallelic data")
+    }
     if (common.markers) {
       message("Number of common markers: ", n.markers)
     } else {

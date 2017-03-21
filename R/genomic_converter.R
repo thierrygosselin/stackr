@@ -77,7 +77,7 @@
 #' @importFrom data.table fread
 #' @importFrom purrr flatten_chr
 #' @importFrom tidyr gather
-#' @import parallel
+#' @importFrom parallel detectCores
 #' @importFrom utils installed.packages
 
 #' @examples
@@ -187,8 +187,8 @@ genomic_converter <- function(
   num.tree = 50,
   pred.mean.matching = 0,
   random.seed = NULL,
-  verbose = FALSE,
-  parallel.core = parallel::detectCores() - 1
+  parallel.core = parallel::detectCores() - 1,
+  verbose = FALSE
 ) {
   if (verbose) {
     cat("#######################################################################\n")
@@ -353,16 +353,16 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   if (data.type == "haplo.file") stop("This function is for biallelic dataset only")
   
   # Import----------------------------------------------------------------------
-  if (data.type == "tbl_df") {
-    input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
-    # For long tidy format, switch LOCUS to MARKERS column name, if found MARKERS not found
-    if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
-      input <- dplyr::rename(.data = input, MARKERS = LOCUS)
-    }
-  } else {
+  # if (data.type == "tbl_df") {
+  #   input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
+  #   # For long tidy format, switch LOCUS to MARKERS column name, if found MARKERS not found
+  #   if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
+  #     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
+  #   }
+  # } else {
     input <- stackr::tidy_genomic_data(
       data = data,
-      vcf.metadata = FALSE,
+      vcf.metadata = TRUE,
       blacklist.id = blacklist.id,
       blacklist.genotype = blacklist.genotype,
       whitelist.markers = whitelist.markers,
@@ -381,7 +381,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       filename = NULL,
       verbose = FALSE
     )
-  }
+  # }
   
   input$GT <- stringi::stri_replace_all_fixed(
     str = input$GT,
@@ -643,7 +643,11 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     message("Tidy data in your global environment")
     message("Depending on output selected, check the list in your global environment and your working directory")
     message("Data format of input: ", data.type)
-    message("Biallelic data ? ", biallelic)
+    if (biallelic) {
+      message("Biallelic data")
+    } else{
+      message("Multiallelic data")
+    }
     if (common.markers) {
       message("Number of common markers: ", n.markers)
     } else {

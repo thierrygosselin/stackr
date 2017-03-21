@@ -203,11 +203,10 @@ Default: \code{random.seed = NULL}.}
 
 \item{verbose}{(optional, logical) When \code{verbose = TRUE} 
 the function is a little more chatty during execution.
-Default: \code{verbose = FALSE}.}
+Default: \code{verbose = TRUE}.}
 
 \item{parallel.core}{(optional) The number of core used for parallel
-execution when \code{imputation.method = "rf"}.
-Markers are imputed in parallel, populations are processed sequentially.
+execution during vcf import.
 Default: \code{parallel::detectCores() - 1}.}
 }
 \value{

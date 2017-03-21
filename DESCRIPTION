@@ -38,7 +38,9 @@ Imports:
     pbmcapply,
     xgboost,
     SNPRelate,
-    UpSetR
+    UpSetR,
+    randomForestSRC,
+    pegas
 Suggests:
     knitr,
     rmarkdown

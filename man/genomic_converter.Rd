@@ -12,8 +12,8 @@ genomic_converter(data, output = NULL, filename = NULL,
   strata = NULL, pop.levels = NULL, pop.labels = NULL,
   pop.select = NULL, imputation.method = NULL,
   hierarchical.levels = "populations", num.tree = 50,
-  pred.mean.matching = 0, random.seed = NULL, verbose = FALSE,
-  parallel.core = parallel::detectCores() - 1)
+  pred.mean.matching = 0, random.seed = NULL,
+  parallel.core = parallel::detectCores() - 1, verbose = FALSE)
 }
 \arguments{
 \item{data}{11 options: VCF (SNPs or Haplotypes, 
@@ -191,14 +191,13 @@ that will be used to initialize the random generator. With default,
 a random number is generated.
 Default: \code{random.seed = NULL}.}
 
+\item{parallel.core}{(optional) The number of core used for parallel
+execution during vcf import.
+Default: \code{parallel::detectCores() - 1}.}
+
 \item{verbose}{(optional, logical) When \code{verbose = TRUE} 
 the function is a little more chatty during execution.
-Default: \code{verbose = FALSE}.}
-
-\item{parallel.core}{(optional) The number of core used for parallel
-execution when \code{imputation.method = "rf"}.
-Markers are imputed in parallel, populations are processed sequentially.
-Default: \code{parallel::detectCores() - 1}.}
+Default: \code{verbose = TRUE}.}
 }
 \value{
 The function returns an object (list). The content of the object
