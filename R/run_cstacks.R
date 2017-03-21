@@ -86,9 +86,7 @@
 
 #' @rdname run_cstacks
 #' @export
-#' @import stringi
-#' @import dplyr
-#' @import readr
+#' @importFrom stringi stri_join stri_replace_all_fixed
 
 #' @return \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
 #' returns a \code{.matches.tsv.gz file for each sample}
@@ -140,13 +138,6 @@
 #' )
 #' }
 
-# required to pass the R CMD check and have 'no visible binding for global variable'
-if (getRversion() >= "2.15.1") {
-  utils::globalVariables(
-    c("INDIVIDUALS_REP")
-  )
-}
-
 #' @seealso 
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks} 
 
@@ -175,8 +166,8 @@ run_cstacks <- function(
 ) {  
   
   # Check directory ------------------------------------------------------------
-  if(!dir.exists(input.path)) dir.create(input.path)
-  if(!dir.exists("09_log_files")) dir.create("09_log_files")
+  if (!dir.exists(input.path)) dir.create(input.path)
+  if (!dir.exists("09_log_files")) dir.create("09_log_files")
   
   # Catalog editing ------------------------------------------------------------
   
@@ -184,16 +175,16 @@ run_cstacks <- function(
     old.catalog <- list.files(path = input.path, pattern = "batch_")
     if (length(old.catalog) > 0 & length(old.catalog) == 3) {
       message("Found a catalog in the input folder, using files: ")
-      message(stri_paste(old.catalog, "\n"))
+      message(stringi::stri_join(old.catalog, "\n"))
       
-      catalog.path <- stri_replace_all_fixed(
+      catalog.path <- stringi::stri_replace_all_fixed(
         str = old.catalog[1], 
         pattern = ".catalog.alleles.tsv.gz", 
         replacement = "", 
         vectorize_all = FALSE
       )
-      catalog.path <- stri_paste(input.path, "/", catalog.path)
-      catalog.path <- stri_paste("--catalog ", shQuote(catalog.path))
+      catalog.path <- stringi::stri_join(input.path, "/", catalog.path)
+      catalog.path <- stringi::stri_join("--catalog ", shQuote(catalog.path))
     } 
     if (length(old.catalog) > 0 & length(old.catalog) < 3) {
       stop("Incomplete catalog, 3 files are required, see argument documentation")
@@ -207,16 +198,16 @@ run_cstacks <- function(
     old.catalog <- list.files(path = catalog.path, pattern = "batch_")
     if (length(old.catalog) > 0 & length(old.catalog) == 3) {
       message("Found the catalog in the catalog path using files: ")
-      message(stri_paste(old.catalog, "\n"))
+      message(stringi::stri_join(old.catalog, "\n"))
       
-      catalog.path <- stri_replace_all_fixed(
+      catalog.path <- stringi::stri_replace_all_fixed(
         str = old.catalog[1], 
         pattern = ".catalog.alleles.tsv.gz", 
         replacement = "", 
         vectorize_all = FALSE
       )
-      catalog.path <- stri_paste(input.path, "/", catalog.path)
-      catalog.path <- stri_paste("--catalog ", shQuote(catalog.path))
+      catalog.path <- stringi::stri_join(input.path, "/", catalog.path)
+      catalog.path <- stringi::stri_join("--catalog ", shQuote(catalog.path))
     } 
     if (length(old.catalog) > 0 & length(old.catalog) < 3) {
       stop("Incomplete catalog, 3 files are required, see argument documentation")
@@ -230,64 +221,64 @@ run_cstacks <- function(
     
     
     # cstacks options ------------------------------------------------------------
-    b <- stri_paste("-b ", b)
+    b <- stringi::stri_join("-b ", b)
     
-    o <- stri_paste("-o ", shQuote(o))
+    o <- stringi::stri_join("-o ", shQuote(o))
     
-    if(g) {
-      g <- stri_paste("-g ")
+    if (g) {
+      g <- stringi::stri_join("-g ")
     } else {
       g <- ""
     }
     
-    if(m) {
-      m <- stri_paste("-m ")
+    if (m) {
+      m <- stringi::stri_join("-m ")
     } else {
       m <- ""
     }  
     
-    n <- stri_paste("-n ", n)
-    p <- stri_paste("-p ", p)
+    n <- stringi::stri_join("-n ", n)
+    p <- stringi::stri_join("-p ", p)
     
     if (h) {
-      h <- stri_paste("-h ")
+      h <- stringi::stri_join("-h ")
     } else {
       h <- ""
     }
     
     
     # gapped assembly options ---------------------------------------------------
-    if(gapped) {
-      gapped <- stri_paste("--gapped ")
+    if (gapped) {
+      gapped <- stringi::stri_join("--gapped ")
     } else {
       gapped <- ""
     } 
     
-    max_gaps <- stri_paste("--max_gaps ", max_gaps)
-    min_aln_len <- stri_paste("--min_aln_len ", min_aln_len)
+    max_gaps <- stringi::stri_join("--max_gaps ", max_gaps)
+    min_aln_len <- stringi::stri_join("--min_aln_len ", min_aln_len)
     
     # Advanced options ----------------------------------------------------------
     
     if (is.null(k_len)) {
       k_len <- ""
     } else {
-      k_len <- stri_paste("--k_len ", k_len)
+      k_len <- stringi::stri_join("--k_len ", k_len)
     }
     
-    if(report_mmatches) {
-      report_mmatches <- stri_paste("--report_mmatches ")
+    if (report_mmatches) {
+      report_mmatches <- stringi::stri_join("--report_mmatches ")
     } else {
       report_mmatches <- ""
     }
     
     # Samples to include in the catalog ------------------------------------------
     # s: filename prefix from which to load loci into the catalog.
-    sample.list <- stri_paste(input.path, "/", sample.list)
-    s <- stri_paste("-s ", shQuote(sample.list))
+    sample.list <- stringi::stri_join(input.path, "/", sample.list)
+    s <- stringi::stri_join("-s ", shQuote(sample.list))
     
     # logs files -----------------------------------------------------------------
-    file.date.time <- stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
-    file.date.time <- stri_replace_all_fixed(
+    file.date.time <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
+    file.date.time <- stringi::stri_replace_all_fixed(
       file.date.time, 
       pattern = c("-", " ", ":"), 
       replacement = c("", "@", ""), 
@@ -295,8 +286,8 @@ run_cstacks <- function(
       )
     file.date.time <- stri_sub(file.date.time, from = 1, to = 13)
     
-    log.file <- stri_paste("09_log_files/cstacks_", file.date.time,".log")
-    message(stri_paste("For progress, look in the log file: ", log.file))
+    log.file <- stringi::stri_join("09_log_files/cstacks_", file.date.time,".log")
+    message(stringi::stri_join("For progress, look in the log file: ", log.file))
     
     
     # command args ---------------------------------------------------------------
@@ -308,7 +299,7 @@ run_cstacks <- function(
     )
     
     # command
-    system.time(system2(command = "cstacks", args = command.arguments, stdout = log.file, stderr = log.file))
+    system2(command = "cstacks", args = command.arguments, stdout = log.file, stderr = log.file)
     
     # # transfer back to s3
     # if (transfer.s3) {
