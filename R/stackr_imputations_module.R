@@ -7,15 +7,18 @@
 #' \href{https://github.com/thierrygosselin/stackr}{stackr} and 
 #' might be of interest for users.
 #' The goal of this module is to provide a simple solution for
-#' a complicated problem: missing observations in RADseq genomic datasets.
+#' a complicated problem: missing genotypes in RADseq genomic datasets.
 #' This function will performed \strong{map-independent imputations} of missing
 #' genotypes.
 #' 
 #' \strong{Key features:}
 #' 
 #' \itemize{
-#' \item \strong{Algorithms: } Random forests (rf), extreme gradient tree boosting (boost),
-#' multiple correspondence analysis (mca) and the classic most observed genotypes (~max/mean/mode).
+#' \item \strong{Imputation algorithms/methods: } Random forests (on-the-fly-imputation, ),
+#' Extreme gradient tree boosting,
+#' Multiple Correspondence Analysis and
+#' the classic Strawman imputation
+#' (~ max/mean/mode: the most frequently observed, i.e. non-missing, genotypes is used).
 #' \item \strong{Hierarchical level: } Imputations conducted by populations or globally.
 #' \item \strong{Haplotype/SNP approach: } Correlation among SNPs is accounted for during
 #' rf and tree boosting imputation, i.e. imputation is automatically conducted by haplotype
@@ -59,9 +62,8 @@
 #' @param imputation.method (character, optional) 
 #' Methods available for map-independent imputations of missing genotype:
 #' 
-#' (1) \code{imputation.method = "max"} the most frequently occurring
-#' non-missing value (ties are broken at random) is used. Also called Strawman
-#' imputation.
+#' (1) \code{imputation.method = "max"} for Strawman imputation,
+#' the most frequently observed genotypes (ties are broken at random) is used.
 #' 
 #' (2) \code{imputation.method = "rf"} Random Forests algorithm is used.
 #' 
@@ -194,7 +196,18 @@
 #' after considering all the other genotype values of the individual. 
 #' \strong{Test the option and report bug if you find one.}
 #' 
-#' \strong{... and arguments available for extreme gradient tree
+#' \strong{random forest with on-the-fly-imputation (rf): }the technique is described
+#' in Tang and Ishwaran (2017). Non-missing genotypes are used for
+#' the split-statistics. Daughter node assignation membership use random 
+#' non-missing genotypes from the inbag data. Missing genotypes are imputed at
+#' terminal nodes using maximal class rule with out-of-bag non-missing genotypes.
+#' 
+#' #' \strong{random forest as a prediction problem (rf_pred): }markers with 
+#' missing genotypes are imputed one at a time. The fitted forest is used to
+#' predict missing genotypes. Missingness in the response variables are 
+#' incorporated as attributes for growing the forest.
+#' 
+#' \strong{... :arguments available for extreme gradient tree
 #' boosting:}
 #' 
 #' Here is the list of arguments that can be further tailored for your imputations:
@@ -262,7 +275,7 @@
 # @importFrom missRanger pmm
 #' @importFrom xgboost xgb.DMatrix cb.early.stop xgb.train
 # @importFrom base split
-
+#' @importFrom randomForestSRC impute.rfsrc
 
 #' @examples
 #' \dontrun{
@@ -580,7 +593,7 @@ stackr_imputations_module <- function(
     input <- dplyr::select(.data = input, -CHROM_LOCUS)
   }#End preparing SNP/haplo approach
   
-  # Rough filling with max mode ------------------------------------------------
+  # Strawman imputations (max) -------------------------------------------------
   # by pop
   # input.imp <- NULL
   if (hierarchical.levels == "populations" && imputation.method == "max") {
@@ -762,7 +775,90 @@ stackr_imputations_module <- function(
     }
     
     if (imputation.method == "rf") {
-      if (verbose) message("Using Random Forests algorith, take a break...")
+      if (verbose) message("Using Random Forests algorith for on-the-fly-imputation, take a break...")
+      
+      if (hierarchical.levels == "populations") {
+        # Parallel computations options
+        options(rf.cores = parallel.core, mc.cores = parallel.core)
+        
+        # on-the-fly-imputations with randomForestSRC package
+        impute_rf <- function(x, num.tree, verbose, hierarchical.levels) {
+          
+          if (hierarchical.levels == "populations") message("Imputation for pop: ", unique(x$POP_ID))
+          
+          x <- dplyr::select(x, -POP_ID)
+          
+          res <- randomForestSRC::impute.rfsrc(
+            data = data.frame(x),
+            ntree = num.tree,
+            nodesize = 1,
+            # splitrule = "random",
+            nsplit = 10, #split.number,
+            nimpute = 10, #iteration.rf,
+            do.trace = verbose)
+          return(res)
+        } # End of imputation function
+        
+        # Random Forest by pop
+        if (hierarchical.levels == "populations") {
+          message("Imputations computed by populations, take a break...")
+          
+          input <- dplyr::select(input, MARKERS, POP_ID, INDIVIDUALS, GT) %>%
+            dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
+            tidyr::spread(key = MARKERS, value = GT) %>% 
+            dplyr::mutate_all(.tbl = ., .funs = factor)
+          
+          input.split <- split(x = input, f = input$POP_ID) # slip data frame by population
+          
+          input.imp <- purrr::map(.x = input.split,
+                                  .f = impute_rf,
+                                  num.tree = num.tree,
+                                  verbose = FALSE,
+                                  hierarchical.levels = "populations") %>% 
+            dplyr::bind_rows(.) %>%
+            dplyr::mutate_all(.tbl = ., .funs = as.character) %>% 
+            tidyr::gather(data = ., key = MARKERS, value = GT, -INDIVIDUALS)
+          
+          
+          # Reintroduce the stratification (check if required)
+          input.imp <- dplyr::left_join(strata.before, input.imp, by = "INDIVIDUALS") %>%
+            dplyr::arrange(MARKERS, POP_ID, INDIVIDUALS)
+          
+          # combine with markers with no missing
+          if (!is.null(data.imp.bk)) {
+            input.imp <- suppressWarnings(dplyr::bind_rows(data.imp.bk, input.imp) %>% 
+                                            dplyr::arrange(MARKERS, POP_ID, INDIVIDUALS))
+            data.imp.bk <- NULL
+          }
+          if (separate.haplo) {
+            if (verbose) message("Decoding haplotypes: separating SNPs on the same locus and chromosome, back to original data format")
+            
+            # separate the haplotypes/snp group
+            input.imp <- input.imp %>% 
+              decoding_haplotypes(parallel.core = parallel.core)
+            
+          }
+        }
+      }
+      
+      # Random Forests global
+      if (hierarchical.levels == "global") { # Globally/overall
+        # if (verbose) message("Imputations computed globally, take a break...")
+        input.rf.imp <- list() # to store results
+        input.rf.imp <- stackr_imputer(data = input,
+                                       hierarchical.levels = hierarchical.levels,
+                                       num.tree = num.tree,
+                                       pred.mean.matching = pred.mean.matching,
+                                       random.seed = random.seed,
+                                       parallel.core = parallel.core)
+      } # End imputation RF global
+      
+      
+    }# End RF
+    
+    
+    if (imputation.method == "rf_pred") {
+      if (verbose) message("Using Random Forests algorith as a prediction problem, take a break...")
       
       if (hierarchical.levels == "populations") {
         input.imp <- purrr::map(.x = input,
@@ -788,7 +884,7 @@ stackr_imputations_module <- function(
       } # End imputation RF global
       
       
-    }# End RF
+    }# End rf_pred
     
     
     if (imputation.method == "boost") {
@@ -968,9 +1064,10 @@ stackr_imputations_module <- function(
   
   # Integrate marker.meta columns and sort
   if (!is.null(marker.meta)) {
-    
+  # if (!is.null(marker.meta)) {
     columns.required <- c( "MARKERS", "CHROM", "LOCUS", "POS", "POP_ID",
-                           "INDIVIDUALS", "REF", "ALT", "GT", "GT_VCF", "GT_BIN", "GL")
+                           "INDIVIDUALS", "REF", "ALT", "GT", "GT_VCF",
+                           "GT_BIN", "GL")
     
     if (tibble::has_name(marker.meta, "NEW_MARKERS")) {
       input.imp <- dplyr::left_join(
@@ -980,7 +1077,7 @@ stackr_imputations_module <- function(
         dplyr::arrange(CHROM, LOCUS, POS, POP_ID, INDIVIDUALS)
     } else {
       input.imp <- suppressWarnings(
-        dplyr::left_join(input.imp,marker.meta, by = "MARKERS") %>%
+        dplyr::left_join(input.imp, marker.meta, by = "MARKERS") %>%
           dplyr::select(dplyr::one_of(columns.required)) %>% 
           dplyr::arrange(CHROM, LOCUS, POS, POP_ID, INDIVIDUALS))
     }
