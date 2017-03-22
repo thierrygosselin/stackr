@@ -89,7 +89,7 @@
 
 #' @export
 #' @rdname missing_visualization
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot aes geom_violin geom_boxplot stat_summary labs theme element_blank element_text geom_jitter scale_colour_manual scale_y_reverse theme_light geom_bar facet_grid geom_histogram aes_string scale_fill_manual theme_bw stat_smooth geom_boxplot
 #' @importFrom dplyr distinct rename arrange mutate select summarise group_by ungroup filter inner_join left_join
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_replace_all_regex
 #' @importFrom utils count.fields
@@ -98,6 +98,8 @@
 #' @importFrom ape pcoa
 #' @importFrom stats dist
 #' @importFrom tibble data_frame
+
+
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
 missing_visualization <- function(
@@ -147,7 +149,8 @@ missing_visualization <- function(
     common.markers = common.markers,
     strata = strata, 
     pop.select = pop.select,
-    filename = filename
+    filename = filename,
+    verbose = FALSE
   )
   
   
@@ -239,7 +242,7 @@ missing_visualization <- function(
   
   # variance
   variance.component <-  tibble::data_frame(EIGENVALUES = ibm$values$Eigenvalues) %>% 
-    mutate(
+    dplyr::mutate(
       VARIANCE_PROP = round(EIGENVALUES/sum(EIGENVALUES), 2)
     )
   
@@ -280,16 +283,16 @@ missing_visualization <- function(
     label.x.axis <- stringi::stri_join("PCo1", " [", variance.component[1,2], "]")
     label.y.axis <- stringi::stri_join("PCo2", " [", variance.component[2,2], "]")
     
-    ibm.plot.pco1.pco2 <- ggplot(pcoa.df, aes(x = Axis.1, y = Axis.2), environment = environment()) +
-      geom_point(aes_string(colour = i)) +
-      labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
-      labs(x = label.x.axis) +
-      labs(y = label.y.axis) +
-      theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
-            axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
-            legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
-            legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
-            strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+    ibm.plot.pco1.pco2 <- ggplot2::ggplot(pcoa.df, ggplot2::aes(x = Axis.1, y = Axis.2), environment = environment()) +
+      ggplot2::geom_point(ggplot2::aes_string(colour = i)) +
+      ggplot2::labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
+      ggplot2::labs(x = label.x.axis) +
+      ggplot2::labs(y = label.y.axis) +
+      ggplot2::theme(axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+            axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+            legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+            legend.text = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+            strip.text.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold")
       )
     ibm_plot_name <- stringi::stri_join("ibm.plot.pco1.pco2.strata.", i)
     res[[ibm_plot_name]] <- ibm.plot.pco1.pco2
@@ -298,16 +301,16 @@ missing_visualization <- function(
     label.x.axis <- stringi::stri_join("PCo1", " [", variance.component[1,2], "]")
     label.y.axis <- stringi::stri_join("PCo3", " [", variance.component[3,2], "]")
     
-    ibm.plot.pco1.pco3 <- ggplot(pcoa.df, aes(x = Axis.1, y = Axis.3), environment = environment()) +
-      geom_point(aes_string(colour = i)) +
-      labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
-      labs(x = label.x.axis) +
-      labs(y = label.y.axis) +
-      theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
-            axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
-            legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
-            legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
-            strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+    ibm.plot.pco1.pco3 <- ggplot2::ggplot(pcoa.df, ggplot2::aes(x = Axis.1, y = Axis.3), environment = environment()) +
+      ggplot2::geom_point(ggplot2::aes_string(colour = i)) +
+      ggplot2::labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
+      ggplot2::labs(x = label.x.axis) +
+      ggplot2::labs(y = label.y.axis) +
+      ggplot2::theme(axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+            axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+            legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+            legend.text = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+            strip.text.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold")
       )
     ibm_plot_name <- stringi::stri_join("ibm.plot.pco1.pco3.strata.", i)
     res[[ibm_plot_name]] <- ibm.plot.pco1.pco3
@@ -316,16 +319,16 @@ missing_visualization <- function(
     label.x.axis <- stringi::stri_join("PCo2", " [", variance.component[2,2], "]")
     label.y.axis <- stringi::stri_join("PCo3", " [", variance.component[3,2], "]")
     
-    ibm.plot.pco2.pco3 <- ggplot(pcoa.df, aes(x = Axis.2, y = Axis.3), environment = environment()) +
-      geom_point(aes_string(colour = i)) +
-      labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
-      labs(x = label.x.axis) +
-      labs(y = label.y.axis) +
-      theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
-            axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
-            legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
-            legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
-            strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+    ibm.plot.pco2.pco3 <- ggplot2::ggplot(pcoa.df, ggplot2::aes(x = Axis.2, y = Axis.3), environment = environment()) +
+      ggplot2::geom_point(ggplot2::aes_string(colour = i)) +
+      ggplot2::labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
+      ggplot2::labs(x = label.x.axis) +
+      ggplot2::labs(y = label.y.axis) +
+      ggplot2::theme(axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+            axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+            legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+            legend.text = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+            strip.text.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold")
       )
     ibm_plot_name <- stringi::stri_join("ibm.plot.pco2.pco3.strata.", i)
     res[[ibm_plot_name]] <- ibm.plot.pco2.pco3
@@ -334,16 +337,16 @@ missing_visualization <- function(
     label.x.axis <- stringi::stri_join("PCo3", " [", variance.component[3,2], "]")
     label.y.axis <- stringi::stri_join("PCo4", " [", variance.component[4,2], "]")
     
-    ibm.plot.pco3.pco4 <- ggplot(pcoa.df, aes(x = Axis.3, y = Axis.4), environment = environment()) +
-      geom_point(aes_string(colour = i)) +
-      labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
-      labs(x = label.x.axis) +
-      labs(y = label.y.axis) +
-      theme(axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
-            axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
-            legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
-            legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
-            strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+    ibm.plot.pco3.pco4 <- ggplot2::ggplot(pcoa.df, ggplot2::aes(x = Axis.3, y = Axis.4), environment = environment()) +
+      ggplot2::geom_point(ggplot2::aes_string(colour = i)) +
+      ggplot2::labs(title = stringi::stri_join("Principal Coordinates Analysis (PCoA)\n Identity by Missing (IBM) with strata = ", i)) +
+      ggplot2::labs(x = label.x.axis) +
+      ggplot2::labs(y = label.y.axis) +
+      ggplot2::theme(axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+            axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+            legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+            legend.text = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+            strip.text.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold")
       )
     ibm_plot_name <- stringi::stri_join("ibm.plot.pco3.pco4.strata.", i)
     res[[ibm_plot_name]] <- ibm.plot.pco3.pco4
@@ -356,19 +359,19 @@ missing_visualization <- function(
       Missingness = stringi::stri_replace_all_regex(GT, pattern = c("^0$", "^1$"), replacement = c("missing", "genotyped"), vectorize_all = FALSE)
     )
   
-  heatmap <- ggplot(heatmap.data,(aes(y = MARKERS, x = as.character(INDIVIDUALS)))) +
-    geom_tile(aes(fill = Missingness)) +
-    scale_fill_manual(values = c("grey", "black")) +
-    labs(y = "Markers") +
-    labs(x = "Individuals") +
-    theme_bw() +
-    theme(
-      panel.grid.minor.x = element_blank(), 
-      panel.grid.major.y = element_blank(), 
-      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.x = element_blank(), 
-      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.y = element_blank()
+  heatmap <- ggplot2::ggplot(heatmap.data,(ggplot2::aes(y = MARKERS, x = as.character(INDIVIDUALS)))) +
+    ggplot2::geom_tile(ggplot2::aes(fill = Missingness)) +
+    ggplot2::scale_fill_manual(values = c("grey", "black")) +
+    ggplot2::labs(y = "Markers") +
+    ggplot2::labs(x = "Individuals") +
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      panel.grid.minor.x = ggplot2::element_blank(), 
+      panel.grid.major.y = ggplot2::element_blank(), 
+      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.x = ggplot2::element_blank(), 
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = ggplot2::element_blank()
     )
   # heatmap
   heatmap.data <- NULL # no longer needed
@@ -391,19 +394,19 @@ missing_visualization <- function(
   
   
   # Figure Individuals
-  missing.genotypes.ind.plot <- ggplot(data = missing.genotypes.ind, aes(x = INDIVIDUALS, y = MISSING_GENOTYPE_PROP, colour = POP_ID)) + 
-    geom_jitter() + 
-    labs(y = "Missing genotypes (proportion)") +
-    labs(x = "Individuals") +
-    labs(colour = "Populations") +
+  missing.genotypes.ind.plot <- ggplot2::ggplot(data = missing.genotypes.ind, ggplot2::aes(x = INDIVIDUALS, y = MISSING_GENOTYPE_PROP, colour = POP_ID)) + 
+    ggplot2::geom_jitter() + 
+    ggplot2::labs(y = "Missing genotypes (proportion)") +
+    ggplot2::labs(x = "Individuals") +
+    ggplot2::labs(colour = "Populations") +
     # theme_bw() +
-    theme(
-      panel.grid.minor.x = element_blank(), 
-      panel.grid.major.y = element_blank(), 
-      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.x = element_blank(), 
-      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.y = element_text(size = 8, family = "Helvetica")
+    ggplot2::theme(
+      panel.grid.minor.x = ggplot2::element_blank(), 
+      panel.grid.major.y = ggplot2::element_blank(), 
+      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.x = ggplot2::element_blank(), 
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
     )
   # missing.genotypes.ind.plot
   
@@ -423,7 +426,7 @@ missing_visualization <- function(
   }
   
   # FH -------------------------------------------------------------------------
-  fh <- stackr::ibdg_fh(data = input)
+  fh <- stackr::ibdg_fh(data = input, verbose = FALSE)
   
   missing.genotypes.ind.fh <- suppressWarnings(
     dplyr::full_join(
@@ -434,18 +437,18 @@ missing_visualization <- function(
     )
   )
   
-  missing.genotypes.fh.plot <- ggplot(missing.genotypes.ind.fh, aes(y = FH, x = MISSING_GENOTYPE_PROP)) +
-    geom_point() +
-    stat_smooth(method = lm, level = 0.99) +
+  missing.genotypes.fh.plot <- ggplot2::ggplot(missing.genotypes.ind.fh, ggplot2::aes(y = FH, x = MISSING_GENOTYPE_PROP)) +
+    ggplot2::geom_point() +
+    ggplot2::stat_smooth(method = lm, level = 0.99) +
     # labs(title = "Correlation between missingness and inbreeding coefficient") +
-    labs(y = "Individual IBDg (FH)") +
-    labs(x = "Missing genotype (proportion)") +
-    theme(
-      axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"),
-      axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"),
-      legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
-      legend.text = element_text(size = 12, family = "Helvetica", face = "bold"), 
-      strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+    ggplot2::labs(y = "Individual IBDg (FH)") +
+    ggplot2::labs(x = "Missing genotype (proportion)") +
+    ggplot2::theme(
+      axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+      axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+      legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+      legend.text = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+      strip.text.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold")
     )
   # missing.genotypes.fh.plot
   
@@ -460,18 +463,18 @@ missing_visualization <- function(
       )
   
   # Figure Populations
-  missing.genotypes.pop.plot <- ggplot(data = missing.genotypes.ind, aes(x = POP_ID, y = MISSING_GENOTYPE_PROP)) + 
-    geom_boxplot() +
-    labs(y = "Missing genotypes (proportion)") +
-    labs(x = "Populations") +
+  missing.genotypes.pop.plot <- ggplot2::ggplot(data = missing.genotypes.ind, ggplot2::aes(x = POP_ID, y = MISSING_GENOTYPE_PROP)) + 
+    ggplot2::geom_boxplot() +
+    ggplot2::labs(y = "Missing genotypes (proportion)") +
+    ggplot2::labs(x = "Populations") +
     # theme_bw() +
-    theme(
-      panel.grid.minor.x = element_blank(), 
-      panel.grid.major.y = element_blank(), 
-      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.x = element_text(size = 8, family = "Helvetica"),
-      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.y = element_text(size = 8, family = "Helvetica")
+    ggplot2::theme(
+      panel.grid.minor.x = ggplot2::element_blank(), 
+      panel.grid.major.y = ggplot2::element_blank(), 
+      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.x = ggplot2::element_text(size = 8, family = "Helvetica"),
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
     )
   # missing.genotypes.pop.plot
   
@@ -491,16 +494,16 @@ missing_visualization <- function(
     dplyr::arrange(MARKERS)
   
   # Figure markers
-  missing.genotypes.markers.plot <- ggplot(data = missing.genotypes.markers, aes(x = MISSING_GENOTYPE_PROP)) + 
-    geom_histogram() +
-    labs(x = "Missing genotypes (proportion)") +
-    labs(y = "Markers (number)") +
-    theme(
+  missing.genotypes.markers.plot <- ggplot2::ggplot(data = missing.genotypes.markers, ggplot2::aes(x = MISSING_GENOTYPE_PROP)) + 
+    ggplot2::geom_histogram() +
+    ggplot2::labs(x = "Missing genotypes (proportion)") +
+    ggplot2::labs(y = "Markers (number)") +
+    ggplot2::theme(
       legend.position = "none",
-      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
-      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
-      axis.text.x = element_text(size = 8, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
-      strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+      axis.text.x = ggplot2::element_text(size = 8, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
+      strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
     )
   # missing.genotypes.markers.plot
   

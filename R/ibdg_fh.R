@@ -100,8 +100,6 @@
 #' @export
 #' @rdname ibdg_fh
 
-#' @import ggplot2
-
 #' @importFrom dplyr distinct rename arrange mutate select summarise group_by ungroup filter inner_join left_join
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_replace_all_regex
 #' @importFrom utils count.fields
@@ -110,6 +108,8 @@
 #' @importFrom ape pcoa
 #' @importFrom stats dist
 #' @importFrom tibble data_frame
+#' @importFrom ggplot2 ggplot aes geom_violin geom_boxplot stat_summary labs theme element_blank element_text geom_jitter scale_colour_manual scale_y_reverse theme_light geom_bar facet_grid geom_histogram
+
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
@@ -156,7 +156,10 @@ ibdg_fh <- function(
     common.markers = common.markers,
     strata = strata, 
     pop.select = pop.select,
-    filename = filename
+    pop.levels = pop.labels,
+    pop.labels = pop.labels,
+    filename = filename,
+    verbose = FALSE
   )
   
   if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
@@ -164,7 +167,7 @@ ibdg_fh <- function(
   }
   
   # population names if pop.levels/pop.labels were request
-  input <- stackr::change_pop_names(data = input, pop.levels = pop.labels, pop.labels = pop.labels)
+  # input <- stackr::change_pop_names(data = input, pop.levels = pop.labels, pop.labels = pop.labels)
   
   # Detect if biallelic --------------------------------------------------------
   biallelic <- stackr::detect_biallelic_markers(input)
@@ -303,51 +306,51 @@ ibdg_fh <- function(
   # plots ----------------------------------------------------------------------
   message("Generating plots")
   # manhattan
-  fh.manhattan.plot <- ggplot(data = fh, aes(x = INDIVIDUALS, y = FH, colour = POP_ID)) + 
-    geom_jitter() + 
-    labs(y = "Individual IBDg (FH)") +
-    labs(x = "Individuals") +
-    labs(colour = "Populations") +
+  fh.manhattan.plot <- ggplot2::ggplot(data = fh, ggplot2::aes(x = INDIVIDUALS, y = FH, colour = POP_ID)) + 
+    ggplot2::geom_jitter() + 
+    ggplot2::labs(y = "Individual IBDg (FH)") +
+    ggplot2::labs(x = "Individuals") +
+    ggplot2::labs(colour = "Populations") +
     # theme_minimal() +
-    theme_classic() +
+    ggplot2::theme_classic() +
     # theme_dark() +
-    theme(
-      panel.grid.minor.x = element_blank(), 
-      panel.grid.major.y = element_blank(), 
-      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.x = element_blank(), 
-      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.y = element_text(size = 8, family = "Helvetica")
+    ggplot2::theme(
+      panel.grid.minor.x = ggplot2::element_blank(), 
+      panel.grid.major.y = ggplot2::element_blank(), 
+      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.x = ggplot2::element_blank(), 
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
     )
   # fh.manhattan.plot
   
-  fh.boxplot <- ggplot(data = fh, aes(x = POP_ID, y = FH)) + 
-    geom_boxplot() +
-    labs(y = "Individual IBDg (FH)") +
-    labs(x = "Populations") +
+  fh.boxplot <- ggplot2::ggplot(data = fh, ggplot2::aes(x = POP_ID, y = FH)) + 
+    ggplot2::geom_boxplot() +
+    ggplot2::labs(y = "Individual IBDg (FH)") +
+    ggplot2::labs(x = "Populations") +
     # theme_bw() +
-    theme(
-      panel.grid.minor.x = element_blank(), 
-      panel.grid.major.y = element_blank(), 
-      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.x = element_text(size = 8, family = "Helvetica"),
-      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.y = element_text(size = 8, family = "Helvetica")
+    ggplot2::theme(
+      panel.grid.minor.x = ggplot2::element_blank(), 
+      panel.grid.major.y = ggplot2::element_blank(), 
+      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.x = ggplot2::element_text(size = 8, family = "Helvetica"),
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
     )
   # fh.boxplot
   
   
   # Histogram
-  fh.distribution.plot <- ggplot(data = fh, aes(x = FH)) + 
-    geom_histogram() +
-    labs(x = "Individual IBDg (FH)") +
-    labs(y = "Markers (number)") +
-    theme(
+  fh.distribution.plot <- ggplot2::ggplot(data = fh, ggplot2::aes(x = FH)) + 
+    ggplot2::geom_histogram() +
+    ggplot2::labs(x = "Individual IBDg (FH)") +
+    ggplot2::labs(y = "Markers (number)") +
+    ggplot2::theme(
       legend.position = "none",
-      axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
-      axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
-      axis.text.x = element_text(size = 8, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
-      strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
+      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+      axis.text.x = ggplot2::element_text(size = 8, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
+      strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
     )
   # fh.distribution.plot
   
