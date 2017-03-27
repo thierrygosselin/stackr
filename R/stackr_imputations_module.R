@@ -184,13 +184,13 @@
 #' 
 #' Random Forests use machine learning and you can take this into account while
 #' choosing argument values. Uncertain of the groupings ? Use random forests with
-#' \code{hierarchical.levels = "global"} and \code{markers.linkage == "multivariate"}.
-#' random forests will account for the potential linkage and correlation between
+#' \code{hierarchical.levels = "global"}. Random forests will account for the
+#' potential linkage and correlation between
 #' markers and genotypes to make the best imputation available. This can potentially
 #' results in genotypes for a certain combo population/marker with new groupings
 #' (e.g. a new allele). This is much more accurate and not the same thing as 
 #' the \code{imputation.method = "max"} because the imputed genotype was validated
-#' after considering all the other genotype values of the individual. 
+#' after considering all the other genotype values of the individual being imputed. 
 #' \strong{Test the option and report bug if you find one.}
 #' 
 #' \strong{random forest with on-the-fly-imputation (rf): }the technique is described
@@ -199,7 +199,7 @@
 #' non-missing genotypes from the inbag data. Missing genotypes are imputed at
 #' terminal nodes using maximal class rule with out-of-bag non-missing genotypes.
 #' 
-#' #' \strong{random forest as a prediction problem (rf_pred): }markers with 
+#' \strong{random forest as a prediction problem (rf_pred): }markers with 
 #' missing genotypes are imputed one at a time. The fitted forest is used to
 #' predict missing genotypes. Missingness in the response variables are 
 #' incorporated as attributes for growing the forest.
@@ -235,8 +235,9 @@
 #' monomorphic within populations. Because for those cases, it's clear what the
 #' missing genotypes should be, the imputations is very simple and missing
 #' genotypes are imputed with the only genotype found for the particular population.
-#' The small cost in time is worth it, because model random forest and extreme
-#' gradient tree boosting will benefit having more complete and reliable genotypes.
+#' The small cost in time is worth it, because the random forest or extreme
+#' gradient tree boosting model will benefit having more complete and
+#' reliable genotypes.
 #' 
 #' 
 #' \strong{Deprecated arguments:}
@@ -291,7 +292,7 @@
 #' # The remaining arguments will be the defaults.
 #' 
 #' # When you start with a vcf file you can use magrittr %>% to `pipe` the
-#' # result, below an example with more arguments offered by the functions:
+#' # result. Below, an example with more arguments offered by the functions:
 #' 
 #' wolf.imp <- stackr::tidy_genomic_data(
 #'     data = "batch_1.vcf",
@@ -300,7 +301,7 @@
 #'     whitelist.markers = "whitelist.loci.txt",
 #'     verbose = TRUE) %>%
 #' stackr::stackr_imputations_module(
-#'     data = wolf.tidy, pred.mean.matching = 3, parallel.core = 32)
+#'     data = ., imputation.method = "boost", parallel.core = 32)
 #' }
 
 #' @references Wright, M. N. & Ziegler, A. (2016).
@@ -311,6 +312,8 @@
 #' @references Chen T, Guestrin C. (2016).
 #' XGBoost: A scalable tree boosting system. arXivorg. 2016.
 #' doi:10.1145/2939672.2939785
+#' @references Tang F, Ishwaran H. (2017) Random Forest Missing Data Algorithms.
+#' arXiorg: 1–24. 
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
