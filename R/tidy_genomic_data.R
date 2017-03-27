@@ -815,7 +815,7 @@ tidy_genomic_data <- function(
           dplyr::arrange(MARKERS, INTEGERS)
       }
       
-      ref.alt.mono <- dplyr::distinct(conversion.df, MARKERS, REF, ALT, POLYMORPHIC)
+      ref.alt.mono <- dplyr::distinct(conversion.df, MARKERS, REF, ALT, .keep_all = TRUE) %>% dplyr::select(-c(ALLELES, INTEGERS))
       conversion.df <- dplyr::select(conversion.df, MARKERS, ALLELES, INTEGERS)
       
       input <- dplyr::select(input, -c(REF, ALT)) %>% 
@@ -1858,7 +1858,7 @@ tidy_genomic_data <- function(
   # Some software that produce vcf do strange thing and don't follow convention
   # You need the GT field to clean correctly the remaining fields...
   
-  if (vcf.metadata) {
+  if (data.type == "vcf.file" && vcf.metadata) {
     # save.image("testing.haplo.RData")
     
     # for parallel cleaning

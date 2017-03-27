@@ -156,7 +156,8 @@ Methods available for map-independent imputations of missing genotype:
 (1) \code{imputation.method = "max"} for Strawman imputation,
 the most frequently observed genotypes (ties are broken at random) is used.
 
-(2) \code{imputation.method = "rf"} Random Forests algorithm is used.
+(2) \code{imputation.method = "rf"} On-the-fly-imputations using
+Random Forests algorithm is used.
 
 (3) \code{imputation.method = "boost"} extreme gradient boosting trees is used.
 
@@ -166,20 +167,21 @@ Default: \code{imputation.method = "rf"}.}
 
 \item{hierarchical.levels}{(character, optional) \code{c("global", "populations")}.
 Should the imputations be computed globally or by populations. Note that
-imputing genotype globally can create huge bias for example by
+imputing genotype globally in conjunction with \code{imputation.method = "max"}
+can create huge bias for example by
 introducing foreign genotypes in some populations (see note for more info).
 Default: \code{hierarchical.levels = "populations"}.}
 
 \item{pred.mean.matching}{(integer, optional) Used in conjunction with 
-random Forests (\code{imputation.method = "rf"}).
+random Forests (\code{imputation.method = "rf_pred"}).
 Number of candidate non-missing
 value to sample from during the predictive mean matching step.
 A fast k-nearest neighbor searching algorithms is used with this approach.
 \code{pred.mean.matching = 3} will use 3 nighbors.
 Default: \code{pred.mean.matching = 0}, avoids this step.}
 
-\item{num.tree}{(integer, optional) The number of trees to grow with the 
-when \code{imputation.method = "rf"}.
+\item{num.tree}{(integer, optional) The number of trees to grow 
+when \code{imputation.method = "rf"} or \code{imputation.method = "rf_pred"}.
 Default: \code{num.tree = 50}.}
 
 \item{verbose}{(optional, logical) When \code{verbose = TRUE} 

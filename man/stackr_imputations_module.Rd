@@ -23,7 +23,8 @@ Methods available for map-independent imputations of missing genotype:
 (1) \code{imputation.method = "max"} for Strawman imputation,
 the most frequently observed genotypes (ties are broken at random) is used.
 
-(2) \code{imputation.method = "rf"} Random Forests algorithm is used.
+(2) \code{imputation.method = "rf"} On-the-fly-imputations using
+Random Forests algorithm is used.
 
 (3) \code{imputation.method = "boost"} extreme gradient boosting trees is used.
 
@@ -33,16 +34,17 @@ Default: \code{imputation.method = "rf"}.}
 
 \item{hierarchical.levels}{(character, optional) \code{c("global", "populations")}.
 Should the imputations be computed globally or by populations. Note that
-imputing genotype globally can create huge bias for example by
+imputing genotype globally in conjunction with \code{imputation.method = "max"}
+can create huge bias for example by
 introducing foreign genotypes in some populations (see note for more info).
 Default: \code{hierarchical.levels = "populations"}.}
 
-\item{num.tree}{(integer, optional) The number of trees to grow with the 
-when \code{imputation.method = "rf"}.
+\item{num.tree}{(integer, optional) The number of trees to grow 
+when \code{imputation.method = "rf"} or \code{imputation.method = "rf_pred"}.
 Default: \code{num.tree = 50}.}
 
 \item{pred.mean.matching}{(integer, optional) Used in conjunction with 
-random Forests (\code{imputation.method = "rf"}).
+random Forests (\code{imputation.method = "rf_pred"}).
 Number of candidate non-missing
 value to sample from during the predictive mean matching step.
 A fast k-nearest neighbor searching algorithms is used with this approach.
@@ -69,8 +71,11 @@ With missing argument or default: \code{filename = NULL}, the imputed
 tidy data is in the global environment only 
 (i.e. not written in the working directory).}
 
-\item{...}{(optional) To pass further argument to the extreme gradient tree
-boosting function \code{\link[xgboost]{xgboost}}. See details below.}
+\item{...}{(optional) To pass further argument for fine-tuning your
+imputations with extreme gradient tree boosting
+\code{\link[xgboost]{xgboost}} and
+on-the-fly-imputations \code{\link[randomForestSRC]{impute.rfsrc}}.
+See details below.}
 }
 \value{
 The output in your global environment is the imputed tidy data frame.
@@ -208,13 +213,20 @@ missing genotypes are imputed one at a time. The fitted forest is used to
 predict missing genotypes. Missingness in the response variables are 
 incorporated as attributes for growing the forest.
 
-\strong{... :arguments available for extreme gradient tree
-boosting:}
+\strong{... :arguments available for fine-tuning your imputations using 
+extreme gradient tree boosting and random forest:}
 
-Here is the list of arguments that can be further tailored for your imputations:
+Here is the list of arguments that can be further tailored for your imputations
+using \code{\link[xgboost]{xgboost}}:
 \emph{eta, gamma, max_depth, min_child_weight, subsample, colsample_bytree, 
 num_parallel_tree, nrounds, save_name, early_stopping_rounds}.
 Refer to \code{\link[xgboost]{xgboost}} for arguments documentation.
+
+
+Here is the list of arguments that can be further tailored for your imputations
+using \code{\link[randomForestSRC]{impute.rfsrc}}:
+\emph{nodesize, nsplit, nimpute}.
+Refer to \code{\link[randomForestSRC]{impute.rfsrc}} for arguments documentation.
 }
 \note{
 \strong{Reference genome or linkage map available ?}
@@ -243,9 +255,9 @@ gradient tree boosting will benefit having more complete and reliable genotypes.
 Imputing using \code{impute = "allele"} option was wrong because it
 was using F1 genotypes for imputations. Now imputation is only conducted at
 the genotype level.
-\item \code{iteration.rf} is no longer necessary and iteration is now set to a
-maximum of 10 000 wich is more than enough. Most RADseq dataset with Random
-Forests approach will reach consensus before 10 or 15 iterations.
+\item \code{iteration.rf} is no longer used. This argument is now available
+inside the \code{...} for on-the-fly-imputations (see details). The default
+is now set to 10 iterations.
 \item \code{split.number} is automatically set.
 }
 }
