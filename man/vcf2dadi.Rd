@@ -167,13 +167,13 @@ Default: \code{pop.select = NULL}}
 \item{imputation.method}{(character, optional) 
 Methods available for map-independent imputations of missing genotype:
 
-(1) \code{imputation.method = "max"} for Strawman imputation,
-the most frequently observed genotypes (ties are broken at random) is used.
+(1) \code{imputation.method = "max"} Strawman imputation,
+the most frequently observed genotypes (ties are broken at random).
 
 (2) \code{imputation.method = "rf"} On-the-fly-imputations using
-Random Forests algorithm is used.
+Random Forests algorithm.
 
-(3) \code{imputation.method = "boost"} extreme gradient boosting trees is used.
+(3) \code{imputation.method = "boost"} extreme gradient boosting trees.
 
 \code{imputation.method = NULL} will return the original dataset, without
 imputation.
