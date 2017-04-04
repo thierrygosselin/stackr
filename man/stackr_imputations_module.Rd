@@ -28,6 +28,8 @@ Random Forests algorithm.
 
 (3) \code{imputation.method = "boost"} extreme gradient boosting trees.
 
+(4) \code{imputation.method = "mca"} Multiple Correspondence Analysis.
+
 \code{imputation.method = NULL} will return the original dataset, without
 imputation.
 Default: \code{imputation.method = "rf"}.}
@@ -72,10 +74,7 @@ tidy data is in the global environment only
 (i.e. not written in the working directory).}
 
 \item{...}{(optional) To pass further argument for fine-tuning your
-imputations with extreme gradient tree boosting
-\code{\link[xgboost]{xgboost}} and
-on-the-fly-imputations \code{\link[randomForestSRC]{impute.rfsrc}}.
-See details below.}
+imputations. See details below.}
 }
 \value{
 The output in your global environment is the imputed tidy data frame.
@@ -97,7 +96,7 @@ genotypes.
 \itemize{
 \item \strong{Imputation algorithms/methods: } Random forests (on-the-fly-imputation, ),
 Extreme gradient tree boosting,
-Multiple Correspondence Analysis and
+Multiple Correspondence Analysis (MCA) and
 the classic Strawman imputation
 (~ max/mean/mode: the most frequently observed, i.e. non-missing, genotypes is used).
 \item \strong{Hierarchical level: } Imputations conducted by populations or globally.
@@ -149,7 +148,7 @@ Returned value correspond to the mean value.
 
 \strong{haplotype/SNP approach:}
 
-The \strong{haplotype approach} is automatically used when markers meta-information
+The \emph{haplotype approach} is automatically used when markers meta-information
 is detected (chromosome/CHROM, locus/ID and SNP/POS columns, usually from a VCF file).
 Missing genotypes from SNPs on the same locus or same RADseq read is undertaken
 simulteneously to account for the correlation of the linked SNPs. When one or
@@ -157,18 +156,20 @@ more SNPs on the same read/haplotype is missing, the haplotype is deleted and
 consequently, imputation might results in different genotype for those SNPs
 that were not missing. This approach is much safer than potentially creating
 weird chimeras during haplotype imputations.
-Alternatively, a \strong{snp approach} is used, and the SNP are considered
+Alternatively, a \emph{snp approach} is used, and the SNP are considered
 independent. Imputations of genotypes is then conducted for each marker separately.
 
-\strong{\code{hierarchical.levels = "global"} considerations: }
 
-This argument will act differently depending on the \code{imputation.method}
-value selected.
+\strong{Imputing globally or by populations ?}
+\code{hierarchical.levels = "global"} argument will act differently depending
+on the \code{imputation.method} selected.
 
-With \code{imputation.method = "max"}:
-Using \code{hierarchical.levels = "global"} will likely create bias.
+\strong{Strawman imputations (~ max/mean/mode) considerations: }
 
-Example 1 (unbalanced sample size): Consider 2 populations evolving more
+With \code{imputation.method = "max"} and \code{hierarchical.levels = "global"}
+\emph{will likely create bias}.
+
+\emph{Example 1 (unbalanced sample size):} Consider 2 populations evolving more
 by drift than selection: pop1 (n = 36) and pop2 (n = 50).
 You'll likely have a few polymorphic marker, where pop1 and pop2 are
 monomorphic for different alleles (pop1 is fixed for the minor/ALT allele and
@@ -180,7 +181,7 @@ Not something you want... unless your population membership is not 100% accurate
 which in this case you still don't want to impute with 
 \code{imputation.method = "max"} (see alternative below).
 
-Example 2 (balanced sample size): pop1 (n = 100) and pop2 (n = 100).
+\emph{Example 2 (balanced sample size):} pop1 (n = 100) and pop2 (n = 100).
 For a particular marker, pop1 as 85 individuals genotyped and pop2 100.
 Again, if the populations are fixed for different alleles 
 (pop1 = ALT and pop2 = REF), you will end up having REF allele in your pop1,
@@ -189,7 +190,7 @@ not something you want... unless your population membership is not 100% accurate
 which in this case you still don't want to impute with 
 \code{imputation.method = "max"} (see alternative below).
 
-With \code{imputation.method = "rf"}:
+\strong{Random Forests imputations: }
 
 Random Forests use machine learning and you can take this into account while
 choosing argument values. Uncertain of the groupings ? Use random forests with
@@ -200,33 +201,38 @@ results in genotypes for a certain combo population/marker with new groupings
 (e.g. a new allele). This is much more accurate and not the same thing as 
 the \code{imputation.method = "max"} because the imputed genotype was validated
 after considering all the other genotype values of the individual being imputed. 
-\strong{Test the option and report bug if you find one.}
+\emph{Test the option and report bug if you find one.}
 
-\strong{random forest with on-the-fly-imputation (rf): }the technique is described
+\emph{random forest with on-the-fly-imputation (rf): }the technique is described
 in Tang and Ishwaran (2017). Non-missing genotypes are used for
 the split-statistics. Daughter node assignation membership use random 
 non-missing genotypes from the inbag data. Missing genotypes are imputed at
 terminal nodes using maximal class rule with out-of-bag non-missing genotypes.
 
-\strong{random forest as a prediction problem (rf_pred): }markers with 
+\emph{random forest as a prediction problem (rf_pred): }markers with 
 missing genotypes are imputed one at a time. The fitted forest is used to
 predict missing genotypes. Missingness in the response variables are 
 incorporated as attributes for growing the forest.
 
-\strong{... :arguments available for fine-tuning your imputations using 
-extreme gradient tree boosting and random forest:}
+\strong{... :dot dot dot arguments}
 
-Here is the list of arguments that can be further tailored for your imputations
-using \code{\link[xgboost]{xgboost}}:
+The argument is available to tailor your imputations using 
+extreme gradient tree boosting and random forest:
+
+Available arguments for extreme gradient tree boosting tree method:
 \emph{eta, gamma, max_depth, min_child_weight, subsample, colsample_bytree, 
 num_parallel_tree, nrounds, save_name, early_stopping_rounds}.
 Refer to \code{\link[xgboost]{xgboost}} for arguments documentation.
 
 
-Here is the list of arguments that can be further tailored for your imputations
-using \code{\link[randomForestSRC]{impute.rfsrc}}:
+Available arguments for Random forests method:
 \emph{nodesize, nsplit, nimpute}.
 Refer to \code{\link[randomForestSRC]{impute.rfsrc}} for arguments documentation.
+
+
+Multiple Correspondence Analysis option available (upcomming): 
+\emph{ncp}.
+Refer to \code{\link[missMDA]{imputeMCA}} for argument documentation.
 }
 \note{
 \strong{Reference genome or linkage map available ?}
@@ -236,7 +242,7 @@ the literature
 (\href{https://online.papersapp.com/collections/05d6e65a-73c9-49e6-9c75-289a818f76f3/share}{references}).
 
 
-\strong{simple imputation ?}
+\strong{What's simple imputation message when running the function ?}
 
 Before conducting the imputations by populations with random forest or extreme
 gradient tree boosting, the data is first screened for markers that are

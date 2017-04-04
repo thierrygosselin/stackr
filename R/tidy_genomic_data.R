@@ -536,11 +536,11 @@ tidy_genomic_data <- function(
     # platypus VCF file sometimes have NA in LOCUS column: replace by POS
     weird.locus <- unique(input$LOCUS)
     if (length(weird.locus) <= 1) {
-      if (is.na(weird.locus)) {
+      # if (is.na(weird.locus)) {
         input$LOCUS <- input$POS
-      } else {
-        input$LOCUS <- input$CHROM
-      }
+      # } else {
+      #   input$LOCUS <- input$CHROM
+      # }
     }
     weird.locus <- NULL #unused object
     
@@ -868,8 +868,9 @@ tidy_genomic_data <- function(
             tidyr::unite(data = ., col = GT, A1_NUC, A2_NUC, sep = "") %>% 
             dplyr::select(-A1, -A2) %>% 
             dplyr::mutate(
-              GT_VCF = stringi::stri_replace_na(str = GT_VCF, replacement = "./."),
-              GT_BIN = as.numeric(rep(NA, n())))
+              GT_VCF = stringi::stri_replace_na(str = GT_VCF, replacement = "./.")
+              # GT_BIN = as.numeric(rep(NA, n()))
+              )
         }
         return(res)
       }
@@ -1904,7 +1905,8 @@ tidy_genomic_data <- function(
               ALLELE_ALT_DEPTH = as.numeric(
                 stringi::stri_replace_all_regex(
                   ALLELE_ALT_DEPTH, "^0$", "NA", vectorize_all = TRUE))
-            )
+            ) %>% 
+            dplyr::select(-GT)
         )
         return(res)
       }#End clean_ad
@@ -1912,7 +1914,7 @@ tidy_genomic_data <- function(
       input <- dplyr::bind_cols(
         input,
         dplyr::ungroup(input) %>%
-          dplyr::select(AD) %>%
+          dplyr::select(GT, AD) %>%
           split(x = ., f = split.vec) %>% 
           .stackr_parallel(
             # parallel::mclapply(
@@ -1946,14 +1948,15 @@ tidy_genomic_data <- function(
             sep = ",", extra = "drop", remove = FALSE) %>%
           dplyr::mutate_at(
             .tbl = ., .cols = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
-            .funs = as.numeric)
+            .funs = as.numeric) %>% 
+          dplyr::select(-GT)
         return(res)
       }#End clean_pl
       
       input <- dplyr::bind_cols(
         dplyr::select(input, -PL),
         dplyr::ungroup(input) %>%
-          dplyr::select(PL) %>%
+          dplyr::select(GT, PL) %>%
           split(x = ., f = split.vec) %>%
           .stackr_parallel(
             # parallel::mclapply(
@@ -2007,7 +2010,7 @@ tidy_genomic_data <- function(
             dplyr::bind_rows(.))
         
       } else {
-        input$GL <- as.numeric(input$GL)
+        input$GL <- suppressWarnings(as.numeric(input$GL))
       }
       gl.clean <- NULL
     }#End cleaning GL column

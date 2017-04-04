@@ -309,7 +309,6 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     } else {
       message("imputation.method: ", imputation.method)
       message("hierarchical.levels: ", hierarchical.levels)
-      message("num.tree: ", num.tree)
     }
     message("\nparallel.core: ", parallel.core, "\n")
     cat("#######################################################################\n")

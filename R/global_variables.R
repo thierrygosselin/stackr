@@ -52,7 +52,7 @@ if (getRversion() >= "2.15.1") {
       "NAPL", "DISTANCE_RELATIVE", "MARKERS_COMMON", "id.pairwise", "input.prep",
       "CHROM_LOCUS", "NEW_MARKERS", "POP_ID_N", "INDIVIDUALS_N", "GT_N", "GT_IMP",
       "INDIVIDUALS_REP", "KEEP", "GT_VCF_NUC", "INTEGERS", "GOF", "NR", "NV",
-      "A1_NUC", "A2_NUC"
+      "A1_NUC", "A2_NUC", "RANK", "MAF_P", "MAF_L"
     )
   )
 }

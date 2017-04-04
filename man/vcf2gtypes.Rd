@@ -164,6 +164,8 @@ Random Forests algorithm.
 
 (3) \code{imputation.method = "boost"} extreme gradient boosting trees.
 
+(4) \code{imputation.method = "mca"} Multiple Correspondence Analysis.
+
 \code{imputation.method = NULL} will return the original dataset, without
 imputation.
 Default: \code{imputation.method = "rf"}.}

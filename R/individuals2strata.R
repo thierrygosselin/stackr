@@ -42,9 +42,11 @@
 
 #' @export
 #' @rdname individuals2strata
-#' @import stringi
-#' @import dplyr
+#' @importFrom stringi stri_sub
+#' @importFrom dplyr mutate
 #' @importFrom data.table fread
+#' @importFrom readr write_tsv
+#' @importFrom tibble as_data_frame
 
 
 #' @examples
@@ -90,22 +92,21 @@ individuals2strata <- function(
       verbose = FALSE, 
       data.table = FALSE
     )
-  } else { # object in global environment
+  } else {# object in global environment
     input <- data
   }
   
-  input <- input %>% 
-    as_data_frame() %>% 
-    mutate(
+  input <- tibble::as_data_frame(input) %>% 
+    dplyr::mutate(
       INDIVIDUALS =  as.character(INDIVIDUALS),
-      STRATA = stri_sub(str = INDIVIDUALS, from = strata.start, to= strata.end)
+      STRATA = stringi::stri_sub(str = INDIVIDUALS, from = strata.start, to = strata.end)
     )
   
   
   # Write to working directory
   if (!is.null(filename)) {
-    message(stri_paste("Writing the strata object to the working directory: \n"), filename)
-    write_tsv(x = input, path = filename, col_names = TRUE)
+    message("Writing the strata object to the working directory: \n", filename)
+    readr::write_tsv(x = input, path = filename, col_names = TRUE)
   }
   
   return(input)

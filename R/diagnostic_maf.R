@@ -1,86 +1,89 @@
 # Minor Allele Frequency Diagnostic
 #' @title MAF diagnostic
 #' @description Minor Allele Frequency diagnostic, help choose a filter threshold.
-#' @param data A data frame object or file (using ".tsv")
-#' of class sumstats or tidy VCF.
-#' @param group.rank The number of group to class the MAF (Number) 
-#' @param filename Name of the file written to the working directory (optional).
+#' @param data A file in the working directory or object in the global environment 
+#' in wide or long (tidy) formats. To import, the function uses 
+#' \href{https://github.com/thierrygosselin/stackr}{stackr} 
+#' \code{\link[stackr]{tidy_wide}}.
+#' \emph{See details of this function for more info}.
+#' @param group.rank (Number) The number of group to class the MAF.
+#' @param filename (optional) Name of the file written to the working directory.
 #' @rdname diagnostic_maf
 #' @export
-#' @import dplyr
-#' @import readr
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs ntile
+#' @importFrom readr read_tsv write_tsv
 #' @details Highly recommended to look at the distribution of MAF
-#' \link{plot_density_distribution_maf}.
+#' \link{plot_density_distribution_maf}
+
+#' @examples
+#' \dontrun{
+#' problem <- stackr::diagnostic_maf(
+#' data = tidy.salmon.data, group.rank = 10)
+#' }
+
+
 #' @seealso \link{filter_maf}
 
 
-diagnostic_maf <- function(data, group.rank, filename){
+diagnostic_maf <- function(data, group.rank, filename = NULL){
   
-  LOCUS <- NULL
-  POP_ID <- NULL
-  FREQ_ALT <- NULL
-  RANK <- NULL
-  GLOBAL_MAF <- NULL
-  MAF_P <- NULL
-  MAF_L <- NULL
+  if (missing(data)) stop("Input file missing")
+  if (missing(group.rank)) stop("group.rank argument missing")
   
-  if (is.vector(data) == "TRUE") {
-    data <- read_tsv(data, col_names = TRUE)
-    message("Using the file in your directory")
-    
-  } else {
-    data <- data
-    message("Using the file from your global environment")
+  data <- stackr::tidy_wide(data = data, import.metadata = TRUE)
+  
+  # if (is.vector(data)) {
+  #   data <- stackr::tidy_wide(data = data, import.metadata = TRUE)
+  #   message("Using the file in your directory")
+  #   
+  # } else {
+  #   data <- data
+  #   message("Using the file from your global environment")
+  # }
+  
+  # Check if allele frequency column is found
+  if (!tibble::has_name(data, "FREQ_ALT")) {
+    data <- stackr::allele_frequencies(data, verbose = TRUE)$freq.long %>% 
+      dplyr::rename(FREQ_ALT = MAF_LOCAL, GLOBAL_MAF = MAF_GLOBAL)
   }
   
   # Local 
   test.local <- data %>%
-    select(LOCUS, POP_ID, FREQ_ALT) %>%
-    group_by(LOCUS, POP_ID) %>%
-    summarise(
+    dplyr::select(LOCUS, POP_ID, FREQ_ALT) %>%
+    dplyr::group_by(LOCUS, POP_ID) %>%
+    dplyr::summarise(
       MAF_P = min(FREQ_ALT, na.rm = TRUE)
     ) %>% 
-    group_by(LOCUS) %>%
-    summarise(MAF_L = mean(MAF_P, na.rm =TRUE)) %>%
-    group_by(RANK = ntile(MAF_L, group.rank)) %>%
-    summarise(
+    dplyr::group_by(LOCUS) %>%
+    dplyr::summarise(MAF_L = mean(MAF_P, na.rm = TRUE)) %>%
+    dplyr::group_by(RANK = dplyr::ntile(MAF_L, group.rank)) %>%
+    dplyr::summarise(
       LOCAL_MAF = mean(MAF_L, na.rm = T),
       n = length(LOCUS)
     ) %>%
-    select(-n)
+    dplyr::select(-n)
   
   # Global
   
   test.global <- data %>%
-    select(LOCUS, POP_ID, GLOBAL_MAF) %>%
-    group_by(LOCUS) %>%
-    summarise(GLOBAL_MAF = mean(GLOBAL_MAF, na.rm =TRUE)) %>%
-    group_by(RANK = ntile(GLOBAL_MAF, group.rank)) %>%
-    summarise(
+    dplyr::select(LOCUS, POP_ID, GLOBAL_MAF) %>%
+    dplyr::group_by(LOCUS) %>%
+    dplyr::summarise(GLOBAL_MAF = mean(GLOBAL_MAF, na.rm = TRUE)) %>%
+    dplyr::group_by(RANK = dplyr::ntile(GLOBAL_MAF, group.rank)) %>%
+    dplyr::summarise(
       GLOBAL_MAF = mean(GLOBAL_MAF, na.rm = T),
       n = length(LOCUS)
     ) %>%
-    select(GLOBAL_MAF, n)
+    dplyr::select(GLOBAL_MAF, n)
   
-  maf.diagnostic <- bind_cols(test.local, test.global)
+  maf.diagnostic <- dplyr::bind_cols(test.local, test.global)
   
-  if (missing(filename) == "FALSE") {
-    message("Saving the table in your working directory...")
-    write_tsv(maf.diagnostic, filename, append = FALSE, col_names = TRUE)
-    saving <- paste("Saving was selected, the filename:", filename, sep = " ")
+  if (is.null(filename)) {
+    message("Saving file: not selected")
   } else {
-    saving <- "Saving was not selected..."
+    message("Saving file: selected")
+    readr::write_tsv(maf.diagnostic, filename, append = FALSE, col_names = TRUE)
+    message("filename in the working directory: ", filename)
   }
-  
-  
-  
-  invisible(cat(sprintf(
-    "%s\n
-Working directory:
-%s",
-    saving, getwd()
-  )))
-  
   return(maf.diagnostic)
-  
 }

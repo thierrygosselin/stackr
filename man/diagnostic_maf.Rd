@@ -4,22 +4,31 @@
 \alias{diagnostic_maf}
 \title{MAF diagnostic}
 \usage{
-diagnostic_maf(data, group.rank, filename)
+diagnostic_maf(data, group.rank, filename = NULL)
 }
 \arguments{
-\item{data}{A data frame object or file (using ".tsv")
-of class sumstats or tidy VCF.}
+\item{data}{A file in the working directory or object in the global environment 
+in wide or long (tidy) formats. To import, the function uses 
+\href{https://github.com/thierrygosselin/stackr}{stackr} 
+\code{\link[stackr]{tidy_wide}}.
+\emph{See details of this function for more info}.}
 
-\item{group.rank}{The number of group to class the MAF (Number)}
+\item{group.rank}{(Number) The number of group to class the MAF.}
 
-\item{filename}{Name of the file written to the working directory (optional).}
+\item{filename}{(optional) Name of the file written to the working directory.}
 }
 \description{
 Minor Allele Frequency diagnostic, help choose a filter threshold.
 }
 \details{
 Highly recommended to look at the distribution of MAF
-\link{plot_density_distribution_maf}.
+\link{plot_density_distribution_maf}
+}
+\examples{
+\dontrun{
+problem <- stackr::diagnostic_maf(
+data = tidy.salmon.data, group.rank = 10)
+}
 }
 \seealso{
 \link{filter_maf}
