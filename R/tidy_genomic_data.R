@@ -1490,7 +1490,7 @@ tidy_genomic_data <- function(
     
     # Now the genind and genepop are like ordinary data frames
     data.type <- "tbl_df" # for subsequent steps
-    
+    biallelic <- TRUE
   } # End tidy genlight
   
   # Import STRATAG gtypes ------------------------------------------------------
