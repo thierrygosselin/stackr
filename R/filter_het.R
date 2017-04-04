@@ -186,12 +186,12 @@
 #' @rdname filter_het
 #' @export
 
-#' @import ggplot2
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_sub
 #' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs
 #' @importFrom readr write_tsv
 #' @importFrom tibble data_frame
 #' @importFrom tidyr complete gather unite spread nesting
+#' @importFrom ggplot2 ggplot geom_jitter labs aes scale_y_continuous as_labeller waiver scale_color_discrete scale_size_continuous theme element_blank element_text geom_hline facet_grid labeller geom_boxplot theme_classic geom_line expand_limits ggsave theme_minimal element_line 
 
 #' @seealso \link{plot_density_distribution_het}
 
@@ -419,52 +419,52 @@ information")
     y.breaks <- seq(0, y.breaks.max + y.breaks.by , by = y.breaks.by)
     
     # labeller to rename in the facet_grid or facet_wrap call:
-    facet_names <- as_labeller(c(`MISSING_PROP_OVERALL` = "Missing (overall)", `MISSING_PROP_POP` = "Missing (populations)"))
+    facet_names <- ggplot2::as_labeller(c(`MISSING_PROP_OVERALL` = "Missing (overall)", `MISSING_PROP_POP` = "Missing (populations)"))
     
-    individual.heterozygosity.manhattan.plot <- ggplot(data = het.ind.overall, aes(x = POP_ID, y = HET_PROP, size = MISSING_PROP, colour = POP_ID)) + 
-      geom_jitter(alpha = 0.6) + 
-      labs(y = "Individual's Mean Observed Heterozygosity (proportion)") +
+    individual.heterozygosity.manhattan.plot <- ggplot2::ggplot(data = het.ind.overall, ggplot2::aes(x = POP_ID, y = HET_PROP, size = MISSING_PROP, colour = POP_ID)) + 
+      ggplot2::geom_jitter(alpha = 0.6) + 
+      ggplot2::labs(y = "Individual's Mean Observed Heterozygosity (proportion)") +
       # labs(x = "Populations") +
       # labs(colour = "Populations") +
-      scale_y_continuous(name = waiver(), breaks = y.breaks) +#, limits = c(0, y.breaks.max), expand = c(0.1, 0)) +
-      scale_color_discrete(guide = "none") +
-      scale_size_continuous(name = "Missing proportion") +
+      ggplot2::scale_y_continuous(name = ggplot2::waiver(), breaks = y.breaks) +#, limits = c(0, y.breaks.max), expand = c(0.1, 0)) +
+      ggplot2::scale_color_discrete(guide = "none") +
+      ggplot2::scale_size_continuous(name = "Missing proportion") +
       # theme_minimal() +
-      theme(
+      ggplot2::theme(
         # legend.position = "none",
         # panel.grid.major.y = element_line(linetype = "solid"),
         # panel.grid.minor.y = element_line(linetype = "longdash", size = 1),
         # panel.background = element_blank(),
-        panel.grid.major.x = element_blank(),
-        axis.line.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
+        panel.grid.major.x = ggplot2::element_blank(),
+        axis.line.x = ggplot2::element_blank(),
+        axis.title.x = ggplot2::element_blank(),
+        axis.text.x = ggplot2::element_blank(),
+        axis.ticks.x = ggplot2::element_blank(),
         # axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
         # axis.text.x = element_text(size = 10, family = "Helvetica"),
-        axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-        axis.text.y = element_text(size = 8, family = "Helvetica")
+        axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+        axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
       ) +
-      geom_hline(mapping = aes(yintercept = HET_MEAN), het.ind.stats, linetype = "dotted", size = 0.6) + #mean
+      ggplot2::geom_hline(mapping = ggplot2::aes(yintercept = HET_MEAN), het.ind.stats, linetype = "dotted", size = 0.6) + #mean
       # geom_hline(mapping = aes(yintercept = HET_sig_minus), het.ind.stats.pop, linetype = "dashed") + #3 sigma -
       # geom_hline(mapping = aes(yintercept = HET_sig_plus), het.ind.stats.pop, linetype = "dashed") + #3 sigma +
-      facet_grid(MISSING_GROUP ~ POP_ID, switch = "x", scales = "free", labeller = labeller(MISSING_GROUP = facet_names))
+      ggplot2::facet_grid(MISSING_GROUP ~ POP_ID, switch = "x", scales = "free", labeller = ggplot2::labeller(MISSING_GROUP = facet_names))
     # individual.heterozygosity.manhattan.plot
     
-    individual.heterozygosity.boxplot <- ggplot(data = het.ind.overall, aes(x = POP_ID, y = HET_PROP, colour = POP_ID)) + 
-      geom_boxplot() + 
-      labs(y = "Individual's Mean Observed Heterozygosity (proportion)") +
-      labs(x = "Populations") +
-      labs(colour = "Populations") +
-      scale_y_continuous(name = waiver(), breaks = y.breaks, limits = c(0, y.breaks.max), expand = c(0.06, 0)) +
-      theme_classic() +
+    individual.heterozygosity.boxplot <- ggplot2::ggplot(data = het.ind.overall, ggplot2::aes(x = POP_ID, y = HET_PROP, colour = POP_ID)) + 
+      ggplot2::geom_boxplot() + 
+      ggplot2::labs(y = "Individual's Mean Observed Heterozygosity (proportion)") +
+      ggplot2::labs(x = "Populations") +
+      ggplot2::labs(colour = "Populations") +
+      ggplot2::scale_y_continuous(name = ggplot2::waiver(), breaks = y.breaks, limits = c(0, y.breaks.max), expand = c(0.06, 0)) +
+      ggplot2::theme_classic() +
       # theme_minimal() +
-      theme(
+      ggplot2::theme(
         legend.position = "none",
-        axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-        axis.text.x = element_text(size = 10, family = "Helvetica"),
-        axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-        axis.text.y = element_text(size = 8, family = "Helvetica")
+        axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+        axis.text.x = ggplot2::element_text(size = 10, family = "Helvetica"),
+        axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+        axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
       )
     # individual.heterozygosity.boxplot
     
@@ -472,8 +472,8 @@ information")
       message("\nStep 1. Individual's heterozygosity: outliers that might represent mixed samples or poorly sequenced individuals\n")
       print(individual.heterozygosity.manhattan.plot)
       # save
-      ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.manhattan.plot.pdf"), width = pop.number * 2, height = 15, dpi = 600, units = "cm", useDingbats = F)
-      ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.manhattan.plot.png"), width = pop.number * 2, height = 15, dpi = 300, units = "cm")
+      ggplot2::ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.manhattan.plot.pdf"), width = pop.number * 2, height = 15, dpi = 600, units = "cm", useDingbats = FALSE)
+      ggplot2::ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.manhattan.plot.png"), width = pop.number * 2, height = 15, dpi = 300, units = "cm")
       message(stringi::stri_join("2 versions (pdf and png) of the plot (individual.heterozygosity.manhattan.plot) were saved in this directory:\n", path.folder))
     }
     
@@ -484,8 +484,8 @@ information")
       if (boxplot == "y") {
         print(individual.heterozygosity.boxplot)
         # save
-        ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.boxplot.pdf"), width = pop.number * 2, height = 10, dpi = 600, units = "cm", useDingbats = F)
-        ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.boxplot.png"), width = pop.number * 2, height = 10, dpi = 300, units = "cm")
+        ggplot2::ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.boxplot.pdf"), width = pop.number * 2, height = 10, dpi = 600, units = "cm", useDingbats = FALSE)
+        ggplot2::ggsave(stringi::stri_join(path.folder, "/individual.heterozygosity.boxplot.png"), width = pop.number * 2, height = 10, dpi = 300, units = "cm")
         message(stringi::stri_join("2 versions (pdf and png) of the plot (individual.heterozygosity.boxplot) were saved in this directory:\n", path.folder))
       }
     }
@@ -714,57 +714,57 @@ use the overall approach.\n")
     
     # Visualization --------------------------------------------------------------
     # Density plot markers het obs -------------------------------------------------
-    markers.pop.heterozygosity.density.plot <- ggplot(het.summary.tidy, aes(x = VALUE, na.rm = FALSE)) +
-      geom_line(aes(y = ..scaled..), stat = "density", adjust = 0.3) +
-      labs(x = "Markers Observed Heterozygosity") +
-      labs(y = "Density of SNP (scaled)") +
-      expand_limits(y = 0) +
-      theme(
-        axis.title.x = element_text(size = 12, family = "Helvetica", face = "bold"), 
-        axis.title.y = element_text(size = 12, family = "Helvetica", face = "bold"), 
-        legend.title = element_text(size = 12, family = "Helvetica", face = "bold"), 
-        legend.text = element_text(size = 12, family = "Helvetica", face = "bold"),
-        strip.text.y = element_text(angle = 0, size = 12, family = "Helvetica", face = "bold"), 
-        strip.text.x = element_text(size = 12, family = "Helvetica", face = "bold")
+    markers.pop.heterozygosity.density.plot <- ggplot2::ggplot(het.summary.tidy, ggplot2::aes(x = VALUE, na.rm = FALSE)) +
+      ggplot2::geom_line(ggplot2::aes(y = ..scaled..), stat = "density", adjust = 0.3) +
+      ggplot2::labs(x = "Markers Observed Heterozygosity") +
+      ggplot2::labs(y = "Density of SNP (scaled)") +
+      ggplot2::expand_limits(y = 0) +
+      ggplot2::theme(
+        axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+        axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+        legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"), 
+        legend.text = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
+        strip.text.y = ggplot2::element_text(angle = 0, size = 12, family = "Helvetica", face = "bold"), 
+        strip.text.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold")
       ) +
-      facet_grid(POP_ID ~ HET_GROUP)
+      ggplot2::facet_grid(POP_ID ~ HET_GROUP)
     
     # manhattan plot markers het obs -------------------------------------------------
-    markers.pop.heterozygosity.manhattan.plot <- ggplot(data = het.summary.tidy, aes(x = POP_ID, y = VALUE, colour = POP_ID, size = MISSING_PROP)) + 
-      geom_jitter(alpha = 0.3) + 
-      labs(y = "Markers Observed Heterozygosity") +
-      labs(x = "Populations") +
-      labs(colour = "Populations") +
-      scale_color_discrete(guide = "none") +
-      scale_size_continuous(name = "Missing proportion") +
-      theme_minimal() +
-      theme(
-        panel.grid.major.y = element_line(linetype = "solid", colour = "black"),
-        panel.grid.minor.y = element_line(linetype = "dotted", colour = "blue"),
-        panel.grid.major.x = element_blank(),
+    markers.pop.heterozygosity.manhattan.plot <- ggplot2::ggplot(data = het.summary.tidy, ggplot2::aes(x = POP_ID, y = VALUE, colour = POP_ID, size = MISSING_PROP)) + 
+      ggplot2::geom_jitter(alpha = 0.3) + 
+      ggplot2::labs(y = "Markers Observed Heterozygosity") +
+      ggplot2::labs(x = "Populations") +
+      ggplot2::labs(colour = "Populations") +
+      ggplot2::scale_color_discrete(guide = "none") +
+      ggplot2::scale_size_continuous(name = "Missing proportion") +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(
+        panel.grid.major.y = ggplot2::element_line(linetype = "solid", colour = "black"),
+        panel.grid.minor.y = ggplot2::element_line(linetype = "dotted", colour = "blue"),
+        panel.grid.major.x = ggplot2::element_blank(),
         # legend.position = "none",
-        axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-        axis.text.x = element_text(size = 10, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
-        axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-        axis.text.y = element_text(size = 8, family = "Helvetica")
+        axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+        axis.text.x = ggplot2::element_text(size = 10, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
+        axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+        axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
       ) +
-      facet_grid(~ HET_GROUP)
+      ggplot2::facet_grid(~ HET_GROUP)
     markers.pop.heterozygosity.manhattan.plot
     
     # box plot markers het obs -------------------------------------------------
-    markers.pop.heterozygosity.boxplot <- ggplot(data = het.summary.tidy, aes(x = POP_ID, y = VALUE, colour = POP_ID)) + 
-      geom_boxplot() + 
-      labs(y = "Markers Observed Heterozygosity") +
-      labs(x = "Populations") +
-      labs(colour = "Populations") +
-      theme(
+    markers.pop.heterozygosity.boxplot <- ggplot2::ggplot(data = het.summary.tidy, ggplot2::aes(x = POP_ID, y = VALUE, colour = POP_ID)) + 
+      ggplot2::geom_boxplot() + 
+      ggplot2::labs(y = "Markers Observed Heterozygosity") +
+      ggplot2::labs(x = "Populations") +
+      ggplot2::labs(colour = "Populations") +
+      ggplot2::theme(
         legend.position = "none",
-        axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-        axis.text.x = element_text(size = 10, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
-        axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
-        axis.text.y = element_text(size = 8, family = "Helvetica")
+        axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+        axis.text.x = ggplot2::element_text(size = 10, family = "Helvetica", angle = 90, hjust = 1, vjust = 0.5),
+        axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+        axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
       ) +
-      facet_grid(~ HET_GROUP, scales = "free_y")
+      ggplot2::facet_grid(~ HET_GROUP, scales = "free_y")
     
     het.summary.tidy <- NULL #unused object
     
@@ -1162,8 +1162,8 @@ use the overall approach.\n")
     if (interactive.filter) {
       print(markers.pop.heterozygosity.density.plot)
       # save
-      ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.density.plot.pdf"), width = pop.number * 2, height = pop.number * 2, dpi = 600, units = "cm", useDingbats = F)
-      ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.density.plot.png"), width = pop.number * 2, height = pop.number * 2, dpi = 300, units = "cm")
+      ggplot2::ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.density.plot.pdf"), width = pop.number * 2, height = pop.number * 2, dpi = 600, units = "cm", useDingbats = FALSE)
+      ggplot2::ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.density.plot.png"), width = pop.number * 2, height = pop.number * 2, dpi = 300, units = "cm")
       message(stringi::stri_join("2 versions (pdf and png) of the plot (markers.pop.heterozygosity.density.plot) were saved in this directory:\n", path.folder))
     }
     
@@ -1174,8 +1174,8 @@ use the overall approach.\n")
         message("Rendering the plot may take some time depending on the number of markers and populations...")
         print(markers.pop.heterozygosity.manhattan.plot)
         # save
-        ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.manhattan.plot.pdf"), width = pop.number * 2, height = 10, dpi = 600, units = "cm", useDingbats = F)
-        ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.manhattan.plot.png"), width = pop.number * 2, height = 10, dpi = 300, units = "cm")
+        ggplot2::ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.manhattan.plot.pdf"), width = pop.number * 2, height = 10, dpi = 600, units = "cm", useDingbats = FALSE)
+        ggplot2::ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.manhattan.plot.png"), width = pop.number * 2, height = 10, dpi = 300, units = "cm")
         message(stringi::stri_join("2 versions (pdf and png) of the plot (markers.pop.heterozygosity.manhattan.plot) were saved in this directory:\n", path.folder))
       }
     }
@@ -1187,8 +1187,8 @@ use the overall approach.\n")
         message("Rendering the plot may take some time depending on the number of markers and populations...")
         print(markers.pop.heterozygosity.boxplot)
         # save
-        ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.boxplot.pdf"), width = pop.number * 2, height = 10, dpi = 600, units = "cm", useDingbats = F)
-        ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.boxplot.png"), width = pop.number * 2, height = 10, dpi = 300, units = "cm")
+        ggplot2::ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.boxplot.pdf"), width = pop.number * 2, height = 10, dpi = 600, units = "cm", useDingbats = FALSE)
+        ggplot2::ggsave(stringi::stri_join(path.folder, "/markers.pop.heterozygosity.boxplot.png"), width = pop.number * 2, height = 10, dpi = 300, units = "cm")
         message(stringi::stri_join("2 versions (pdf and png) of the plot (markers.pop.heterozygosity.boxplot) were saved in this directory:\n", path.folder))
       }
     }
@@ -1432,24 +1432,24 @@ number of populations in the dataset turns off the filter.\n")
     
     # results --------------------------------------------------------------------
     cat("############################### RESULTS ###############################\n")
-    message(stringi::stri_join("ind.heterozygosity.threshold: ", ind.heterozygosity.threshold))
-    message(stringi::stri_join("Blacklisted individuals: ", ind.blacklisted))
+    message("ind.heterozygosity.threshold: ", ind.heterozygosity.threshold)
+    message("Blacklisted individuals: ", ind.blacklisted)
     message(stringi::stri_join("het.approach: ", paste(het.approach, collapse = " and ")))
-    message(stringi::stri_join("het.threshold: ", het.threshold))
-    message(stringi::stri_join("het.dif.threshold: ", het.dif.threshold))
-    message(stringi::stri_join("outlier.pop.threshold: ", outlier.pop.threshold))
+    message("het.threshold: ", het.threshold)
+    message("het.dif.threshold: ", het.dif.threshold)
+    message("outlier.pop.threshold: ", outlier.pop.threshold)
     if (tibble::has_name(het.summary, "LOCUS") & het.approach[1] == "haplotype") {
-      message(stringi::stri_join("The number of markers removed by the HET filter:\nSNP: ", snp.before - dplyr::n_distinct(filter$POS), "\nLOCUS: ", locus.before - dplyr::n_distinct(filter$LOCUS)))
+      message("The number of markers removed by the HET filter:\nSNP: ", snp.before - dplyr::n_distinct(filter$POS), "\nLOCUS: ", locus.before - dplyr::n_distinct(filter$LOCUS))
       message("The number of markers before -> after the HET filter")
-      message(stringi::stri_join("SNP: ", snp.before, " -> ", as.integer(dplyr::n_distinct(filter$POS))))
-      message(stringi::stri_join("LOCUS: ", locus.before, " -> ", as.integer(dplyr::n_distinct(filter$LOCUS))))
+      message("SNP: ", snp.before, " -> ", as.integer(dplyr::n_distinct(filter$POS)))
+      message("LOCUS: ", locus.before, " -> ", as.integer(dplyr::n_distinct(filter$LOCUS)))
     } else {# for haplotype file
-      message(stringi::stri_join("The number of markers/locus removed by the HET filter: ", snp.before - dplyr::n_distinct(filter$MARKERS)))
+      message("The number of markers/locus removed by the HET filter: ", snp.before - dplyr::n_distinct(filter$MARKERS))
       message("The number of markers before -> after the HET filter")
-      message(stringi::stri_join("MARKERS/LOCUS: ", snp.before, " -> ", as.integer(dplyr::n_distinct(filter$MARKERS))))
+      message("MARKERS/LOCUS: ", snp.before, " -> ", as.integer(dplyr::n_distinct(filter$MARKERS)))
     }
     if (!interactive.filter) {
-      message(stringi::stri_join("Computation time: ", round((proc.time() - timing)[[3]]), " sec"))
+      message("Computation time: ", round((proc.time() - timing)[[3]]), " sec")
     }
     cat("############################## completed ##############################\n")
     res <- list(
