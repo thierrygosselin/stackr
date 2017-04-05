@@ -4,8 +4,8 @@
 \alias{genomic_converter}
 \title{Conversion tool among several genomic formats}
 \usage{
-genomic_converter(data, output = NULL, filename = NULL,
-  blacklist.id = NULL, blacklist.genotype = NULL,
+genomic_converter(data, output = NULL, vcf.metadata = FALSE,
+  filename = NULL, blacklist.id = NULL, blacklist.genotype = NULL,
   whitelist.markers = NULL, monomorphic.out = TRUE, snp.ld = NULL,
   common.markers = TRUE, maf.thresholds = NULL, maf.pop.num.threshold = 1,
   maf.approach = "SNP", maf.operator = "OR", max.marker = NULL,
@@ -30,6 +30,18 @@ Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
 output formats generated. The tidy format is generated automatically.
 Default: \code{output = NULL}.}
+
+\item{vcf.metadata}{(optional, logical or string) For VCF files only.
+With \code{logical, TRUE/FALSE}, \code{vcf.metadata = FALSE}, only the genotype
+information is kept (GT field). With \code{vcf.metadata = TRUE},
+all the metadata contained in the \code{FORMAT} field will be kept in
+the tidy data file. stackr is currently keeping/cleaning only these metadata: 
+\code{"DP", "AD", "GL", "PL", "GQ", "GOF", "NR", "NV"}.
+If you need different one, submit a request.
+With \code{string}, explicitely ask for a particular FORMAT field you want
+to keep (except the GT field that is always imported).
+e.g. \code{vcf.metadata = "PL"} or \code{vcf.metadata = c("DP", "GL")}.
+Default: \code{vcf.metadata = FALSE}.}
 
 \item{filename}{(optional) The filename prefix for the objet in the global environment
 or the working directory. Default: \code{filename = NULL}. A default name will be used,
