@@ -14,8 +14,6 @@
 
 summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop.levels) {
   
-  POP_ID <- NULL
-  
   skip.lines <- pop.num + 1
   
   if (pop.col.types == "integer") {
@@ -35,8 +33,8 @@ summary_hapstats <- function(data, pop.num, pop.col.types, pop.integer.equi, pop
     col_names = c("BATCH_ID", "LOCUS", "CHR", "BP", "POP_ID", "N", "HAPLOTYPE_CNT", "GENE_DIVERSITY", "SMOOTHED_GENE_DIVERSITY", "SMOOTHED_GENE_DIVERSITY_PVALUE", "HAPLOTYPE_DIVERSITY", "SMOOTHED_HAPLOTYPE_DIVERSITY", "SMOOTHED_HAPLOTYPE_DIVERSITY_PVALUE", "HAPLOTYPES"),
     col_types = col.types
   ) %>%
-    dplyr::mutate (
-      POP_ID = stri_replace_all_fixed(POP_ID, seq(from = 1, to = pop.num, by = 1), pop.integer.equi, vectorize_all = FALSE),
+    dplyr::mutate(
+      POP_ID = stringi::stri_replace_all_fixed(POP_ID, seq(from = 1, to = pop.num, by = 1), pop.integer.equi, vectorize_all = FALSE),
       POP_ID = factor(POP_ID, levels = pop.levels, ordered = TRUE)
     ) %>%
     dplyr::arrange(LOCUS, POP_ID)
@@ -78,7 +76,7 @@ summary_stats_vcf_tidy <- function(data, filename = NULL) {
       FREQ_ALT = ((QQ*2) + PQ)/(2*N),
       HET_O = PQ/N,
       HET_E = 2 * FREQ_REF * FREQ_ALT,
-      FIS = dplyr::if_else(HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6))
+      FIS = dplyr::if_else(HET_O == 0, 1, round(((HET_E - HET_O) / HET_E), 6))
     )
   
   global.maf <- vcf.summary %>%
@@ -174,17 +172,16 @@ summary_stats_vcf_tidy <- function(data, filename = NULL) {
 #' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs
 #' @importFrom readr read_tsv
 #' @importFrom reshape2 melt
+#' @importFrom utils write.table
 #' @export
 
 summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
-  if (is.vector(data) == "TRUE") {
+  if (is.vector(data)) {
     data <- readr::read_tsv(data, col_names = T, col_types = "iiiiccddcdccddddc")
     message("Using the file in your directory")
-    
   } else {
     data = data
     message("Using the file from your global environment")
-    
   }
   
   coverage.sum.loci <- data %>%
@@ -257,7 +254,7 @@ summary_coverage <- function(data, pop.levels = NULL, filename = NULL) {
   }
   coverage.summary.pop.total
   
-  write.table(coverage.summary.pop.total, filename, sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
+  utils::write.table(coverage.summary.pop.total, filename, sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
   
   invisible(cat(sprintf(
     "Filename: %s
@@ -321,7 +318,7 @@ table_low_coverage_summary <- function(
       col_names = TRUE, 
       col_types = "diidccddccccdddddc"
     ) %>%
-      mutate(INDIVIDUALS = factor(INDIVIDUALS))
+      dplyr::mutate(INDIVIDUALS = factor(INDIVIDUALS))
     message("Using the file in your directory")
     
   } else {
@@ -372,13 +369,13 @@ table_low_coverage_summary <- function(
   low.coverage.summary.table <- low.coverage.summary %>%
     reshape2::dcast(POP_ID ~ GT, value.var = "LOW_COVERAGE_PERCENT")
   
-  write.table(low.coverage.summary.table, filename.low.coverage, sep = "\t", row.names = F, col.names = T, quote = F)
+  utils::write.table(low.coverage.summary.table, filename.low.coverage, sep = "\t", row.names = F, col.names = T, quote = F)
   
   low.coverage.imbalance.summary.table <- low.coverage.summary %>%
     dplyr::filter(GT != "0/0" & GT != "1/1") %>%
     reshape2::dcast(POP_ID ~ GT, value.var = "IMBALANCE_PERCENT")
   
-  write.table(low.coverage.imbalance.summary.table, filename.low.coverage.imbalance, sep = "\t", row.names = F, col.names = T, quote = F)
+  utils::write.table(low.coverage.imbalance.summary.table, filename.low.coverage.imbalance, sep = "\t", row.names = F, col.names = T, quote = F)
   
   invisible(
     cat(
@@ -652,7 +649,7 @@ fis_summary <- function(
         HET_O = HET / N,
         HET_E = 2 * FREQ_REF * FREQ_ALT,
         FIS = (HET_E - HET_O) / HET_E,
-        FIS = replace(FIS, which(FIS == "NaN"), 0)
+        FIS = replace(FIS, which(FIS == "NaN"), 1)
       )
     
     fis.overall <- input %>%
@@ -669,7 +666,7 @@ fis_summary <- function(
         HET_O = HET / N,
         HET_E = 2 * FREQ_REF * FREQ_ALT,
         FIS = (HET_E - HET_O) / HET_E,
-        FIS = replace(FIS, which(FIS == "NaN"), 0)
+        FIS = replace(FIS, which(FIS == "NaN"), 1)
       )
   } else {
     input.alleles <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT) %>%
@@ -710,7 +707,7 @@ fis_summary <- function(
       dplyr::full_join(alleles.count, by = c("MARKERS", "POP_ID")) %>% 
       dplyr::mutate(
         FIS = 1 - (HET_O/HET_E),
-        FIS = replace(FIS, which(FIS == "NaN"), 0)
+        FIS = replace(FIS, which(FIS == "NaN"), 1)
       ) %>% 
       dplyr::arrange(MARKERS, POP_ID)
 
@@ -742,7 +739,7 @@ fis_summary <- function(
       dplyr::full_join(alleles.count.overall, by = "MARKERS") %>% 
       dplyr::mutate(
         FIS = 1 - (HET_O/HET_E),
-        FIS = replace(FIS, which(FIS == "NaN"), 0)
+        FIS = replace(FIS, which(FIS == "NaN"), 1)
       ) %>% 
       dplyr::arrange(MARKERS)
   }

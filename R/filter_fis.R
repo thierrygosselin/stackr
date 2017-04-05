@@ -1,6 +1,6 @@
 # Fis 
 #' @title Fis filter
-#' @description Inbreeding coefficient filter from a sumstats prepared file
+#' @description  
 #' or a tidy VCF file.
 #' @param data A data frame object or file (using ".tsv")
 #' of class sumstats or a tidy VCF summarised.
@@ -15,36 +15,28 @@
 #' @param filename Name of the file written to the working directory (optional).
 #' @rdname filter_fis
 #' @export
-#' @import stringi
-#' @import dplyr
-#' @import readr
+#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs
+#' @importFrom readr read_tsv write_tsv
 
 
 filter_fis <- function(data, approach = "haplotype", fis.min.threshold, fis.max.threshold, fis.diff.threshold, pop.threshold, percent, filename) {
   
-  POP_ID <- NULL
-  LOCUS <- NULL
-  FIS <- NULL
-  FIS_MIN <- NULL
-  FIS_MAX <- NULL
-  FIS_DIFF <- NULL
-  
-  
-  if (is.vector(data) == "TRUE") {
-    data <- read_tsv(data, col_names = T)
+  if (is.vector(data)) {
+    data <- readr::read_tsv(data, col_names = T)
     message("Using the file in your directory")
   } else {
     data <- data
     message("Using the file from your global environment")
   }
   
-  pop.number <- n_distinct(data$POP_ID)
+  pop.number <- dplyr::n_distinct(data$POP_ID)
   
-  if(stri_detect_fixed(pop.threshold, ".") & pop.threshold < 1) {
+  if(stringi::stri_detect_fixed(pop.threshold, ".") & pop.threshold < 1) {
     multiplication.number <- 1/pop.number
     message("Using a proportion threshold...")
     threshold.id <- "of proportion"
-  } else if (stri_detect_fixed(percent, "T")) {
+  } else if (stringi::stri_detect_fixed(percent, "T")) {
     multiplication.number <- 100/pop.number
     message("Using a percentage threshold...")
     threshold.id <- "percent"
@@ -57,47 +49,47 @@ filter_fis <- function(data, approach = "haplotype", fis.min.threshold, fis.max.
   if (missing(approach) | approach == "haplotype"){
     message("Approach selected: haplotype")
     fis.filter <- data %>%
-      select(LOCUS, POS, POP_ID, FIS) %>%
-      group_by (LOCUS, POP_ID) %>%
-      summarise(
+      dplyr::select(LOCUS, POS, POP_ID, FIS) %>%
+      dplyr::group_by (LOCUS, POP_ID) %>%
+      dplyr::summarise(
         FIS_MIN = min(FIS),
         FIS_MAX = max(FIS),
         FIS_DIFF = FIS_MAX-FIS_MIN
       ) %>%
-      filter(FIS_MIN >= fis.min.threshold) %>%
-      filter(FIS_MAX <= fis.max.threshold) %>%
-      filter(FIS_DIFF <= fis.diff.threshold) %>%
-      group_by(LOCUS) %>%
-      tally() %>%
-      filter((n * multiplication.number) >= pop.threshold) %>%
-      select(LOCUS) %>%
-      left_join(data, by="LOCUS") %>%
-      arrange(LOCUS, POP_ID)
+      dplyr::filter(FIS_MIN >= fis.min.threshold) %>%
+      dplyr::filter(FIS_MAX <= fis.max.threshold) %>%
+      dplyr::filter(FIS_DIFF <= fis.diff.threshold) %>%
+      dplyr::group_by(LOCUS) %>%
+      dplyr::tally(.) %>%
+      dplyr::filter((n * multiplication.number) >= pop.threshold) %>%
+      dplyr::select(LOCUS) %>%
+      dplyr::left_join(data, by="LOCUS") %>%
+      dplyr::arrange(LOCUS, POP_ID)
   } else {
     message("Approach selected: SNP")
     fis.filter <- data %>%
-      select(LOCUS, POS, POP_ID, FIS) %>%
-      group_by(LOCUS, POS, POP_ID) %>%
-      summarise(
+      dplyr::select(LOCUS, POS, POP_ID, FIS) %>%
+      dplyr::group_by(LOCUS, POS, POP_ID) %>%
+      dplyr::summarise(
         FIS_MIN = min(FIS),
         FIS_MAX = max(FIS),
         FIS_DIFF = FIS_MAX-FIS_MIN
       ) %>%
-      filter(FIS_MIN >= fis.min.threshold) %>%
-      filter(FIS_MAX <= fis.max.threshold) %>%
-      filter(FIS_DIFF <= fis.diff.threshold) %>%
-      group_by(LOCUS, POS) %>%
-      tally() %>%
-      filter((n * multiplication.number) >= pop.threshold) %>%
-      select(LOCUS, POS) %>%
-      left_join(data, by = c("LOCUS", "POS")) %>%
-      arrange(LOCUS, POS, POP_ID)
+      dplyr::filter(FIS_MIN >= fis.min.threshold) %>%
+      dplyr::filter(FIS_MAX <= fis.max.threshold) %>%
+      dplyr::filter(FIS_DIFF <= fis.diff.threshold) %>%
+      dplyr::group_by(LOCUS, POS) %>%
+      dplyr::tally(.) %>%
+      dplyr::filter((n * multiplication.number) >= pop.threshold) %>%
+      dplyr::select(LOCUS, POS) %>%
+      dplyr::left_join(data, by = c("LOCUS", "POS")) %>%
+      dplyr::arrange(LOCUS, POS, POP_ID)
 }
   
   
   if (missing(filename) == "FALSE") {
     message("Saving the file in your working directory...")
-    write_tsv(fis.filter, filename, append = FALSE, col_names = TRUE)
+    readr::write_tsv(fis.filter, filename, append = FALSE, col_names = TRUE)
     saving <- paste("Saving was selected, the filename:", filename, sep = " ")
   } else {
     saving <- "Saving was not selected..."
@@ -117,10 +109,10 @@ The number of LOCI before -> after the Fis filter: %s -> %s LOCI\n
 Working directory:
 %s",
     fis.min.threshold, fis.max.threshold, fis.diff.threshold, pop.threshold,
-    n_distinct(data$POS)-n_distinct(fis.filter$POS),
-    n_distinct(data$LOCUS)-n_distinct(fis.filter$LOCUS),
-    n_distinct(data$POS), n_distinct(fis.filter$POS),
-    n_distinct(data$LOCUS), n_distinct(fis.filter$LOCUS),
+    dplyr::n_distinct(data$POS) - dplyr::n_distinct(fis.filter$POS),
+    dplyr::n_distinct(data$LOCUS) - dplyr::n_distinct(fis.filter$LOCUS),
+    dplyr::n_distinct(data$POS), dplyr::n_distinct(fis.filter$POS),
+    dplyr::n_distinct(data$LOCUS), dplyr::n_distinct(fis.filter$LOCUS),
     saving, getwd()
   )))
   return(fis.filter)

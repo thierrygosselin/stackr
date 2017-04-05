@@ -28,6 +28,5 @@ Default by \code{"haplotype"}.}
 \item{filename}{Name of the file written to the working directory (optional).}
 }
 \description{
-Inbreeding coefficient filter from a sumstats prepared file
 or a tidy VCF file.
 }
