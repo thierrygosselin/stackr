@@ -513,12 +513,6 @@ tidy_genomic_data <- function(
              A file named: duplicated.markers.tsv was written in the directory")
     }
     
-    # Filter with whitelist of markers and FILTER column
-    if (!is.null(whitelist.markers)) {
-      message("Filtering: ", nrow(whitelist.markers), " markers in whitelist")
-      input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
-    }
-    
     # Scan and filter with FILTER column
     filter.check <- dplyr::distinct(input, FILTER)
     
@@ -547,6 +541,12 @@ tidy_genomic_data <- function(
     input <- input %>% 
       dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>% 
       tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
+    
+    # Filter with whitelist of markers and FILTER column
+    if (!is.null(whitelist.markers)) {
+      message("Filtering: ", nrow(whitelist.markers), " markers in whitelist")
+      input <- suppressWarnings(dplyr::semi_join(input, whitelist.markers, by = columns.names.whitelist))
+    }
     
     # keep vector
     keep.markers <- dplyr::select(input, KEEP) %>%
