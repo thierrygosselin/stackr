@@ -166,6 +166,7 @@
 genomic_converter <- function(
   data,
   output = NULL,
+  vcf.metadata = FALSE,
   filename = NULL,
   blacklist.id = NULL,
   blacklist.genotype = NULL,
@@ -359,7 +360,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   # } else {
     input <- stackr::tidy_genomic_data(
       data = data,
-      vcf.metadata = TRUE,
+      vcf.metadata = vcf.metadata,
       blacklist.id = blacklist.id,
       blacklist.genotype = blacklist.genotype,
       whitelist.markers = whitelist.markers,
@@ -376,7 +377,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       pop.labels = pop.labels,
       pop.select = pop.select,
       filename = NULL,
-      verbose = FALSE
+      verbose = verbose
     )
   # }
   
