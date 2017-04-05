@@ -148,8 +148,9 @@ A list is created with several objects: the tidy data,
 the principal coordinates 
 with eigenvalues of the PCoA, the identity-by-missingness plot, several 
 summary tables and plots of missing information
-per individuals, populations and markers. Blacklisted id are also included. A
-heatmap showing the missing values in black and genotypes in grey provide a
+per individuals, populations and markers. Blacklisted id are also included. 
+Whitelists of markers with different level of missingness are also created.
+A heatmap showing the missing values in black and genotypes in grey provide a
 general overview of the missing data.
 }
 \description{

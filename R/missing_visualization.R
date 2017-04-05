@@ -55,8 +55,9 @@
 #' the principal coordinates 
 #' with eigenvalues of the PCoA, the identity-by-missingness plot, several 
 #' summary tables and plots of missing information
-#' per individuals, populations and markers. Blacklisted id are also included. A
-#' heatmap showing the missing values in black and genotypes in grey provide a
+#' per individuals, populations and markers. Blacklisted id are also included. 
+#' Whitelists of markers with different level of missingness are also created.
+#' A heatmap showing the missing values in black and genotypes in grey provide a
 #' general overview of the missing data.
 
 #' @examples
@@ -492,6 +493,21 @@ missing_visualization <- function(
     ) %>% 
     dplyr::ungroup(.) %>% 
     dplyr::arrange(MARKERS)
+  
+  markers.missing.geno.threshold <- c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7)
+  for (i in markers.missing.geno.threshold) {
+    # i <- 30
+    whitelist.missing.geno <- dplyr::ungroup(missing.genotypes.markers) %>% 
+      dplyr::filter(MISSING_GENOTYPE_PROP <= i) %>%
+      dplyr::distinct(MARKERS)
+    
+    if (length(whitelist.missing.geno$MARKERS) > 0) {
+      whitelist_name <- stringi::stri_join("whitelist.markers.missing.max.", i)
+      res[[whitelist_name]] <- whitelist.missing.geno
+      readr::write_tsv(whitelist.missing.geno, stringi::stri_join(whitelist_name, ".tsv"))
+    }
+  }
+  
   
   # Figure markers
   missing.genotypes.markers.plot <- ggplot2::ggplot(data = missing.genotypes.markers, ggplot2::aes(x = MISSING_GENOTYPE_PROP)) + 
