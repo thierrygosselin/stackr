@@ -76,7 +76,9 @@
 #' \item the blacklisted individuals if \code{ind.heterozygosity.threshold} was selected: \code{$blacklist.ind.het}
 #' \item the boxplot of individual heterozygosity:\code{$individual.heterozygosity.boxplot}
 #' \item the manhattan plot of individual heterozygosity (\code{$individual.heterozygosity.manhattan.plot})
-#' contrasted with missingness proportion based on the population or overall number of markers.
+#' contrasted with missingness proportion based on the number of markers (population or overall).
+#' The 2 facets will be identical when the dataset as common markers between
+#' the populations. The dotted lines are the mean hetegozygosities.
 #' }
 
 #' @rdname detect_mixed_genomes
