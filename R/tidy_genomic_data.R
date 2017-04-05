@@ -605,47 +605,14 @@ tidy_genomic_data <- function(
     }
     
     if (!import.pegas) {
-      # nested function to parse the format field and tidy the results
-      parse_genomic <- function(
-        x, data = vcf.data, mask = FALSE, gather.data = FALSE, return.alleles = FALSE) {
-        format.name <- x
-        
-        if (verbose) message("Parsing and tidying: ", format.name)
-        x <- tibble::as_data_frame(vcfR::extract.gt(
-          x = data, element = x, mask = mask, return.alleles = return.alleles,
-          IDtoRowNames = FALSE, convertNA = FALSE))
-        
-        if (format.name == "GT") {
-          colnames(x) <- stringi::stri_replace_all_fixed(
-            str = colnames(x), 
-            pattern = c("_", ":"), 
-            replacement = c("-", "-"), 
-            vectorize_all = FALSE
-          )
-        }
-        
-        if (gather.data) {
-          x <- dplyr::mutate(x, ID = seq(1, n()))
-          x <- data.table::melt.data.table(
-            data = data.table::as.data.table(x), 
-            id.vars = c("ID"), 
-            variable.name = "INDIVIDUALS",
-            variable.factor = FALSE,
-            value.name = format.name
-          ) %>% 
-            tibble::as_data_frame() %>% 
-            dplyr::select(-ID, -INDIVIDUALS)
-        }
-        return(x)
-      }#End parse_genomic
-      
       # GT field only
       # if (biallelic) {
       #   input <- dplyr::bind_cols(input, parse_genomic(x = "GT"))
       # } else {#multi-allelic
       input <- dplyr::bind_cols(
         input,
-        parse_genomic(x = "GT", return.alleles = TRUE))
+        parse_genomic(x = "GT", data = vcf.data, return.alleles = TRUE,
+                      verbose = verbose))
       # }
       
       input <- data.table::melt.data.table(
@@ -678,7 +645,8 @@ tidy_genomic_data <- function(
         # if (length(parse.format.list) <= 2) {
         input <- dplyr::bind_cols(
           input, 
-          purrr::map(parse.format.list, parse_genomic, data = vcf.data, gather.data = TRUE) %>% 
+          purrr::map(parse.format.list, parse_genomic, data = vcf.data,
+                     gather.data = TRUE, verbose = verbose) %>% 
             dplyr::bind_cols(.))
         
         # some VCF are too big to fit in memory multiple times for parallel processing...
@@ -749,41 +717,6 @@ tidy_genomic_data <- function(
       if (verbose) message("Recoding VCF haplotype...")
     }
 
-    nuc2integers <- function(x) {
-      res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>%
-        dplyr::filter(GT_VCF_NUC != "./.") %>% 
-        tidyr::separate(col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/") %>% 
-        tidyr::gather(data = ., key = ALLELES_GROUP, value = ALLELES, -MARKERS) %>% 
-        dplyr::select(-ALLELES_GROUP) %>%
-        dplyr::group_by(MARKERS, ALLELES) %>% 
-        dplyr::tally(.) %>% 
-        dplyr::arrange(-n) %>% 
-        dplyr::mutate(INTEGERS = seq(0, n() - 1)) %>%
-        dplyr::select(-n) %>% 
-        dplyr::arrange(MARKERS, INTEGERS) %>% 
-        dplyr::ungroup(.)
-      
-      ref.alleles <- res %>%
-        dplyr::filter(INTEGERS == 0) %>% 
-        dplyr::mutate(REF = ALLELES) %>% 
-        dplyr::distinct(MARKERS, REF)
-      
-      alt.alleles <- res %>%
-        dplyr::filter(INTEGERS != 0) %>%
-        dplyr::group_by(MARKERS) %>% 
-        dplyr::mutate(ALT = stringi::stri_join(ALLELES, collapse = ",")) %>%
-        dplyr::ungroup(.) %>% 
-        dplyr::distinct(MARKERS, ALT)
-      
-      res <- dplyr::left_join(
-        res,
-        dplyr::left_join(ref.alleles, alt.alleles, by = "MARKERS")
-        , by = "MARKERS"
-      ) %>% 
-        dplyr::arrange(MARKERS, INTEGERS)
-      return(res)
-    }#End nuc2integers
-    
     # split data for 3 rounds of CPU
     # to work, same markers in same split...
     if (verbose) message("Calculating REF/ALT alleles...")
@@ -826,56 +759,7 @@ tidy_genomic_data <- function(
       
       # Integrating new coding
       if (verbose) message("Integrating new genotype codings...")
-      nuc2gt <- function(x, conversion.data = NULL, biallelic = TRUE) {
-        if (biallelic) {
-          res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>% 
-            tidyr::separate(data = ., col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/", remove = FALSE) %>%
-            dplyr::left_join(dplyr::rename(conversion.data, A1 = ALLELES), by = c("MARKERS", "A1")) %>% 
-            dplyr::rename(A1_NUC = INTEGERS) %>% 
-            dplyr::left_join(dplyr::rename(conversion.data, A2 = ALLELES), by = c("MARKERS", "A2")) %>% 
-            dplyr::rename(A2_NUC = INTEGERS) %>%
-            dplyr::mutate(
-              GT_VCF = stringi::stri_join(A1_NUC, A2_NUC, sep = "/"),
-              GT_VCF = stringi::stri_replace_na(str = GT_VCF, replacement = "./."),
-              A1_NUC = as.character(A1_NUC + 1),
-              A2_NUC = as.character(A2_NUC + 1),
-              A1_NUC = stringi::stri_replace_na(str = A1_NUC, replacement = "0"),
-              A2_NUC = stringi::stri_replace_na(str = A2_NUC, replacement = "0"),
-              A1_NUC = stringi::stri_pad_left(str = A1_NUC, pad = "0", width = 3),
-              A2_NUC = stringi::stri_pad_left(str = A2_NUC, pad = "0", width = 3),
-              GT_BIN = as.numeric(stringi::stri_replace_all_fixed(
-                str = GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."),
-                replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE))
-            ) %>% 
-            tidyr::unite(data = ., col = GT, A1_NUC, A2_NUC, sep = "") %>% 
-            dplyr::select(-A1, -A2)
-        } else {
-          res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>% 
-            tidyr::separate(data = ., col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/", remove = FALSE) %>%
-            dplyr::left_join(dplyr::rename(conversion.data, A1 = ALLELES), by = c("MARKERS", "A1")) %>% 
-            dplyr::rename(A1_NUC = INTEGERS) %>% 
-            dplyr::left_join(dplyr::rename(conversion.data, A2 = ALLELES), by = c("MARKERS", "A2")) %>% 
-            dplyr::rename(A2_NUC = INTEGERS) %>%
-            dplyr::mutate(
-              GT_VCF = stringi::stri_join(A1_NUC, A2_NUC, sep = "/"),
-              A1_NUC = as.character(A1_NUC + 1),
-              A2_NUC = as.character(A2_NUC + 1),
-              A1_NUC = stringi::stri_replace_na(str = A1_NUC, replacement = "0"),
-              A2_NUC = stringi::stri_replace_na(str = A2_NUC, replacement = "0"),
-              A1_NUC = stringi::stri_pad_left(str = A1_NUC, pad = "0", width = 3),
-              A2_NUC = stringi::stri_pad_left(str = A2_NUC, pad = "0", width = 3)
-            ) %>% 
-            tidyr::unite(data = ., col = GT, A1_NUC, A2_NUC, sep = "") %>% 
-            dplyr::select(-A1, -A2) %>% 
-            dplyr::mutate(
-              GT_VCF = stringi::stri_replace_na(str = GT_VCF, replacement = "./.")
-              # GT_BIN = as.numeric(rep(NA, n()))
-              )
-        }
-        return(res)
-      }
-      # apply the conversion of haplo to gt in parallel
-      
+
       new.gt <- dplyr::distinct(input, MARKERS, GT_VCF_NUC) %>%
         dplyr::mutate(SPLIT_VEC = dplyr::ntile(x = 1:nrow(.), n = parallel.core * 3)) %>% 
         split(x = ., f = .$SPLIT_VEC) %>% 
@@ -2141,3 +2025,139 @@ tidy_genomic_data <- function(
   return(res)
 } # tidy genomic data
 
+
+# Internal nested Function -----------------------------------------------------
+
+#' @title parse_genomic
+#' @description function to parse the format field and tidy the results of VCF
+#' @rdname parse_genomic
+#' @keywords internal
+#' @export
+parse_genomic <- function(
+  x, data = NULL, mask = FALSE, gather.data = FALSE, return.alleles = FALSE,
+  verbose = TRUE) {
+  format.name <- x
+  
+  if (verbose) message("Parsing and tidying: ", format.name)
+  x <- tibble::as_data_frame(vcfR::extract.gt(
+    x = data, element = x, mask = mask, return.alleles = return.alleles,
+    IDtoRowNames = FALSE, convertNA = FALSE))
+  
+  if (format.name == "GT") {
+    colnames(x) <- stringi::stri_replace_all_fixed(
+      str = colnames(x), 
+      pattern = c("_", ":"), 
+      replacement = c("-", "-"), 
+      vectorize_all = FALSE
+    )
+  }
+  
+  if (gather.data) {
+    x <- dplyr::mutate(x, ID = seq(1, n()))
+    x <- data.table::melt.data.table(
+      data = data.table::as.data.table(x), 
+      id.vars = c("ID"), 
+      variable.name = "INDIVIDUALS",
+      variable.factor = FALSE,
+      value.name = format.name
+    ) %>% 
+      tibble::as_data_frame() %>% 
+      dplyr::select(-ID, -INDIVIDUALS)
+  }
+  return(x)
+}#End parse_genomic
+
+
+#' @title nuc2integers
+#' @description convert nucleotides to integers. Useful while tidying VCF
+#' @rdname nuc2integers
+#' @keywords internal
+#' @export
+nuc2integers <- function(x) {
+  res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>%
+    dplyr::filter(GT_VCF_NUC != "./.") %>% 
+    tidyr::separate(col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/") %>% 
+    tidyr::gather(data = ., key = ALLELES_GROUP, value = ALLELES, -MARKERS) %>% 
+    dplyr::select(-ALLELES_GROUP) %>%
+    dplyr::group_by(MARKERS, ALLELES) %>% 
+    dplyr::tally(.) %>% 
+    dplyr::arrange(-n) %>% 
+    dplyr::mutate(INTEGERS = seq(0, n() - 1)) %>%
+    dplyr::select(-n) %>% 
+    dplyr::arrange(MARKERS, INTEGERS) %>% 
+    dplyr::ungroup(.)
+  
+  ref.alleles <- res %>%
+    dplyr::filter(INTEGERS == 0) %>% 
+    dplyr::mutate(REF = ALLELES) %>% 
+    dplyr::distinct(MARKERS, REF)
+  
+  alt.alleles <- res %>%
+    dplyr::filter(INTEGERS != 0) %>%
+    dplyr::group_by(MARKERS) %>% 
+    dplyr::mutate(ALT = stringi::stri_join(ALLELES, collapse = ",")) %>%
+    dplyr::ungroup(.) %>% 
+    dplyr::distinct(MARKERS, ALT)
+  
+  res <- dplyr::left_join(
+    res,
+    dplyr::left_join(ref.alleles, alt.alleles, by = "MARKERS")
+    , by = "MARKERS"
+  ) %>% 
+    dplyr::arrange(MARKERS, INTEGERS)
+  return(res)
+}#End nuc2integers
+
+#' @title nuc2gt
+#' @description to apply the conversion of haplo to gt in parallel
+#' @rdname nuc2gt
+#' @keywords internal
+#' @export
+nuc2gt <- function(x, conversion.data = NULL, biallelic = TRUE) {
+  if (biallelic) {
+    res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>% 
+      tidyr::separate(data = ., col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/", remove = FALSE) %>%
+      dplyr::left_join(dplyr::rename(conversion.data, A1 = ALLELES), by = c("MARKERS", "A1")) %>% 
+      dplyr::rename(A1_NUC = INTEGERS) %>% 
+      dplyr::left_join(dplyr::rename(conversion.data, A2 = ALLELES), by = c("MARKERS", "A2")) %>% 
+      dplyr::rename(A2_NUC = INTEGERS) %>%
+      dplyr::mutate(
+        GT_VCF = stringi::stri_join(A1_NUC, A2_NUC, sep = "/"),
+        GT_VCF = stringi::stri_replace_na(str = GT_VCF, replacement = "./."),
+        A1_NUC = as.character(A1_NUC + 1),
+        A2_NUC = as.character(A2_NUC + 1),
+        A1_NUC = stringi::stri_replace_na(str = A1_NUC, replacement = "0"),
+        A2_NUC = stringi::stri_replace_na(str = A2_NUC, replacement = "0"),
+        A1_NUC = stringi::stri_pad_left(str = A1_NUC, pad = "0", width = 3),
+        A2_NUC = stringi::stri_pad_left(str = A2_NUC, pad = "0", width = 3),
+        GT_BIN = as.numeric(stringi::stri_replace_all_fixed(
+          str = GT_VCF, pattern = c("0/0", "1/1", "0/1", "1/0", "./."),
+          replacement = c("0", "2", "1", "1", NA), vectorize_all = FALSE))
+      ) %>% 
+      tidyr::unite(data = ., col = GT, A1_NUC, A2_NUC, sep = "") %>% 
+      dplyr::select(-A1, -A2)
+  } else {
+    res <- dplyr::select(x, MARKERS, GT_VCF_NUC) %>% 
+      tidyr::separate(data = ., col = GT_VCF_NUC, into = c("A1", "A2"), sep = "/", remove = FALSE) %>%
+      dplyr::left_join(dplyr::rename(conversion.data, A1 = ALLELES), by = c("MARKERS", "A1")) %>% 
+      dplyr::rename(A1_NUC = INTEGERS) %>% 
+      dplyr::left_join(dplyr::rename(conversion.data, A2 = ALLELES), by = c("MARKERS", "A2")) %>% 
+      dplyr::rename(A2_NUC = INTEGERS) %>%
+      dplyr::mutate(
+        GT_VCF = stringi::stri_join(A1_NUC, A2_NUC, sep = "/"),
+        A1_NUC = as.character(A1_NUC + 1),
+        A2_NUC = as.character(A2_NUC + 1),
+        A1_NUC = stringi::stri_replace_na(str = A1_NUC, replacement = "0"),
+        A2_NUC = stringi::stri_replace_na(str = A2_NUC, replacement = "0"),
+        A1_NUC = stringi::stri_pad_left(str = A1_NUC, pad = "0", width = 3),
+        A2_NUC = stringi::stri_pad_left(str = A2_NUC, pad = "0", width = 3)
+      ) %>% 
+      tidyr::unite(data = ., col = GT, A1_NUC, A2_NUC, sep = "") %>% 
+      dplyr::select(-A1, -A2) %>% 
+      dplyr::mutate(
+        GT_VCF = stringi::stri_replace_na(str = GT_VCF, replacement = "./.")
+        # GT_BIN = as.numeric(rep(NA, n()))
+      )
+  }
+  return(res)
+}#End nuc2gt
