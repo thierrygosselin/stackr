@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.5.2-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--04--04-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.5.3-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--04--05-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -114,22 +114,14 @@ New features
 
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.5.3 2017-04-05**
+
+-   `stackr_imputations_module` : better integration of VCF with haplotypes so that nucleotide information is kept during imputations.
+-   `filter_fis` : bug fix when no heterozygote were found. Thanks to Manuel Lamothe.
+
 **v.0.5.2 2017-03-27**
 
 -   `stackr_imputations_module` : work on faster on-the-fly random forest and extreme gradient tree boosting algorithm.
-
-**v.0.5.1 2017-03-21**
-
-Major work on `tidy_genomic_data`:
-
--   `platypus` vcf files are correctly imported
--   more efficient when working with vcf files
--   better parallelization during parsing and cleaning
-
-**v.0.5.0**
-
--   better parallelization of `summary_haplotypes` function. With progress bar...
--   bug fix with `summary_haplotypes` not properly summarizing info when no assembly artifacts were found
 
 For previous news: [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 

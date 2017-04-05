@@ -563,26 +563,36 @@ if (is.null(random.seed)) {
   # scan for REF allele column
   if (tibble::has_name(input, "REF")) {
     ref.column <- TRUE
-    biallelic <- TRUE
   } else {
     ref.column <- FALSE
-    biallelic <- detect_biallelic_markers(data = input)
   }
+  biallelic <- detect_biallelic_markers(data = input)
+  
   
   # Manage Genotype Likelihood -------------------------------------------------
   if (tibble::has_name(input, "GL")) {
     if (verbose) message("\nGenotype likelihood (GL) column detected")
   }
   have <- colnames(input)
-  want <- c("MARKERS", "CHROM", "LOCUS", "POS", "POP_ID", "INDIVIDUALS", "GT", "GL")
-  selected.columns <- purrr::keep(.x = have, .p = have %in% want)
   
-  input <- dplyr::select(.data = input,
-                         dplyr::one_of(selected.columns)) %>% 
-    dplyr::mutate(GT = replace(GT, which(GT == "000000"), NA))
-  
+  # For haplotype VCF
+  if (!biallelic && ref.column) {
+    want <- c("MARKERS", "CHROM", "LOCUS", "POS", "POP_ID", "INDIVIDUALS", "GT_VCF_NUC", "GL")
+    selected.columns <- purrr::keep(.x = have, .p = have %in% want)
+    
+    input <- dplyr::select(.data = input,
+                           dplyr::one_of(selected.columns)) %>% 
+      dplyr::mutate(GT = replace(GT_VCF_NUC, which(GT_VCF_NUC == "./."), NA)) %>% 
+      dplyr::select(-GT_VCF_NUC)
+  } else {
+    want <- c("MARKERS", "CHROM", "LOCUS", "POS", "POP_ID", "INDIVIDUALS", "GT", "GL")
+    selected.columns <- purrr::keep(.x = have, .p = have %in% want)
+    
+    input <- dplyr::select(.data = input,
+                           dplyr::one_of(selected.columns)) %>% 
+      dplyr::mutate(GT = replace(GT, which(GT == "000000"), NA))
+  }
   have <- want <- selected.columns <- NULL
-  
   # keep stratification
   strata.before <- dplyr::distinct(.data = input, INDIVIDUALS, POP_ID)
   
@@ -843,7 +853,7 @@ if (is.null(random.seed)) {
       scan.markers.na <- NULL
     }
     
-    # On-the-fly-imputations using Random Forests
+    # On-the-fly-imputations using Random Forests ------------------------------
     if (imputation.method == "rf") {
       if (verbose) message("On-the-fly-imputations using Random Forests algorith")
       # Parallel computations options
@@ -930,7 +940,7 @@ if (is.null(random.seed)) {
       }
     }# End RF
     
-    
+    # Random Forest imputation as a prediction problem -------------------------
     if (imputation.method == "rf_pred") {
       if (verbose) message("Using Random Forests algorith as a prediction problem, take a break...")
       
@@ -960,7 +970,7 @@ if (is.null(random.seed)) {
       
     }# End rf_pred
     
-    
+    # Extreme Gradient Boosting Tree Imputations -------------------------------
     if (imputation.method == "boost") {
       if (verbose) message("Using extreme gradient tree boosting algorith, take a break...")
       
@@ -1103,6 +1113,7 @@ if (is.null(random.seed)) {
       }
     }# End boost
     
+    # Multiple Correspondence Analysis Imputations -----------------------------
     if (imputation.method == "mca") {
       if (verbose) message("Using Multiple Correspondence Analysis algorith...")
       
@@ -1181,13 +1192,25 @@ if (is.null(random.seed)) {
   
   # Replace NA by 000000 in GT column if found
   if (anyNA(input.imp)) {
-    input.imp$GT <- stringi::stri_replace_na(str = input.imp$GT, replacement = "000000")
+    if (!biallelic && ref.column) {
+      input.imp$GT <- stringi::stri_replace_na(str = input.imp$GT, replacement = "./.")
+    } else {
+      input.imp$GT <- stringi::stri_replace_na(str = input.imp$GT, replacement = "000000")
+    }
+  }
+  
+  if (!biallelic && ref.column) {
+    input.imp <- dplyr::rename(input.imp, GT_VCF_NUC = GT)
   }
   
   # Compute REF/ALT allele... might have change depending on prop of missing values
   if (ref.column) {
     if (verbose) message("Adjusting REF/ALT alleles to account for imputations...")
-    input.imp <- stackr::change_alleles(data = input.imp, monomorphic.out = FALSE)$input
+    input.imp <- stackr::change_alleles(
+      data = input.imp,
+      monomorphic.out = FALSE, biallelic = biallelic,
+      parallel.core = parallel.core,
+      verbose = verbose)$input
   } # end computing REF/ALT
   
   # Integrate marker.meta columns and sort
@@ -1195,7 +1218,7 @@ if (is.null(random.seed)) {
     # if (!is.null(marker.meta)) {
     columns.required <- c( "MARKERS", "CHROM", "LOCUS", "POS", "POP_ID",
                            "INDIVIDUALS", "REF", "ALT", "GT", "GT_VCF",
-                           "GT_BIN", "GL")
+                           "GT_VCF_NUC", "GT_BIN", "GL")
     
     if (tibble::has_name(marker.meta, "NEW_MARKERS")) {
       input.imp <- suppressWarnings(dplyr::left_join(

@@ -1,9 +1,18 @@
+# stackr v.0.5.3 2017-04-05
+
+* `stackr_imputations_module` : better integration of VCF with haplotypes so
+that nucleotide information is kept during imputations. 
+* `filter_fis` : bug fix when no heterozygote were found. Thanks to Manuel Lamothe.
+
+
 # stackr v.0.5.2 2017-03-27
+
 * `stackr_imputations_module` : work on faster on-the-fly random forest and
 extreme gradient tree boosting algorithm.
 
 
 # stackr v.0.5.1 2017-03-21
+
 Major work on `tidy_genomic_data`:
 * `platypus` vcf files are correctly imported
 * more efficient when working with vcf files
