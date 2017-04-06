@@ -107,6 +107,11 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.5.4 2017-04-06**
+
+* `detect_duplicate_genomes` : huge speed bump for pairwise genome similarity method.
+Instead of hours the range is more in minutes.
+
 **v.0.5.3 2017-04-05**
 
 * `stackr_imputations_module` : better integration of VCF with haplotypes so

@@ -17,6 +17,11 @@
 #' markers present in the dataset be filtered out ? 
 #' Default: \code{monomorphic.out = TRUE}.
 
+#' @param biallelic (optional) If \code{biallelic = TRUE/FALSE} will be use
+#' during multiallelic REF/ALT decision. Used internally in
+#' \href{https://github.com/thierrygosselin/stackr}{stackr}.
+#' Default: \code{biallelic = NULL}.
+
 #' @param parallel.core (optional) The number of core used for parallel
 #' execution.
 #' Default: \code{parallel::detectCores() - 1}.

@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.5.3-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--04--05-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.5.4-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--04--06-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -113,6 +113,10 @@ New features
 ------------
 
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
+
+**v.0.5.4 2017-04-06**
+
+-   `detect_duplicate_genomes` : huge speed bump for pairwise genome similarity method. Instead of hours the range is more in minutes.
 
 **v.0.5.3 2017-04-05**
 

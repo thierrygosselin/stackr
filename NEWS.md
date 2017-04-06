@@ -1,3 +1,9 @@
+# stackr v.0.5.4 2017-04-06
+
+* `detect_duplicate_genomes` : huge speed bump for pairwise genome similarity method.
+Instead of hours the range is more in minutes.
+
+
 # stackr v.0.5.3 2017-04-05
 
 * `stackr_imputations_module` : better integration of VCF with haplotypes so

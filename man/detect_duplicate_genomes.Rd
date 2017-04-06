@@ -57,7 +57,7 @@ to highligh potential duplicate individuals.
 }
 \details{
 Strategically, run the default first (\code{distance.method},
-but no \code{genome})
+no \code{genome})
 
 \strong{\code{distance.method} argument is fast, but...}
 
@@ -68,17 +68,20 @@ Be suspicious of a \emph{distant outlier} from the same pop pairwise comparison,
 and similarly, be suspicious of a \emph{close outlier} from a different pop
 pairwise comparisons.
 
-If there is no outliers, don't bother with the other method (\code{genome = TRUE}).
+If there is no outlier, don't bother running the function again with
+(\code{genome = TRUE}).
 
 
-\strong{\code{genome = TRUE} argument is slower, but...}
+\strong{\code{genome = TRUE}}
+
+The function will run slower, but...
 If you see outliers with the first run, take the time to run the function
 with \code{genome = TRUE}. Because this option is much better at detecting
 duplicated individuals and it also shows the impact of \strong{missingness}
 or the number of \strong{shared markers} between comparisons.
 
-Your outlier duo could well be the result of one of the individual having
-an extremely low number genotypes...
+\emph{Your outlier duo could well be the result of one of the individual having
+an extremely low number genotypes...}
 }
 \examples{
 \dontrun{

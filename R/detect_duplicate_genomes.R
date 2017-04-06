@@ -49,7 +49,7 @@
 
 #' @details
 #' Strategically, run the default first (\code{distance.method},
-#' but no \code{genome})
+#' no \code{genome})
 #' 
 #' \strong{\code{distance.method} argument is fast, but...}
 #' 
@@ -60,17 +60,20 @@
 #' and similarly, be suspicious of a \emph{close outlier} from a different pop
 #' pairwise comparisons.
 #' 
-#' If there is no outliers, don't bother with the other method (\code{genome = TRUE}).
+#' If there is no outlier, don't bother running the function again with
+#' (\code{genome = TRUE}).
 #' 
 #' 
-#' \strong{\code{genome = TRUE} argument is slower, but...}
+#' \strong{\code{genome = TRUE}}
+#' 
+#' The function will run slower, but...
 #' If you see outliers with the first run, take the time to run the function
 #' with \code{genome = TRUE}. Because this option is much better at detecting
 #' duplicated individuals and it also shows the impact of \strong{missingness}
 #' or the number of \strong{shared markers} between comparisons.
 #' 
-#' Your outlier duo could well be the result of one of the individual having
-#' an extremely low number genotypes...
+#' \emph{Your outlier duo could well be the result of one of the individual having
+#' an extremely low number genotypes...}
 
 
 #' @export
@@ -157,10 +160,11 @@ detect_duplicate_genomes <- function(
   
   # Manage missing arguments ---------------------------------------------------
   if (missing(data)) stop("missing data argument")
+  if (missing(distance.method)) distance.method <- NULL
   
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {
-    input <- stackr::tidy_wide(data = data, import.metadata = FALSE)
+    input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
   } else {
     input <- data
   }
@@ -195,7 +199,7 @@ detect_duplicate_genomes <- function(
       dplyr::mutate(REF = 2 - ALT) %>%
       tidyr::gather(data = ., key = ALLELES, value = n, -c(MARKERS,INDIVIDUALS)) %>% 
       dplyr::mutate(MARKERS_ALLELES = stringi::stri_join(MARKERS, ALLELES, sep = ".")) %>%
-      dplyr::select(-MARKERS, -ALLELES) %>% 
+      dplyr::select(-ALLELES) %>% 
       dplyr::arrange(MARKERS_ALLELES,INDIVIDUALS)
   }
   
@@ -207,22 +211,42 @@ detect_duplicate_genomes <- function(
       dplyr::select(-GT) %>% 
       dplyr::mutate(MISSING = rep("blacklist", n()))
     
-    input.prep <- dplyr::ungroup(input) %>%
-      dplyr::select(MARKERS, INDIVIDUALS, GT) %>% 
-      dplyr::filter(GT != "000000") %>%
-      dplyr::mutate(
-        A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
-        A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
-      ) %>% 
-      dplyr::select(-GT) %>% 
-      tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS)) %>% 
-      dplyr::arrange(MARKERS, INDIVIDUALS, GT) %>%
-      dplyr::count(x = ., INDIVIDUALS, MARKERS, GT) %>% 
-      dplyr::ungroup(.) %>% 
-      tidyr::complete(data = ., INDIVIDUALS, tidyr::nesting(MARKERS, GT), fill = list(n = 0)) %>%
-      dplyr::anti_join(missing.geno, by = c("MARKERS", "INDIVIDUALS")) %>% 
+    message("Preparing data: calculating allele count")
+    input.prep <- dplyr::select(input, MARKERS, INDIVIDUALS, GT) %>%
+      dplyr::left_join(
+        dplyr::distinct(input, MARKERS) %>%
+          dplyr::mutate(
+            SPLIT_VEC = dplyr::ntile(x = 1:nrow(.), n = parallel.core * 3))
+        , by = "MARKERS") %>% 
+      split(x = ., f = .$SPLIT_VEC) %>% 
+      .stackr_parallel(
+        X = .,
+        FUN = allele_count,
+        mc.cores = parallel.core
+      ) %>%
+      dplyr::bind_rows(.)
+    
+    # input.prep <- dplyr::ungroup(input) %>%
+    #    dplyr::select(MARKERS, INDIVIDUALS, GT) %>% 
+    #    dplyr::filter(GT != "000000") %>%
+    #    dplyr::mutate(
+    #      A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
+    #      A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
+    #    ) %>% 
+    #    dplyr::select(-GT) %>% 
+    #    tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS)) %>% 
+    #    dplyr::arrange(MARKERS, INDIVIDUALS, GT) %>%
+    #    dplyr::count(x = ., INDIVIDUALS, MARKERS, GT) %>% 
+    #    dplyr::ungroup(.) %>% 
+    #    tidyr::complete(data = ., INDIVIDUALS, tidyr::nesting(MARKERS, GT), fill = list(n = 0))
+    
+    if (nrow(missing.geno) > 0) {
+      input.prep <- dplyr::anti_join(input.prep, missing.geno, by = c("MARKERS", "INDIVIDUALS"))
+    }
+    
+    input.prep <- input.prep %>% 
       dplyr::mutate(MARKERS_ALLELES = stringi::stri_join(MARKERS, GT, sep = ".")) %>%
-      dplyr::select(-MARKERS, -GT) %>%
+      dplyr::select(-GT) %>%
       dplyr::arrange(MARKERS_ALLELES, INDIVIDUALS)
     
     missing.geno <- NULL # unused object
@@ -233,10 +257,10 @@ detect_duplicate_genomes <- function(
   # parallel.core <- 8
   
   if (!is.null(distance.method)) {
-    message(stringi::stri_join("Computing ", distance.method, " distances between individuals..."))
+    message("Calculating ", distance.method, " distances between individuals...")
     
     res$distance <- distance_individuals(
-      x = input.prep,
+      x = dplyr::select(input.prep, - MARKERS),
       strata = strata,
       distance.method = distance.method, 
       parallel.core = parallel.core
@@ -324,29 +348,40 @@ detect_duplicate_genomes <- function(
     
     input <- NULL
     
-    # list of id
-    id.list <- unique(input.prep$INDIVIDUALS) # id list
-    
     # all combination of individual pair
-    id.pairwise <- utils::combn(unique(id.list), 2, simplify = FALSE) 
-    list.pair <- 1:length(id.pairwise)
+    id.pairwise <- utils::combn(unique(input.prep$INDIVIDUALS), 2, simplify = FALSE)
 
-    message(stringi::stri_join("Pairwise comparisons: ", length(list.pair)))
-    message("Starting scan for duplicate genomes, take a break...")
+    # get the number of pairwise comp.
+    number.pairwise <- length(id.pairwise)
     
-    # list.pair <- 1:5 # test
+    # Optimizing cpu usage
+    if (number.pairwise <= 50) {
+      round.cpu <- floor(number.pairwise/parallel.core)
+    } else {
+      round.cpu <- floor(number.pairwise/(50*parallel.core))
+    }
+    # as.integer is usually twice as light as numeric vector...
+    split.vec <- as.integer(floor((parallel.core * round.cpu * (1:number.pairwise - 1) / number.pairwise) + 1))
+    id.pairwise <- split(x = id.pairwise, f = split.vec)
     
+    message("Starting scan for duplicate genomes")
+    message("Pairwise comparisons: ", number.pairwise)
+    if (number.pairwise > 5000) message("time for coffee...")
+    round.cpu <- split.vec <- number.pairwise <- NULL
+    
+    pairwise.genome.similarity <- list()
     pairwise.genome.similarity <- .stackr_parallel(
-      X = list.pair, 
-      FUN = pairwise_genome_similarity, 
+      X = id.pairwise, 
+      FUN = genome_similarity, 
       mc.preschedule = FALSE, 
       mc.silent = FALSE, 
       mc.cleanup = TRUE,
       mc.cores = parallel.core,
-      id.pairwise = id.pairwise,
       input.prep = input.prep
-    )
-    pairwise.genome.similarity <- dplyr::bind_rows(pairwise.genome.similarity)
+    ) %>%
+      dplyr::bind_rows(.)
+    
+    input.prep <- id.pairwise <- NULL # no longer needed
     
     # Include population info with strata
     ID1.pop <- suppressWarnings(
@@ -370,7 +405,7 @@ detect_duplicate_genomes <- function(
         PAIRWISE = rep("pairwise comparison", n()),
         METHOD = rep("genome similarity", n())
       )
-    
+    ID1.pop <- ID2.pop <- NULL
     res$pairwise.genome.similarity <- pairwise.genome.similarity
     
     readr::write_tsv(
@@ -505,7 +540,7 @@ distance_individuals <- function(
   )
   # rownames(dist.computation) <- dist.computation[["INDIVIDUALS"]]
   # dist.computation[["INDIVIDUALS"]] <- NULL
-
+  
   # compute distance
   # gain in speed between the 2 is very small on small data set
   if (dplyr::n_distinct(x$MARKERS_ALLELES) > 60000) {
@@ -525,17 +560,7 @@ distance_individuals <- function(
   }
   
   # melt the dist matrice into a data frame
-  dist.computation <- stats::na.omit(
-    reshape2::melt(
-      data = as.matrix(dist.computation), 
-      varnames = c("ID1", "ID2"), 
-      value.name = "DISTANCE",
-      na.rm = TRUE)[reshape2::melt(upper.tri(as.matrix(dist.computation), diag = FALSE))$value,]
-  ) %>% 
-    tibble::as_data_frame() %>%
-    dplyr::ungroup(.) %>% 
-    dplyr::mutate(DISTANCE_RELATIVE = DISTANCE/max(DISTANCE)) %>% 
-    dplyr::arrange(DISTANCE)
+  dist.computation <- distance2df(dist.computation)
   
   # Include population info with strata
   ID1.pop <- suppressWarnings(
@@ -561,16 +586,16 @@ distance_individuals <- function(
 
 
 # pairwise genome similarity method---------------------------------------------
-#' @title Pairwise genome similarity
-#' @description genome method
-#' @rdname pairwise_genome_similarity
+#' @title Pgenome_similarity_map
+#' @description for purrr::map
+#' @rdname genome_similarity_map
 #' @export
 #' @keywords internal
-pairwise_genome_similarity <- function(list.pair, id.pairwise = NULL, input.prep = NULL, ...) {
-  # list.pair <- 2
-  id.select <- stringi::stri_join(purrr::flatten(id.pairwise[list.pair]))
-  id1 <- id.select[[1]]
-  id2 <- id.select[[2]]
+genome_similarity_map <- function(list.pair = NULL, input.prep = NULL) {
+  
+  id.select <- list.pair
+  id1 <- id.select[1]
+  id2 <- id.select[2]
   
   if (tibble::has_name(input.prep, "GT_BIN")) {
     # filtered dataset for the 2 ind.
@@ -601,24 +626,19 @@ pairwise_genome_similarity <- function(list.pair, id.pairwise = NULL, input.prep
       DIFFERENT = MARKERS_COMMON - IDENTICAL,
       PROP_IDENTICAL = IDENTICAL / MARKERS_COMMON
     )
-    #unused objets:
-    input.select <- id1.data <- id2.data <- id1.markers <- id2.markers <- NULL
   } else {
     input.select <- dplyr::filter(
       .data = input.prep, 
       INDIVIDUALS %in% id.select & n != 0
-      ) %>% 
-      dplyr::mutate(
-        MARKERS = stringi::stri_sub(str = MARKERS_ALLELES, from = 1, to = -5)
-      )
-
+    )
+    
     # genotypes & markers
     id1.data <- dplyr::filter(.data = input.select, INDIVIDUALS %in% id1) %>%
       dplyr::select(-INDIVIDUALS)
     
     id2.data <- dplyr::filter(.data = input.select, INDIVIDUALS %in% id2) %>%
       dplyr::select(-INDIVIDUALS)
-
+    
     # markers
     id1.markers <- dplyr::distinct(id1.data, MARKERS)
     id2.markers <- dplyr::distinct(id2.data, MARKERS)
@@ -632,8 +652,68 @@ pairwise_genome_similarity <- function(list.pair, id.pairwise = NULL, input.prep
       DIFFERENT = MARKERS_COMMON - IDENTICAL,
       PROP_IDENTICAL = IDENTICAL / MARKERS_COMMON
     )
-    #unused objets:
-    input.select <- id1.data <- id2.data <- id1.markers <- id2.markers <- NULL
   }
+  #unused objets:
+  id.select <- id1 <- id2 <- input.select <- id1.data <- id2.data <- id1.markers <- id2.markers <- NULL
   return(genome.comparison)
-} # end duplicate pairwise
+}#End genome_similarity_map
+
+
+#' @title genome_similarity
+#' @description for the parallel part
+#' @rdname genome_similarity
+#' @export
+#' @keywords internal
+genome_similarity <- function(list.pair, input.prep = NULL, ...) {
+  # small.list.pair <- purrr::flatten(id.pairwise.split[1]) #test
+  
+  
+  genome.comparison <- purrr::map(.x = list.pair, .f = genome_similarity_map, input.prep = input.prep) %>%
+    dplyr::bind_rows(.)
+  
+  return(genome.comparison)
+} #End genome_similarity
+
+# calculate allele count in parallel -------------------------------------------
+#' @title allele_count
+#' @description to calculate allele count in parallel
+#' @rdname allele_count
+#' @export
+#' @keywords internal
+allele_count <- function(x) {
+  res <- dplyr::ungroup(x) %>%
+    dplyr::select(MARKERS, INDIVIDUALS, GT) %>% 
+    dplyr::filter(GT != "000000") %>%
+    dplyr::mutate(
+      A1 = stringi::stri_sub(str = GT, from = 1, to = 3),
+      A2 = stringi::stri_sub(str = GT, from = 4, to = 6)
+    ) %>% 
+    dplyr::select(-GT) %>% 
+    tidyr::gather(
+      data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS)) %>% 
+    dplyr::arrange(MARKERS, INDIVIDUALS, GT) %>%
+    dplyr::count(x = ., INDIVIDUALS, MARKERS, GT) %>% 
+    dplyr::ungroup(.) %>% 
+    tidyr::complete(
+      data = ., INDIVIDUALS, tidyr::nesting(MARKERS, GT), fill = list(n = 0))
+  return(res)
+}#End allele_count
+
+# melt the dist matrice into a data frame --------------------------------------
+#' @title distance2df
+#' @description melt the dist matrice into a data frame
+#' @rdname distance2df
+#' @export
+#' @keywords internal
+distance2df <- function(x) {
+  res <- as.matrix(x)
+  diag(res) <- NA
+  res[lower.tri(res)] <- NA
+  res <- dplyr::bind_cols(tibble::data_frame(ID1 = rownames(res)),
+                          tibble::as_data_frame(res)) %>% 
+    tidyr::gather(data = ., key = ID2, value = DISTANCE, -ID1) %>% 
+    dplyr::filter(!is.na(DISTANCE)) %>% 
+    dplyr::mutate(DISTANCE_RELATIVE = DISTANCE/max(DISTANCE)) %>% 
+    dplyr::arrange(DISTANCE)
+  return(res)
+}#End distance2df
