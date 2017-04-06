@@ -66,7 +66,7 @@ cd randomForestSRC
 autoconf
 ```
 
-6. Install and load randomForestSRC, from R console:
+6. Install and load randomForestSRC, from R console/RStudio console:
 ```r
 devtools::install_local(path = "~/Downloads/randomForestSRC")
 ```
@@ -79,9 +79,9 @@ devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomFor
 # Windows
 devtools::install_url(url = "http://www.ccs.miami.edu/~hishwaran/rfsrc/randomForestSRC_2.4.2.zip")
 ```
+If you opted for option 2 and are still having problems, please use Option 1 ...
 
-
-##Note
+## Note
 
 I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/) 
 to run **stackr** or **assigner**. The R GUI is unstable with functions using parallel. 
