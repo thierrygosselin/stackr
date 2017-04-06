@@ -344,131 +344,133 @@ stackr_imputations_module <- function(
     cat("###############################################################################\n")
     cat("##################### stackr::stackr_imputations_module #######################\n")
     cat("###############################################################################\n")
-    message("Imputation method: ", imputation.method)
-    message("Hierarchical levels: ", hierarchical.levels)
-    # message("Markers linkage: ", markers.linkage, "\n")
-    
-    # Capture unevaluated ...
-    # Inspired by Eric Anderson and Hadley Wickham codes
-    # could also importFrom pryr::named_dots
-    
-    dotslist <- list(...)
-    unknowned_param <- setdiff(
-      names(dotslist), 
-      c("eta", "gamma", "max_depth", "min_child_weight", "subsample", "colsample_bytree",
-        "num_parallel_tree", "nrounds", "save_name", "early_stopping_rounds",
-        "nodesize", "nsplit", "nimpute", "ncp"))
-    
-    if (length(unknowned_param) > 0) {
-      stop("Unknowned \"...\" parameters ",
-           stringi::stri_join(unknowned_param, collapse = " "), 
-           " to stackr imputation module")
-    }
-    
-    boost.dots <- dotslist[names(dotslist) %in%
-                             c("eta", "gamma", "max_depth", "min_child_weight",
-                               "subsample", "colsample_bytree",
-                               "num_parallel_tree", "nrounds", "save_name",
-                               "early_stopping_rounds", "nodesize", "nsplit",
-                               "nimpute", "ncp")]
-    
-    # learning rate
-    if (!is.null(boost.dots[["eta"]])) {
-      eta <- boost.dots[["eta"]]
-    } else {
-      eta = 0.2
-    }
-    
-    # gamma for minimum loss reduction (larger the number, more conservative the algorithm)
-    # prevent overfitting through regularization
-    if (!is.null(boost.dots[["gamma"]])) {
-      gamma <- boost.dots[["gamma"]]
-    } else {
-      gamma = 0
-    }
-    
-    # max_depth
-    if (!is.null(boost.dots[["max_depth"]])) {
-      max_depth <- boost.dots[["max_depth"]]
-    } else {
-      max_depth = 6
-    }
-    
-    # min_child_weight: minimum sum of instance weight (hessian) needed in a child.
-    if (!is.null(boost.dots[["min_child_weight"]])) {
-      min_child_weight <- boost.dots[["min_child_weight"]]
-    } else {
-      min_child_weight = 1
-    }
-    
-    # subsample: subsample ratio of the training instance for growing tree and prevent overfitting
-    if (!is.null(boost.dots[["subsample"]])) {
-      subsample <- boost.dots[["subsample"]]
-    } else {
-      subsample = 0.8
-    }
-    
-    # colsample_bytree: subsample ratio of columns when growing each tree
-    if (!is.null(boost.dots[["colsample_bytree"]])) {
-      colsample_bytree <- boost.dots[["colsample_bytree"]]
-    } else {
-      colsample_bytree = 1
-    }
-    
-    # num_parallel_tree: Experimental parameter.
-    # number of trees to grow per round.
-    if (!is.null(boost.dots[["num_parallel_tree"]])) {
-      num_parallel_tree <- boost.dots[["num_parallel_tree"]]
-    } else {
-      num_parallel_tree = 1
-    }
-    
-    # nrounds: the max number of iterations
-    if (!is.null(boost.dots[["nrounds"]])) {
-      nrounds <- boost.dots[["nrounds"]]
-    } else {
-      nrounds = 200
-    }
-    # save_name: the name or path for periodically saved model file
-    if (!is.null(boost.dots[["save_name"]])) {
-      save_name <- boost.dots[["save_name"]]
-    } else {
-      save_name = "imputation.model.temp"
-    }
-    
-    # early_stopping_rounds: If NULL, the early stopping function is not triggered.
-    # If set to an integer k, training with a validation set will stop
-    # if the performance doesn't improve for k rounds.
-    if (!is.null(boost.dots[["early_stopping_rounds"]])) {
-      early_stopping_rounds <- boost.dots[["early_stopping_rounds"]]
-    } else {
-      early_stopping_rounds = 20
-    }
-    
-    
-    # randomForestSRC arguments:
-    if (!is.null(boost.dots[["nodesize"]])) {
-      nodesize <- boost.dots[["nodesize"]]
-    } else {
-      nodesize = 1
-    }
-    if (!is.null(boost.dots[["nsplit"]])) {
-      nsplit <- boost.dots[["nsplit"]]
-    } else {
-      nsplit = 10
-    }
-    if (!is.null(boost.dots[["nimpute"]])) {
-      nimpute <- boost.dots[["nimpute"]]
-    } else {
-      nimpute = 10
-    }
-    
-    if (!is.null(boost.dots[["ncp"]])) {
-      ncp <- boost.dots[["ncp"]]
-    } else {
-      ncp = 2
-    }
-    
+  }
+  message("Imputation method: ", imputation.method)
+  message("Hierarchical levels: ", hierarchical.levels)
+  # message("Markers linkage: ", markers.linkage, "\n")
+  
+  # Capture unevaluated ...
+  # Inspired by Eric Anderson and Hadley Wickham codes
+  # could also importFrom pryr::named_dots
+  
+  dotslist <- list(...)
+  unknowned_param <- setdiff(
+    names(dotslist), 
+    c("eta", "gamma", "max_depth", "min_child_weight", "subsample", "colsample_bytree",
+      "num_parallel_tree", "nrounds", "save_name", "early_stopping_rounds",
+      "nodesize", "nsplit", "nimpute", "ncp"))
+  
+  if (length(unknowned_param) > 0) {
+    stop("Unknowned \"...\" parameters ",
+         stringi::stri_join(unknowned_param, collapse = " "), 
+         " to stackr imputation module")
+  }
+  
+  boost.dots <- dotslist[names(dotslist) %in%
+                           c("eta", "gamma", "max_depth", "min_child_weight",
+                             "subsample", "colsample_bytree",
+                             "num_parallel_tree", "nrounds", "save_name",
+                             "early_stopping_rounds", "nodesize", "nsplit",
+                             "nimpute", "ncp")]
+  
+  # learning rate
+  if (!is.null(boost.dots[["eta"]])) {
+    eta <- boost.dots[["eta"]]
+  } else {
+    eta = 0.2
+  }
+  
+  # gamma for minimum loss reduction (larger the number, more conservative the algorithm)
+  # prevent overfitting through regularization
+  if (!is.null(boost.dots[["gamma"]])) {
+    gamma <- boost.dots[["gamma"]]
+  } else {
+    gamma = 0
+  }
+  
+  # max_depth
+  if (!is.null(boost.dots[["max_depth"]])) {
+    max_depth <- boost.dots[["max_depth"]]
+  } else {
+    max_depth = 6
+  }
+  
+  # min_child_weight: minimum sum of instance weight (hessian) needed in a child.
+  if (!is.null(boost.dots[["min_child_weight"]])) {
+    min_child_weight <- boost.dots[["min_child_weight"]]
+  } else {
+    min_child_weight = 1
+  }
+  
+  # subsample: subsample ratio of the training instance for growing tree and prevent overfitting
+  if (!is.null(boost.dots[["subsample"]])) {
+    subsample <- boost.dots[["subsample"]]
+  } else {
+    subsample = 0.8
+  }
+  
+  # colsample_bytree: subsample ratio of columns when growing each tree
+  if (!is.null(boost.dots[["colsample_bytree"]])) {
+    colsample_bytree <- boost.dots[["colsample_bytree"]]
+  } else {
+    colsample_bytree = 1
+  }
+  
+  # num_parallel_tree: Experimental parameter.
+  # number of trees to grow per round.
+  if (!is.null(boost.dots[["num_parallel_tree"]])) {
+    num_parallel_tree <- boost.dots[["num_parallel_tree"]]
+  } else {
+    num_parallel_tree = 1
+  }
+  
+  # nrounds: the max number of iterations
+  if (!is.null(boost.dots[["nrounds"]])) {
+    nrounds <- boost.dots[["nrounds"]]
+  } else {
+    nrounds = 200
+  }
+  # save_name: the name or path for periodically saved model file
+  if (!is.null(boost.dots[["save_name"]])) {
+    save_name <- boost.dots[["save_name"]]
+  } else {
+    save_name = "imputation.model.temp"
+  }
+  
+  # early_stopping_rounds: If NULL, the early stopping function is not triggered.
+  # If set to an integer k, training with a validation set will stop
+  # if the performance doesn't improve for k rounds.
+  if (!is.null(boost.dots[["early_stopping_rounds"]])) {
+    early_stopping_rounds <- boost.dots[["early_stopping_rounds"]]
+  } else {
+    early_stopping_rounds = 20
+  }
+  
+  
+  # randomForestSRC arguments:
+  if (!is.null(boost.dots[["nodesize"]])) {
+    nodesize <- boost.dots[["nodesize"]]
+  } else {
+    nodesize = 1
+  }
+  if (!is.null(boost.dots[["nsplit"]])) {
+    nsplit <- boost.dots[["nsplit"]]
+  } else {
+    nsplit = 10
+  }
+  if (!is.null(boost.dots[["nimpute"]])) {
+    nimpute <- boost.dots[["nimpute"]]
+  } else {
+    nimpute = 10
+  }
+  
+  if (!is.null(boost.dots[["ncp"]])) {
+    ncp <- boost.dots[["ncp"]]
+  } else {
+    ncp = 2
+  }
+  
+  if (verbose) {
     if (imputation.method == "boost") {
       message("Extreme gradient tree boosting options:")
       message("    learning rate: ", eta)
@@ -511,10 +513,10 @@ stackr_imputations_module <- function(
     if (!is.null(filename)) message("Filename: ", filename)
   }
   # Checking for missing and/or default arguments ------------------------------
-if (missing(data)) stop("Input file missing")
-
-# Set seed for sampling reproducibility
-if (is.null(random.seed)) {
+  if (missing(data)) stop("Input file missing")
+  
+  # Set seed for sampling reproducibility
+  if (is.null(random.seed)) {
     random.seed <- sample(x = 1:1000000, size = 1)
     set.seed(random.seed)
   } else {
@@ -528,6 +530,10 @@ if (is.null(random.seed)) {
     input <- data
   }
   data <- NULL #unused object
+  
+  message("\nNumber of populations: ", dplyr::n_distinct(input$POP_ID))
+  message("Number of individuals: ", dplyr::n_distinct(input$INDIVIDUALS))
+  message("Number of markers: ", dplyr::n_distinct(input$MARKERS))
   
   # output the proportion of missing genotypes BEFORE imputations
   na.before <- dplyr::summarise(.data = input, MISSING = round(length(GT[GT == "000000"])/length(GT), 6)) %>%
@@ -922,7 +928,7 @@ if (is.null(random.seed)) {
         input.imp <- impute_rf(
           x = input.imp,
           num.tree = num.tree, nodesize = nodesize, nsplit = nsplit,
-          nimpute = nimpute,verbose = FALSE,
+          nimpute = nimpute, verbose = FALSE,
           hierarchical.levels = "global") %>% 
           dplyr::mutate_all(.tbl = ., .funs = as.character) %>% 
           tidyr::gather(data = ., key = MARKERS, value = GT, -INDIVIDUALS) %>% 
@@ -1079,7 +1085,7 @@ if (is.null(random.seed)) {
       input.imp <- dplyr::left_join(strata.before, input.imp, by = "INDIVIDUALS") %>%
         dplyr::arrange(MARKERS, POP_ID, INDIVIDUALS)
       strata.before <- NULL# remove unused objects
-
+      
       if (separate.haplo) {
         # separate the haplotypes/snp group
         if (verbose) message("Decoding haplotypes: separating SNPs on the same locus and chromosome, back to original data format")
@@ -1140,12 +1146,12 @@ if (is.null(random.seed)) {
         input.split <- split(x = input, f = input$POP_ID)
         input.imp <- list()
         # input.imp <- .stackr_parallel(
-          input.imp <- parallel::mclapply(
-            X = input.split,
-            FUN = impute_mca,
-            mc.cores = parallel.core, 
-            ncp = ncp
-          ) %>% 
+        input.imp <- parallel::mclapply(
+          X = input.split,
+          FUN = impute_mca,
+          mc.cores = parallel.core, 
+          ncp = ncp
+        ) %>% 
           dplyr::bind_rows(.) %>%
           dplyr::mutate_all(.tbl = ., .funs = as.character) %>% 
           tidyr::gather(data = ., key = MARKERS, value = GT, -INDIVIDUALS) %>% 
