@@ -106,11 +106,11 @@ write_structure <- function(
     tidyr::gather(data = ., key = ALLELES, value = GT, -c(POP_ID, INDIVIDUALS, MARKERS)) %>% 
     dplyr::mutate(
       GT = stringi::stri_replace_all_fixed(str = GT, pattern = "000", replacement = "-9", vectorize_all = FALSE),
-      GT = as.numeric(GT)
+      GT = as.integer(GT)
     ) %>%
     dplyr::select(INDIVIDUALS, POP_ID, MARKERS, ALLELES, GT) %>% 
     tidyr::spread(data = ., key = MARKERS, value = GT) %>% 
-    dplyr::mutate(POP_ID = as.numeric(POP_ID)) %>% 
+    dplyr::mutate(POP_ID = as.integer(POP_ID)) %>% 
     dplyr::select(-ALLELES) %>% 
     dplyr::arrange(POP_ID, INDIVIDUALS)
   
