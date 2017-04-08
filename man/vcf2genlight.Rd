@@ -15,11 +15,11 @@ vcf2genlight(data, output, filename = NULL, blacklist.id = NULL,
   verbose = FALSE, parallel.core = detectCores() - 1)
 }
 \arguments{
-\item{data}{11 options: VCF (SNPs or Haplotypes, 
+\item{data}{11 options: VCF (SNPs or Haplotypes,
 to make the vcf population ready, see details below),
-plink, stacks haplotype file, genind (library(adegenet)), 
-genlight (library(adegenet)), gtypes (library(strataG)), genepop, 
-and a data frame in long/tidy or wide format. 
+plink, stacks haplotype file, genind (library(adegenet)),
+genlight (library(adegenet)), gtypes (library(strataG)), genepop,
+and a data frame in long/tidy or wide format.
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{output}{16 genomic data formats can be exported: tidy (by default),
@@ -40,33 +40,33 @@ global environment or a file in the working directory
 (e.g. "blacklist.txt").
 Default: \code{blacklist.id = NULL}.}
 
-\item{blacklist.genotype}{(optional) Useful to erase genotype with below 
-average quality, e.g. genotype with more than 2 alleles in diploid likely 
-sequencing errors or genotypes with poor genotype likelihood or coverage. 
-The blacklist has a minimum of 2 column headers (markers and individuals). 
-Markers can be 1 column (CHROM or LOCUS or POS), 
-a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or 
+\item{blacklist.genotype}{(optional) Useful to erase genotype with below
+average quality, e.g. genotype with more than 2 alleles in diploid likely
+sequencing errors or genotypes with poor genotype likelihood or coverage.
+The blacklist has a minimum of 2 column headers (markers and individuals).
+Markers can be 1 column (CHROM or LOCUS or POS),
+a combination of 2 (e.g. CHROM and POS or CHROM and LOCUS or LOCUS and POS) or
 all 3 (CHROM, LOCUS, POS). The markers columns must be designated: CHROM (character
 or integer) and/or LOCUS (integer) and/or POS (integer). The id column designated
-INDIVIDUALS (character) columns header. The blacklist must be in the working 
-directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column 
-with 'un' need to be changed to 1. 
-Default: \code{blacklist.genotype = NULL} for no blacklist of 
+INDIVIDUALS (character) columns header. The blacklist must be in the working
+directory (e.g. "blacklist.genotype.txt"). For de novo VCF, CHROM column
+with 'un' need to be changed to 1.
+Default: \code{blacklist.genotype = NULL} for no blacklist of
 genotypes to erase.}
 
 \item{whitelist.markers}{(optional) A whitelist containing CHROM (character
 or integer) and/or LOCUS (integer) and/or
 POS (integer) columns header. To filter by chromosome and/or locus and/or by snp.
 The whitelist is in the working directory (e.g. "whitelist.txt").
-de novo CHROM column with 'un' need to be changed to 1. 
+de novo CHROM column with 'un' need to be changed to 1.
 In the VCF, the column ID is the LOCUS identification.
 Default \code{whitelist.markers = NULL} for no whitelist of markers.}
 
-\item{monomorphic.out}{(optional) Should the monomorphic 
-markers present in the dataset be filtered out ? 
+\item{monomorphic.out}{(optional) Should the monomorphic
+markers present in the dataset be filtered out ?
 Default: \code{monomorphic.out = TRUE}.}
 
-\item{snp.ld}{(optional) \strong{For VCF file only}. 
+\item{snp.ld}{(optional) \strong{For VCF file only}.
 SNP short distance linkage disequilibrium pruning. With anonymous markers from
 RADseq/GBS de novo discovery, you can minimize linkage disequilibrium (LD) by
 choosing among these 3 options: \code{"random"} selection, \code{"first"} or
@@ -74,13 +74,13 @@ choosing among these 3 options: \code{"random"} selection, \code{"first"} or
 disequilibrium pruning, see details below.
 Default: \code{snp.ld = NULL}.}
 
-\item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE}, 
+\item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE},
 will only keep markers in common (genotyped) between all the populations.}
 
-\item{maf.thresholds}{(string, double, optional) String with 
+\item{maf.thresholds}{(string, double, optional) String with
 local/populations and global/overall maf thresholds, respectively.
-e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold 
-of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame 
+e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold
+of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame
 files.
 Default: \code{maf.thresholds = NULL}.}
 
@@ -88,64 +88,65 @@ Default: \code{maf.thresholds = NULL}.}
 this argument is for the number of pop required to pass the maf thresholds
 to keep the locus. Default: \code{maf.pop.num.threshold = 1}}
 
-\item{maf.approach}{(character, optional). 
-\code{maf.approach = "haplotype"} : looks at the minimum MAF found on the 
-read/haplotype. Using this option will discard all the markers/snp on 
-that read based on the thresholds chosen. This method is only available 
+\item{maf.approach}{(character, optional).
+\code{maf.approach = "haplotype"} : looks at the minimum MAF found on the
+read/haplotype. Using this option will discard all the markers/snp on
+that read based on the thresholds chosen. This method is only available
 for VCF and haplotype files, or tidy data frame from those file types.
-\code{maf.approach = "SNP"} : treats all the SNP on the same 
-haplotype/read as independent. Doesn't work with haplotype file, 
+\code{maf.approach = "SNP"} : treats all the SNP on the same
+haplotype/read as independent. Doesn't work with haplotype file,
 but does work for all other file type.
 Default is \code{maf.approach = "SNP"}.}
 
-\item{maf.operator}{(character, optional) \code{maf.operator = "AND"} or 
+\item{maf.operator}{(character, optional) \code{maf.operator = "AND"} or
 default \code{maf.operator = "OR"}.
 When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
 
 \item{max.marker}{(integer, optional) For large PLINK files,
-useful to subsample marker number. e.g. if the data set 
+useful to subsample marker number. e.g. if the data set
 contains 200 000 markers and \code{max.marker = 10000}, 10000 markers are
 subsampled randomly from the 200000 markers. If you need specific markers,
 use \code{whitelist.markers} argument.
 Default: \code{max.marker = NULL}.}
 
-\item{strata}{(optional/required) Required for VCF and haplotypes files, 
-optional for the other file formats supported. 
+\item{strata}{(optional/required) Required for VCF and haplotypes files,
+optional for the other file formats supported.
 
 The strata file is a tab delimited file with 2 columns with header:
-\code{INDIVIDUALS} and \code{STRATA}. With a 
+\code{INDIVIDUALS} and \code{STRATA}. With a
 data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
-PLINK files, the \code{tfam} first 2 columns are used. 
+PLINK files, the \code{tfam} first 2 columns are used.
 If a \code{strata} file is specified, the strata file will have
-precedence. The \code{STRATA} column can be any hierarchical grouping. 
+precedence. The \code{STRATA} column can be any hierarchical grouping.
 To create a strata file see \code{\link[stackr]{individuals2strata}}.
-If you have already run 
-\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
-the strata file is similar to a stacks `population map file`, make sure you 
+If you have already run
+\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
+the strata file is similar to a stacks `population map file`, make sure you
 have the required column names (\code{INDIVIDUALS} and \code{STRATA}).
 Default: \code{strata = NULL}.}
 
-\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this 
+\item{pop.levels}{(optional, string) This refers to the levels in a factor. In this
 case, the id of the pop.
-Use this argument to have the pop ordered your way instead of the default 
-alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")} 
-instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}. 
+Use this argument to have the pop ordered your way instead of the default
+alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")}
+instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}.
 White spaces in population names are replaced by underscore.
 Default: \code{pop.levels = NULL}.}
 
 \item{pop.labels}{(optional, string) Use this argument to rename/relabel
-your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"} 
+your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"}
 into a new pop called \code{"NEW"}:
-(1) First, define the levels for your pop with \code{pop.levels} argument: 
-\code{pop.levels = c("QUE", "ONT", "ALB")}. 
-(2) then, use \code{pop.labels} argument: 
+(1) First, define the levels for your pop with \code{pop.levels} argument:
+\code{pop.levels = c("QUE", "ONT", "ALB")}.
+(2) then, use \code{pop.labels} argument:
 \code{pop.levels = c("NEW", "NEW", "ALB")}.
 To rename \code{"QUE"} to \code{"TAS"}:
 \code{pop.labels = c("TAS", "ONT", "ALB")}.
-Default: \code{pop.labels = NULL}. If you find this too complicated, there is also the
-\code{strata} argument that can do the same thing, see below.
+Default: \code{pop.labels = NULL}. If you find this too complicated,
+there is also the \code{strata} argument that can do the same thing,
+see below.
 White spaces in population names are replaced by underscore.}
 
 \item{pop.select}{(string, optional) Selected list of populations for
@@ -194,7 +195,7 @@ that will be used to initialize the random generator. With default,
 a random number is generated.
 Default: \code{random.seed = NULL}.}
 
-\item{verbose}{(optional, logical) When \code{verbose = TRUE} 
+\item{verbose}{(optional, logical) When \code{verbose = TRUE}
 the function is a little more chatty during execution.
 Default: \code{verbose = TRUE}.}
 

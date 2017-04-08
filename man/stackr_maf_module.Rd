@@ -13,10 +13,10 @@ object in the global environment in wide or long (tidy) formats.
 \emph{How to get a tidy data frame ?}
 Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
 
-\item{maf.thresholds}{(string, double, optional) String with 
+\item{maf.thresholds}{(string, double, optional) String with
 local/populations and global/overall maf thresholds, respectively.
-e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold 
-of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame 
+e.g. \code{maf.thresholds = c(0.05, 0.1)} for a local maf threshold
+of 0.05 and a global threshold of 0.1. Available for VCF, PLINK and data frame
 files.
 Default: \code{maf.thresholds = NULL}.}
 
@@ -24,17 +24,17 @@ Default: \code{maf.thresholds = NULL}.}
 this argument is for the number of pop required to pass the maf thresholds
 to keep the locus. Default: \code{maf.pop.num.threshold = 1}}
 
-\item{maf.approach}{(character, optional). 
-\code{maf.approach = "haplotype"} : looks at the minimum MAF found on the 
-read/haplotype. Using this option will discard all the markers/snp on 
-that read based on the thresholds chosen. This method is only available 
+\item{maf.approach}{(character, optional).
+\code{maf.approach = "haplotype"} : looks at the minimum MAF found on the
+read/haplotype. Using this option will discard all the markers/snp on
+that read based on the thresholds chosen. This method is only available
 for VCF and haplotype files, or tidy data frame from those file types.
-\code{maf.approach = "SNP"} : treats all the SNP on the same 
-haplotype/read as independent. Doesn't work with haplotype file, 
+\code{maf.approach = "SNP"} : treats all the SNP on the same
+haplotype/read as independent. Doesn't work with haplotype file,
 but does work for all other file type.
 Default is \code{maf.approach = "SNP"}.}
 
-\item{maf.operator}{(character, optional) \code{maf.operator = "AND"} or 
+\item{maf.operator}{(character, optional) \code{maf.operator = "AND"} or
 default \code{maf.operator = "OR"}.
 When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 global MAF to pass the thresholds, or ... you want the local \code{"OR"}
