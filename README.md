@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.5.4-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--04--06-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.5.4-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--04--07-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ library(stackr) # to load
 </tr>
 <tr class="odd">
 <td align="left"><strong>Imputations</strong></td>
-<td align="left"><strong>Map-independent</strong> imputations of missing genotypes.<br>Using <strong>Random Forests</strong> (on-the-fly-imputations or predictive modelling), <strong>Extreme Gradient Tree Boosting</strong> and Strawman imputations (~ max/mean/mode: the most frequently observed, non-missing genotypes is used).<br> Imputations can be conducted <strong>overall samples</strong> or <strong>by populations</strong>.<br><br>Imputations are integrated in several functions and in a separate module: <code>stackr_imputations_module</code></td>
+<td align="left"><strong>Map-independent</strong> imputations of missing genotypes.<br>Using <strong>Random Forests</strong> (on-the-fly-imputations or predictive modeling), <strong>Extreme Gradient Tree Boosting</strong> and Strawman imputations (~ max/mean/mode: the most frequently observed, non-missing genotypes is used).<br> Imputations can be conducted <strong>overall samples</strong> or <strong>by populations</strong>.<br><br>Imputations are integrated in several functions and in a separate module: <code>stackr_imputations_module</code></td>
 </tr>
 <tr class="even">
 <td align="left"><strong><a href="http://ggplot2.org">ggplot2</a>-based plotting</strong></td>
