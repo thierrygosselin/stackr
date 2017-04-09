@@ -126,7 +126,7 @@ change_alleles <- function(
     # Biallelic marker detection -------------------------------------------------
     biallelic <- unique(marker.type$n)
     # if (length(biallelic) > 4) stop("Mix of bi- and multi-allelic markers is not supported")
-    biallelic <- purrr::flatten_chr(.x = dplyr::summarise(.data = marker.type, BIALLELIC = max(n, na.rm = TRUE)))
+    biallelic <- purrr::flatten_int(.x = dplyr::summarise(.data = marker.type, BIALLELIC = max(n, na.rm = TRUE)))
 
     if (biallelic > 3) {
       biallelic <- FALSE
