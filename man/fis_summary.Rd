@@ -131,18 +131,18 @@ see below.
 White spaces in population names are replaced by underscore.}
 
 \item{strata}{(optional/required) Required for VCF and haplotypes files,
-optional for the other file formats supported.
+optional for the other formats supported.
 
-The strata file is a tab delimited file with 2 columns with header:
-\code{INDIVIDUALS} and \code{STRATA}. With a
-data frame of genotypes the strata is the INDIVIDUALS and POP_ID columns, with
-PLINK files, the \code{tfam} first 2 columns are used.
-If a \code{strata} file is specified, the strata file will have
-precedence. The \code{STRATA} column can be any hierarchical grouping.
+The strata file is a tab delimited file with a minimum of 2 columns headers:
+\code{INDIVIDUALS} and \code{STRATA}.
+If a \code{strata} file is specified with all file formats that don't
+require it, the strata argument will have precedence on the population
+groupings used internally in those file formats.
+The \code{STRATA} column can be any hierarchical grouping.
 To create a strata file see \code{\link[stackr]{individuals2strata}}.
 If you have already run
 \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
-the strata file is similar to a stacks `population map file`, make sure you
+the strata file is similar to a stacks \emph{population map file}, make sure you
 have the required column names (\code{INDIVIDUALS} and \code{STRATA}).
 Default: \code{strata = NULL}.}
 
