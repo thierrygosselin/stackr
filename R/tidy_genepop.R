@@ -249,6 +249,24 @@ tidy_genepop <- function(data, strata = NULL, tidy = TRUE, filename = NULL) {
       )
     )
 
+  # Check for duplicate individual names
+  # some genepop format don't provide individuals
+  if (length(unique(individuals$INDIVIDUALS)) < nrow(individuals)) {
+    message("WARNING: Individual are not named correctly, please check your data")
+    message("stackr will generate unique id")
+    message("Conversion file to get back to your original naming scheme:\n", stringi::stri_join(getwd(),"/stackr_genepop_id_conversion.tsv"))
+
+    bad.id <- dplyr::select(individuals, BAD_ID = INDIVIDUALS) %>%
+      dplyr::mutate(INDIVIDUALS = stringi::stri_join("stackr-individual-", seq(1, nrow(.)))) %>%
+      dplyr::select(INDIVIDUALS, BAD_ID)
+
+    individuals <- dplyr::select(bad.id, INDIVIDUALS)
+
+    readr::write_tsv(x = bad.id, path = "stackr_genepop_id_conversion.tsv")
+  }
+
+
+
   # isolate the genotypes
   data <- dplyr::select(.data = data, GENOTYPE) %>%
     dplyr::mutate(
