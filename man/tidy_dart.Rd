@@ -2,7 +2,7 @@
 % Please edit documentation in R/tidy_dart.R
 \name{tidy_dart}
 \alias{tidy_dart}
-\title{Swiss Army knife tool to prepare \href{http://www.diversityarrays.com}{DArT} 
+\title{Swiss Army knife tool to prepare \href{http://www.diversityarrays.com}{DArT}
 output file for population genetics analysis.}
 \usage{
 tidy_dart(data, strata, output, pop.levels = NULL, blacklist.id = NULL,
@@ -25,7 +25,7 @@ tidy_dart(data, strata, output, pop.levels = NULL, blacklist.id = NULL,
 used in CSIRO genomic projects.}
 
 \item{strata}{A tab delimited file with columns header:
-\code{INDIVIDUALS} and \code{POP_ID}. 
+\code{INDIVIDUALS} and \code{POP_ID}.
 Note: the column \code{POP_ID} refers to any grouping of individuals. If a third column
 named \code{NEW_ID} is used, this column will be used to replace the
 \code{INDIVIDUALS} column in the main data file.}
@@ -64,7 +64,7 @@ Default: \code{monomorphic.out = TRUE}.}
 \item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE},
 will only keep markers in common (genotyped) between all the populations.}
 
-\item{mixed.genomes.analysis}{(optional) Detect mixed genomes before and 
+\item{mixed.genomes.analysis}{(optional) Detect mixed genomes before and
 after filters.
 Default: \code{detect_mixed_genomes = TRUE}.}
 
@@ -81,7 +81,7 @@ than the thresholds will be blacklisted.
 Default: \code{ind.heterozygosity.threshold = NULL} will turn off completely 
 the filter and the function will only output the plots and table of heterozygosity.}
 
-\item{duplicate.genomes.analysis}{(optional) Detect duplicate individuals 
+\item{duplicate.genomes.analysis}{(optional) Detect duplicate individuals
 before and after filters.
 Default: \code{detect_duplicate_genomes = TRUE}.}
 
@@ -89,12 +89,12 @@ Default: \code{detect_duplicate_genomes = TRUE}.}
 and after filters.
 Default: \code{missing.analysis = TRUE}}
 
-\item{filter.reproducibility}{(optional, numerical) Filter the \code{RepAvg} 
+\item{filter.reproducibility}{(optional, numerical) Filter the \code{RepAvg}
 column in the data set. Default: \code{filter.reproducibility = NULL}.
 e.g to keep markers with reproducibility >= 99%,
 use: \code{filter.reproducibility = 0.99}.}
 
-\item{plot.reproducibility}{(optional, logical) Plot the distribution 
+\item{plot.reproducibility}{(optional, logical) Plot the distribution
 (violin plot) of reproducibility. Default: \code{plot.reproducibility = FALSE}.}
 
 \item{filter.coverage.high}{(optional, numerical) Filter the upper bound of the
@@ -102,20 +102,20 @@ use: \code{filter.reproducibility = 0.99}.}
 e.g to keep markers with coverage <= 150 (depth of coverage),
 use : \code{filter.coverage.high = 150}.}
 
-\item{filter.coverage.low}{(optional, numerical) Filter the lower bound of the 
+\item{filter.coverage.low}{(optional, numerical) Filter the lower bound of the
 \code{AvgCountSnp} column in the data set. Default: \code{filter.coverage.low = NULL}.
 e.g to keep markers with coverage >= 10 (depth of coverage),
 use : \code{filter.coverage.low = 10}.}
 
-\item{plot.coverage}{(optional, logical) Plot the coverage distribution 
+\item{plot.coverage}{(optional, logical) Plot the coverage distribution
 (violin plot). Default: \code{plot.coverage = FALSE}.}
 
-\item{filter.call.rate}{(optional, numerical) Filter the \code{CallRate} 
-column in the data set. Default: \code{filter.call.rate = NULL}. e.g to keep 
+\item{filter.call.rate}{(optional, numerical) Filter the \code{CallRate}
+column in the data set. Default: \code{filter.call.rate = NULL}. e.g to keep
 markers genotyped in more than 95% of the individuals use :
 \code{filter.call.rate = 0.95}}
 
-\item{plot.call.rate}{(optional, logical) Plot the distribution 
+\item{plot.call.rate}{(optional, logical) Plot the distribution
 (violin plot) of call rate. Default: \code{plot.call.rate = FALSE}.}
 
 \item{filter.ind.missing.geno}{(optional, numerical) Filter with the individual's
@@ -124,18 +124,18 @@ e.g to keep individuals genotyped at >= 0.90 of the markers, use:
 \code{filter.ind.missing.geno = 0.90}.
 Default: \code{filter.ind.missing.geno = NULL}.}
 
-\item{plot.ind.missing.geno}{(optional, logical) Plot the distribution 
-(violin plot) of an individual's genotype proportion. 
+\item{plot.ind.missing.geno}{(optional, logical) Plot the distribution
+(violin plot) of an individual's genotype proportion.
 Default: \code{plot.ind.missing.geno = FALSE}.}
 
-\item{filter.markers.missing.ind}{(optional, numerical) Filter markers based 
+\item{filter.markers.missing.ind}{(optional, numerical) Filter markers based
 on the proportion of individuals genotyped.
 e.g to keep markers with >= 0.95 of the genotyped individuals, use:
 \code{filter.markers.missing.ind = 0.95}.
 Default: \code{filter.markers.missing.ind = NULL}.}
 
-\item{plot.markers.missing.ind}{(optional, logical) Plot the distribution 
-(violin plot) of markers genotype individuals proportion. 
+\item{plot.markers.missing.ind}{(optional, logical) Plot the distribution
+(violin plot) of markers genotype individuals proportion.
 Default: \code{plot.markers.missing.ind = FALSE}.}
 
 \item{snp.ld}{(optional) \strong{For VCF file only}.
@@ -147,7 +147,7 @@ disequilibrium pruning, see details below.
 Default: \code{snp.ld = NULL}.}
 
 \item{plot.number.snp.reads}{(optional, logical) Plot the distribution of SNP
-per read. 
+per read.
 Default: \code{plot.number.snp.reads = FALSE}.}
 
 \item{maf.thresholds}{(string, double, optional) String with
@@ -177,7 +177,7 @@ When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
 
-\item{filename}{(optional) The filename prefix for the objet in the global environment 
+\item{filename}{(optional) The filename prefix for the objet in the global environment
 or the working directory. Default: \code{filename = NULL}. A default name will be used,
 customized with the output file(s) selected.}
 
@@ -214,9 +214,9 @@ execution during vcf import.
 Default: \code{parallel::detectCores() - 1}.}
 }
 \value{
-The function returns an object (list). The content of the object 
+The function returns an object (list). The content of the object
 can be listed with \code{names(object)} and use \code{$} to isolate specific
-object (see examples). Some output format will write the output file in the 
+object (see examples). Some output format will write the output file in the
 working directory. The tidy genomic data frame is generated automatically.
 }
 \description{
