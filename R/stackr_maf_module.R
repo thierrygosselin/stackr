@@ -38,7 +38,8 @@ stackr_maf_module <- function(
   maf.thresholds = NULL,
   maf.pop.num.threshold = 1,
   maf.approach = "SNP",
-  maf.operator = "OR"
+  maf.operator = "OR",
+  parallel.core = parallel::detectCores() - 1
 ) {
 
   # Checking for missing and/or default arguments ------------------------------
@@ -64,7 +65,16 @@ stackr_maf_module <- function(
   if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
-
+  
+  # keep markers metadata
+  if (tibble::has_name(input, "CHROM")) {
+    markers.meta <- dplyr::distinct(input, MARKERS, CHROM, LOCUS, POS)
+    markers.df <- dplyr::select(markers.meta, MARKERS)
+  } else {
+    markers.meta <- NULL
+    markers.df <- dplyr::distinct(input, MARKERS)
+  }
+    
   # Minor Allele Frequency filter ----------------------------------------------
   # maf.thresholds <- c(0.05, 0.1) # test
   if (!is.null(maf.thresholds)) { # with MAF
@@ -72,7 +82,7 @@ stackr_maf_module <- function(
     maf.global.threshold <- maf.thresholds[2]
     message("MAF filter: yes")
   }
-
+  message("    Calculating Minor Allele Frequency...")
   if (tibble::has_name(input, "GT_VCF")) {
     maf.local <- input %>%
       dplyr::filter(GT_VCF != "./.") %>%
@@ -96,57 +106,92 @@ stackr_maf_module <- function(
 
     maf.local <- maf.global <- NULL
   } else {
+    
+    number.markers <- dplyr::n_distinct(input$MARKERS)
+    # Optimizing cpu usage
+    if (number.markers <= 2000) {
+      round.cpu <- floor(number.markers / parallel.core)
+    } else {
+      round.cpu <- floor(number.markers / (1000 * parallel.core))
+    }
+    # as.integer is usually twice as light as numeric vector...
+    markers.df$SPLIT_VEC <- as.integer(floor((parallel.core * round.cpu * (1:number.markers - 1) / number.markers) + 1))
+    
     # We split the alleles here to prep for MAF
+    maf_gt <- function(x) {
+      res <- x %>% 
+        dplyr::mutate(
+          A1 = stringi::stri_sub(GT, 1, 3),
+          A2 = stringi::stri_sub(GT, 4,6)
+        ) %>%
+        dplyr::select(MARKERS, POP_ID, INDIVIDUALS, A1, A2) %>%
+        tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
+        dplyr::group_by(MARKERS, GT, POP_ID) %>%
+        dplyr::tally(.) %>%
+        dplyr::ungroup(.) %>%
+        tidyr::complete(data = ., POP_ID, tidyr::nesting(MARKERS, GT), fill = list(n = 0)) %>%
+        dplyr::rename(n.al.pop = n) %>%
+        dplyr::arrange(MARKERS, GT) %>%
+        dplyr::group_by(MARKERS, GT) %>%
+        dplyr::mutate(n.al.tot = sum(n.al.pop)) %>%
+        dplyr::group_by(MARKERS) %>%
+        dplyr::mutate(MAF_GLOBAL = min(n.al.tot)/sum(n.al.pop)) %>%
+        dplyr::group_by(MARKERS, POP_ID) %>%
+        dplyr::mutate(MAF_LOCAL = n.al.pop/sum(n.al.pop)) %>%
+        dplyr::arrange(MARKERS, POP_ID, GT) %>%
+        dplyr::group_by(MARKERS, POP_ID) %>%
+        dplyr::filter(n.al.pop == min(n.al.pop)) %>%
+        dplyr::distinct(MARKERS, POP_ID, .keep_all = TRUE) %>%
+        dplyr::select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
+      return(res)
+    }#End maf_gt
+    
     maf.data <- input %>%
       dplyr::filter(GT != "000000") %>%
-      dplyr::select(MARKERS,POP_ID, INDIVIDUALS, GT) %>%
-      dplyr::mutate(
-        A1 = stringi::stri_sub(GT, 1, 3),
-        A2 = stringi::stri_sub(GT, 4,6)
+      dplyr::select(MARKERS, POP_ID, INDIVIDUALS, GT) %>%
+      dplyr::left_join(markers.df, by = "MARKERS") %>% 
+      split(x = ., f = .$SPLIT_VEC) %>% 
+      .stackr_parallel(
+        X = .,
+        FUN = maf_gt,
+        mc.preschedule = FALSE,
+        mc.silent = FALSE,
+        mc.cleanup = TRUE,
+        mc.cores = parallel.core
       ) %>%
-      dplyr::select(MARKERS, POP_ID, INDIVIDUALS, A1, A2) %>%
-      tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
-      dplyr::group_by(MARKERS, GT, POP_ID) %>%
-      dplyr::tally(.) %>%
-      dplyr::ungroup() %>%
-      tidyr::complete(data = ., POP_ID, tidyr::nesting(MARKERS, GT), fill = list(n = 0)) %>%
-      dplyr::rename(n.al.pop = n) %>%
-      dplyr::arrange(MARKERS, GT) %>%
-      dplyr::group_by(MARKERS, GT) %>%
-      dplyr::mutate(n.al.tot = sum(n.al.pop)) %>%
-      dplyr::group_by(MARKERS) %>%
-      dplyr::mutate(MAF_GLOBAL = min(n.al.tot)/sum(n.al.pop)) %>%
-      dplyr::group_by(MARKERS, POP_ID) %>%
-      dplyr::mutate(MAF_LOCAL = n.al.pop/sum(n.al.pop)) %>%
-      dplyr::arrange(MARKERS, POP_ID, GT) %>%
-      dplyr::group_by(MARKERS, POP_ID) %>%
-      dplyr::filter(n.al.pop == min(n.al.pop)) %>%
-      dplyr::distinct(MARKERS, POP_ID, .keep_all = TRUE) %>%
-      dplyr::select(MARKERS, POP_ID, MAF_LOCAL, MAF_GLOBAL)
-  }# end maf calculations
+      dplyr::bind_rows(.)
+    markers.df <- round.cpu <- NULL
+    }# end maf calculations
 
-  write_tsv(
+  if (!is.null(markers.meta)) {
+    maf.data <- dplyr::left_join(maf.data, markers.meta, by = "MARKERS") %>% 
+      dplyr::select(MARKERS, CHROM, LOCUS, POS, POP_ID, MAF_GLOBAL, MAF_LOCAL)
+  }
+  
+  readr::write_tsv(
     x = maf.data,
     path = "maf.data.tsv",
     col_names = TRUE,
     append = FALSE
   )
   message("    The MAF table was written in your folder")
+  
   if (!is.null(maf.thresholds)) {
     if (maf.approach == "haplotype") {
       if (!tibble::has_name(input, "CHROM")) {
         stop("The haplotype approach for maf needs locus and snp info from vcf")
       }
-      vcf.maf <- tidyr::separate(
-        data = maf.data,
-        col = MARKERS,
-        into = c("CHROM", "LOCUS", "POS"),
-        sep = "__",
-        remove = FALSE,
-        extra = "warn"
-      )
+      # vcf.maf <- tidyr::separate(
+      #   data = maf.data,
+      #   col = MARKERS,
+      #   into = c("CHROM", "LOCUS", "POS"),
+      #   sep = "__",
+      #   remove = FALSE,
+      #   extra = "warn"
+      # )
+      
       if (maf.operator == "OR") {
-        vcf.maf <- vcf.maf %>%
+        vcf.maf <- maf.data %>%
           dplyr::group_by(LOCUS, POP_ID) %>%
           dplyr::summarise(
             MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
@@ -160,7 +205,7 @@ stackr_maf_module <- function(
           dplyr::left_join(input, by = "LOCUS") %>%
           dplyr::arrange(LOCUS, POP_ID)
       } else {# AND operator between local and global maf
-        vcf.maf <- vcf.maf %>%
+        vcf.maf <- maf.data %>%
           dplyr::group_by(LOCUS, POP_ID) %>%
           dplyr::summarise(
             MAF_GLOBAL = mean(MAF_GLOBAL, na.rm = TRUE),
@@ -174,7 +219,6 @@ stackr_maf_module <- function(
           dplyr::left_join(input, by = "LOCUS") %>%
           dplyr::arrange(LOCUS, POP_ID)
       }
-      vcf.maf <- dplyr::select(vcf.maf, -c(CHROM, LOCUS, POS))
     } # end maf haplotype approach
 
     if (maf.approach == "SNP") { # SNP approach
@@ -207,8 +251,15 @@ stackr_maf_module <- function(
           dplyr::left_join(input, by = "MARKERS") %>%
           dplyr::arrange(MARKERS, POP_ID)
       }
+      if (!is.null(markers.meta)) {
+        vcf.maf <- dplyr::left_join(vcf.maf, markers.meta, by = "MARKERS")
+      }
     } # end maf snp approach
 
+    #reorder columns
+    want <- c("MARKERS", "CHROM", "LOCUS", "POS", "REF", "ALT", "POP_ID", "INDIVIDUALS", "GT", "GT_VCF", "GT_BIN", "GT_VCF_NUC")
+    vcf.maf <- suppressWarnings(dplyr::select(vcf.maf, dplyr::one_of(want), dplyr::everything()))
+    
     markers.before <- dplyr::n_distinct(input$MARKERS)
     markers.after <- dplyr::n_distinct(vcf.maf$MARKERS)
     message("    The number of MARKERS before the MAF filters = ", markers.before)

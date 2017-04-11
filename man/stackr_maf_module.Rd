@@ -5,7 +5,8 @@
 \title{MAF computation from a tidy data frame}
 \usage{
 stackr_maf_module(data, maf.thresholds = NULL, maf.pop.num.threshold = 1,
-  maf.approach = "SNP", maf.operator = "OR")
+  maf.approach = "SNP", maf.operator = "OR",
+  parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{data}{A biallelic genomic data set in the working directory or
@@ -39,6 +40,10 @@ default \code{maf.operator = "OR"}.
 When filtering over LOCUS or SNP, do you want the local \code{"AND"}
 global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
+
+\item{parallel.core}{(optional) The number of core used for parallel
+execution during vcf import.
+Default: \code{parallel::detectCores() - 1}.}
 }
 \value{
 A tidy data frame with 6 columns:
