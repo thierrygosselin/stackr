@@ -369,6 +369,7 @@ tidy_dart <- function(
     if (verbose) message("Filtering with blacklist of individuals")
     input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     res$blacklist.id <- blacklist.id
+    blacklist.id <- NULL
   }
   
   # pop.select -----------------------------------------------------------------
@@ -385,6 +386,7 @@ tidy_dart <- function(
     
     input <- mono$input
     blacklist.monomorphic <- mono$blacklist.momorphic.markers
+    mono <- NULL
     
     if (nrow(blacklist.monomorphic) > 0) {
       res$blacklist.monomorphic <- blacklist.monomorphic
@@ -392,6 +394,7 @@ tidy_dart <- function(
     } else {
       res$blacklist.monomorphic <- "no monomorphic markers blacklisted"
     }
+    blacklist.monomorphic <- NULL
   }
   
   # Filter common markers between all populations  ------------------------------
@@ -402,11 +405,13 @@ tidy_dart <- function(
   
   # Detect mixed genomes -------------------------------------------------------
   if (mixed.genomes.analysis) {
-    if (verbose) message("Mixed genomes analysis before filters...")
+    if (verbose) {
+      message("Mixed genomes analysis before filters...")
+    }
     res$mixed.genomes.before.filters <- detect_mixed_genomes(
       data = input,
       ind.heterozygosity.threshold = ind.heterozygosity.threshold)
-
+    
     if (!is.null(nrow(res$mixed.genomes.before.filters$blacklist.ind.het)) && nrow(res$mixed.genomes.before.filters$blacklist.ind.het > 0)) {
       readr::write_tsv(x = res$mixed.genomes.before.filters$blacklist.ind.het, path = "blacklist.individuals.heterozygosity.tsv", col_names = TRUE)
       input <- dplyr::anti_join(input, res$mixed.genomes.before.filters$blacklist.ind.het, by = "INDIVIDUALS")
