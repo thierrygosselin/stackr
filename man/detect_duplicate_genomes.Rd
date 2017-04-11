@@ -2,7 +2,7 @@
 % Please edit documentation in R/detect_duplicate_genomes.R
 \name{detect_duplicate_genomes}
 \alias{detect_duplicate_genomes}
-\title{Compute pairwise genome similarity or distance between individuals 
+\title{Compute pairwise genome similarity or distance between individuals
 to highligh potential duplicate individuals}
 \usage{
 detect_duplicate_genomes(data, distance.method = "manhattan",
@@ -14,8 +14,8 @@ a tidy data frame in wide or long format in the working directory.
 \emph{How to get a tidy data frame ?}
 Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
 
-\item{distance.method}{(character) The distance measure used inside \code{stats::dist} 
-(<= 30000 markers) or \code{amap::Dist} (> 30000 markers). 
+\item{distance.method}{(character) The distance measure used inside \code{stats::dist}
+(<= 30000 markers) or \code{amap::Dist} (> 30000 markers).
 This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary".
 Using \code{distance.method = NULL} will not run this method.
 Default: \code{distance.method = "manhattan"}. This is very fast
@@ -23,17 +23,17 @@ compared to the genome similarity method. It uses allele counts and the codes
 are tailored for biallelic and multiallelic markers.}
 
 \item{genome}{(logical) Computes pairwise genome similarity in parallel.
-The proportion of the shared genotypes is averaged across shared markers between 
-each pairwise comparison. This method makes filtering easier because the 
-threshold is more intuitive with the plots produced, but it's much longer 
-to run, even in parallel, so better to run overnight. 
+The proportion of the shared genotypes is averaged across shared markers between
+each pairwise comparison. This method makes filtering easier because the
+threshold is more intuitive with the plots produced, but it's much longer
+to run, even in parallel, so better to run overnight.
 Default: \code{genome = FALSE}.}
 
 \item{parallel.core}{(optional) The number of core for parallel computation.
 Default: \code{parallel.core = parallel::detectCores()-1}.}
 }
 \value{
-A list with potentially 8 objects: 
+A list with potentially 8 objects:
 \code{$distance }: results of the distance method
 \code{$distance.stats}: Summary statistics of the distance method
 \code{$pairwise.genome.similarity}: results of the genome method
@@ -44,11 +44,11 @@ A list with potentially 8 objects:
 \code{$manhattan.plot.genome}: same info different visual with manhattan plot
 
 Saved in the working directory:
-individuals.pairwise.dist.tsv, individuals.pairwise.distance.stats.tsv, 
+individuals.pairwise.dist.tsv, individuals.pairwise.distance.stats.tsv,
 individuals.pairwise.genome.similarity.tsv, individuals.pairwise.genome.stats.tsv
 }
 \description{
-The function can compute two methods 
+The function can compute two methods
 to highligh potential duplicate individuals.
 \enumerate{
 \item distance between individuals and/or
@@ -99,7 +99,7 @@ stackr::detect_duplicate_genomes(data = .)
 # This will use by defaul:
 distance.method = "manhattan"
 genome = FALSE
-#parallel.core = all my CPUs - 1 
+#parallel.core = all my CPUs - 1
 
 # To view the manhattan plot:
 dup$manhattan.plot.distance
@@ -110,11 +110,11 @@ dup.data.stats <- dup$distance.stats
 # to view the data
 dup.data <- dup$distance
 
-# Based on the look of the distribution using both manhattan and boxplot, 
-# I can filter the dataset to highlight potential duplicates: 
+# Based on the look of the distribution using both manhattan and boxplot,
+# I can filter the dataset to highlight potential duplicates:
 dup.filtered <- dplyr::filter(.data = dup.data, DISTANCE_RELATIVE < 0.2)
 
-# To run the distance (with euclidean distance instead of the default manhattan, 
+# To run the distance (with euclidean distance instead of the default manhattan,
 # and also carry the second analysis (with the genome method):
 dup <- stackr::tidy_genomic_data(
 data = "wombat_tidy.tsv",
@@ -126,9 +126,9 @@ stackr::detect_duplicate_genomes(data = ., distance.method = "euclidean", genome
 # to view the data of the genome data
 dup.data <- dup$pairwise.genome.similarity
 
-# Based on the look of the distribution using both manhattan and boxplot, 
-# I can filter the dataset based on 98\% of identical genotype proportion, 
-# to highlight potential duplicates: 
+# Based on the look of the distribution using both manhattan and boxplot,
+# I can filter the dataset based on 98\% of identical genotype proportion,
+# to highlight potential duplicates:
 dup.filtered <- dplyr::filter(.data = dup.data, PROP_IDENTICAL > 0.98)
 
 # Get the list of duplicates id

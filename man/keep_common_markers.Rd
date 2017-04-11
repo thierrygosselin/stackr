@@ -17,8 +17,8 @@ Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
 of markers between populations.
 Default: \code{plot = FALSE}.}
 
-\item{verbose}{(optional, logical) \code{verbose = TRUE} to be chatty 
-during execution. 
+\item{verbose}{(optional, logical) \code{verbose = TRUE} to be chatty
+during execution.
 Default: \code{verbose = FALSE}.}
 }
 \value{
@@ -27,7 +27,7 @@ present in the data set.
 }
 \description{
 Keep markers in common between all populations.
-Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
+Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and might be of interest for users.
 }
 \author{

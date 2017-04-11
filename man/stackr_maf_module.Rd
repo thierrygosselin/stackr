@@ -8,8 +8,8 @@ stackr_maf_module(data, maf.thresholds = NULL, maf.pop.num.threshold = 1,
   maf.approach = "SNP", maf.operator = "OR")
 }
 \arguments{
-\item{data}{A biallelic genomic data set in the working directory or 
-object in the global environment in wide or long (tidy) formats. 
+\item{data}{A biallelic genomic data set in the working directory or
+object in the global environment in wide or long (tidy) formats.
 \emph{How to get a tidy data frame ?}
 Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
 
@@ -41,17 +41,17 @@ global MAF to pass the thresholds, or ... you want the local \code{"OR"}
 global MAF to pass the thresholds, to keep the marker?}
 }
 \value{
-A tidy data frame with 6 columns: 
+A tidy data frame with 6 columns:
 \code{MARKERS, INDIVIDUALS, REF, ALT, GT_VCF, GT_BIN}.
 \code{GT_VCF}: the genotype in VCF format
-\code{GT_BIN}: coding used internally to easily convert to genlight, 
-the coding \code{0, 1, 2, NA} stands for the number of ALT allele in the 
+\code{GT_BIN}: coding used internally to easily convert to genlight,
+the coding \code{0, 1, 2, NA} stands for the number of ALT allele in the
 genotype and \code{NA} for missing genotype.
 }
 \description{
-Compute the minor allele frequency (local and global) using 
+Compute the minor allele frequency (local and global) using
 a genomic tidy data frame.
-Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
+Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and might be of interest for users.
 }
 \author{
