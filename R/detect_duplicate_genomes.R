@@ -152,7 +152,7 @@ detect_duplicate_genomes <- function(
   genome = FALSE,
   parallel.core = parallel::detectCores() - 1
 ) {
-  cat("\n\n")
+  cat("\n")
   cat("###############################################################################\n")
   cat("###################### stackr::detect_duplicate_genomes #######################\n")
   cat("###############################################################################\n")
@@ -167,7 +167,7 @@ detect_duplicate_genomes <- function(
     input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
   } else {
     want <- c("MARKERS", "CHROM", "LOCUS", "POS", "POP_ID", "INDIVIDUALS", "GT", "GT_BIN", "REF", "ALT")
-    input <- suppressWarnings(dplyr::select(input, dplyr::one_of(want)))
+    input <- suppressWarnings(dplyr::select(data, dplyr::one_of(want)))
   }
 
   # check genotype column naming
@@ -409,7 +409,7 @@ detect_duplicate_genomes <- function(
     ID1.pop <- ID2.pop <- NULL
     res$pairwise.genome.similarity <- pairwise.genome.similarity
     pairwise.genome.similarity <- NULL
-    
+
     readr::write_tsv(
       x = res$pairwise.genome.similarity,
       path = "individuals.pairwise.genome.similarity.tsv",
