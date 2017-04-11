@@ -357,9 +357,9 @@ detect_duplicate_genomes <- function(
 
     # Optimizing cpu usage
     if (number.pairwise <= 50) {
-      round.cpu <- floor(number.pairwise/parallel.core)
+      round.cpu <- floor(number.pairwise / parallel.core)
     } else {
-      round.cpu <- floor(number.pairwise/(50*parallel.core))
+      round.cpu <- floor(number.pairwise / (50 * parallel.core))
     }
     # as.integer is usually twice as light as numeric vector...
     split.vec <- as.integer(floor((parallel.core * round.cpu * (1:number.pairwise - 1) / number.pairwise) + 1))
