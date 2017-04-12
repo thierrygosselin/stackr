@@ -949,7 +949,7 @@ tidy_dart <- function(
     res$duplicate.genomes.after.filters <- detect_duplicate_genomes(
       data = input,
       distance.method = "manhattan",
-      genome = TRUE,
+      # genome = TRUE,
       parallel.core = parallel.core)
   }
 
