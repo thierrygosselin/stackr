@@ -367,7 +367,7 @@ detect_duplicate_genomes <- function(
 
     message("Starting scan for duplicate genomes")
     message("Pairwise comparisons: ", number.pairwise)
-    if (number.pairwise > 5000) message("time for coffee...")
+    if (number.pairwise > 5000) message("    Time for coffee...")
     round.cpu <- split.vec <- number.pairwise <- NULL
 
     pairwise.genome.similarity <- list()
