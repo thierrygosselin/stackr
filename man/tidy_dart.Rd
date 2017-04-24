@@ -181,7 +181,7 @@ global MAF to pass the thresholds, to keep the marker?}
 or the working directory. Default: \code{filename = NULL}. A default name will be used,
 customized with the output file(s) selected.}
 
-\item{imputation.method}{(character, optional) 
+\item{imputation.method}{(character, optional)
 Methods available for map-independent imputations of missing genotype:
 
 (1) \code{imputation.method = "max"} Strawman imputation,

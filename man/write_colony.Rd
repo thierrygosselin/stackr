@@ -38,7 +38,8 @@ The \code{STRATA} column can be any hierarchical grouping.
 To create a strata file see \code{\link[stackr]{individuals2strata}}.
 If you have already run
 \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
-the strata file is similar to a stacks \emph{population map file}, make sure you
+the strata file is similar to a stacks \emph{population map file},
+make sure you
 have the required column names (\code{INDIVIDUALS} and \code{STRATA}).
 Default: \code{strata = NULL}.}
 
@@ -194,7 +195,7 @@ Default:\code{error.rate = 0.02}.}
 \strong{This require manual curation, for the file to work directly with \code{COLONY}}. 
 Default = \code{print.all.colony.opt = FALSE}.}
 
-\item{imputation.method}{(character, optional) 
+\item{imputation.method}{(character, optional)
 Methods available for map-independent imputations of missing genotype:
 
 (1) \code{imputation.method = "max"} Strawman imputation,
@@ -218,11 +219,11 @@ can create huge bias for example by
 introducing foreign genotypes in some populations (see note for more info).
 Default: \code{hierarchical.levels = "populations"}.}
 
-\item{num.tree}{(integer, optional) The number of trees to grow 
+\item{num.tree}{(integer, optional) The number of trees to grow
 when \code{imputation.method = "rf"} or \code{imputation.method = "rf_pred"}.
 Default: \code{num.tree = 50}.}
 
-\item{pred.mean.matching}{(integer, optional) Used in conjunction with 
+\item{pred.mean.matching}{(integer, optional) Used in conjunction with
 random Forests (\code{imputation.method = "rf_pred"}).
 Number of candidate non-missing
 value to sample from during the predictive mean matching step.

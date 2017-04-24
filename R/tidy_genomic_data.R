@@ -143,7 +143,8 @@
 #' To create a strata file see \code{\link[stackr]{individuals2strata}}.
 #' If you have already run
 #' \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
-#' the strata file is similar to a stacks \emph{population map file}, make sure you
+#' the strata file is similar to a stacks \emph{population map file},
+#' make sure you
 #' have the required column names (\code{INDIVIDUALS} and \code{STRATA}).
 #' Default: \code{strata = NULL}.
 
@@ -1385,66 +1386,7 @@ tidy_genomic_data <- function(
   # Import STRATAG gtypes ------------------------------------------------------
   if (data.type == "gtypes") { # DATA FRAME OF GENOTYPES
     if (verbose) message("Tidying the gtypes object ...")
-    # input <- strataG::as.data.frame(
-    #   x = data,
-    #   one.col = FALSE,
-    #   # sep = "",
-    #   ids = TRUE,
-    #   strata = TRUE
-    # ) %>%
-    #   tibble::remove_rownames(df = .) %>%
-    #   dplyr::rename(INDIVIDUALS = ids, POP_ID = strata) %>%
-    #   dplyr::mutate_all(.tbl = ., .funs = as.character) %>%
-    #   tidyr::gather(data = ., key = MARKERS, value = GT, -c(INDIVIDUALS, POP_ID))
-
-    input <- suppressWarnings(
-      tibble::as_data_frame(data@data) %>%
-        dplyr::rename(INDIVIDUALS = ids, POP_ID = strata) %>%
-        dplyr::mutate(ALLELES = rep(c("A1", "A2"), nrow(.)/2)) %>%
-        tidyr::gather(data = ., key = MARKERS, value = GT, -c(POP_ID, INDIVIDUALS, ALLELES)))
-
-    # For GT = c("A", "C", "G", "T")
-    gt.format <- sort(unique(input$GT))
-
-    if (unique(gt.format %in% c("A", "C", "G", "T", NA))) {
-      input$GT <- stringi::stri_replace_all_regex(
-        str = input$GT,
-        pattern = c("A", "C", "G", "T"),
-        replacement = c("001", "002", "003", "004"),
-        vectorize_all = FALSE
-      )
-    }
-
-
-    # For GT = c("1", "2")
-    if (unique(gt.format %in% c("1", "2", NA))) {
-      input$GT <- stringi::stri_pad_left(str = input$GT, pad = "0", width = 3)
-    }
-
-    # For GT coded with only 1 number
-    # gtypes.number <- unique(stringi::stri_count_boundaries(str = input$GT))
-    # unique(stringi::stri_count_boundaries(str = test))
-
-
-    # bind alleles
-    # input <- tidyr::separate(data = input, col = MARKERS, into = c("MARKERS", "ALLELES"), sep = "\\.", remove = TRUE, extra = "drop") %>%
-    #   dplyr::group_by(POP_ID, INDIVIDUALS, MARKERS) %>%
-    #   tidyr::spread(data = ., key = ALLELES, value = GT) %>%
-    #   tidyr::unite(data = ., col = GT, -INDIVIDUALS, -POP_ID, -MARKERS, sep = "") %>%
-    #   dplyr::arrange(POP_ID, INDIVIDUALS, MARKERS, GT) %>%
-    #   dplyr::ungroup(.)
-
-    input <- input %>%
-      dplyr::mutate(GT = replace(GT, which(is.na(GT)), "000")) %>%
-      data.table::as.data.table(.) %>%
-      data.table::dcast.data.table(
-        data = .,
-        formula = POP_ID + INDIVIDUALS + MARKERS ~ ALLELES,
-        value.var = "GT"
-      ) %>%
-      tibble::as_data_frame() %>%
-      tidyr::unite(data = ., col = GT, A1, A2, sep = "") %>%
-      dplyr::select(POP_ID, INDIVIDUALS, MARKERS, GT) %>%
+    input <- tidy_gtypes(data) %>%
       dplyr::mutate(
         INDIVIDUALS = stringi::stri_replace_all_fixed(
           str = INDIVIDUALS,
@@ -1992,7 +1934,8 @@ tidy_genomic_data <- function(
     if (verbose) message("Writing the tidy data to the working directory: \n", filename)
     readr::write_tsv(x = input, path = filename, col_names = TRUE)
   }
-  # messages -------------------------------------------------------------------
+  # Results --------------------------------------------------------------------
+  # messages
   n.markers <- dplyr::n_distinct(input$MARKERS)
   if (tibble::has_name(input, "CHROM")) {
     n.chromosome <- dplyr::n_distinct(input$CHROM)

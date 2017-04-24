@@ -56,6 +56,9 @@ detect_biallelic_markers <- function(data, verbose = FALSE) {
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
   
+  # markers with all missing... yes I've seen it... breaks code...
+  input <- detect_all_missing(data = input)
+
   # Detecting biallelic markers-------------------------------------------------
   if (verbose) message("Scanning for number of alleles per marker...")
   if (tibble::has_name(input, "ALT")) {

@@ -110,7 +110,8 @@ The \code{STRATA} column can be any hierarchical grouping.
 To create a strata file see \code{\link[stackr]{individuals2strata}}.
 If you have already run
 \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
-the strata file is similar to a stacks \emph{population map file}, make sure you
+the strata file is similar to a stacks \emph{population map file},
+make sure you
 have the required column names (\code{INDIVIDUALS} and \code{STRATA}).
 Default: \code{strata = NULL}.}
 

@@ -11,13 +11,13 @@ stackr_imputations_module(data, imputation.method = "rf",
   filename = NULL, ...)
 }
 \arguments{
-\item{data}{A file in the working directory or object in the global environment 
-in wide or long (tidy) formats. To import, the function uses 
-\href{https://github.com/thierrygosselin/stackr}{stackr} 
+\item{data}{A file in the working directory or object in the global environment
+in wide or long (tidy) formats. To import, the function uses
+\href{https://github.com/thierrygosselin/stackr}{stackr}
 \code{\link[stackr]{tidy_wide}}.
 \emph{See details of this function for more info}.}
 
-\item{imputation.method}{(character, optional) 
+\item{imputation.method}{(character, optional)
 Methods available for map-independent imputations of missing genotype:
 
 (1) \code{imputation.method = "max"} Strawman imputation,
@@ -41,11 +41,11 @@ can create huge bias for example by
 introducing foreign genotypes in some populations (see note for more info).
 Default: \code{hierarchical.levels = "populations"}.}
 
-\item{num.tree}{(integer, optional) The number of trees to grow 
+\item{num.tree}{(integer, optional) The number of trees to grow
 when \code{imputation.method = "rf"} or \code{imputation.method = "rf_pred"}.
 Default: \code{num.tree = 50}.}
 
-\item{pred.mean.matching}{(integer, optional) Used in conjunction with 
+\item{pred.mean.matching}{(integer, optional) Used in conjunction with
 random Forests (\code{imputation.method = "rf_pred"}).
 Number of candidate non-missing
 value to sample from during the predictive mean matching step.
@@ -53,7 +53,7 @@ A fast k-nearest neighbor searching algorithms is used with this approach.
 \code{pred.mean.matching = 3} will use 3 nighbors.
 Default: \code{pred.mean.matching = 0}, avoids this step.}
 
-\item{verbose}{(optional, logical) When \code{verbose = TRUE} 
+\item{verbose}{(optional, logical) When \code{verbose = TRUE}
 the function is a little more chatty during execution.
 Default: \code{verbose = TRUE}.}
 
@@ -67,10 +67,10 @@ that will be used to initialize the random generator. With default,
 a random number is generated.
 Default: \code{random.seed = NULL}.}
 
-\item{filename}{(optional) The file name for the \strong{imputed} 
+\item{filename}{(optional) The file name for the \strong{imputed}
 tidy data frame written to the working directory.
-With missing argument or default: \code{filename = NULL}, the imputed 
-tidy data is in the global environment only 
+With missing argument or default: \code{filename = NULL}, the imputed
+tidy data is in the global environment only
 (i.e. not written in the working directory).}
 
 \item{...}{(optional) To pass further argument for fine-tuning your
@@ -78,13 +78,13 @@ imputations. See details below.}
 }
 \value{
 The output in your global environment is the imputed tidy data frame.
-If \code{filename} is provided, the imputed tidy data frame is also 
+If \code{filename} is provided, the imputed tidy data frame is also
 written to the working directory. The original data is returned for markers
 with \emph{all} or \emph{no} NA.
 }
 \description{
 Used internally in \href{https://github.com/thierrygosselin/assigner}{assigner} and
-\href{https://github.com/thierrygosselin/stackr}{stackr} and 
+\href{https://github.com/thierrygosselin/stackr}{stackr} and
 might be of interest for users.
 The goal of this module is to provide a simple solution for
 a complicated problem: missing genotypes in RADseq genomic datasets.
@@ -107,8 +107,8 @@ usually from VCF files). The alternative, considers all the markers independent
 and imputation is conducted by SNPs.
 \item \strong{Genotype likelihood (GL): } The GL info is detected automatically
 (GL column in FORMAT field of VCF files). Genotypes with higher likelihood
-will have higher probability during bootstrap samples of trees in Random 
-forests. 
+will have higher probability during bootstrap samples of trees in Random
+forests.
 Notes: (1) option only available with Random forests;
 (2) the use of genotype likelihoods
 in the form of normalized, phred-scaled likelihoods (PL, e.g. from GATK)
@@ -141,7 +141,7 @@ predictive mean matching on top of the prediction based missing value
 imputation.PMM tries to raise the variance in the resulting conditional
 distributions to a realistic level.
 The closest k predicted values are identified by a fast
-k-nearest neighbour approach wrapped in the package 
+k-nearest neighbour approach wrapped in the package
 \href{https://github.com/mayer79/missRanger}{missRanger}
 Returned value correspond to the mean value.
 
@@ -177,17 +177,17 @@ pop2 is fixed for the major/REF allele). Missing genotypes in pop1
 using the most common filling technique in the literature (using mean/mode/max),
 will result in pop1 having individuals with the REF allele.
 Not something you want... unless your population membership is not 100% accurate,
-(e.g. you might have migrants or wrong assignation), 
-which in this case you still don't want to impute with 
+(e.g. you might have migrants or wrong assignation),
+which in this case you still don't want to impute with
 \code{imputation.method = "max"} (see alternative below).
 
 \emph{Example 2 (balanced sample size):} pop1 (n = 100) and pop2 (n = 100).
 For a particular marker, pop1 as 85 individuals genotyped and pop2 100.
-Again, if the populations are fixed for different alleles 
+Again, if the populations are fixed for different alleles
 (pop1 = ALT and pop2 = REF), you will end up having REF allele in your pop1,
 not something you want... unless your population membership is not 100% accurate,
-(e.g. you might have migrants or wrong assignation), 
-which in this case you still don't want to impute with 
+(e.g. you might have migrants or wrong assignation),
+which in this case you still don't want to impute with
 \code{imputation.method = "max"} (see alternative below).
 
 \strong{Random Forests imputations: }
@@ -198,29 +198,29 @@ choosing argument values. Uncertain of the groupings ? Use random forests with
 potential linkage and correlation between
 markers and genotypes to make the best imputation available. This can potentially
 results in genotypes for a certain combo population/marker with new groupings
-(e.g. a new allele). This is much more accurate and not the same thing as 
+(e.g. a new allele). This is much more accurate and not the same thing as
 the \code{imputation.method = "max"} because the imputed genotype was validated
-after considering all the other genotype values of the individual being imputed. 
+after considering all the other genotype values of the individual being imputed.
 \emph{Test the option and report bug if you find one.}
 
 \emph{random forest with on-the-fly-imputation (rf): }the technique is described
 in Tang and Ishwaran (2017). Non-missing genotypes are used for
-the split-statistics. Daughter node assignation membership use random 
+the split-statistics. Daughter node assignation membership use random
 non-missing genotypes from the inbag data. Missing genotypes are imputed at
 terminal nodes using maximal class rule with out-of-bag non-missing genotypes.
 
-\emph{random forest as a prediction problem (rf_pred): }markers with 
+\emph{random forest as a prediction problem (rf_pred): }markers with
 missing genotypes are imputed one at a time. The fitted forest is used to
-predict missing genotypes. Missingness in the response variables are 
+predict missing genotypes. Missingness in the response variables are
 incorporated as attributes for growing the forest.
 
 \strong{... :dot dot dot arguments}
 
-The argument is available to tailor your imputations using 
+The argument is available to tailor your imputations using
 extreme gradient tree boosting and random forest:
 
 Available arguments for extreme gradient tree boosting tree method:
-\emph{eta, gamma, max_depth, min_child_weight, subsample, colsample_bytree, 
+\emph{eta, gamma, max_depth, min_child_weight, subsample, colsample_bytree,
 num_parallel_tree, nrounds, save_name, early_stopping_rounds}.
 Refer to \code{\link[xgboost]{xgboost}} for arguments documentation.
 
@@ -230,7 +230,7 @@ Available arguments for Random forests method:
 Refer to \code{\link[randomForestSRC]{impute.rfsrc}} for arguments documentation.
 
 
-Multiple Correspondence Analysis option available (upcomming): 
+Multiple Correspondence Analysis option available (upcomming):
 \emph{ncp}.
 Refer to \code{\link[missMDA]{imputeMCA}} for argument documentation.
 }
