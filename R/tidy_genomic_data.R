@@ -585,6 +585,9 @@ tidy_genomic_data <- function(
       purrr::flatten_int(.)
 
     # import genotypes
+
+    want <- c("MARKERS", "CHROM", "LOCUS", "POS", "ID", "COL", "REF", "ALT", "INDIVIDUALS", "GT")
+
     if (import.pegas) {
       if (verbose) message("Working on the vcf...")
       input.gt <- pegas::read.vcf(file = data, which.loci = keep.markers, quiet = verbose) %>%
@@ -603,8 +606,6 @@ tidy_genomic_data <- function(
       # input.gt <- pegas::read.vcf(file = data, from = 1, to = nrow(input), quiet = FALSE) %>%
       #   `colnames<-`(input$MARKERS)
 
-      want <- c("MARKERS", "CHROM", "LOCUS", "POS", "ID", "COL", "REF", "ALT", "INDIVIDUALS", "GT")
-
       input <- suppressWarnings(
         dplyr::full_join(input.gt, input, by = "MARKERS") %>%
           dplyr::select(dplyr::one_of(want)) %>%
@@ -621,9 +622,10 @@ tidy_genomic_data <- function(
     } else {
       # filter the vcf.data
       vcf.data <- vcf.data[keep.markers,]
-      input <- dplyr::select(
+
+      input <- suppressWarnings(dplyr::select(
         .data = input,
-        dplyr::one_of(want))#MARKERS, CHROM, LOCUS, POS, REF, ALT)
+        dplyr::one_of(want)))#MARKERS, CHROM, LOCUS, POS, REF, ALT)
 
       filter.check <- NULL
     }
