@@ -471,7 +471,7 @@ tidy_genomic_data <- function(
     strata.df$POP_ID <- stringi::stri_replace_all_fixed(strata.df$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
 
-  # Import VCF------------------------------------------------------------------
+# Import VCF------------------------------------------------------------------
   if (data.type == "vcf.file") { # VCF
     if (verbose) message("Importing and tidying the VCF...")
 
@@ -544,9 +544,34 @@ tidy_genomic_data <- function(
     }
     weird.locus <- NULL #unused object
 
-    input <- input %>%
-      dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
-      tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
+    # Unique MARKERS column
+
+    # Since stacks v.1.44 ID as LOCUS + COL (from sumstats) the position of the SNP on the locus.
+    # Choose the first 100 markers to scan
+    sample.locus.id <- sample(x = unique(input$LOCUS), size = 100, replace = FALSE)
+    detect.snp.col <- unique(stringi::stri_detect_fixed(str = sample.locus.id, pattern = "_"))
+
+    if (detect.snp.col) {
+      if (nrow(input) > 30000) {
+        input <- input %>%
+          dplyr::mutate(
+            SPLIT_VEC = dplyr::ntile(x = 1:nrow(.), n = parallel.core * 3)) %>%
+          split(x = ., f = .$SPLIT_VEC) %>%
+          .stackr_parallel(
+            X = .,
+            FUN = split_vcf_id,
+            mc.cores = parallel.core
+          ) %>%
+          dplyr::bind_rows(.) %>%
+          dplyr::select(-SPLIT_VEC)
+      } else {
+        input <- dplyr::rename(input, ID = LOCUS) %>%
+          tidyr::separate(data = ., col = ID, into = c("LOCUS", "COL"),
+                          sep = "_", extra = "drop", remove = FALSE) %>%
+          dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
+          tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
+      }
+    }
 
     # Filter with whitelist of markers and FILTER column
     if (!is.null(whitelist.markers)) {
@@ -578,24 +603,27 @@ tidy_genomic_data <- function(
       # input.gt <- pegas::read.vcf(file = data, from = 1, to = nrow(input), quiet = FALSE) %>%
       #   `colnames<-`(input$MARKERS)
 
-      input <- dplyr::full_join(input.gt, input, by = "MARKERS") %>%
-        dplyr::select(MARKERS, CHROM, LOCUS, POS, REF, ALT, INDIVIDUALS, GT) %>%
-        dplyr::mutate(INDIVIDUALS = stringi::stri_replace_all_fixed(
-          str = INDIVIDUALS,
-          pattern = c("_", ":"),
-          replacement = c("-", "-"),
-          vectorize_all = FALSE)
-        ) %>%
-        dplyr::mutate(GT = stringi::stri_replace_na(
-          str = GT, replacement = "./."))
+      want <- c("MARKERS", "CHROM", "LOCUS", "POS", "ID", "COL", "REF", "ALT", "INDIVIDUALS", "GT")
 
+      input <- suppressWarnings(
+        dplyr::full_join(input.gt, input, by = "MARKERS") %>%
+          dplyr::select(dplyr::one_of(want)) %>%
+          dplyr::mutate(INDIVIDUALS = stringi::stri_replace_all_fixed(
+            str = INDIVIDUALS,
+            pattern = c("_", ":"),
+            replacement = c("-", "-"),
+            vectorize_all = FALSE)
+          ) %>%
+          dplyr::mutate(GT = stringi::stri_replace_na(
+            str = GT, replacement = "./."))
+      )
       input.gt <- filter.check <- NULL
     } else {
       # filter the vcf.data
       vcf.data <- vcf.data[keep.markers,]
       input <- dplyr::select(
         .data = input,
-        MARKERS, CHROM, LOCUS, POS, REF, ALT)
+        dplyr::one_of(want))#MARKERS, CHROM, LOCUS, POS, REF, ALT)
 
       filter.check <- NULL
     }
@@ -621,15 +649,25 @@ tidy_genomic_data <- function(
                       verbose = verbose))
       # }
 
-      input <- data.table::melt.data.table(
-        data = data.table::as.data.table(input),
-        id.vars = c("MARKERS", "CHROM", "LOCUS", "POS", "REF", "ALT"),
-        variable.name = "INDIVIDUALS",
-        variable.factor = FALSE,
-        value.name = "GT"
-      ) %>%
-        tibble::as_data_frame()
-
+      if (tibble::has_name(input, "ID")) {
+        input <- data.table::melt.data.table(
+          data = data.table::as.data.table(input),
+          id.vars = c("MARKERS", "CHROM", "LOCUS", "POS", "ID", "COL", "REF", "ALT"),
+          variable.name = "INDIVIDUALS",
+          variable.factor = FALSE,
+          value.name = "GT"
+        ) %>%
+          tibble::as_data_frame()
+      } else {
+        input <- data.table::melt.data.table(
+          data = data.table::as.data.table(input),
+          id.vars = c("MARKERS", "CHROM", "LOCUS", "POS", "REF", "ALT"),
+          variable.name = "INDIVIDUALS",
+          variable.factor = FALSE,
+          value.name = "GT"
+        ) %>%
+          tibble::as_data_frame()
+      }
       # metadata
       if (is.logical(vcf.metadata)) {
         overwrite.metadata <- NULL
@@ -793,7 +831,7 @@ tidy_genomic_data <- function(
     # }# end re-computing the REF/ALT allele
 
     # Re ordering columns
-    want <- c("MARKERS", "CHROM", "LOCUS", "POS", "INDIVIDUALS", "POP_ID",
+    want <- c("MARKERS", "CHROM", "LOCUS", "POS", "ID", "COL", "INDIVIDUALS", "POP_ID",
               "REF", "ALT", "GT_VCF", "GT_VCF_NUC", "GT", "GT_BIN",
               "POLYMORPHIC")
 
@@ -2180,3 +2218,19 @@ gt_haplo2gt_vcf_nuc <- function(x) {
     dplyr::select(-GT_HAPLO)
   return(res)
 }#End gt_haplo2gt_vcf_nuc
+
+
+#' @title split_vcf_id
+#' @description split VCF ID in parallel
+#' @rdname split_vcf_id
+#' @keywords internal
+#' @export
+
+split_vcf_id <- function(x) {
+  res <- dplyr::rename(x, ID = LOCUS) %>%
+    tidyr::separate(data = ., col = ID, into = c("LOCUS", "COL"),
+                    sep = "_", extra = "drop", remove = FALSE) %>%
+    dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
+    tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
+  return(res)
+}#End split_vcf_id
