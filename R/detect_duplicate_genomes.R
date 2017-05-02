@@ -31,7 +31,7 @@
 #' Default: \code{genome = FALSE}.
 
 #' @param parallel.core (optional) The number of core for parallel computation.
-#' Default: \code{parallel.core = parallel::detectCores()-1}.
+#' Default: \code{parallel.core = parallel::detectCores() - 1}.
 
 #' @return A list with potentially 8 objects:
 #' \code{$distance }: results of the distance method
@@ -507,7 +507,7 @@ individuals.pairwise.genome.stats.tsv
   return(res)
 } # end function detect_duplicate_genomes
 
-# Internal functions: ---------------------------------------------------------
+# Internal nested functions: ---------------------------------------------------
 
 # distance method --------------------------------------------------------------
 #' @title Distance individuals
