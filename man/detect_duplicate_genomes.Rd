@@ -30,7 +30,7 @@ to run, even in parallel, so better to run overnight.
 Default: \code{genome = FALSE}.}
 
 \item{parallel.core}{(optional) The number of core for parallel computation.
-Default: \code{parallel.core = parallel::detectCores()-1}.}
+Default: \code{parallel.core = parallel::detectCores() - 1}.}
 }
 \value{
 A list with potentially 8 objects:
