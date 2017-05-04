@@ -24,7 +24,7 @@ and a data frame in long/tidy or wide format.
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
 \item{output}{16 genomic data formats can be exported: tidy (by default),
-genind, genlight, vcf (biallelic, for file format version, see details below), plink, genepop,
+genind, genlight, vcf (for file format version, see details below), plink, genepop,
 structure, arlequin, hierfstat, gtypes (strataG), betadiv, snprelate (for SNPRelate's GDS).
 Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
@@ -235,7 +235,7 @@ reality of GBS/RADseq data while maintaining a reproducible workflow.
   \item \strong{Imputations:} Map-independent imputation of missing genotype/alleles
   using Random Forest or the most frequent category.
   \item \strong{Parallel:} Some parts of the function are designed to be conduncted on multiple CPUs
-  \item \strong{Output:} 11 output file formats are supported (see \code{output} argument below)
+  \item \strong{Output:} 16 output file formats are supported (see \code{output} argument below)
 }
 }
 \details{

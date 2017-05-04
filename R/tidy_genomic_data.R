@@ -1139,7 +1139,7 @@ tidy_genomic_data <- function(
     n.catalog.locus <- dplyr::n_distinct(input$LOCUS)
     n.individuals <- ncol(input) - 1
 
-    message("\nNumber of locus in catalog: ", n.catalog.locus)
+    message("\nNumber of loci in catalog: ", n.catalog.locus)
     message("Number of individuals: ", n.individuals)
 
     # tidy df, individuals in 1 column

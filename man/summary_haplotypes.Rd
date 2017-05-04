@@ -12,26 +12,26 @@ summary_haplotypes(data, strata, read.length, whitelist.markers = NULL,
 \item{data}{The 'batch_x.haplotypes.tsv' created by STACKS.}
 
 \item{strata}{A tab delimited file with 2 columns with header:
-\code{INDIVIDUALS} and \code{STRATA}. 
-The \code{STRATA} column can be any hierarchical grouping. 
+\code{INDIVIDUALS} and \code{STRATA}.
+The \code{STRATA} column can be any hierarchical grouping.
 To create a strata file see \code{\link[stackr]{individuals2strata}}.
-If you have already run 
-\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data, 
-the strata file is similar to a stacks `population map file`, make sure you 
+If you have already run
+\href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
+the strata file is similar to a stacks `population map file`, make sure you
 have the required column names (\code{INDIVIDUALS} and \code{STRATA}).}
 
-\item{read.length}{(number) The length in nucleotide of your reads 
+\item{read.length}{(number) The length in nucleotide of your reads
 (e.g. \code{read.length = 100}).}
 
 \item{whitelist.markers}{(optional) A whitelist of loci with a column name
-'LOCUS'. The whitelist is located in the global environment or in the 
-directory (e.g. "whitelist.txt"). 
-If a whitelist is used, the files written to the directory will have 
-'.filtered' in the filename. 
+'LOCUS'. The whitelist is located in the global environment or in the
+directory (e.g. "whitelist.txt").
+If a whitelist is used, the files written to the directory will have
+'.filtered' in the filename.
 Default: \code{whitelist.markers = NULL}.}
 
 \item{blacklist.id}{(optional) A blacklist with individual ID and
-a column header 'INDIVIDUALS'. The blacklist is in the global environment 
+a column header 'INDIVIDUALS'. The blacklist is in the global environment
 or in the directory (with "blacklist.txt").
 Default: \code{blacklist.id = NULL}.}
 
@@ -58,7 +58,7 @@ see below.
 White spaces in population names are replaced by underscore.}
 
 \item{parallel.core}{(optional) The number of core for parallel
-programming during Pi calculations. 
+programming during Pi calculations.
 Default: \code{parallel.core = parallel::detectCores() - 1}.}
 }
 \value{
@@ -80,7 +80,7 @@ Also in the list 3 plots:
 use $ to access each #' objects in the list.
 The function potentially write 4 files in the working directory:
 blacklist of unique loci with assembly artifacts and/or sequencing errors
-(per individuals and globally), a blacklist of unique consensus loci 
+(per individuals and globally), a blacklist of unique consensus loci
 and a summary of the haplotype file by population.
 }
 \description{
@@ -98,9 +98,9 @@ heterozygosity.
 \item \strong{IBDG}: a proxy measure of the realized proportion of the genome
 that is identical by descent
 \item \strong{FH measure}: based on the excess in the observed number of homozygous
-genotypes within an individual relative to the mean number of homozygous 
+genotypes within an individual relative to the mean number of homozygous
 genotypes expected under random mating (Keller et al., 2011; Kardos et al., 2015).
-\item \strong{Pi}: the nucleotide diversity measured here consider the 
+\item \strong{Pi}: the nucleotide diversity measured here consider the
 consensus loci in the catalog (no variation between population sequences).
 }
 }
@@ -108,8 +108,8 @@ consensus loci in the catalog (no variation between population sequences).
 \dontrun{
 # The simplest way to run the function:
 sum <- summary_haplotypes(
-data = "batch_1.haplotypes.tsv", 
-strata = "strata_brook_charr.tsv", 
+data = "batch_1.haplotypes.tsv",
+strata = "strata_brook_charr.tsv",
 read.length = 90)
 }
 }
@@ -123,12 +123,12 @@ Measuring individual inbreeding in the age of genomics: marker-based
 measures are better than pedigrees. Heredity, 115, 63–72.
 
 Nei M, Li WH (1979)
-Mathematical model for studying genetic variation in terms of 
-restriction endonucleases. 
-Proceedings of the National Academy of Sciences of 
+Mathematical model for studying genetic variation in terms of
+restriction endonucleases.
+Proceedings of the National Academy of Sciences of
 the United States of America, 76, 5269–5273.
 }
 \author{
-Thierry Gosselin \email{thierrygosselin@icloud.com} and 
+Thierry Gosselin \email{thierrygosselin@icloud.com} and
 Anne-Laure Ferchaud \email{annelaureferchaud@gmail.com}
 }

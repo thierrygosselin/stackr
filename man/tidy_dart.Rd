@@ -31,7 +31,7 @@ named \code{NEW_ID} is used, this column will be used to replace the
 \code{INDIVIDUALS} column in the main data file.}
 
 \item{output}{16 genomic data formats can be exported: tidy (by default),
-genind, genlight, vcf (biallelic, for file format version, see details below), plink, genepop,
+genind, genlight, vcf (for file format version, see details below), plink, genepop,
 structure, arlequin, hierfstat, gtypes (strataG), betadiv, snprelate (for SNPRelate's GDS).
 Use a character string,
 e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred

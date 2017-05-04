@@ -15,11 +15,11 @@
 #'   \item \strong{Imputations:} Map-independent imputation of missing genotype/alleles
 #'   using Random Forest or the most frequent category.
 #'   \item \strong{Parallel:} Some parts of the function are designed to be conduncted on multiple CPUs
-#'   \item \strong{Output:} 11 output file formats are supported (see \code{output} argument below)
+#'   \item \strong{Output:} 16 output file formats are supported (see \code{output} argument below)
 #' }
 
 #' @param output 16 genomic data formats can be exported: tidy (by default),
-#' genind, genlight, vcf (biallelic, for file format version, see details below), plink, genepop,
+#' genind, genlight, vcf (for file format version, see details below), plink, genepop,
 #' structure, arlequin, hierfstat, gtypes (strataG), betadiv, snprelate (for SNPRelate's GDS).
 #' Use a character string,
 #' e.g. \code{output = c("genind", "genepop", "structure")}, to have preferred
@@ -49,7 +49,7 @@
 #'
 #'
 #' \strong{Imputations details:}
-#' 
+#'
 #' The imputations using Random Forest requires more time to compute and can take several
 #' minutes and hours depending on the size of the dataset and polymorphism of
 #' the species used. e.g. with a low polymorphic taxa, and a data set
@@ -58,7 +58,7 @@
 #'
 #'
 #' \strong{VCF file format version:}
-#' 
+#'
 #' If you need a different file format version than the current one, just change
 #' the version inside the newly created VCF, that should do the trick.
 #' \href{https://vcftools.github.io/specs.html}{For more
@@ -196,15 +196,15 @@ genomic_converter <- function(
     cat("###################### stackr::genomic_converter ######################\n")
     cat("#######################################################################\n")
     timing <- proc.time()
-    
+
     # Check that strataG is installed
     if ("gtypes" %in% output) {
       if (!"strataG" %in% utils::installed.packages()[,"Package"]) {
-        stop("Please install strataG for this output option:\n  
+        stop("Please install strataG for this output option:\n
 devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       }
     }
-    
+
     # Check that snprelate is installed
     if ("snprelate" %in% output) {
       if (!"SNPRelate" %in% utils::installed.packages()[,"Package"]) {
@@ -212,71 +212,71 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
            github::zhengxwen/SNPRelate")
       }
     }
-    
+
     # Checking for missing and/or default arguments-------------------------------
     if (missing(data)) stop("Input file missing")
     if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
     if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
-    
+
     message("Function arguments and values:")
     message("Working directory: ", getwd())
-    
+
     if (is.vector(data)) {
       message("Input file: ", data)
     } else {
-      message("Input file: from global environment")  
+      message("Input file: from global environment")
     }
-    
+
     if (is.null(strata)) {
       message("Strata: no")
     } else {
       message("Strata: ", strata)
     }
-    
+
     if (is.null(pop.levels)) {
       message("Population levels: no")
     } else {
       message("Population levels: ", stringi::stri_join(pop.levels, collapse = ", "))
     }
-    
+
     if (is.null(pop.levels)) {
       message("Population labels: no")
     } else {
       message(stringi::stri_join("Population labels: ", stringi::stri_join(pop.labels, collapse = ", ")))
     }
-    
+
     if (is.null(output)) {
       message("Ouput format(s): tidy")
     } else {
       message(stringi::stri_join("Ouput format(s): tidy, ", stringi::stri_join(output, collapse = ", ")))
     }
-    
+
     if (is.null(filename)) {
       message("Filename prefix: no")
     } else {
       message("Filename prefix: ", filename, "\n")
     }
-    
-    
+
+
     message("Filters: ")
     if (is.null(blacklist.id)) {
       message("Blacklist of individuals: no")
     } else {
       message("Blacklist of individuals: ", blacklist.id)
     }
-    
+
     if (is.null(blacklist.genotype)) {
       message("Blacklist of genotypes: no")
     } else {
       message("Blacklist of genotypes: ", blacklist.genotype)
     }
-    
+
     if (is.null(whitelist.markers)) {
       message("Whitelist of markers: no")
     } else {
       message("Whitelist of markers: ", whitelist.markers)
     }
-    
+
     message("monomorphic.out: ", monomorphic.out)
     if (is.null(snp.ld)) {
       message("snp.ld: no")
@@ -289,7 +289,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     } else {
       message("max.marker: ", max.marker)
     }
-    
+
     if (is.null(pop.select)) {
       message("pop.select: no")
     } else {
@@ -303,7 +303,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       message("maf.approach: ", maf.approach)
       message("maf.operator: ", maf.operator)
     }
-    
+
     message(stringi::stri_join("\n", "Imputations options:"))
     if (is.null(imputation.method)) {
       message("imputation.method: no")
@@ -313,8 +313,8 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     }
     message("\nparallel.core: ", parallel.core, "\n")
     cat("#######################################################################\n")
-  }  
-    
+  }
+
   # Filename -------------------------------------------------------------------
   # Get date and time to have unique filenaming
   if (is.null(filename)) {
@@ -331,9 +331,9 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       vectorize_all = FALSE
     )
     file.date <- stringi::stri_sub(file.date, from = 1, to = 13)
-    
+
     filename <- stringi::stri_join("stackr_data_", file.date)
-    
+
     if (!is.null(imputation.method)) {
       filename.imp <- stringi::stri_join("stackr_data_imputed_", file.date)
     }
@@ -342,14 +342,14 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       filename.imp <- stringi::stri_join(filename, "_imputed")
     }
   }
-  
+
   # File type detection --------------------------------------------------------
   data.type <- detect_genomic_format(data = data)
-  
+
   # Strata argument required for VCF and haplotypes files-----------------------
   if (data.type == "vcf.file" & is.null(strata)) stop("strata argument is required")
-  if (data.type == "haplo.file") stop("This function is for biallelic dataset only")
-  
+  if (data.type == "haplo.file" & is.null(strata)) stop("strata argument is required")
+
   # Import----------------------------------------------------------------------
   # if (data.type == "tbl_df") {
   #   input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
@@ -380,36 +380,39 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       verbose = verbose
     )
   # }
-  
+
   input$GT <- stringi::stri_replace_all_fixed(
     str = input$GT,
     pattern = c("/", ":", "_", "-", "."),
     replacement = c("", "", "", "", ""),
     vectorize_all = FALSE
   )
-  
+
   # create a strata.df
   # strata.df <- input %>%
   #   distinct(INDIVIDUALS, POP_ID)
   # # strata <- strata.df
   pop.levels <- levels(input$POP_ID)
   pop.labels <- pop.levels
-  
-  
+
+
   # prepare output res list
   res <- list()
   res$tidy.data <- input
-  
+
   # Biallelic detection --------------------------------------------------------
   biallelic <- stackr::detect_biallelic_markers(data = input, verbose = verbose)
-  
-  
+
+  if (!biallelic && "genlight" %in% output || "plink" %in% output) {
+    stop("output chosen doesn't work with multi-allelic data")
+  }
+
   # overide genind when marker number > 20K ------------------------------------
-  if ("genind" %in% output) {
+  if ("genind" %in% output & biallelic) {
     # detect the number of marker
     marker.number <- dplyr::n_distinct(input$MARKERS)
     if (marker.number > 20000) {
-      
+
       # When genlight is also selected, remove automatically
       if ("genlight" %in% output) {
         message("Removing the genind output option, the genlight is more suitable with current marker number")
@@ -434,10 +437,10 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       }
     }
   }
-  
+
   # Imputations-----------------------------------------------------------------
   if (!is.null(imputation.method)) {
-    
+
     input.imp <- stackr::stackr_imputations_module(
       data = input,
       imputation.method = imputation.method,
@@ -449,13 +452,13 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       parallel.core = parallel.core,
       filename = NULL
     )
-    
+
     res$tidy.data.imp <- input.imp
-    
+
   } # End imputations
-  
+
   # OUTPUT ---------------------------------------------------------------------
-  
+
   # GENEPOP --------------------------------------------------------------------
   if ("genepop" %in% output) {
     if (verbose) message("Generating genepop file without imputation")
@@ -464,7 +467,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       pop.levels = pop.levels,
       filename = filename
     )
-    
+
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating genepop file WITH imputations")
       stackr::write_genepop(
@@ -474,7 +477,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       )
     }
   } # end genepop output
-  
+
   # hierfstat --------------------------------------------------------------------
   if ("hierfstat" %in% output) {
     if (verbose) message("Generating hierfstat file without imputation")
@@ -482,7 +485,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       data = input,
       filename = filename
     )
-    
+
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating hierfstat file WITH imputations")
       res$hierfstat.imputed <- stackr::write_hierfstat(
@@ -491,18 +494,18 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       )
     }
   } # end hierfstat output
-  
+
   # strataG --------------------------------------------------------------------
   if ("gtypes" %in% output) {
     if (verbose) message("Generating strataG gtypes object without imputation")
     res$gtypes.no.imputation <- stackr::write_gtypes(data = input)
-    
+
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating strataG gtypes object WITH imputations")
       res$gtypes.imputed <- stackr::write_gtypes(data = input.imp)
     }
   } # end strataG output
-  
+
   # structure --------------------------------------------------------------------
   if ("structure" %in% output) {
     if (verbose) message("Generating structure file without imputation")
@@ -512,7 +515,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       markers.line = TRUE,
       filename = filename
     )
-    
+
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating structure file WITH imputations")
       stackr::write_structure(
@@ -523,19 +526,19 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       )
     }
   } # end structure output
-  
+
   # betadiv --------------------------------------------------------------------
   if ("betadiv" %in% output) {
     if (!biallelic) stop("betadiv output is currently implemented for biallelic data only")
     if (verbose) message("Generating betadiv object without imputation")
     res$betadiv.no.imputation <- stackr::write_betadiv(data = input)
-    
+
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating betadiv object WITH imputations")
       res$betadiv.imputed <- stackr::write_betadiv(data = input.imp)
     }
   } # end betadiv output
-  
+
   # arlequin --------------------------------------------------------------------
   if ("arlequin" %in% output) {
     if (verbose) message("Generating arlequin file without imputation")
@@ -544,7 +547,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       pop.levels = pop.levels,
       filename = filename
     )
-    
+
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating arlequin file WITH imputations")
       stackr::write_arlequin(
@@ -554,29 +557,29 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       )
     }
   } # end arlequin output
-  
+
   # GENIND ---------------------------------------------------------------------
   if ("genind" %in% output) {
     if (verbose) message("Generating adegenet genind object without imputation")
     res$genind.no.imputation <- stackr::write_genind(data = input)
-    
+
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating adegenet genind object WITH imputations")
       res$genind.imputed <- stackr::write_genind(data = input.imp)
     }
   } # end genind
-  
+
   # GENLIGHT -------------------------------------------------------------------
   if ("genlight" %in% output) {
     if (verbose) message("Generating adegenet genlight object without imputation")
     res$genlight.no.imputation <- stackr::write_genlight(data = input)
-    
+
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating adegenet genlight object WITH imputations")
       res$genlight.imputed <- stackr::write_genlight(data = input.imp)
     }
   } # end genlight output
-  
+
   # VCF ------------------------------------------------------------------------
   if ("vcf" %in% output) {
     if (!biallelic) stop("vcf output is currently implemented for biallelic data only")
@@ -585,7 +588,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       data = input,
       filename = filename
     )
-    
+
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating VCF file WITH imputations")
       stackr::write_vcf(
@@ -594,7 +597,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       )
     }
   } # end vcf output
-  
+
   # PLINK ----------------------------------------------------------------------
   if ("plink" %in% output) {
     if (verbose) message("Generating PLINK tped/tfam files without imputation")
@@ -602,7 +605,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       data = input,
       filename = filename
     )
-    
+
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating PLINK tped/tfam files WITH imputations")
       stackr::write_plink(
@@ -611,8 +614,8 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       )
     }
   } # end plink output
-  
-  
+
+
   # SNPRelate ------------------------------------------------------------------
   if ("snprelate" %in% output) {
     if (verbose) message("Generating SNPRelate object without imputation")
@@ -622,10 +625,10 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
       res$snprelate.imputed <- stackr::write_snprelate(data = input.imp)
     }
   }
-  
+
   # dadi -----------------------------------------------------------------------
   # not yet implemented, use vcf2dadi
-  
+
   # outout results -------------------------------------------------------------
   n.markers <- dplyr::n_distinct(input$MARKERS)
   if (tibble::has_name(input, "CHROM")) {
@@ -635,7 +638,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   }
   n.individuals <- dplyr::n_distinct(input$INDIVIDUALS)
   n.pop <- dplyr::n_distinct(input$POP_ID)
-  
+
   if (verbose) {
     cat("############################### RESULTS ###############################\n")
     message("Tidy data in your global environment")
@@ -655,7 +658,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
     message("Number of individuals ", n.individuals)
     message("Number of populations ", n.pop)
     timing <- proc.time() - timing
-    message("Computation time: ", round(timing[[3]]), " sec")
+    message("\nComputation time: ", round(timing[[3]]), " sec")
     cat("############################## completed ##############################\n")
   }
   return(res)

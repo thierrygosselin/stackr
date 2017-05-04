@@ -12,20 +12,20 @@ a tidy data frame in wide or long format in the working directory.
 \emph{How to get a tidy data frame ?}
 Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
 
-\item{pop.info}{(optional, logical) Should the population information be 
+\item{pop.info}{(optional, logical) Should the population information be
 included in the FORMAT field (along the GT info for each samples ?). To make
 the VCF population-ready use \code{pop.info = TRUE}. The population information
 must be included in the \code{POP_ID} column of the tidy dataset.
 Default: \code{pop.info = FALSE}.}
 
-\item{filename}{(optional) The file name prefix for the vcf file 
-written to the working directory. With default: \code{filename = NULL}, 
+\item{filename}{(optional) The file name prefix for the vcf file
+written to the working directory. With default: \code{filename = NULL},
 the date and time is appended to \code{stackr_vcf_file_}.}
 }
 \description{
 Write a vcf file (file format version 4.3, see details below)
 from a tidy data frame.
-Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
+Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and might be of interest for users.
 }
 \details{
