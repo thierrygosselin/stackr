@@ -38,6 +38,7 @@
 
 #' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
 
+write_gtypes <- function(data) {
   # Check that strataG is installed --------------------------------------------
   if (!"strataG" %in% utils::installed.packages()[,"Package"]) {
     stop("Please install strataG for this output option:\n
