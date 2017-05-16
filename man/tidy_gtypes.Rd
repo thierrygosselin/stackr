@@ -19,7 +19,7 @@ and might be of interest for users.
 Archer FI, Adams PE, Schneiders BB.
 strataG: An r package for manipulating, summarizing and analysing population
 genetic data.
-Molecular Ecology Resources. 2016. doi:10.1111/1755-0998.12559
+Molecular Ecology Resources. 2017; 17: 5-11. doi:10.1111/1755-0998.12559
 }
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
