@@ -433,8 +433,13 @@ summary_haplotypes <- function(
   haplotype.filtered <- haplotype %>%
     dplyr::filter(
       WHITELIST == "whitelist",
-      CONSENSUS == "not_consensus",
-      !ARTIFACTS %in% "artifact")
+      CONSENSUS == "not_consensus")
+
+  # haplotype.filtered <- haplotype %>%
+  #   dplyr::filter(
+  #     WHITELIST == "whitelist",
+  #     CONSENSUS == "not_consensus",
+  #     !ARTIFACTS %in% "artifact")
 
   summary.ind <- haplotype.filtered %>%
     dplyr::mutate(
@@ -491,7 +496,7 @@ summary_haplotypes <- function(
 
   # required functions
   separate_haplo <- function(x) {
-    res <- x %>%
+    res <- dplyr::select(x, LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES)  %>%
       tidyr::separate(
         col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
         sep = "/", extra = "drop", remove = FALSE
@@ -548,7 +553,7 @@ summary_haplotypes <- function(
       X = ., FUN = freq_hom, mc.cores = parallel.core) %>%
     dplyr::bind_rows(.) %>%
     dplyr::group_by(LOCUS, POP_ID) %>%
-    dplyr::summarise(HOM_E = sum(HOM_E)) %>%
+    dplyr::summarise(HOM_E = mean(HOM_E)) %>%
     dplyr::group_by(POP_ID) %>%
     dplyr::summarise(HOM_E = mean(HOM_E))
 
@@ -611,11 +616,12 @@ summary_haplotypes <- function(
   if (keep.consensus) {
     pi.data <- dplyr::filter(
       pi.data,
-      WHITELIST == "whitelist" | CONSENSUS %in% c("consensus", "not_consensus"))
+      WHITELIST == "whitelist" | CONSENSUS %in% "consensus")
+    # WHITELIST == "whitelist" & CONSENSUS %in% c("consensus", "not_consensus"))
   } else {
     pi.data <- dplyr::filter(
       pi.data,
-      WHITELIST == "whitelist" & CONSENSUS == "not_consensus")
+      WHITELIST == "whitelist" & CONSENSUS %in% "not_consensus")
   }
 
   n.row <- nrow(pi.data)
@@ -630,7 +636,8 @@ summary_haplotypes <- function(
 
   # Add allele count
   allele.count <- pi.data %>%
-    dplyr::filter(CONSENSUS == "not_consensus",
+    dplyr::filter(WHITELIST == "whitelist",
+                  CONSENSUS == "not_consensus",
                   ARTIFACTS == "not_artifact") %>%
     dplyr::select(-WHITELIST, -CONSENSUS, -ARTIFACTS, -INDIVIDUALS) %>%
     dplyr::distinct(LOCUS, POP_ID, ALLELE1, ALLELE2) %>%
