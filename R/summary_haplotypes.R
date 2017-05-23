@@ -282,12 +282,6 @@ summary_haplotypes <- function(
 
   pop <- unique(haplotype$POP_ID)
 
-  # # Filter with whitelist of markers -------------------------------------------
-  # if (!keep.consensus && !is.null(whitelist.markers)) {
-  #     message("Filtering with whitelist of loci: ", nrow(whitelist.markers), " loci")
-  #     haplotype <- suppressWarnings(dplyr::semi_join(haplotype, whitelist.markers, by = "LOCUS"))
-  # }
-
   # Locus with consensus alleles -----------------------------------------------
   message("Scanning for consensus markers...")
   consensus.pop <- haplotype %>%
