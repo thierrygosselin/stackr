@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.5.4-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--05--04-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.5.5-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--05--23-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -113,6 +113,12 @@ New features
 ------------
 
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
+
+**v.0.5.5 2017-05-23**
+
+-   `tidy_genomic_data` : bug fix introduce with previous commit when fixing `LOCUS` and `COL` with stacks version &gt; 1.44. Thanks to Eric Archer for highlighting the bug.
+
+-   `summary_haplotypes`: this function gets a new arguments, `keep.consensus`, to enable the calculation of **pi** to include or not the consensus markers presents in stacks haplotype file (e.g. *batch\_1.haplotypes.tsv*). This argument works to circumvent the impact of using a whitelist of markers, that potentially removed those markers in previous versions. Also changed in this function, the summary table include a **POLYMORPHISM** column that no longer include the artifact marker counts (markers with more than 2 alleles). This information is kept in a separate column (as before).
 
 **v.0.5.4 2017-04-06**
 

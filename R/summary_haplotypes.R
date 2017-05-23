@@ -48,6 +48,12 @@
 #' or in the directory (with "blacklist.txt").
 #' Default: \code{blacklist.id = NULL}.
 
+#' @param keep.consensus (optional) Using whitelist of markers can automatically
+#' remove consensus markers from the nucleotide diversity (Pi) calculations.
+#' If you know what you are doing, play with this argument
+#' to keep consensus markers.
+#' Default: \code{keep.consensus = TRUE}.
+
 #' @inheritParams tidy_genomic_data
 
 #' @param parallel.core (optional) The number of core for parallel
@@ -56,7 +62,7 @@
 
 #' @importFrom stringdist stringdist
 #' @importFrom utils combn count.fields
-#' @importFrom stats lm
+#' @importFrom stats lm na.omit
 #' @importFrom stringi stri_replace_all_fixed stri_replace_na stri_join stri_count_fixed
 #' @importFrom tibble as_data_frame data_frame add_column
 #' @importFrom dplyr select rename n_distinct distinct mutate summarise group_by ungroup arrange left_join full_join semi_join anti_join bind_rows bind_cols if_else
@@ -123,6 +129,7 @@ summary_haplotypes <- function(
   read.length,
   whitelist.markers = NULL,
   blacklist.id = NULL,
+  keep.consensus = TRUE,
   pop.levels = NULL,
   pop.labels = NULL,
   parallel.core = parallel::detectCores() - 1
@@ -131,6 +138,9 @@ summary_haplotypes <- function(
   cat("#################### stackr::summary_haplotypes #######################\n")
   cat("#######################################################################\n")
   timing <- proc.time()
+
+  res <- list() # to store results
+
 
   if (missing(data)) stop("data argument is missing")
   if (missing(strata)) stop("strata argument is required")
@@ -196,27 +206,25 @@ summary_haplotypes <- function(
   )
 
   # Import whitelist of markers-------------------------------------------------
-  if (!is.null(whitelist.markers)) { # no Whitelist
+  if (is.null(whitelist.markers)) {
+    haplotype <- dplyr::mutate(haplotype, WHITELIST = rep("whitelist", n()))
+  } else {
     whitelist.markers <- suppressMessages(readr::read_tsv(whitelist.markers, col_names = TRUE))
-    columns.names.whitelist <- colnames(whitelist.markers)
-    if ("CHROM" %in% columns.names.whitelist) {
-      whitelist.markers$CHROM <- as.character(whitelist.markers$CHROM)
-    }
-    if ("LOCUS" %in% columns.names.whitelist) {
-      whitelist.markers$LOCUS <- as.character(whitelist.markers$LOCUS)
-    }
-    if ("POS" %in% columns.names.whitelist) {
-      whitelist.markers$POS <- as.character(whitelist.markers$POS)
-    }
-    # haplo.file
-    whitelist.markers <- dplyr::select(.data = whitelist.markers, LOCUS) %>%
-      dplyr::arrange(as.integer(LOCUS))
-    columns.names.whitelist <- colnames(whitelist.markers)
-  }
 
-  # Import blacklist id --------------------------------------------------------
-  if (!is.null(blacklist.id)) { # No blacklist of ID
-    blacklist.id <- suppressMessages(readr::read_tsv(blacklist.id, col_names = TRUE))
+    # Check that whitelist has "LOCUS" column
+    if (!tibble::has_name(whitelist.markers, "LOCUS")) {
+      stop("Whitelist requires a LOCUS column, check argument documentation...")
+    }
+    whitelist.markers <- dplyr::select(.data = whitelist.markers, LOCUS) %>%
+      dplyr::mutate(LOCUS = as.character(LOCUS)) %>%
+      dplyr::arrange(as.integer(LOCUS))
+
+    haplotype <- haplotype %>%
+      dplyr::mutate(
+        WHITELIST = dplyr::if_else(LOCUS %in% whitelist.markers$LOCUS,
+                                   "whitelist", "blacklist")
+      )
+    whitelist.markers <- "whitelist"
   }
 
   # population levels and strata------------------------------------------------
@@ -238,28 +246,15 @@ summary_haplotypes <- function(
     strata.df <- strata
   }
 
-  # filtering the strata if blacklist id available
-  if (!is.null(blacklist.id)) {
-    strata.df <- dplyr::anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
-  }
   # Remove potential whitespace in pop_id
-  strata.df$POP_ID <- stringi::stri_replace_all_fixed(strata.df$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
+  strata.df$POP_ID <- stringi::stri_replace_all_fixed(
+    strata.df$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
 
-  # # Check with strata and pop.levels/pop.labels
-  # if (!is.null(strata) & !is.null(pop.levels)) {
-  #   if (length(levels(factor(strata.df$POP_ID))) != length(pop.levels)) {
-  #     stop("The number of groups in your strata file must match the number of groups in pop.levels")
-  #   }
-  # }
-  # Filter with whitelist of markers -------------------------------------------
-  if (!is.null(whitelist.markers)) {
-    message("Filtering with whitelist of loci: ", nrow(whitelist.markers), " loci")
-    haplotype <- suppressWarnings(dplyr::semi_join(haplotype, whitelist.markers, by = columns.names.whitelist))
-  }
-
-  # Filter with blacklist of individuals ---------------------------------------
+  # Import and filter blacklist id ---------------------------------------------
   if (!is.null(blacklist.id)) {
-    message("Filtering with blacklist of individuals: ", nrow(blacklist.id), " individual(s)")
+    blacklist.id <- suppressMessages(readr::read_tsv(blacklist.id, col_names = TRUE))
+    message("Filtering with blacklist of individuals: ", nrow(blacklist.id), " individual(s) blacklisted")
+    strata.df <- dplyr::anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
 
     blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
       str = blacklist.id$INDIVIDUALS,
@@ -270,6 +265,7 @@ summary_haplotypes <- function(
 
     haplotype <- suppressWarnings(dplyr::anti_join(haplotype, blacklist.id, by = "INDIVIDUALS"))
   }
+  blacklist.id <- NULL
 
   # Population levels and strata -----------------------------------------------
   strata.df$INDIVIDUALS = stringi::stri_replace_all_fixed(
@@ -284,15 +280,16 @@ summary_haplotypes <- function(
   # using pop.levels and pop.labels info if present
   haplotype <- change_pop_names(data = haplotype, pop.levels = pop.levels, pop.labels = pop.labels)
 
+  pop <- unique(haplotype$POP_ID)
+
+  # # Filter with whitelist of markers -------------------------------------------
+  # if (!keep.consensus && !is.null(whitelist.markers)) {
+  #     message("Filtering with whitelist of loci: ", nrow(whitelist.markers), " loci")
+  #     haplotype <- suppressWarnings(dplyr::semi_join(haplotype, whitelist.markers, by = "LOCUS"))
+  # }
+
   # Locus with consensus alleles -----------------------------------------------
   message("Scanning for consensus markers...")
-
-  # consensus.pop <- haplotype %>%
-  #   dplyr::mutate(CONSENSUS = stringi::stri_count_fixed(HAPLOTYPES, "consensus")) %>%
-  #   dplyr::group_by(LOCUS, POP_ID) %>%
-  #   dplyr::summarise(CONSENSUS_MAX = max(CONSENSUS)) %>%
-  #   dplyr::filter(CONSENSUS_MAX > 0)
-
   consensus.pop <- haplotype %>%
     dplyr::filter(HAPLOTYPES == "consensus") %>%
     dplyr::distinct(LOCUS, POP_ID) %>%
@@ -312,155 +309,147 @@ summary_haplotypes <- function(
       col_names = TRUE
     )
 
+    haplotype <- dplyr::mutate(
+      haplotype,
+      CONSENSUS = dplyr::if_else(
+        LOCUS %in% blacklist.loci.consensus$LOCUS,
+        "consensus", "not_consensus"))
+
     blacklist.loci.consensus.sum <- blacklist.loci.consensus %>%
       dplyr::ungroup(.) %>%
       dplyr::summarise(CONSENSUS = n()) %>%
       dplyr::select(CONSENSUS)
 
-    consensus.pop.sum <- consensus.pop %>%
+    consensus <- consensus.pop %>%
       dplyr::group_by(POP_ID) %>%
       dplyr::summarise(CONSENSUS = dplyr::n_distinct(LOCUS))
+
+    res$consensus.pop <- consensus.pop
+    res$consensus.loci <- blacklist.loci.consensus
+    consensus.pop <- blacklist.loci.consensus <- NULL
   } else {
-    blacklist.loci.consensus <- NULL
+    res$consensus.pop <- NULL
+    res$consensus.loci <- NULL
     blacklist.loci.consensus.sum <- tibble::data_frame(CONSENSUS = as.integer(0))
-    consensus.pop.sum <- tibble::data_frame(
-      POP_ID = pop.labels,
-      CONSENSUS = as.integer(rep(0, length(pop.labels)))
+    consensus <- tibble::data_frame(
+      POP_ID = pop,
+      CONSENSUS = as.integer(rep(0, length(pop)))
     )
+    haplotype <- dplyr::mutate(haplotype, CONSENSUS = rep("not_consensus", n()))
   }
 
-  # Individuals per pop
-  ind.pop <- haplotype %>%
-    dplyr::distinct(INDIVIDUALS, .keep_all = TRUE) %>%
+  # samples per pop
+  sample.number <- dplyr::distinct(haplotype, INDIVIDUALS, POP_ID) %>%
     dplyr::group_by(POP_ID) %>%
     dplyr::tally(.) %>%
-    dplyr::rename(NUM = n)
-
-  ind.tot <- haplotype %>%
-    dplyr::distinct(INDIVIDUALS) %>%
-    dplyr::tally(.) %>%
     dplyr::rename(NUM = n) %>%
-    dplyr::mutate(POP_ID = "OVERALL")
-
-  sample.number <- suppressWarnings(dplyr::bind_rows(ind.pop, ind.tot))
-
-  # unused arguments
-  ind.pop <- ind.tot <- NULL
+    tibble::add_row(.data = ., POP_ID = "OVERALL", NUM = sum(.$NUM))
 
   # Sequencing errors and assembly artifact ---------------------------------------------
   # Locus with > 2 alleles by individuals
   message("Scanning for outlier genotypes with > 2 alleles (assembly artifact and sequencing errors)...")
+  haplotype <- haplotype %>%
+    dplyr::mutate(
+      ARTIFACTS = stringi::stri_count_fixed(HAPLOTYPES, "/"),
+      ARTIFACTS = dplyr::if_else(ARTIFACTS > 1, "artifact", "not_artifact"))
 
-  total.genotype.number.haplo <- length(haplotype$HAPLOTYPES)
+  artifacts.ind <- dplyr::filter(
+    haplotype,
+    WHITELIST == "whitelist",
+    CONSENSUS == "not_consensus")
 
-  paralogs.ind <- haplotype %>%
-    dplyr::filter(stringi::stri_count_fixed(HAPLOTYPES, "/") > 1) %>%
+  total.genotype.number.haplo <- length(stats::na.omit(artifacts.ind$HAPLOTYPES))
+
+  artifacts.ind <- artifacts.ind %>%
+    dplyr::filter(ARTIFACTS == "artifact") %>%
     dplyr::arrange(LOCUS, POP_ID, INDIVIDUALS) %>%
-    dplyr::select(LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES)
+    dplyr::select(LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES, ARTIFACTS)
 
-  if (nrow(paralogs.ind) > 0) {
-    erased.genotype.number <- length(paralogs.ind$HAPLOTYPES)
+  if (nrow(artifacts.ind) > 0) {
+    erased.genotype.number <- length(artifacts.ind$HAPLOTYPES)
     percent.haplo <- paste(round(((erased.genotype.number/total.genotype.number.haplo)*100), 2), "%", sep = " ")
 
     # Write the list of locus, individuals with paralogs
     if (is.null(whitelist.markers)) {
-      readr::write_tsv(x = paralogs.ind, path = "blacklist.loci.artifacts.ind.txt", col_names = TRUE)
-      filename.paralogs.ind <- "blacklist.loci.artifacts.ind.txt"
+      filename.artifacts.ind <- "blacklist.loci.artifacts.ind.txt"
     } else {
-      readr::write_tsv(x = paralogs.ind, path = "blacklist.loci.artifacts.ind.filtered.txt", col_names = TRUE)
-      filename.paralogs.ind <- "blacklist.loci.artifacts.ind.filtered.txt"
+      filename.artifacts.ind <- "blacklist.loci.artifacts.ind.filtered.txt"
     }
-    message("    Generated a file with ", nrow(paralogs.ind), " artifact loci by individuals: ", filename.paralogs.ind)
+    readr::write_tsv(x = artifacts.ind, path = filename.artifacts.ind,
+                     col_names = TRUE)
+    message("    Generated a file with ",
+            nrow(artifacts.ind),
+            " artifact loci by individuals: ", filename.artifacts.ind)
 
-    paralogs.pop <- paralogs.ind %>%
-      dplyr::ungroup(.) %>%
-      dplyr::distinct(LOCUS, POP_ID) %>%
-      dplyr::arrange(as.numeric(LOCUS)) %>%
-      dplyr::mutate(PARALOGS = rep("paralogs", times = n()))
+    res$artifacts.pop <- dplyr::ungroup(artifacts.ind) %>%
+      dplyr::distinct(LOCUS, POP_ID, ARTIFACTS) %>%
+      dplyr::arrange(as.numeric(LOCUS), POP_ID)
 
-    paralogs.pop.sum <- paralogs.pop %>%
+    artifacts.ind <- NULL
+
+    artifacts <- res$artifacts.pop %>%
       dplyr::group_by(POP_ID) %>%
-      dplyr::summarise(ARTIFACTS = dplyr::n_distinct(LOCUS))
+      dplyr::tally(.) %>%
+      dplyr::rename(ARTIFACTS = n)
 
-    blacklist.loci.paralogs <- paralogs.ind %>%
-      dplyr::ungroup(.) %>%
+    res$artifacts.loci <- dplyr::ungroup(res$artifacts.pop) %>%
       dplyr::distinct(LOCUS) %>%
       dplyr::arrange(as.numeric(LOCUS))
 
-    blacklist.loci.paralogs.sum <- blacklist.loci.paralogs %>%
+    blacklist.loci.artifacts.sum <- res$artifacts.loci %>%
       dplyr::ungroup(.) %>%
       dplyr::summarise(ARTIFACTS = n()) %>%
       dplyr::select(ARTIFACTS)
 
     # Write the unique list of paralogs blacklisted to a file
     if (is.null(whitelist.markers)) {
-      readr::write_tsv(
-        x = blacklist.loci.paralogs,
-        path = "blacklist.loci.artifacts.txt", col_names = TRUE
-      )
       filename.paralogs <- "blacklist.loci.artifacts.txt"
     } else {
-      readr::write_tsv(
-        x = blacklist.loci.paralogs,
-        path = "blacklist.loci.artifacts.filtered.txt", col_names = TRUE
-      )
       filename.paralogs <- "blacklist.loci.artifacts.filtered.txt"
     }
-    message("    Generated a file with ", nrow(blacklist.loci.paralogs), " artifact loci: ", filename.paralogs)
-  } else {
-    paralogs.pop <- NULL
-    blacklist.loci.paralogs <- NULL
-    pop <- unique(strata.df$POP_ID)
-    paralogs.pop.sum <- tibble::data_frame(POP_ID = pop, ARTIFACTS = as.integer(rep(0, length(pop))))
-    blacklist.loci.paralogs.sum <- tibble::data_frame(ARTIFACTS = as.integer(0))
-  }
-
-  # Haplo filtered paralogs ----------------------------------------------------
-  if (length(paralogs.ind$HAPLOTYPES > 0)) {
-    message("    Erasing genotypes with > 2 alleles")
-    message.haplo.erasing.geno <- stringi::stri_join("    Out of a total of ", total.genotype.number.haplo, " genotypes, ", percent.haplo, " (", erased.genotype.number, ")"," will be erased")
-    message(message.haplo.erasing.geno)
-
-    erase.paralogs <- paralogs.ind %>%
-      dplyr::select(LOCUS, INDIVIDUALS) %>%
-      dplyr::mutate(ERASE = rep("erase", n()))
-
-    haplo.filtered.paralogs <- suppressWarnings(
-      haplotype %>%
-        dplyr::full_join(erase.paralogs, by = c("LOCUS", "INDIVIDUALS")) %>%
-        dplyr::mutate(
-          ERASE = stringi::stri_replace_na(str = ERASE, replacement = "ok"),
-          HAPLOTYPES = ifelse(ERASE == "erase", NA, HAPLOTYPES)
-        ) %>%
-        dplyr::select(-ERASE)
+    readr::write_tsv(
+      x = res$artifacts.loci,
+      path = filename.paralogs, col_names = TRUE
     )
+    message("    Generated a file with ", nrow(res$artifacts.loci),
+            " artifact loci: ", filename.paralogs)
+
+    message("    Out of a total of ", total.genotype.number.haplo, " genotypes, ", percent.haplo, " (", erased.genotype.number, ")"," outlier genotypes will be erased")
+    haplotype <- suppressWarnings(
+            haplotype %>%
+              dplyr::mutate(
+                HAPLOTYPES = dplyr::if_else(ARTIFACTS == "artifact", NA_character_, HAPLOTYPES)
+              ))
   } else {
-    haplo.filtered.paralogs <- haplotype
+    res$artifacts.pop <- res$artifacts.loci <- NULL
+    artifacts <- tibble::data_frame(POP_ID = pop, ARTIFACTS = as.integer(rep(0, length(pop))))
+    blacklist.loci.artifacts.sum <- tibble::data_frame(ARTIFACTS = as.integer(0))
+    haplotype <- dplyr::mutate(haplotype, ARTIFACTS = rep("not_artifact", n()))
   }
 
-  # Haplo filtered for consensus -----------------------------------------------
-  if (length(consensus.pop$CONSENSUS) > 0) {
-    haplo.filtered.consensus <- haplotype %>%
-      dplyr::filter(!LOCUS %in% consensus.pop$LOCUS)
 
-    # Haplo filtered for consensus and paralogs
-    haplo.filtered.consensus.paralogs <- haplo.filtered.paralogs %>%
-      dplyr::filter(!LOCUS %in% consensus.pop$LOCUS)
-  } else {
-    haplo.filtered.consensus <- haplotype
-    haplo.filtered.consensus.paralogs <- haplo.filtered.paralogs
-  }
+  # bind info
+  consensus.artifacts <- dplyr::full_join(artifacts, consensus, by = "POP_ID")
+  artifacts <- consensus <- NULL
 
   # Summary dataframe by individual---------------------------------------------
   message("Genome-Wide Identity-By-Descent calculations (FH)...")
-  n.individuals <- dplyr::n_distinct(haplo.filtered.consensus.paralogs$INDIVIDUALS)
+
+  n.individuals <- dplyr::n_distinct(haplotype$INDIVIDUALS)
+  haplotype.filtered <- haplotype %>%
+    dplyr::filter(
+      WHITELIST == "whitelist",
+      CONSENSUS == "not_consensus",
+      !ARTIFACTS %in% "artifact")
+
+  summary.ind <- haplotype.filtered %>%
+    dplyr::mutate(
+      ALLELES_COUNT = stringi::stri_count_fixed(HAPLOTYPES, "/"),
+      IND_LEVEL_POLYMORPHISM = dplyr::if_else(ALLELES_COUNT == 1, "het", "hom", missing = "missing")
+    )
 
   if (n.individuals < 200) {
-    summary.ind <- haplo.filtered.consensus.paralogs %>%
-      dplyr::mutate(
-        ALLELES_COUNT = stringi::stri_count_fixed(HAPLOTYPES, "/"),
-        IND_LEVEL_POLYMORPHISM = dplyr::if_else(ALLELES_COUNT == 1, "het", "hom", missing = "missing")
-      ) %>%
+    summary.ind <- summary.ind %>%
       dplyr::group_by(INDIVIDUALS) %>%
       dplyr::summarise(
         HOM = length(IND_LEVEL_POLYMORPHISM[IND_LEVEL_POLYMORPHISM == "hom"]),
@@ -491,11 +480,7 @@ summary_haplotypes <- function(
     split.vec <- dplyr::distinct(strata.df, INDIVIDUALS) %>%
       dplyr::mutate(SPLIT_VEC = as.integer(floor((parallel.core * 3 * (1:n.individuals - 1) / n.individuals) + 1)))
 
-    summary.ind <- haplo.filtered.consensus.paralogs %>%
-      dplyr::mutate(
-        ALLELES_COUNT = stringi::stri_count_fixed(HAPLOTYPES, "/"),
-        IND_LEVEL_POLYMORPHISM = dplyr::if_else(ALLELES_COUNT == 1, "het", "hom", missing = "missing")
-      ) %>%
+    summary.ind <- summary.ind %>%
       dplyr::left_join(split.vec, by = "INDIVIDUALS") %>%
       split(x = ., f = .$SPLIT_VEC) %>%
       .stackr_parallel(
@@ -509,28 +494,7 @@ summary_haplotypes <- function(
 
     split.vec <- NULL
   }
-    # system.time(freq.alleles.loci.pop <- suppressWarnings(
-  #   haplo.filtered.consensus.paralogs %>%
-  #     dplyr::filter(!is.na(HAPLOTYPES)) %>%
-  #     dplyr::group_by(LOCUS, POP_ID) %>%
-  #     dplyr::mutate(DIPLO = length(INDIVIDUALS) * 2) %>%
-  #     tidyr::separate(
-  #       col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
-  #       sep = "/", extra = "drop", remove = FALSE
-  #     ) %>%
-  #     dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
-  #     dplyr::select(-HAPLOTYPES, -INDIVIDUALS) %>%
-  #     tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID, DIPLO)) %>%
-  #     dplyr::group_by(LOCUS, POP_ID, ALLELES) %>%
-  #     dplyr::summarise(
-  #       FREQ_ALLELES = length(ALLELES)/mean(DIPLO),
-  #       HOM_E = FREQ_ALLELES * FREQ_ALLELES
-  #     ) %>%
-  #     dplyr::select(-FREQ_ALLELES) %>% dplyr::arrange(LOCUS, POP_ID) %>%
-  #     dplyr::ungroup(.)
-  # ))
 
-  # faster in parallel...
   # required functions
   separate_haplo <- function(x) {
     res <- x %>%
@@ -544,6 +508,7 @@ summary_haplotypes <- function(
       dplyr::select(-ALLELE_GROUP)
     return(res)
   }#End separate_haplo
+
   freq_hom <- function(x) {
     res <- dplyr::select(x, -SPLIT_VEC) %>%
       dplyr::group_by(LOCUS, POP_ID, ALLELES) %>%
@@ -556,23 +521,29 @@ summary_haplotypes <- function(
     return(res)
   }#End freq_hom
 
-  freq.alleles.loci.pop <- haplo.filtered.consensus.paralogs %>%
+  freq.hom.pop <- haplotype.filtered %>%
     dplyr::filter(!is.na(HAPLOTYPES))
-  diplo <- freq.alleles.loci.pop %>%
+
+  haplotype.filtered <- NULL
+
+  diplo <- freq.hom.pop %>%
     dplyr::distinct(LOCUS, POP_ID, INDIVIDUALS) %>%
     dplyr::group_by(LOCUS, POP_ID) %>%
     dplyr::tally(.) %>%
     dplyr::ungroup(.) %>%
     dplyr::mutate(n = 2 * n) %>%
     dplyr::rename(DIPLO = n)
-  n.row <- nrow(freq.alleles.loci.pop)
+
+  n.row <- nrow(freq.hom.pop)
   split.vec <- as.integer(floor((parallel.core * 20 * (1:n.row - 1) / n.row) + 1))
   n.row <- NULL
-  split.vec.locus <- dplyr::distinct(freq.alleles.loci.pop, LOCUS) %>%
+
+  split.vec.locus <- dplyr::distinct(freq.hom.pop, LOCUS) %>%
     dplyr::mutate(
       SPLIT_VEC = factor(as.integer(floor((parallel.core * 20 * (1:n() - 1) / n()) + 1)))
     )
-  freq.alleles.loci.pop <- split(x = freq.alleles.loci.pop, f = split.vec) %>%
+
+  freq.hom.pop <- split(x = freq.hom.pop, f = split.vec) %>%
     .stackr_parallel_mc(
       X = ., FUN = separate_haplo, mc.cores = parallel.core) %>%
     dplyr::bind_rows(.) %>%
@@ -581,22 +552,18 @@ summary_haplotypes <- function(
     split(x = ., f = .$SPLIT_VEC) %>%
     .stackr_parallel_mc(
       X = ., FUN = freq_hom, mc.cores = parallel.core) %>%
-    dplyr::bind_rows(.)
-  diplo <- split.vec.locus <- split.vec <- NULL
-
-  freq.loci.pop <- freq.alleles.loci.pop %>%
+    dplyr::bind_rows(.) %>%
     dplyr::group_by(LOCUS, POP_ID) %>%
-    dplyr::summarise(HOM_E = sum(HOM_E))
-
-  freq.pop <- freq.loci.pop %>%
+    dplyr::summarise(HOM_E = sum(HOM_E)) %>%
     dplyr::group_by(POP_ID) %>%
     dplyr::summarise(HOM_E = mean(HOM_E))
 
+  diplo <- split.vec.locus <- split.vec <- NULL
 
   # IBDg with FH ---------------------------------------------------------------
   fh.i <- suppressWarnings(
     summary.ind %>%
-      dplyr::full_join(freq.pop, by = "POP_ID") %>%
+      dplyr::full_join(freq.hom.pop, by = "POP_ID") %>%
       dplyr::mutate(FH = ((HOM_O - HOM_E)/(N_GENOT - HOM_E)))
   )
   fh.i.out <- dplyr::select(.data = fh.i, INDIVIDUALS, POP_ID, FH)
@@ -628,7 +595,7 @@ summary_haplotypes <- function(
   fh.res <- suppressWarnings(dplyr::bind_rows(fh.pop, fh.tot) %>% dplyr::select(-POP_ID))
 
   # unused arguments
-  freq.pop <- summary.ind <- fh.tot <- fh.pop <- NULL
+  freq.hom.pop <- summary.ind <- fh.tot <- fh.pop <- NULL
 
   # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
   message("Nucleotide diversity (Pi):")
@@ -638,12 +605,25 @@ summary_haplotypes <- function(
     res <- x %>%
       tidyr::separate(
         col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
-        sep = "/", extra = "drop", remove = FALSE
+        sep = "/", extra = "drop", remove = TRUE
       ) %>%
       dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
   }#End separate_haplo
 
-  pi.data <- dplyr::filter(haplo.filtered.paralogs, !is.na(HAPLOTYPES))
+  pi.data <- dplyr::filter(haplotype,
+                           ARTIFACTS == "not_artifact",
+                           !is.na(HAPLOTYPES))
+
+  if (keep.consensus) {
+    pi.data <- dplyr::filter(
+      pi.data,
+      WHITELIST == "whitelist" | CONSENSUS %in% c("consensus", "not_consensus"))
+  } else {
+    pi.data <- dplyr::filter(
+      pi.data,
+      WHITELIST == "whitelist" & CONSENSUS == "not_consensus")
+  }
+
   n.row <- nrow(pi.data)
   split.vec <- as.integer(floor((parallel.core * 20 * (1:n.row - 1) / n.row) + 1))
   n.row <- NULL
@@ -652,6 +632,65 @@ summary_haplotypes <- function(
     .stackr_parallel_mc(
       X = ., FUN = separate_haplo, mc.cores = parallel.core) %>%
     dplyr::bind_rows(.)
+  split.vec <- NULL
+
+  # Add allele count
+  allele.count <- pi.data %>%
+    dplyr::filter(CONSENSUS == "not_consensus",
+                  ARTIFACTS == "not_artifact") %>%
+    dplyr::select(-WHITELIST, -CONSENSUS, -ARTIFACTS, -INDIVIDUALS) %>%
+    dplyr::distinct(LOCUS, POP_ID, ALLELE1, ALLELE2) %>%
+    tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
+
+  summary.pop <- allele.count %>%
+    dplyr::distinct(LOCUS, POP_ID, ALLELES) %>%
+    dplyr::group_by(LOCUS, POP_ID) %>%
+    dplyr::summarise(ALLELES_COUNT = length(ALLELES)) %>%
+    dplyr::group_by(POP_ID) %>%
+    dplyr::summarise(
+      MONOMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT == 1]),
+      POLYMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT >= 2])
+    ) %>%
+    dplyr::full_join(consensus.artifacts, by = "POP_ID") %>%
+    dplyr::group_by(POP_ID) %>%
+    dplyr::mutate(TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS + ARTIFACTS) %>%
+    dplyr::mutate(
+      MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
+      POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
+      CONSENSUS_PROP = round(CONSENSUS/TOTAL, 4),
+      ARTIFACTS_PROP = round(ARTIFACTS/TOTAL, 4)
+    )
+  consensus.artifacts <- NULL
+
+  res$summary <- allele.count %>%
+    dplyr::distinct(LOCUS, ALLELES) %>%
+    dplyr::group_by(LOCUS) %>%
+    dplyr::summarise(ALLELES_COUNT_OVERALL = length(ALLELES)) %>%
+    dplyr::ungroup(.) %>%
+    dplyr::summarise(
+      MONOMORPHIC = length(ALLELES_COUNT_OVERALL[ALLELES_COUNT_OVERALL == 1]),
+      POLYMORPHIC = length(ALLELES_COUNT_OVERALL[ALLELES_COUNT_OVERALL >= 2])
+    ) %>%
+    dplyr::bind_cols(blacklist.loci.consensus.sum) %>%
+    dplyr::bind_cols(blacklist.loci.artifacts.sum) %>%
+    dplyr::mutate(
+      TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS + ARTIFACTS,
+      MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
+      POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
+      CONSENSUS_PROP = round(CONSENSUS/TOTAL, 4),
+      ARTIFACTS_PROP = round(ARTIFACTS/TOTAL, 4)
+    )
+  allele.count <- blacklist.loci.consensus.sum <- blacklist.loci.artifacts.sum <- NULL
+
+  res$summary <- tibble::data_frame(POP_ID = "OVERALL") %>%
+    dplyr::bind_cols(res$summary)
+
+  res$summary <- suppressWarnings(dplyr::bind_rows(summary.pop, res$summary) %>%
+                                    dplyr::ungroup(.) %>%
+                                    dplyr::select(-POP_ID))
+  res$summary <- dplyr::bind_cols(sample.number, res$summary, fh.res)
+
+  summary.pop <- fh.res <- sample.number <- NULL
 
   # Pi: by individuals----------------------------------------------------------
   message("    Pi calculations: individuals...")
@@ -665,8 +704,9 @@ summary_haplotypes <- function(
 
   pi.i.out <- dplyr::select(.data = pi.data.i, INDIVIDUALS, PI)
 
-  fh.pi.individuals <- dplyr::full_join(fh.i.out, pi.i.out, by = "INDIVIDUALS")
+  res$fh.pi.individuals <- dplyr::full_join(fh.i.out, pi.i.out, by = "INDIVIDUALS")
 
+  pi.i.out <- fh.i.out <- NULL
   # Pi function ----------------------------------------------------------------
 
   pi <- function(data, read.length) {
@@ -705,7 +745,7 @@ summary_haplotypes <- function(
     pi.pop <- .stackr_parallel(
       X = pi.pop,
       FUN = pi,
-      mc.cores = 8,
+      mc.cores = parallel.core,
       read.length = read.length
     ) %>%
       dplyr::bind_rows(.) %>%
@@ -717,10 +757,10 @@ summary_haplotypes <- function(
 
   # Pi: by pop------------------------------------------------------------------
   message("    Pi calculations: populations:")
-  pi.data.pop <- pi.data %>%
+  pi.data <- dplyr::select(pi.data, -c(WHITELIST, CONSENSUS, ARTIFACTS)) %>%
     tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, INDIVIDUALS, POP_ID))
 
-  pi.pop <- pi.data.pop %>%
+  pi.pop <- pi.data %>%
     split(x = ., f = .$POP_ID) %>%
     purrr::map_df(
       .x = ., .f = pi_pop,
@@ -729,7 +769,8 @@ summary_haplotypes <- function(
 
   # Pi: overall  ---------------------------------------------------------------
   message("    Pi calculations: overall")
-  pi.overall <- split(x = pi.data.pop, f = pi.data.pop$LOCUS)
+  pi.overall <- split(x = pi.data, f = pi.data$LOCUS)
+  pi.data <- NULL
   pi.overall <- .stackr_parallel(
     X = pi.overall,
     FUN = pi,
@@ -741,97 +782,18 @@ summary_haplotypes <- function(
     tibble::add_column(.data = ., POP_ID = "OVERALL", .before = "PI_NEI")
 
   # Combine the pop and overall data -------------------------------------------
-  pi.res <- suppressWarnings(dplyr::bind_rows(pi.pop, pi.overall) %>% dplyr::select(-POP_ID))
-
-  pi.pop <- pi.overall <- NULL
-  # Summary dataframe by pop ---------------------------------------------------
-  message("Working on the summary table...")
-  separate_haplo <- function(x) {
-    res <- x %>%
-      tidyr::separate(
-        col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
-        sep = "/", extra = "drop", remove = TRUE
-      ) %>%
-      dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
-      tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
-  }#End separate_haplo
-
-  summary.prep <- dplyr::filter(haplo.filtered.consensus, !is.na(HAPLOTYPES)) %>%
-    dplyr::select(-INDIVIDUALS)
-  n.row <- nrow(summary.prep)
-  split.vec <- as.integer(floor((parallel.core * 3 * (1:n.row - 1) / n.row) + 1))
-  n.row <- NULL
-
-  summary.prep <- split(x = summary.prep, f = split.vec) %>%
-    .stackr_parallel_mc(
-      X = ., FUN = separate_haplo, mc.cores = parallel.core) %>%
-    dplyr::bind_rows(.)
-  split.vec <- NULL
-  # system.time(summary.prep2 <- suppressWarnings(
-  #   haplo.filtered.consensus %>%
-  #     dplyr::filter(!is.na(HAPLOTYPES)) %>%
-  #     dplyr::select(-INDIVIDUALS) %>%
-  #     tidyr::separate(
-  #       col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
-  #       sep = "/", extra = "drop", remove = TRUE
-  #     ) %>%
-  #     dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
-  #     tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID))
-  # ))
-
-  summary.pop <- suppressWarnings(
-    summary.prep %>%
-      dplyr::group_by(LOCUS, POP_ID) %>%
-      dplyr::distinct(ALLELES, .keep_all = TRUE) %>%
-      dplyr::summarise(ALLELES_COUNT = length(ALLELES)) %>%
-      dplyr::group_by(POP_ID) %>%
-      dplyr::summarise(
-        MONOMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT == 1]),
-        POLYMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT >= 2])
-      ) %>%
-      dplyr::full_join(consensus.pop.sum, by = "POP_ID") %>%
-      dplyr::group_by(POP_ID) %>%
-      dplyr::mutate(TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS) %>%
-      dplyr::full_join(paralogs.pop.sum, by = "POP_ID") %>%
-      dplyr::mutate(
-        MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
-        POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
-        CONSENSUS_PROP = round(CONSENSUS/TOTAL, 4),
-        ARTIFACTS_PROP = round(ARTIFACTS/TOTAL, 4)
-      ))
-
-  total <- summary.prep %>%
-    dplyr::group_by(LOCUS) %>%
-    dplyr::distinct(ALLELES, .keep_all = TRUE) %>%
-    dplyr::summarise(ALLELES_COUNT = length(ALLELES)) %>%
-    dplyr::summarise(
-      MONOMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT == 1]),
-      POLYMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT >= 2])
-    ) %>%
-    dplyr::bind_cols(blacklist.loci.consensus.sum) %>%
-    dplyr::mutate(TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS) %>%
-    dplyr::bind_cols(blacklist.loci.paralogs.sum) %>%
-    dplyr::mutate(
-      MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
-      POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
-      CONSENSUS_PROP = round(CONSENSUS/TOTAL, 4),
-      ARTIFACTS_PROP = round(ARTIFACTS/TOTAL, 4)
-    )
-
-  total.res <- tibble::data_frame(POP_ID = "OVERALL") %>%
-    dplyr::bind_cols(total)
-
-  summary <- suppressWarnings(dplyr::bind_rows(summary.pop, total.res) %>% dplyr::ungroup(.) %>% dplyr::select(-POP_ID))
-  summary <- dplyr::bind_cols(sample.number, summary, fh.res, pi.res)
+  pi.overall <- suppressWarnings(
+    dplyr::bind_rows(pi.pop, pi.overall) %>% dplyr::select(-POP_ID))
+  pi.pop <- NULL
+  res$summary <- dplyr::bind_cols(res$summary, pi.overall)
+  pi.overall <- NULL
 
   if (is.null(whitelist.markers)) {
-    readr::write_tsv(x = summary, path = "haplotype.catalog.loci.summary.pop.tsv")
     filename.sum <- "haplotype.catalog.loci.summary.pop.tsv"
   } else {
-    readr::write_tsv(x = summary, path = "haplotype.catalog.loci.summary.pop.filtered.tsv")
     filename.sum <- "haplotype.catalog.loci.summary.pop.filtered.tsv"
   }
-
+  readr::write_tsv(x = res$summary, path = filename.sum)
 
   # Figures --------------------------------------------------------------------
   fh.pi <- pi.data.i %>%
@@ -839,7 +801,9 @@ summary_haplotypes <- function(
       fh.i %>% dplyr::select(INDIVIDUALS, POP_ID, FH)
       , by = "INDIVIDUALS")
 
-  scatter.plot <- ggplot2::ggplot(fh.pi, ggplot2::aes(x = FH, y = PI)) +
+  pi.data.i <- fh.i <- NULL
+
+  res$scatter.plot <- ggplot2::ggplot(fh.pi, ggplot2::aes(x = FH, y = PI)) +
     ggplot2::geom_point(ggplot2::aes(colour = POP_ID)) +
     ggplot2::stat_smooth(method = stats::lm, level = 0.95, fullrange = FALSE, na.rm = TRUE) +
     ggplot2::labs(x = "Individual IBDg (FH)") +
@@ -854,7 +818,7 @@ summary_haplotypes <- function(
     )
 
 
-  boxplot.pi <-   ggplot2::ggplot(fh.pi, ggplot2::aes(x = factor(POP_ID), y = PI, na.rm = T)) +
+  res$boxplot.pi <-   ggplot2::ggplot(fh.pi, ggplot2::aes(x = factor(POP_ID), y = PI, na.rm = T)) +
     ggplot2::geom_violin(trim = F) +
     ggplot2::geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA) +
     ggplot2::stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
@@ -869,7 +833,7 @@ summary_haplotypes <- function(
       strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
     )
 
-  boxplot.fh <-   ggplot2::ggplot(fh.pi, ggplot2::aes(x = factor(POP_ID), y = FH, na.rm = T)) +
+  res$boxplot.fh <-   ggplot2::ggplot(fh.pi, ggplot2::aes(x = factor(POP_ID), y = FH, na.rm = T)) +
     ggplot2::geom_violin(trim = F) +
     ggplot2::geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA) +
     ggplot2::stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
@@ -883,38 +847,28 @@ summary_haplotypes <- function(
       legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
       strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
     )
+  fh.pi <- NULL
+
   # results --------------------------------------------------------------------
-  cat("############################### RESULTS ###############################\n")
   n.markers <- dplyr::n_distinct(haplotype$LOCUS)
-  n.ind <- dplyr::n_distinct(haplotype$INDIVIDUALS)
-  n.pop <- dplyr::n_distinct(haplotype$POP_ID)
+
+  cat("############################### RESULTS ###############################\n")
+  n.pop <- length(pop)
   message("Number of populations: ", n.pop)
-  message("Number of individuals: ", n.ind)
-  message("Number of loci: ", n.markers)
-  if (!is.null(paralogs.pop)) {
-    message("    number of loci in the catalog impacted by assembly artifacts and/or sequencing errors (loci > 2 alleles) = ", dplyr::n_distinct(paralogs.pop$LOCUS))
+  message("Number of individuals: ", n.individuals)
+  message("Number of loci in the catalog: ", n.markers)
+  if (!is.null(res$artifacts.pop)) {
+    message("    number of loci in the catalog impacted by assembly artifacts and/or sequencing errors (loci > 2 alleles) = ", dplyr::n_distinct(res$artifacts.pop$LOCUS))
     message("    number of artefactual genotypes/total genotypes (percent): ", erased.genotype.number, "/", total.genotype.number.haplo, " (", percent.haplo, ")")
   }
-  message("    number of loci in the catalog with consensus alleles = ", dplyr::n_distinct(consensus.pop$LOCUS))
-  message("Files written in this directory: ", getwd())
-  if (!is.null(paralogs.pop)) message(filename.paralogs.ind)
-  if (!is.null(paralogs.pop)) message(filename.paralogs)
+  message("    number of loci in the catalog with consensus alleles = ", dplyr::n_distinct(res$consensus.pop$LOCUS))
+  message("\nFiles written in this directory: ", getwd())
+  if (!is.null(res$artifacts.pop)) message(filename.artifacts.ind)
+  if (!is.null(res$artifacts.pop)) message(filename.paralogs)
   message(filename.sum)
-  if (!is.null(blacklist.loci.consensus)) message("blacklist.loci.consensus.txt")
-  # Results
-  results <- list(
-    summary = summary,
-    artifacts.pop = paralogs.pop,
-    artifacts.loci = blacklist.loci.paralogs,
-    consensus.pop = consensus.pop,
-    consensus.loci = blacklist.loci.consensus,
-    fh.pi.individuals = fh.pi.individuals,
-    scatter.plot = scatter.plot,
-    boxplot.pi = boxplot.pi,
-    boxplot.fh = boxplot.fh
-  )
+  if (!is.null(res$consensus.loci)) message("blacklist.loci.consensus.txt")
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
   cat("############################## completed ##############################\n")
-  return(results)
+  return(res)
 }

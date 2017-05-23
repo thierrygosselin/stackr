@@ -545,7 +545,6 @@ tidy_genomic_data <- function(
     weird.locus <- NULL #unused object
 
     # Unique MARKERS column
-
     # Since stacks v.1.44 ID as LOCUS + COL (from sumstats) the position of the SNP on the locus.
     # Choose the first 100 markers to scan
     sample.locus.id <- sample(x = unique(input$LOCUS), size = 100, replace = FALSE)
@@ -571,6 +570,10 @@ tidy_genomic_data <- function(
           dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
           tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
       }
+    } else {
+      input <- tidyr::unite(
+        data = input,
+        MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
     }
 
     # Filter with whitelist of markers and FILTER column
@@ -1221,10 +1224,6 @@ tidy_genomic_data <- function(
 
     input <- dplyr::select(input, MARKERS = LOCUS, INDIVIDUALS, GT_HAPLO = GT, POP_ID)
 
-    save.image(file = "testing.RData")
-    load("testing.RData")
-
-
     if (n.catalog.locus > 200000) {
       input <- input %>%
         dplyr::mutate(
@@ -1779,7 +1778,6 @@ tidy_genomic_data <- function(
   # You need the GT field to clean correctly the remaining fields...
 
   if (data.type == "vcf.file" && vcf.metadata) {
-    # save.image("testing.haplo.RData")
 
     # for parallel cleaning
     # system.time(split.vec <- dplyr::ntile(x = 1:nrow(input), n = parallel.core * 3))

@@ -5,8 +5,8 @@
 \title{Haplotypes file summary}
 \usage{
 summary_haplotypes(data, strata, read.length, whitelist.markers = NULL,
-  blacklist.id = NULL, pop.levels = NULL, pop.labels = NULL,
-  parallel.core = parallel::detectCores() - 1)
+  blacklist.id = NULL, keep.consensus = TRUE, pop.levels = NULL,
+  pop.labels = NULL, parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{data}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -34,6 +34,12 @@ Default: \code{whitelist.markers = NULL}.}
 a column header 'INDIVIDUALS'. The blacklist is in the global environment
 or in the directory (with "blacklist.txt").
 Default: \code{blacklist.id = NULL}.}
+
+\item{keep.consensus}{(optional) Using whitelist of markers can automatically
+remove consensus markers from the nucleotide diversity (Pi) calculations.
+If you know what you are doing, play with this argument
+to keep consensus markers.
+Default: \code{keep.consensus = TRUE}.}
 
 \item{pop.levels}{(optional, string) This refers to the levels in a factor. In this
 case, the id of the pop.
