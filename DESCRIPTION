@@ -41,7 +41,8 @@ Imports:
     SNPRelate,
     UpSetR,
     randomForestSRC,
-    pegas
+    pegas,
+    purrrlyr
 Suggests:
     knitr,
     rmarkdown

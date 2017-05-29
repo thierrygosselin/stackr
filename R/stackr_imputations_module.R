@@ -277,6 +277,7 @@
 #' @importFrom dplyr distinct group_by ungroup rename arrange tally filter filter_ select select_ one_of mutate mutate_all summarise left_join funs bind_rows
 #' @importFrom tidyr gather unite drop_na
 #' @importFrom purrr map flatten keep discard flatten_chr flatten_dbl flatten_lgl
+#' @importFrom purrrlyr invoke_rows
 #' @importFrom stringi stri_replace_na
 #' @importFrom tibble has_name as_data_frame
 #' @importFrom stats predict reformulate as.formula
@@ -1436,7 +1437,7 @@ impute_genotypes <- function(
         dplyr::left_join(data.gl, by = "INDIVIDUALS") %>%
         dplyr::ungroup(.) %>%
         dplyr::select(-dplyr::one_of(c("POP_ID", "INDIVIDUALS"))) %>%
-        purrr::invoke_rows(.f = purrr::lift_vd(mean), .to = "GL", .collate = "cols") %>%
+        purrrlyr::invoke_rows(.f = purrr::lift_vd(mean), .to = "GL", .collate = "cols") %>%
         dplyr::select(GL) %>%
         purrr::flatten_dbl(.)
     )

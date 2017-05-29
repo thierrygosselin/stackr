@@ -594,6 +594,7 @@ tidy_genomic_data <- function(
     if (import.pegas) {
       if (verbose) message("Working on the vcf...")
       input.gt <- pegas::read.vcf(file = data, which.loci = keep.markers, quiet = verbose) %>%
+        tibble::as_data_frame(.) %>% 
         `colnames<-`(input$MARKERS) %>%
         tibble::rownames_to_column(., var = "INDIVIDUALS") %>%
         data.table::as.data.table(.) %>%
