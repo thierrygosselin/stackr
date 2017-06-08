@@ -395,7 +395,7 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   # Biallelic detection --------------------------------------------------------
   biallelic <- stackr::detect_biallelic_markers(data = input, verbose = verbose)
 
-  if (!biallelic && "genlight" %in% output || "plink" %in% output) {
+  if (!biallelic && "genlight" %in% output || !biallelic && "plink" %in% output) {
     stop("output chosen doesn't work with multi-allelic data")
   }
 
