@@ -372,7 +372,9 @@ tidy_genomic_data <- function(
   data.type <- detect_genomic_format(data)
 
   if (data.type == "haplo.file") {
-    if (verbose) message("With stacks haplotype file the maf.approach is automatically set to: haplotype")
+    if (verbose && !is.null(maf.thresholds)) {
+      message("With stacks haplotype file the maf.approach is automatically set to: haplotype")
+    }
     maf.approach <- "SNP"
     # confusing, but because the haplotpe file doesn't have snp info, only locus info
     # it's treated as markers/snp info and filtered the same way as the approach by SNP.
@@ -588,14 +590,13 @@ tidy_genomic_data <- function(
       purrr::flatten_int(.)
 
     # import genotypes
-
     want <- c("MARKERS", "CHROM", "LOCUS", "POS", "ID", "COL", "REF", "ALT", "INDIVIDUALS", "GT")
 
     if (import.pegas) {
       if (verbose) message("Working on the vcf...")
       input.gt <- pegas::read.vcf(file = data, which.loci = keep.markers, quiet = verbose) %>%
-        tibble::as_data_frame(.) %>% 
         `colnames<-`(input$MARKERS) %>%
+        tibble::as_data_frame(.) %>%
         tibble::rownames_to_column(., var = "INDIVIDUALS") %>%
         data.table::as.data.table(.) %>%
         data.table::melt.data.table(
@@ -749,7 +750,8 @@ tidy_genomic_data <- function(
     input <- dplyr::left_join(x = input, y = strata.df, by = "INDIVIDUALS")
 
     # Using pop.levels and pop.labels info if present
-    input <- change_pop_names(data = input, pop.levels = pop.levels, pop.labels = pop.labels)
+    input <- change_pop_names(
+      data = input, pop.levels = pop.levels, pop.labels = pop.labels)
 
     # Pop select
     if (!is.null(pop.select)) {
@@ -825,16 +827,6 @@ tidy_genomic_data <- function(
 
     input <- dplyr::left_join(input, new.gt, by = c("MARKERS", "GT_VCF_NUC"))
     new.gt <- conversion.df <- NULL
-
-
-    # # re-computing the REF/ALT allele
-    # if (biallelic) {
-    #   if (!is.null(pop.select) || !is.null(blacklist.id)) {
-    #     if (verbose) message("Adjusting REF/ALT alleles to account for filters...")
-    #     input.temp <- change_alleles(data = input, monomorphic.out = TRUE, verbose = verbose)
-    #     input <- input.temp$input
-    #   }
-    # }# end re-computing the REF/ALT allele
 
     # Re ordering columns
     want <- c("MARKERS", "CHROM", "LOCUS", "POS", "ID", "COL", "INDIVIDUALS", "POP_ID",
@@ -1158,16 +1150,12 @@ tidy_genomic_data <- function(
 
     number.columns <- NULL
 
-    # remove consensus markers
-    if (verbose) message("\nScanning for consensus markers...")
-    consensus.markers <- input %>%
-      dplyr::filter(GT == "consensus") %>%
-      dplyr::distinct(LOCUS, .keep_all = TRUE)
-
-    if (length(consensus.markers$LOCUS) > 0) {
-      input <- suppressWarnings(dplyr::anti_join(input, consensus.markers, by = "LOCUS"))
-    }
-    if (verbose) message("    number of consensus markers removed: ", dplyr::n_distinct(consensus.markers$LOCUS))
+    input$INDIVIDUALS = stringi::stri_replace_all_fixed(
+      str = input$INDIVIDUALS,
+      pattern = c("_", ":"),
+      replacement = c("-", "-"),
+      vectorize_all = FALSE
+    )
 
     # Filter with whitelist of markers
     if (!is.null(whitelist.markers)) {
@@ -1180,6 +1168,17 @@ tidy_genomic_data <- function(
       if (verbose) message("Filtering with blacklist of individuals")
       input <- suppressWarnings(dplyr::anti_join(input, blacklist.id, by = "INDIVIDUALS"))
     }
+
+    # remove consensus markers
+    if (verbose) message("\nScanning for consensus markers...")
+    consensus.markers <- input %>%
+      dplyr::filter(GT == "consensus") %>%
+      dplyr::distinct(LOCUS, .keep_all = TRUE)
+
+    if (length(consensus.markers$LOCUS) > 0) {
+      input <- suppressWarnings(dplyr::anti_join(input, consensus.markers, by = "LOCUS"))
+    }
+    if (verbose) message("    number of consensus markers removed: ", dplyr::n_distinct(consensus.markers$LOCUS))
 
     # population levels and strata
     strata.df$INDIVIDUALS = stringi::stri_replace_all_fixed(

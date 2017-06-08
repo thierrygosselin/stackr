@@ -5,13 +5,14 @@
 \title{Heterozygosity filter}
 \usage{
 filter_het(data, interactive.filter = TRUE,
-  ind.heterozygosity.threshold = NULL, het.approach = c("haplotype",
-  "overall"), het.threshold = 1, het.dif.threshold = 1,
-  outlier.pop.threshold = 1, helper.tables = FALSE, filename = NULL,
-  vcf.metadata = FALSE, blacklist.id = NULL, blacklist.genotype = NULL,
+  ind.heterozygosity.threshold = NULL, het.approach = c("SNP", "overall"),
+  het.threshold = 1, het.dif.threshold = 1, outlier.pop.threshold = 1,
+  helper.tables = FALSE, filename = NULL, vcf.metadata = FALSE,
+  blacklist.id = NULL, blacklist.genotype = NULL,
   whitelist.markers = NULL, monomorphic.out = TRUE, max.marker = NULL,
   snp.ld = NULL, common.markers = FALSE, strata = NULL,
-  pop.levels = NULL, pop.labels = NULL, pop.select = NULL)
+  pop.levels = NULL, pop.labels = NULL, pop.select = NULL,
+  parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{data}{11 options: VCF (SNPs or Haplotypes,
@@ -21,8 +22,8 @@ genlight (library(adegenet)), gtypes (library(strataG)), genepop,
 and a data frame in long/tidy or wide format.
 \emph{See details} of \code{\link{tidy_genomic_data}}.}
 
-\item{interactive.filter}{(optional, logical) Do you want the filtering session to 
-be interactive. With the default, the user is asked to see figures of 
+\item{interactive.filter}{(optional, logical) Do you want the filtering session to
+be interactive. With the default, the user is asked to see figures of
 distribution before making decisions for filtering with heterozygosity statistics.
 Default: \code{interactive.filter == TRUE}.}
 
@@ -30,22 +31,22 @@ Default: \code{interactive.filter == TRUE}.}
 Blacklist individuals based on observed heterozygosity (averaged across markers).
 
 
-The string contains 2 thresholds values (min and max). 
+The string contains 2 thresholds values (min and max).
 The values are proportions (0 to 1), where 0 turns off the min threshold and
 1 turns off the max threshold.
-Individuals with mean observed heterozygosity higher (>) or lower (<) 
-than the thresholds will be blacklisted. 
+Individuals with mean observed heterozygosity higher (>) or lower (<)
+than the thresholds will be blacklisted.
 
-Default: \code{ind.heterozygosity.threshold = NULL} will turn off completely 
+Default: \code{ind.heterozygosity.threshold = NULL} will turn off completely
 the filter and the function will only output the plots and table of heterozygosity.}
 
 \item{het.approach}{(Character string). First value, \code{"SNP"} or
 \code{"haplotype"}. The haplotype approach considers the statistic
-consistency on the read (locus/haplotype). The major difference: 
+consistency on the read (locus/haplotype). The major difference:
 the haplotype approach results in blacklisting the entire locus/haplotype
 with all the SNPs on the read.
 With the SNP approach, SNPs are independently analyzed and blacklisted.
-The second value, will use the statistics by population \code{"pop"} or 
+The second value, will use the statistics by population \code{"pop"} or
 will consider the data overall, as 1 large group \code{"overall"}.
 Default: \code{het.approach = c("SNP", "overall")}.}
 
@@ -55,8 +56,8 @@ the filter is. With default there is no filtering.
 Default: \code{het.threshold = 1}.}
 
 \item{het.dif.threshold}{Number (0 - 1). For \code{het.approach = "haplotype"} only.
-You can set a threshold for the difference in het along your read. 
-Set the number your willing to tolerate on the same read/haplotype. 
+You can set a threshold for the difference in het along your read.
+Set the number your willing to tolerate on the same read/haplotype.
 e.g. if you have 2 SNP on a read/haplotype and on as a het of 0.9 and the other
 0.1 and you set \code{het.dif.threshold = 0.3}, this markers will be blacklisted.
 You should strive to have similar statistics along short read like RAD.
@@ -64,25 +65,25 @@ The higher the proportion threshold, the more relaxed the filter is.
 With default, there is no filtering and all the range of differences are allowed.
 Default: \code{het.dif.threshold = 1}.}
 
-\item{outlier.pop.threshold}{(integer, optional) Useful to incorporate problematic 
+\item{outlier.pop.threshold}{(integer, optional) Useful to incorporate problematic
 populations dragging down polymorphism discovery, but still wanted for analysis.
-Use this threshold to allow variance in the number of populations passing 
+Use this threshold to allow variance in the number of populations passing
 the thresholds described above.
 e.g. with \code{outlier.pop.threshold = 2},
-you tolerate a maximum of 2 populations failing the 
+you tolerate a maximum of 2 populations failing the
 \code{het.threshold} and/or \code{het.dif.threshold}.
-Manage outlier markers, individuals and populations 
+Manage outlier markers, individuals and populations
 downstream with blacklists and whitelists produced by the function.
 Default: \code{outlier.pop.threshold = 1}. See details for more info.}
 
 \item{helper.tables}{(logical) Output tables that show
-the number of markers blacklisted or whitelisted based on a series of 
+the number of markers blacklisted or whitelisted based on a series of
 automatic thresholds to guide decisions. When \code{interactive.filter == TRUE},
 helper tables are written to the directory.
 Default: \code{helper.tables = FALSE}.}
 
 \item{filename}{Name of the tidy data set written to the working directory (optional).
-e.g. "tasmanian.devil.tidy.het.tsv". 
+e.g. "tasmanian.devil.tidy.het.tsv".
 Default: \code{filename = NULL}}
 
 \item{vcf.metadata}{(optional, logical or string) For VCF files only.
@@ -190,6 +191,10 @@ White spaces in population names are replaced by underscore.}
 the analysis. e.g. \code{pop.select = c("QUE", "ONT")} to select \code{QUE}
 and \code{ONT} population samples (out of 20 pops).
 Default: \code{pop.select = NULL}}
+
+\item{parallel.core}{(optional) The number of core used for parallel
+execution during vcf import.
+Default: \code{parallel::detectCores() - 1}.}
 }
 \value{
 The function returns inside the global environment a list with
@@ -217,9 +222,9 @@ The function returns inside the global environment a list with
 In the working directory, output is conditional to \code{interactive.filter} argument
 }
 \description{
-Observed Heterozygosity based filtering. 
+Observed Heterozygosity based filtering.
 The filter arguments of \code{filter_het} allows you to test rapidly
-if departure from realistic expectations of heterozygosity statistics 
+if departure from realistic expectations of heterozygosity statistics
 are a problem in downstream analysis.
 \enumerate{
 \item Highlight outliers individual's observed heterozygosity for a quick
@@ -227,15 +232,15 @@ diagnostic of mixed samples or poor polymorphism discovery. The statistic is
 also contrasted with missing data to help differentiate problems.
 (also computed in \link{detect_mixed_genomes})
 
-\item The observed heterozygosity in the dataset: an assembly artefact, 
-a genotyping problem, a problem of population groupings 
-or a reliable signal of biological polymorphism? 
+\item The observed heterozygosity in the dataset: an assembly artefact,
+a genotyping problem, a problem of population groupings
+or a reliable signal of biological polymorphism?
 Detect assembly artifact or genotyping problem (e.g. under/over-splitting loci)
-by looking at marker's observed heterozygosity statistics by population 
+by looking at marker's observed heterozygosity statistics by population
 or overall.
 
 \item Use haplotype or snp level statistics. When the haplotype approach
-is selected, consistencies of heterozygosity statistics along the read are 
+is selected, consistencies of heterozygosity statistics along the read are
 highlighted.
 
 \item Interactive approach help by visualizing the data before making
@@ -261,10 +266,10 @@ If your a regular stackr user, you've seen the \code{pop.num.threshold}.
 \code{outlier.pop.threshold}, is different and requires more thinking,
 because the number of populations genotyped potentially vary across markers,
 which makes the use of \code{pop.num.threshold} less optimal.
-e.g. If only 4 populations out of 10 are genotyped, for a marker you want 
+e.g. If only 4 populations out of 10 are genotyped, for a marker you want
 to keep, using \code{pop.num.threshold = 0.6} will lead to unwanted results
 and inconsistensis.
-It's easier to tolerate outliers with this new approach: 
+It's easier to tolerate outliers with this new approach:
 \code{outlier.pop.threshold = 2}.
 
 
@@ -274,7 +279,7 @@ To help discard an individual based on his observed heterozygosity
 use the manhanttan plot to:
 \enumerate{
 \item contrast the individual with population and overall samples.
-\item visualize the impact of missigness information (based on population or 
+\item visualize the impact of missigness information (based on population or
 overall number of markers) and the individual observed heterozygosity. The
 larger the point, the more missing genotypes.
 }
@@ -291,18 +296,18 @@ overall number of markers.
 
 
 You can visualize individual observed heterozygosity, choose thresholds and
-then visualize, choose thresholds and filter markers based on observed 
+then visualize, choose thresholds and filter markers based on observed
 heterozygosity in one run with: \pkg{stackr} \code{\link{filter_het}}.
 
 \strong{Outlier below average:}
 \itemize{
-\item A point with a size larger than the population or overall average (= lots of missing): 
+\item A point with a size larger than the population or overall average (= lots of missing):
 the poor polymorphism discovery of the sample is probably the result of bad
 DNA quality, a bias in sequencing effort, etc. (action: blacklist)
-\item A point with a size that looks average (not much missing): 
+\item A point with a size that looks average (not much missing):
 this sample requires more attention (action: blacklist) and conduct more tests.
 e.g. for biallelic data, look for coverage imbalance between ALT/REF allele.
-At this point you need to distinguish between an artifact of poor polymorphism discovery 
+At this point you need to distinguish between an artifact of poor polymorphism discovery
 or a biological reason (highly inbred individual, etc.).
 }
 }

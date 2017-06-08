@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-0.5.5-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--05--29-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-0.5.6-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--06--08-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -113,6 +113,14 @@ New features
 ------------
 
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
+
+**v.0.5.6 2017-06-08**
+
+-   `tidy_genomic_data`: bug fix that originated with the new version of PEGAS.
+-   `summary_haplotypes` : updated codes and output tables.
+-   `pi`: a new function to compute Nei's Pi nucleotide diversity from a wide range of input files. The haplotype version is found in `summary_haplotypes`.
+-   **2 new functions to work with vcf:** `merge_vcf` and `split_vcf`.
+-   `run_ustacks`: allows to run `Stacks` ustacks module inside R with the option to run mismatch thresholds testing...
 
 **v.0.5.5 2017-05-23**
 

@@ -70,18 +70,18 @@ Default: \code{parallel.core = parallel::detectCores() - 1}.}
 \value{
 The function returns a list with:
 \enumerate{
-\item $summary
+\item $consensus.pop # if consensus reads are found
+\item $consensus.loci # if consensus reads are found
 \item $artifacts.pop # if artifacts are found
 \item $artifacts.loci # if artifacts are found
-\item $consensus.pop # if consensus locus are found
-\item $consensus.loci # if consensus locus are found
-\item $fh.pi.individuals: the individual's info for FH and Pi
+\item $individual.summary: the individual's info for FH and Pi
+\item $summary: the summary statistics per populations and averaged over all pops.
 }
 Also in the list 3 plots:
 \enumerate{
-\item $scatter.plot
-\item $boxplot.pi
-\item $boxplot.fh
+\item $scatter.plot: showing Pi and FH
+\item $boxplot.pi: showing the boxplot of Pi for each populations and overall
+\item $boxplot.fh: showing the boxplot of FH for each populations and overall
 }
 use $ to access each #' objects in the list.
 The function potentially write 4 files in the working directory:
@@ -95,19 +95,25 @@ The output of the function is a summary table for populations with:
 \enumerate{
 \item assembly artifacts and/or sequencing errors: loci with > 2 alleles.
 Genotypes with more than 2 alleles are erased before estimating the subsequent statistics.
-\item consensus loci
-\item monomorphic loci
-\item polymorphic loci
+\item consensus reads (reads with no variation/polymorphism throughout the dataset).
+\item monomorphic loci (at the population and overall level)
+\item polymorphic loci (at the population and overall level)
 \item haplotypes statistics for the observed and expected homozygosity and
-heterozygosity.
+heterozygosity (HOM_O, HOM_E, HET_O, HET_E).
+\item Gene Diversity within populations (Hs) and averaged over all populations.
+Not to confuse with Expected Heterozygosity(HET_E).
+Here, Hs statistic includes a correction for sampling bias stemming from
+sampling a limited number of individuals per population (Nei, 1987).
 \item Wright’s inbreeding coefficient (Fis)
+\item Nei's inbreeding coefficient (Gis) that include a correction for sampling bias.
 \item \strong{IBDG}: a proxy measure of the realized proportion of the genome
 that is identical by descent
-\item \strong{FH measure}: based on the excess in the observed number of homozygous
+\item \strong{FH measure}: an individual-base estimate that is
+based on the excess in the observed number of homozygous
 genotypes within an individual relative to the mean number of homozygous
 genotypes expected under random mating (Keller et al., 2011; Kardos et al., 2015).
 \item \strong{Pi}: the nucleotide diversity measured here consider the
-consensus loci in the catalog (no variation between population sequences).
+consensus reads in the catalog (no variation between population sequences).
 }
 }
 \examples{

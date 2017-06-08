@@ -1,26 +1,26 @@
 #' @name ibdg_fh
 #' @title FH measure of IBDg
-#' @description FH is a proxy mesure of IBDg based on the excess in the observed 
+#' @description FH is a proxy mesure of IBDg based on the excess in the observed
 #' number of homozygous genotypes within an individual,
 #' relative to the mean number of homozygous genotypes expected under random mating
 #' (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016).
-#'    
+#'
 #' \strong{IBDg} is the realized proportion of the individual genome
 #' that is identical by descent by reference to the current population
 #' under hypothetical random mating
 #' (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016).
-#' 
+#'
 #' This function is using a modified version of the FH measure
 #' (constructed using \href{http://pngu.mgh.harvard.edu/~purcell/plink/}{PLINK}
 #' \code{-het} option) described in (Keller et al., 2011; Kardos et al., 2015).
-#' 
+#'
 #' The novelties are:
-#' 
+#'
 #' \itemize{
 #' \item \strong{population-wise:} the individual's observed homozygosity is
 #' contrasted against the expected homozygosity.
-#' Two estimates of the expected homozygosity are provided based 
-#' on the population and/or the overall expected homozygosity 
+#' Two estimates of the expected homozygosity are provided based
+#' on the population and/or the overall expected homozygosity
 #' averaged across markers.
 #' \item \strong{tailored for RADseq:} instead of using the overall number
 #' of markers, the population and the overall expected homozygosity
@@ -30,10 +30,10 @@
 #' an estimate computed with more markers found at the population or at the
 #' overall level.
 #' }
-#' 
+#'
 #' The FH measure is also computed in \code{\link[stackr]{summary_haplotypes}}
 #' and \code{\link[stackr]{missing_visualization}}. See \strong{note} below
-#' for the equations. 
+#' for the equations.
 
 #' @inheritParams tidy_genomic_data
 
@@ -42,11 +42,11 @@
 #' Default: \code{monomorphic.out = TRUE}.
 
 #' @param common.markers (optional) Logical. The argument for common markers
-#' between populations is set by default to maximize genome coverage of 
+#' between populations is set by default to maximize genome coverage of
 #' individuals and populations.
 #' Default: \code{common.markers = FALSE}
 
-#' @param filename (optional) Name of the tidy data set, 
+#' @param filename (optional) Name of the tidy data set,
 #' written to the working directory.
 
 #' @return A list is created with 6 objects (function call, tables, manhattan,
@@ -58,14 +58,14 @@
 #' while the second table, \code{$fh.stats}, show the population and overall averaged.
 
 #' @note
-#' 
+#'
 #' \strong{Modified FH:}
 #' \deqn{F_{h_i} = \frac{\overline{Het}_{obs_{ij}} - \overline{Het}_{exp_j}}{\sum_{i}snp_{ij} - \overline{Het}_{exp_j}}}
-#' 
+#'
 #' \strong{Individual Observed Heterozygosity averaged across markers:}
 #' \deqn{\overline{Het}_{obs_i} = \frac{\sum_iHet_{obs_i}}{\sum_i{snp_i}}}
-#' 
-#' \strong{Population expected Heterozygosity (under Hardy-Weinberg) and 
+#'
+#' \strong{Population expected Heterozygosity (under Hardy-Weinberg) and
 #' tailored by averaging for each individual using his genotyped markers:}
 #' #\deqn{\overline{Het}_{exp_j} = \frac{\sum_jHet_{exp_j}}{\sum_j{snp_j}}}
 
@@ -74,11 +74,11 @@
 #' \dontrun{
 #' # Using a  VCF file, the simplest for of the function:
 #' fh <- ibdg_fh(
-#' data = "batch_1.vcf", 
+#' data = "batch_1.vcf",
 #' strata = "strata.panda.tsv"
 #' )
 #' # To see what's inside the list
-#' names(fh) 
+#' names(fh)
 #' # To view the manhattan plot:
 #' fh$fh.manhattan.plot
 #' # To view the boxplot:
@@ -116,16 +116,16 @@
 ibdg_fh <- function(
   data,
   strata = NULL,
-  monomorphic.out = TRUE, 
+  monomorphic.out = TRUE,
   common.markers = FALSE,
-  pop.levels = NULL, 
-  pop.labels = NULL, 
+  pop.levels = NULL,
+  pop.labels = NULL,
   pop.select = NULL,
-  blacklist.id = NULL, 
-  blacklist.genotype = NULL, 
-  whitelist.markers = NULL, 
+  blacklist.id = NULL,
+  blacklist.genotype = NULL,
+  whitelist.markers = NULL,
   max.marker = NULL,
-  snp.ld = NULL, 
+  snp.ld = NULL,
   filename = NULL,
   verbose = TRUE
 ) {
@@ -135,43 +135,43 @@ ibdg_fh <- function(
     cat("#######################################################################\n")
     timing <- proc.time()
   }
-  # manage missing arguments -----------------------------------------------------  
+  # manage missing arguments -----------------------------------------------------
   if (missing(data)) stop("Input file missing")
   if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
-  
+
   # store function call
   function.call <- match.call()
-  
+
   # import data ----------------------------------------------------------------
   input <- stackr::tidy_genomic_data(
-    data = data, 
+    data = data,
     vcf.metadata = FALSE,
-    blacklist.id = blacklist.id, 
-    blacklist.genotype = blacklist.genotype, 
-    whitelist.markers = whitelist.markers, 
-    monomorphic.out = monomorphic.out, 
+    blacklist.id = blacklist.id,
+    blacklist.genotype = blacklist.genotype,
+    whitelist.markers = whitelist.markers,
+    monomorphic.out = monomorphic.out,
     max.marker = max.marker,
-    snp.ld = snp.ld, 
+    snp.ld = snp.ld,
     common.markers = common.markers,
-    strata = strata, 
+    strata = strata,
     pop.select = pop.select,
     pop.levels = pop.labels,
     pop.labels = pop.labels,
     filename = filename,
     verbose = FALSE
   )
-  
+
   if (!"MARKERS" %in% colnames(input) & "LOCUS" %in% colnames(input)) {
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
-  
+
   # population names if pop.levels/pop.labels were request
   # input <- stackr::change_pop_names(data = input, pop.levels = pop.labels, pop.labels = pop.labels)
-  
+
   # Detect if biallelic --------------------------------------------------------
   biallelic <- stackr::detect_biallelic_markers(input)
-  
+
   # IBDg computations ----------------------------------------------------------
   message("Genome-Wide Identity-By-Descent calculations using FH...")
   if (tibble::has_name(input, "GT_VCF") & biallelic) {
@@ -195,10 +195,10 @@ ibdg_fh <- function(
     #     # HET_E2 = 1 - HOM_E2,
     #     HET_E = 2 * FREQ_REF * FREQ_ALT
     #   )
-    
+
     # Remove missing
     input <- dplyr::filter(.data = input, GT_VCF != "./.")
-    
+
     freq <- input %>%
       dplyr::group_by(MARKERS, POP_ID) %>%
       dplyr::summarise(
@@ -211,16 +211,16 @@ ibdg_fh <- function(
         FREQ_REF = 1 - FREQ_ALT,
         HOM_E = (FREQ_REF^2) + (FREQ_ALT^2)
       ) #%>% dplyr::group_by(POP_ID) %>% dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE))
-    
+
     hom.e <- dplyr::full_join(
       input,
       dplyr::select(.data = freq, MARKERS, POP_ID, HOM_E)
       , by = c("MARKERS", "POP_ID")
-    ) %>% 
-      dplyr::select(MARKERS, POP_ID, INDIVIDUALS, HOM_E) %>% 
-      dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
+    ) %>%
+      dplyr::select(MARKERS, POP_ID, INDIVIDUALS, HOM_E) %>%
+      dplyr::group_by(POP_ID, INDIVIDUALS) %>%
       dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE)) #%>% dplyr::group_by(POP_ID) %>% dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE))
-    
+
     fh <- input %>%
       dplyr::group_by(POP_ID, INDIVIDUALS) %>%
       dplyr::summarise(
@@ -235,24 +235,24 @@ ibdg_fh <- function(
         # FREQ_REF = 1 - FREQ_ALT,
         # HET_O = HET / N,
         HOM_O = HOM / N #, HOM_REF_O = HOM_REF / N, HOM_ALT_O = HOM_ALT / N
-      ) %>% 
-      dplyr::full_join(dplyr::select(.data = hom.e, INDIVIDUALS, POP_ID, HOM_E), by = c("POP_ID", "INDIVIDUALS")) %>% 
-      dplyr::mutate(FH = ((HOM_O - HOM_E)/(N - HOM_E))) %>% 
+      ) %>%
+      dplyr::full_join(dplyr::select(.data = hom.e, INDIVIDUALS, POP_ID, HOM_E), by = c("POP_ID", "INDIVIDUALS")) %>%
+      dplyr::mutate(FH = ((HOM_O - HOM_E)/(N - HOM_E))) %>%
       dplyr::ungroup(.) %>%
       dplyr::arrange(POP_ID, INDIVIDUALS)
-    
+
     ind.levels <- fh$INDIVIDUALS
     fh <- dplyr::mutate(.data = fh, INDIVIDUALS = factor(INDIVIDUALS, levels = ind.levels, ordered = TRUE))
   } else {
     # not biallelic
     input.alleles <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT) %>%
-      dplyr::filter(GT != "000000") %>% 
+      dplyr::filter(GT != "000000") %>%
       dplyr::mutate(
         A1 = stringi::stri_sub(GT, 1, 3),
         A2 = stringi::stri_sub(GT, 4,6)
-      ) %>% 
+      ) %>%
       dplyr::select(-GT)
-    
+
     freq <- input.alleles %>%
       tidyr::gather(data = ., key = ALLELE_GROUP, value = ALLELES, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
       dplyr::group_by(MARKERS, ALLELES, POP_ID) %>%
@@ -265,49 +265,49 @@ ibdg_fh <- function(
         HOM_E = FREQ^2
       ) %>%
       dplyr::summarise(HOM_E = sum(HOM_E)) #%>% dplyr::mutate(HET_E = 1 - HOM_E)
-    
+
     hom.e <- dplyr::full_join(
-      dplyr::filter(.data = input, GT != "000000"), 
+      dplyr::filter(.data = input, GT != "000000"),
       dplyr::select(.data = freq, MARKERS, POP_ID, HOM_E)
       , by = c("MARKERS", "POP_ID")
-    ) %>% 
-      dplyr::select(MARKERS, POP_ID, INDIVIDUALS, HOM_E) %>% 
-      dplyr::group_by(POP_ID, INDIVIDUALS) %>% 
+    ) %>%
+      dplyr::select(MARKERS, POP_ID, INDIVIDUALS, HOM_E) %>%
+      dplyr::group_by(POP_ID, INDIVIDUALS) %>%
       dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE)) #%>% dplyr::group_by(POP_ID) %>% dplyr::summarise(HOM_E = mean(HOM_E, na.rm = TRUE))
-    
+
     fh <- input.alleles %>%
       dplyr::group_by(POP_ID, INDIVIDUALS) %>%
       dplyr::summarise(
         N = n(),
         HOM = length(INDIVIDUALS[A1 == A2])
-      ) %>% 
+      ) %>%
       dplyr::mutate(HOM_O = HOM / N) %>%
-      dplyr::full_join(dplyr::select(.data = hom.e, INDIVIDUALS, POP_ID, HOM_E), by = c("POP_ID", "INDIVIDUALS")) %>% 
-      dplyr::mutate(FH = ((HOM_O - HOM_E)/(N - HOM_E))) %>% 
+      dplyr::full_join(dplyr::select(.data = hom.e, INDIVIDUALS, POP_ID, HOM_E), by = c("POP_ID", "INDIVIDUALS")) %>%
+      dplyr::mutate(FH = ((HOM_O - HOM_E)/(N - HOM_E))) %>%
       dplyr::ungroup(.) %>%
       dplyr::arrange(POP_ID, INDIVIDUALS)
-    
+
     ind.levels <- fh$INDIVIDUALS
     fh <- dplyr::mutate(.data = fh, INDIVIDUALS = factor(INDIVIDUALS, levels = ind.levels, ordered = TRUE))
   }
-  
+
   # FH statistics per pop
-  fh.stats <- fh %>% 
-    dplyr::group_by(POP_ID) %>% 
+  fh.stats <- fh %>%
+    dplyr::group_by(POP_ID) %>%
     dplyr::summarise(FH = mean(FH))
-  
+
   # per pop and overall combined
   fh.stats <- tibble::add_row(
     .data = fh.stats,
     POP_ID = "OVERALL",
     FH = unlist(dplyr::summarise(.data = fh.stats, FH = mean(FH)))
     )
-  
+
   # plots ----------------------------------------------------------------------
   message("Generating plots")
   # manhattan
-  fh.manhattan.plot <- ggplot2::ggplot(data = fh, ggplot2::aes(x = INDIVIDUALS, y = FH, colour = POP_ID)) + 
-    ggplot2::geom_jitter() + 
+  fh.manhattan.plot <- ggplot2::ggplot(data = fh, ggplot2::aes(x = INDIVIDUALS, y = FH, colour = POP_ID)) +
+    ggplot2::geom_jitter() +
     ggplot2::labs(y = "Individual IBDg (FH)") +
     ggplot2::labs(x = "Individuals") +
     ggplot2::labs(colour = "Populations") +
@@ -315,33 +315,33 @@ ibdg_fh <- function(
     ggplot2::theme_classic() +
     # theme_dark() +
     ggplot2::theme(
-      panel.grid.minor.x = ggplot2::element_blank(), 
-      panel.grid.major.y = ggplot2::element_blank(), 
-      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
-      axis.text.x = ggplot2::element_blank(), 
-      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      panel.grid.minor.x = ggplot2::element_blank(),
+      panel.grid.major.y = ggplot2::element_blank(),
+      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+      axis.text.x = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
       axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
     )
   # fh.manhattan.plot
-  
-  fh.boxplot <- ggplot2::ggplot(data = fh, ggplot2::aes(x = POP_ID, y = FH)) + 
+
+  fh.boxplot <- ggplot2::ggplot(data = fh, ggplot2::aes(x = POP_ID, y = FH)) +
     ggplot2::geom_boxplot() +
     ggplot2::labs(y = "Individual IBDg (FH)") +
     ggplot2::labs(x = "Populations") +
     # theme_bw() +
     ggplot2::theme(
-      panel.grid.minor.x = ggplot2::element_blank(), 
-      panel.grid.major.y = ggplot2::element_blank(), 
-      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      panel.grid.minor.x = ggplot2::element_blank(),
+      panel.grid.major.y = ggplot2::element_blank(),
+      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
       axis.text.x = ggplot2::element_text(size = 8, family = "Helvetica"),
-      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"), 
+      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
       axis.text.y = ggplot2::element_text(size = 8, family = "Helvetica")
     )
   # fh.boxplot
-  
-  
+
+
   # Histogram
-  fh.distribution.plot <- ggplot2::ggplot(data = fh, ggplot2::aes(x = FH)) + 
+  fh.distribution.plot <- ggplot2::ggplot(data = fh, ggplot2::aes(x = FH)) +
     ggplot2::geom_histogram() +
     ggplot2::labs(x = "Individual IBDg (FH)") +
     ggplot2::labs(y = "Markers (number)") +
@@ -353,8 +353,8 @@ ibdg_fh <- function(
       strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
     )
   # fh.distribution.plot
-  
-  
+
+
   # Results --------------------------------------------------------------------
   if (verbose) {
     timing <- proc.time() - timing

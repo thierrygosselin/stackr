@@ -12,8 +12,8 @@ a tidy data frame in wide or long format in the working directory.
 \emph{How to get a tidy data frame ?}
 Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.}
 
-\item{filename}{(optional) The file name prefix for the hierfstat file 
-written to the working directory. With default: \code{filename = NULL}, 
+\item{filename}{(optional) The file name prefix for the hierfstat file
+written to the working directory. With default: \code{filename = NULL},
 the date and time is appended to \code{stackr_hierfstat_}.}
 }
 \value{
@@ -21,12 +21,12 @@ A hierfstat file is saved to the working directory.
 }
 \description{
 Write a hierfstat file from a tidy data frame.
-Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
+Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and \href{https://github.com/thierrygosselin/assigner}{assigner}
 and might be of interest for users.
 }
 \references{
-Goudet, J. (1995) FSTAT (Version 1.2): A computer program to 
+Goudet, J. (1995) FSTAT (Version 1.2): A computer program to
 calculate F- statistics. Journal of Heredity, 86, 485-486.
 
 Goudet, J. (2005) hierfstat, a package for r to compute and test hierarchical F-statistics. Molecular Ecology Notes, 5, 184-186.

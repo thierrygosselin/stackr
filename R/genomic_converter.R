@@ -351,35 +351,27 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   if (data.type == "haplo.file" & is.null(strata)) stop("strata argument is required")
 
   # Import----------------------------------------------------------------------
-  # if (data.type == "tbl_df") {
-  #   input <- stackr::tidy_wide(data = data, import.metadata = TRUE)
-  #   # For long tidy format, switch LOCUS to MARKERS column name, if found MARKERS not found
-  #   if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
-  #     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
-  #   }
-  # } else {
-    input <- stackr::tidy_genomic_data(
-      data = data,
-      vcf.metadata = vcf.metadata,
-      blacklist.id = blacklist.id,
-      blacklist.genotype = blacklist.genotype,
-      whitelist.markers = whitelist.markers,
-      monomorphic.out = monomorphic.out,
-      max.marker = max.marker,
-      snp.ld = snp.ld,
-      common.markers = common.markers,
-      maf.thresholds = maf.thresholds,
-      maf.pop.num.threshold = maf.pop.num.threshold,
-      maf.approach = maf.approach,
-      maf.operator = maf.operator,
-      strata = strata,
-      pop.levels = pop.levels,
-      pop.labels = pop.labels,
-      pop.select = pop.select,
-      filename = NULL,
-      verbose = verbose
-    )
-  # }
+  input <- stackr::tidy_genomic_data(
+    data = data,
+    vcf.metadata = vcf.metadata,
+    blacklist.id = blacklist.id,
+    blacklist.genotype = blacklist.genotype,
+    whitelist.markers = whitelist.markers,
+    monomorphic.out = monomorphic.out,
+    max.marker = max.marker,
+    snp.ld = snp.ld,
+    common.markers = common.markers,
+    maf.thresholds = maf.thresholds,
+    maf.pop.num.threshold = maf.pop.num.threshold,
+    maf.approach = maf.approach,
+    maf.operator = maf.operator,
+    strata = strata,
+    pop.levels = pop.levels,
+    pop.labels = pop.labels,
+    pop.select = pop.select,
+    filename = NULL,
+    verbose = verbose
+  )
 
   input$GT <- stringi::stri_replace_all_fixed(
     str = input$GT,
