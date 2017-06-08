@@ -533,6 +533,8 @@ tidy_genomic_data <- function(
       message("    Number of markers removed = ", nrow.before - nrow.after)
       message("    Number of markers after = ", nrow.after)
     }
+    input <- dplyr::select(input, -FILTER)
+    filter.check <- NULL
 
     # GATK VCF file sometimes have "." in the LOCUS column: replace by CHROM
     # platypus VCF file sometimes have NA in LOCUS column: replace by POS
@@ -549,8 +551,9 @@ tidy_genomic_data <- function(
     # Unique MARKERS column
     # Since stacks v.1.44 ID as LOCUS + COL (from sumstats) the position of the SNP on the locus.
     # Choose the first 100 markers to scan
-    sample.locus.id <- sample(x = unique(input$LOCUS), size = 100, replace = FALSE)
-    detect.snp.col <- unique(stringi::stri_detect_fixed(str = sample.locus.id, pattern = "_"))
+    # sample.locus.id <- sample(x = unique(input$LOCUS), size = 100, replace = FALSE)
+    # detect.snp.col <- unique(stringi::stri_detect_fixed(str = sample.locus.id, pattern = "_"))
+    detect.snp.col <- dplyr::n_distinct(input$LOCUS) < length(input$LOCUS)
 
     if (detect.snp.col) {
       if (nrow(input) > 30000) {
@@ -623,7 +626,7 @@ tidy_genomic_data <- function(
           dplyr::mutate(GT = stringi::stri_replace_na(
             str = GT, replacement = "./."))
       )
-      input.gt <- filter.check <- NULL
+      input.gt <- NULL
     } else {
       # filter the vcf.data
       vcf.data <- vcf.data[keep.markers,]
