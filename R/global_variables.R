@@ -55,7 +55,7 @@ if (getRversion() >= "2.15.1") {
       "INDIVIDUALS_REP", "KEEP", "GT_VCF_NUC", "INTEGERS", "GOF", "NR", "NV",
       "A1_NUC", "A2_NUC", "RANK", "MAF_P", "MAF_L", "BAD_ID", "strata",
       "SPLIT_VEC", "ALLELES_COUNT_OVERALL", "N_INV", "HS", "GIS", "PI_NEI",
-      "FQ_FILES", "PARAMETER", "SPLIT", "mtime"
+      "FQ_FILES", "PARAMETER", "SPLIT", "mtime", "REF_ALT"
     )
   )
 }

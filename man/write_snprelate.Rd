@@ -4,7 +4,7 @@
 \alias{write_snprelate}
 \title{Write a SNPRelate object from a tidy data frame}
 \usage{
-write_snprelate(data)
+write_snprelate(data, biallelic = TRUE)
 }
 \arguments{
 \item{data}{A tidy data frame object in the global environment or
@@ -12,11 +12,15 @@ a tidy data frame in wide or long format in the working directory.
 \emph{How to get a tidy data frame ?}
 Look into \pkg{stackr} \code{\link{tidy_genomic_data}}.
 \strong{The genotypes are biallelic.}}
+
+\item{biallelic}{(logical, optional) If you already know that the data is
+biallelic use this argument to speed up the function.
+Default: \code{biallelic = TRUE}.}
 }
 \description{
 Write a \href{https://github.com/zhengxwen/SNPRelate}{SNPRelate}
 object from a tidy data frame.
-Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr} 
+Used internally in \href{https://github.com/thierrygosselin/stackr}{stackr}
 and might be of interest for users.
 }
 \references{

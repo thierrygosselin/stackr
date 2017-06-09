@@ -564,11 +564,13 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   # GENLIGHT -------------------------------------------------------------------
   if ("genlight" %in% output) {
     if (verbose) message("Generating adegenet genlight object without imputation")
-    res$genlight.no.imputation <- stackr::write_genlight(data = input)
+    res$genlight.no.imputation <- stackr::write_genlight(data = input,
+                                                         biallelic = TRUE)
 
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating adegenet genlight object WITH imputations")
-      res$genlight.imputed <- stackr::write_genlight(data = input.imp)
+      res$genlight.imputed <- stackr::write_genlight(data = input.imp,
+                                                     biallelic = TRUE)
     }
   } # end genlight output
 
@@ -611,10 +613,12 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)")
   # SNPRelate ------------------------------------------------------------------
   if ("snprelate" %in% output) {
     if (verbose) message("Generating SNPRelate object without imputation")
-    res$snprelate.no.imputation <- stackr::write_snprelate(data = input)
+    res$snprelate.no.imputation <- stackr::write_snprelate(data = input,
+                                                           biallelic = TRUE)
     if (!is.null(imputation.method)) {
       if (verbose) message("Generating SNPRelate object WITH imputations")
-      res$snprelate.imputed <- stackr::write_snprelate(data = input.imp)
+      res$snprelate.imputed <- stackr::write_snprelate(data = input.imp,
+                                                       biallelic = TRUE)
     }
   }
 
