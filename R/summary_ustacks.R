@@ -130,16 +130,16 @@ summary_ustacks <- function(
     message("  snps: ", n.snps)
     message("  tags: ", n.tags)
     message("  models: ", n.models)
-    message("  Some samples will be removed...selection based on .alleles files")
+    message("  Some samples will be removed...selection based on .snps files")
   }
-  snps.files <- tags.files <- NULL
+  alleles.files <- tags.files <- NULL
   opt.change <- getOption("width")
   options(width = 70)
 
-  summarise_ustacks <- function(alleles.files, ustacks.folder) {
+  summarise_ustacks <- function(snps.files, ustacks.folder) {
     sample.name <- stringi::stri_replace_all_fixed(
-      str = alleles.files,
-      pattern = ".alleles.tsv.gz",
+      str = snps.files,
+      pattern = ".snps.tsv.gz",
       replacement = "",
       vectorize_all = FALSE)
 
@@ -215,7 +215,7 @@ summary_ustacks <- function(
 
   res <- list()
   res <- .stackr_parallel(
-    X = alleles.files,
+    X = snps.files,
     FUN = summarise_ustacks,
     mc.cores = parallel.core,
     ustacks.folder = ustacks.folder
