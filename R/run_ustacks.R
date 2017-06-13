@@ -17,6 +17,7 @@
 #' (e.g. choose one with a mean number of read, or MB, file size).
 #' Default: \code{sample.list = NULL}.
 #' Power outage? no problem, see details below.
+
 #' @param project.info When using the stackr pipeline,
 #' a project info file is created. This file will be modified inside this function.
 #' The file is in the working directory (given the path or in the global environment).
@@ -44,7 +45,7 @@
 #' @param H Disable calling haplotypes from secondary reads.
 #' Default: \code{H = TRUE}.
 #' @param p Enable parallel execution with num_threads threads.
-#' Default: \code{p = 4}.
+#' Default: \code{p = parallel::detectCores() - 1}.
 #' @param h Display this help messsage. Default: \code{h = FALSE}.
 
 
@@ -139,7 +140,7 @@ run_ustacks <- function(
   t = "gzfastq",
   R = FALSE,
   H = TRUE,
-  p = 8,
+  p = parallel::detectCores() - 1,
   h = FALSE,
   d = TRUE,
   keep_high_cov = FALSE,
@@ -182,7 +183,7 @@ run_ustacks <- function(
     t = "gzfastq",
     R = FALSE,
     H = TRUE,
-    p = 32,
+    p = parallel::detectCores() - 1,
     h = FALSE,
     d = TRUE,
     keep_high_cov = FALSE,
@@ -202,7 +203,7 @@ run_ustacks <- function(
   ) {
     # ustacks common options ---------------------------------------------------
     if (mismatch.testing) {
-      message("Mismatch threshold testing: M = ", M, "\n")
+      message("\nMismatch threshold testing: M = ", M, "\n")
     }
 
     if (is.null(sample.list)) {
@@ -244,7 +245,7 @@ run_ustacks <- function(
     }
     if (!dir.exists(o)) {
       dir.create(o)
-      message("New folder to store results created: ", o)
+      message("New folder to store results:\n  ", o)
     }
 
     individual2 <- NULL
@@ -391,7 +392,8 @@ run_ustacks <- function(
 
       res <- read_stacks_ustacks_log(
         log.file = ustacks.sample.log.file,
-        ustacks.folder = o.bk)
+        ustacks.folder = o.bk,
+        parallel.core = p)
 
       colnames(res) <- c("PARAMETER", stringi::stri_join("M_", M.bk))
     } else {
@@ -448,7 +450,7 @@ run_ustacks <- function(
       dplyr::mutate(SQL_ID = seq(1, n()))
 
     readr::write_tsv(x = project.info, path = "project.info.sqlid.tsv")
-    message("Unique id info was generated and included in the project info file named: project.info.sqlid.tsv")
+    message("Unique id info was generated: project.info.sqlid.tsv")
   }
 
   # Mismatch ---------------------------
@@ -582,12 +584,23 @@ run_ustacks <- function(
 #' @rdname read_stacks_ustacks_log
 #' @export
 #' @keywords internal
-read_stacks_ustacks_log <- function(log.file = NULL, ustacks.folder = NULL) {
+read_stacks_ustacks_log <- function(
+  log.file = NULL,
+  ustacks.folder = NULL,
+  parallel.core = parallel::detectCores() - 1
+) {
+
   ustacks.log <- NULL
   ustacks.log <- suppressMessages(readr::read_lines(file = log.file))
 
-  mismatch <- suppressMessages(readr::read_delim(log.file, delim = ":", skip = 2, n_max = 9, col_names = c("PARAMETER", "VALUE")) %>%
-                                 dplyr::mutate(VALUE = as.character(VALUE)))
+  mismatch <- suppressMessages(
+    readr::read_delim(
+      log.file,
+      delim = ":",
+      skip = 2,
+      n_max = 9,
+      col_names = c("PARAMETER", "VALUE")) %>%
+      dplyr::mutate(VALUE = as.character(VALUE)))
 
   n.radtags.start <- tibble::data_frame(
     PARAMETER = "Number of RAD-Tags loaded",
@@ -665,27 +678,21 @@ read_stacks_ustacks_log <- function(log.file = NULL, ustacks.folder = NULL) {
     )[1] %>% unlist
   )
 
-  # Read Allele.tsv file
-  allele.summary <- suppressMessages(readr::read_tsv(
-    file = list.files(path = ustacks.folder, pattern = ".alleles", full.names = TRUE),
-    col_names = c("SQL_ID", "ID", "LOCUS", "HAPLOTYPE", "PERCENT", "COUNT"),
-    comment = "#"))
-  n.locus <- dplyr::n_distinct(allele.summary$LOCUS)
-  message("Number of locus:  ", n.locus)
+  # # Read Allele.tsv file
+  # allele.summary <- suppressMessages(readr::read_tsv(
+  #   file = list.files(path = ustacks.folder, pattern = ".alleles", full.names = TRUE),
+  #   col_names = c("SQL_ID", "ID", "LOCUS", "HAPLOTYPE", "PERCENT", "COUNT"),
+  #   comment = "#"))
+  # n.locus <- dplyr::n_distinct(allele.summary$LOCUS)
+  # message("Number of locus:  ", n.locus)
 
-  polymorphism <- allele.summary %>%
-    dplyr::group_by(LOCUS) %>%
-    dplyr::tally(.) %>%
-    dplyr::ungroup(.) %>%
-    dplyr::summarise(
-      HOMOZYGOSITY = length(n[n == 1]),
-      HETEROZYGOSITY = length(n[n == 2]),
-      ARTIFACT = length(n[n > 2])) %>%
+  polymorphism <- stackr::summary_ustacks(
+    ustacks.folder = ustacks.folder,
+    parallel.core = parallel::detectCores() - 1) %>%
+    dplyr::select(-INDIVIDUALS) %>%
     tidyr::gather(data = ., key = PARAMETER, value = VALUE) %>%
     dplyr::mutate(VALUE = as.character(VALUE))
-  message("    Homozygote:   ", polymorphism$VALUE[polymorphism$PARAMETER == "HOMOZYGOSITY"])
-  message("    Heterozygote: ", polymorphism$VALUE[polymorphism$PARAMETER == "HETEROZYGOSITY"])
-  message("    Artifact:     ", polymorphism$VALUE[polymorphism$PARAMETER == "ARTIFACT"], "\n\n")
+
 
   res <- dplyr::bind_rows(mismatch,
                           n.radtags.start,

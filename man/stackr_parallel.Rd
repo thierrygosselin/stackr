@@ -48,11 +48,11 @@ because forking is not supported.
 This function defines a socket version of mclapply for windows computer
 An implementation that switch automatically the parallel process when detecting
 the os.
-The code below was inspired from 
+The code below was inspired from
 \pkg{parallel} \code{\link{mclapply}},
 \href{https://github.com/nathanvan}{Nathan VanHoudnos},
 \href{https://github.com/kvnkuang/pbmcapply}{Kevin Kuang},
-\href{https://github.com/psolymos/pbapply}{Peter Solymos} and 
+\href{https://github.com/psolymos/pbapply}{Peter Solymos} and
 \href{https://github.com/EricArcher/}{Eric Archer}.
 
 functions on Windows.

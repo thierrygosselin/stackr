@@ -7,11 +7,12 @@
 run_ustacks(mismatch.testing = FALSE, sample.list = NULL,
   project.info = NULL, f = "04_process_radtags",
   o = "06_ustacks_cstacks_sstacks", m = 3, M = 2, N = M + 2,
-  t = "gzfastq", R = FALSE, H = TRUE, p = 8, h = FALSE, d = TRUE,
-  keep_high_cov = FALSE, max_locus_stacks = 3, k_len = NULL,
-  gapped = TRUE, max_gaps = 2, min_aln_len = 0.8, model_type = "snp",
-  alpha = 0.05, bound_low = 0, bound_high = 0.2, bc_err_freq = NULL,
-  transfer.s3 = FALSE, from.folder = NULL, destination.folder = NULL)
+  t = "gzfastq", R = FALSE, H = TRUE, p = parallel::detectCores() - 1,
+  h = FALSE, d = TRUE, keep_high_cov = FALSE, max_locus_stacks = 3,
+  k_len = NULL, gapped = TRUE, max_gaps = 2, min_aln_len = 0.8,
+  model_type = "snp", alpha = 0.05, bound_low = 0, bound_high = 0.2,
+  bc_err_freq = NULL, transfer.s3 = FALSE, from.folder = NULL,
+  destination.folder = NULL)
 }
 \arguments{
 \item{mismatch.testing}{(logical). Default: \code{mismatch.testing = FALSE}.}
@@ -59,7 +60,7 @@ Default: \code{t = "gzfastq"}.}
 Default: \code{H = TRUE}.}
 
 \item{p}{Enable parallel execution with num_threads threads.
-Default: \code{p = 4}.}
+Default: \code{p = parallel::detectCores() - 1}.}
 
 \item{h}{Display this help messsage. Default: \code{h = FALSE}.}
 

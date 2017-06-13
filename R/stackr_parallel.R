@@ -6,11 +6,11 @@
 #' This function defines a socket version of mclapply for windows computer
 #' An implementation that switch automatically the parallel process when detecting
 #' the os.
-#' The code below was inspired from 
+#' The code below was inspired from
 #' \pkg{parallel} \code{\link{mclapply}},
 #' \href{https://github.com/nathanvan}{Nathan VanHoudnos},
 #' \href{https://github.com/kvnkuang/pbmcapply}{Kevin Kuang},
-#' \href{https://github.com/psolymos/pbapply}{Peter Solymos} and 
+#' \href{https://github.com/psolymos/pbapply}{Peter Solymos} and
 #' \href{https://github.com/EricArcher/}{Eric Archer}.
 
 
@@ -38,13 +38,13 @@ mclapply_win <- function(
   X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
   mc.silent = FALSE, mc.cores = NULL, mc.cleanup = TRUE, mc.allow.recursive = TRUE
 ) {
-  
+
   # Create a cluster
   if (is.null(mc.cores)) {
     mc.cores <- parallel::detectCores() - 1
   }
   cl <- parallel::makeCluster(mc.cores)
-  
+
   # We need to find the names of the loaded packages and export them to cluster
   tryCatch(
     {
@@ -52,10 +52,10 @@ mclapply_win <- function(
         utils::sessionInfo()$basePkgs, #Base packages
         names(utils::sessionInfo()$otherPkgs) #Additional packages
       )
-      
+
       #Export the packages to the clusters
       parallel::clusterExport(cl, 'loaded.packages', envir = environment())
-      
+
       # Load the libraries on all the clusters
       parallel::parLapply(
         cl, 1:length(cl), function(xx){
@@ -63,7 +63,7 @@ mclapply_win <- function(
             require(yy , character.only = TRUE)})
         }
       )
-      
+
       # We want the enclosing environment, not the calling environment
       cluster_export <- function(cl, FUN) {
         env <- environment(FUN)
@@ -73,9 +73,9 @@ mclapply_win <- function(
         }
         parallel::clusterExport(cl, ls(all.names = TRUE, envir = env), envir = env)
       } # End cluster_export
-      
+
       cluster_export(cl, FUN)
-      
+
       # Run the lapply in parallel, with a special case for the ... arguments
       if (length(list(...)) == 0) {
         return(parallel::parLapply(cl = cl, X = X, fun = FUN))
