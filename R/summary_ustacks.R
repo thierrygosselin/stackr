@@ -86,12 +86,13 @@ summary_ustacks <- function(
 
   n.models <- length(models.files)
   # switch to tags if no models files (same thing, only more info to parse)
-
+  use.tags <- FALSE
   tags.files <- list.files(
     path = ustacks.folder, pattern = "tags", full.names = FALSE)
 
   if (n.models == 0) {
     models.files <- tags.files
+    use.tags <- TRUE
   }
 
   # snps
@@ -130,25 +131,56 @@ summary_ustacks <- function(
     message("  snps: ", n.snps)
     message("  tags: ", n.tags)
     message("  models: ", n.models)
-    message("  Some samples will be removed...selection based on .snps files")
-  }
-  alleles.files <- tags.files <- NULL
-  opt.change <- getOption("width")
-  options(width = 70)
+    message("  These samples will be removed (based on .snps files): ")
 
-  summarise_ustacks <- function(snps.files, ustacks.folder) {
+    alleles.names <- stringi::stri_replace_all_fixed(
+      str = alleles.files,
+      pattern = ".alleles.tsv.gz",
+      replacement = "",
+      vectorize_all = FALSE)
+
     sample.name <- stringi::stri_replace_all_fixed(
       str = snps.files,
       pattern = ".snps.tsv.gz",
       replacement = "",
       vectorize_all = FALSE)
 
+    missing.samples <- setdiff(alleles.names, sample.name)
+
+    if (length(missing.samples) > 1) {
+      missing.samples <- stringi::stri_join(missing.samples, collapse = ", ")
+    }
+    alleles.names <- NULL
+    message("    ", missing.samples)
+  }
+  alleles.files <- tags.files <- NULL
+  opt.change <- getOption("width")
+  options(width = 70)
+
+  summarise_ustacks <- function(sample.name, ustacks.folder, use.tags) {
+    # sample.name <- stringi::stri_replace_all_fixed(
+    #   str = snps.files,
+    #   pattern = ".snps.tsv.gz",
+    #   replacement = "",
+    #   vectorize_all = FALSE)
+
+    # sample.name <- "TOB_70"
+
     # summary
-    models.summary <- readr::read_tsv(
-      file = stringi::stri_join(ustacks.folder, "/", sample.name, ".models.tsv.gz"),
-      col_names = c("SQL_ID", "ID", "LOCUS", "CHROMOSOME", "BASEPAIR", "STRAND", "SEQ_TYPE", "STACK_COMPONENT", "SEQ_ID", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG", "LOG_LIKELIHOOD"),
-      col_types = "iiiciccicciiid", na = "-",
-      comment = "#")
+    if (use.tags) {
+      models.summary <- readr::read_tsv(
+        file = stringi::stri_join(ustacks.folder, "/", sample.name, ".tags.tsv.gz"),
+        col_names = c("SQL_ID", "ID", "LOCUS", "CHROMOSOME", "BASEPAIR", "STRAND", "SEQ_TYPE", "STACK_COMPONENT", "SEQ_ID", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG", "LOG_LIKELIHOOD"),
+        col_types = "iiiciccicciiid", na = "-",
+        comment = "#")
+    } else {
+      models.summary <- readr::read_tsv(
+        file = stringi::stri_join(ustacks.folder, "/", sample.name, ".models.tsv.gz"),
+        col_names = c("SQL_ID", "ID", "LOCUS", "CHROMOSOME", "BASEPAIR", "STRAND", "SEQ_TYPE", "STACK_COMPONENT", "SEQ_ID", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG", "LOG_LIKELIHOOD"),
+        col_types = "iiiciccicciiid", na = "-",
+        comment = "#")
+    }
+
 
     summarise.ustacks <- dplyr::filter(models.summary, SEQ_TYPE == "model") %>%
       dplyr::select(LOCUS, SEQUENCE) %>%
@@ -207,18 +239,18 @@ summary_ustacks <- function(
           MEAN_NUMBER_SNP_LOCUS = round(mean(SNP_NUMBER[SNP_NUMBER > 0]), 2),
           MAX_NUMBER_SNP_LOCUS = max(SNP_NUMBER[SNP_NUMBER > 0]),
           NUMBER_LOCUS_4SNP = length(LOCUS[SNP_NUMBER > 3]))
-    ) #%>%
-      #dplyr::mutate(LOCUS_INFO = list(summarise.ustacks))
+    )
     summarise.ustacks <- sample.name <- NULL
     return(summary.ind)
-  }#End allele_summary
+  }#End summarise_ustacks
 
   res <- list()
   res <- .stackr_parallel(
-    X = snps.files,
+    X = sample.name,
     FUN = summarise_ustacks,
     mc.cores = parallel.core,
-    ustacks.folder = ustacks.folder
+    ustacks.folder = ustacks.folder,
+    use.tags = use.tags
   ) %>%
     dplyr::bind_rows(.)
   options(width = opt.change)
