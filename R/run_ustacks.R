@@ -688,7 +688,7 @@ read_stacks_ustacks_log <- function(
 
   polymorphism <- stackr::summary_ustacks(
     ustacks.folder = ustacks.folder,
-    parallel.core = parallel::detectCores() - 1) %>%
+    parallel.core = parallel.core) %>%
     dplyr::select(-INDIVIDUALS) %>%
     tidyr::gather(data = ., key = PARAMETER, value = VALUE) %>%
     dplyr::mutate(VALUE = as.character(VALUE))
