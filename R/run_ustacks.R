@@ -171,6 +171,9 @@ run_ustacks <- function(
   if (mismatch.testing && length(M) < 2) {
     stop("Mismatch testing requires a range of values for M argument. e.g. M = 1:5 to test 1, 2, 3, 4, 5 mismatches")
   }
+
+  parallel.core <- p
+
   run_ustacks_one_sample <- function(
     mismatch.testing = FALSE,
     sample.list = NULL,
@@ -272,6 +275,7 @@ run_ustacks <- function(
       R <- ""
     }
 
+    parallel.core <- p
     p <- stringi::stri_join("-p ", p)
 
     if (h) {
@@ -389,11 +393,11 @@ run_ustacks <- function(
         o.bk <- stringi::stri_join(getwd(), "/", o.bk)
       }
 
-
+      message("directory use for test: ", o.bk)
       res <- read_stacks_ustacks_log(
         log.file = ustacks.sample.log.file,
         ustacks.folder = o.bk,
-        parallel.core = p)
+        parallel.core = parallel.core)
 
       colnames(res) <- c("PARAMETER", stringi::stri_join("M_", M.bk))
     } else {
@@ -442,7 +446,6 @@ run_ustacks <- function(
     }
     potential.project.file <- project.file.info <- NULL
   }
-
 
   if (!tibble::has_name(project.info, "SQL_ID")) {
     project.info <- project.info %>%
@@ -593,14 +596,14 @@ read_stacks_ustacks_log <- function(
   ustacks.log <- NULL
   ustacks.log <- suppressMessages(readr::read_lines(file = log.file))
 
-  mismatch <- suppressMessages(
+  mismatch <- suppressWarnings(suppressMessages(
     readr::read_delim(
       log.file,
       delim = ":",
       skip = 2,
       n_max = 9,
       col_names = c("PARAMETER", "VALUE")) %>%
-      dplyr::mutate(VALUE = as.character(VALUE)))
+      dplyr::mutate(VALUE = as.character(VALUE))))
 
   n.radtags.start <- tibble::data_frame(
     PARAMETER = "Number of RAD-Tags loaded",

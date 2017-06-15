@@ -124,7 +124,12 @@ summary_ustacks <- function(
   tags.files <- NULL
 
   if (n.alleles == n.snps && n.alleles == n.models && n.alleles == n.tags) {
-    message("Summarizing ", length(alleles.files), " ustacks (models, snps, tags, alleles) files...")
+    message("Summarizing ", n.snps, " ustacks (models, snps, tags, alleles) files...")
+    sample.name <- stringi::stri_replace_all_fixed(
+      str = snps.files,
+      pattern = ".snps.tsv.gz",
+      replacement = "",
+      vectorize_all = FALSE)
   } else {
     message("Unequal numbers of ustacks files: models, snps, tags, alleles")
     message("  alleles: ", n.alleles)
@@ -153,6 +158,7 @@ summary_ustacks <- function(
     alleles.names <- NULL
     message("    ", missing.samples)
   }
+
   alleles.files <- tags.files <- NULL
   opt.change <- getOption("width")
   options(width = 70)
@@ -244,15 +250,24 @@ summary_ustacks <- function(
     return(summary.ind)
   }#End summarise_ustacks
 
-  res <- list()
-  res <- .stackr_parallel(
-    X = sample.name,
-    FUN = summarise_ustacks,
-    mc.cores = parallel.core,
-    ustacks.folder = ustacks.folder,
-    use.tags = use.tags
-  ) %>%
-    dplyr::bind_rows(.)
+  if (length(sample.name) > 1) {
+    res <- list()
+    res <- .stackr_parallel(
+      X = sample.name,
+      FUN = summarise_ustacks,
+      mc.cores = parallel.core,
+      ustacks.folder = ustacks.folder,
+      use.tags = use.tags
+    ) %>%
+      dplyr::bind_rows(.)
+  } else {
+    res <- summarise_ustacks(
+      sample.name = sample.name,
+      ustacks.folder = ustacks.folder,
+      use.tags = use.tags
+    )
+  }
+
   options(width = opt.change)
 
   mean.summary <- dplyr::summarise_if(.tbl = res, .predicate = is.numeric, .funs = mean)
