@@ -13,7 +13,7 @@
 #' Default: \code{common.markers = TRUE}
 
 #' @return A list is created with 3 objects:
-#' betaiovl: Average \eqn{\beta_i} over loci, 
+#' betaiovl: Average \eqn{\beta_i} over loci,
 #' Hw: Within population gene diversities
 #' Hb: Between populations gene diversities
 
@@ -22,11 +22,11 @@
 #' \dontrun{
 #' # Using a  VCF file, the simplest for of the function:
 #' fh <- ibdg_fh(
-#' data = "batch_1.vcf", 
+#' data = "batch_1.vcf",
 #' strata = "strata.panda.tsv"
 #' )
 #' # To see what's inside the list
-#' names(fh) 
+#' names(fh)
 #' # To view the manhattan plot:
 #' fh$fh.manhattan.plot
 #' # To view the distribution of FH values:
@@ -39,7 +39,7 @@
 #' @import ggplot2
 
 #' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_at funs
-#' @importFrom stringi stri_join stri_replace_all_fixed stri_extract_all_fixed stri_replace_all_regex stri_sub stri_pad_left stri_count_fixed stri_replace_na 
+#' @importFrom stringi stri_join stri_replace_all_fixed stri_extract_all_fixed stri_replace_all_regex stri_sub stri_pad_left stri_count_fixed stri_replace_na
 #' @importFrom utils combn
 #' @importFrom readr read_tsv write_tsv
 #' @importFrom tibble data_frame has_name
@@ -49,16 +49,16 @@
 betas_estimator <- function(
   data,
   strata = NULL,
-  monomorphic.out = TRUE, 
+  monomorphic.out = TRUE,
   common.markers = TRUE,
-  pop.levels = NULL, 
-  pop.labels = NULL, 
+  pop.levels = NULL,
+  pop.labels = NULL,
   pop.select = NULL,
-  blacklist.id = NULL, 
-  blacklist.genotype = NULL, 
-  whitelist.markers = NULL, 
+  blacklist.id = NULL,
+  blacklist.genotype = NULL,
+  whitelist.markers = NULL,
   max.marker = NULL,
-  snp.ld = NULL, 
+  snp.ld = NULL,
   filename = NULL,
   verbose = FALSE
 ) {
@@ -68,39 +68,39 @@ betas_estimator <- function(
     cat("#######################################################################\n")
     timing <- proc.time()
   }
-  # manage missing arguments -----------------------------------------------------  
+  # manage missing arguments -----------------------------------------------------
   if (missing(data)) stop("Input file missing")
   if (!is.null(pop.levels) & is.null(pop.labels)) pop.labels <- pop.levels
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
-  
+
   # import data ----------------------------------------------------------------
   # if (is.vector(data)) {
   input <- stackr::tidy_genomic_data(
-    data = data, 
+    data = data,
     vcf.metadata = FALSE,
-    blacklist.id = blacklist.id, 
-    blacklist.genotype = blacklist.genotype, 
-    whitelist.markers = whitelist.markers, 
-    monomorphic.out = monomorphic.out, 
+    blacklist.id = blacklist.id,
+    blacklist.genotype = blacklist.genotype,
+    whitelist.markers = whitelist.markers,
+    monomorphic.out = monomorphic.out,
     max.marker = max.marker,
-    snp.ld = snp.ld, 
+    snp.ld = snp.ld,
     common.markers = common.markers,
-    strata = strata, 
+    strata = strata,
     pop.select = pop.select,
     filename = filename
   )
-  
+
   # necessary steps to make sure we work with unique markers and not duplicated LOCUS
   if (tibble::has_name(input, "LOCUS") && !tibble::has_name(input, "MARKERS")) {
     input <- dplyr::rename(.data = input, MARKERS = LOCUS)
   }
-  
+
   # population names if pop.levels/pop.labels were request
   input <- stackr::change_pop_names(data = input, pop.levels = pop.labels, pop.labels = pop.labels)
-  
+
   # Detect if biallelic --------------------------------------------------------
   # biallelic <- stackr::detect_biallelic_markers(input)
-  
+
   # BETAS computations ----------------------------------------------------------
   message("Beta computation ...")
   if (tibble::has_name(input, "GT_VCF")) {
@@ -118,47 +118,47 @@ betas_estimator <- function(
         FREQ_ALT = ((HOM_ALT * 2) + HET) / NN,
         FREQ_REF = 1 - FREQ_ALT,
         HW = (NN / (NN - 1)) * (1 - ((FREQ_REF^2) + (FREQ_ALT^2)))
-      ) %>% 
-      dplyr::group_by(MARKERS) %>% 
+      ) %>%
+      dplyr::group_by(MARKERS) %>%
       dplyr::mutate(
         N_POP_C = n(), # number of pop per markers
         N_POP_C = 1/(N_POP_C * (N_POP_C - 1)) # corrected number of pop per markers
-      ) %>% 
+      ) %>%
       dplyr::ungroup(.)
-    
+
     gene_diversity_between <- function(x) {
       new_sum <- purrr::lift(sum, na.rm = TRUE)
       res <- utils::combn(x, m = 2, FUN = function(y) y[1]*y[2], simplify = FALSE)
       res <- new_sum(res)
       return(res)
     }
-    
+
     betas <- dplyr::select(.data = betas.prep, MARKERS, POP_ID, FREQ_ALT, FREQ_REF) %>%
       dplyr::group_by(MARKERS) %>%
-      dplyr::summarise_at(.tbl = ., .cols = c("FREQ_ALT", "FREQ_REF"), .funs = list) %>% 
+      dplyr::summarise_at(.tbl = ., .vars = c("FREQ_ALT", "FREQ_REF"), .funs = list) %>%
       dplyr::mutate(
         FREQ_ALT = purrr::map(.x = FREQ_ALT, .f = gene_diversity_between),
         FREQ_REF = purrr::map(.x = FREQ_REF, .f = gene_diversity_between)
-      ) %>% 
-      dplyr::mutate(HB = (unlist(FREQ_ALT) + unlist(FREQ_REF)) * 2) %>% 
-      dplyr::select(MARKERS, HB) %>% 
+      ) %>%
+      dplyr::mutate(HB = (unlist(FREQ_ALT) + unlist(FREQ_REF)) * 2) %>%
+      dplyr::select(MARKERS, HB) %>%
       dplyr::full_join(
         dplyr::select(.data = betas.prep, MARKERS, POP_ID, HW, N_POP_C), by = "MARKERS"
-      ) %>% 
-      dplyr::mutate(HB = 1 - N_POP_C * HB) %>% 
-      dplyr::group_by(POP_ID) %>% 
-      dplyr::mutate(BETAI = 1 - (sum(HW, na.rm = TRUE)/sum(HB, na.rm = TRUE))) %>% 
-      dplyr::select(POP_ID, MARKERS, HW, HB, BETAI) %>% 
+      ) %>%
+      dplyr::mutate(HB = 1 - N_POP_C * HB) %>%
+      dplyr::group_by(POP_ID) %>%
+      dplyr::mutate(BETAI = 1 - (sum(HW, na.rm = TRUE)/sum(HB, na.rm = TRUE))) %>%
+      dplyr::select(POP_ID, MARKERS, HW, HB, BETAI) %>%
       dplyr::ungroup(.)
-    
+
     betas.prep <- NULL
   } else {
-    betas.prep <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT) %>% 
+    betas.prep <- dplyr::select(.data = input, MARKERS, POP_ID, INDIVIDUALS, GT) %>%
       dplyr::filter(GT != "000000") %>%
       dplyr::mutate(
         A1 = stringi::stri_sub(GT, 1, 3),
         A2 = stringi::stri_sub(GT, 4,6)
-      ) %>% 
+      ) %>%
       dplyr::select(MARKERS, POP_ID, INDIVIDUALS, A1, A2) %>%
       tidyr::gather(data = ., key = ALLELES, value = GT, -c(MARKERS, INDIVIDUALS, POP_ID)) %>%
       dplyr::group_by(MARKERS, GT, POP_ID) %>%
@@ -170,44 +170,44 @@ betas_estimator <- function(
         NN = sum(n),
         HOM_O = n / NN,
         HW = (NN / (NN - 1)) * (1 - sum(HOM_O^2))
-      ) %>% 
-      dplyr::group_by(MARKERS) %>% 
+      ) %>%
+      dplyr::group_by(MARKERS) %>%
       dplyr::mutate(
         N_POP = length(unique(POP_ID)), # number of pop per markers
         N_POP_C = 1/(N_POP * (N_POP - 1)) # corrected number of pop per markers
-      ) %>% 
+      ) %>%
       dplyr::ungroup(.)
-    
+
     gene_diversity_between <- function(x) {
       res <- utils::combn(x, m = 2, FUN = function(y) y[1]*y[2], simplify = FALSE)
       new_sum <- purrr::lift(sum, na.rm = TRUE)
       res <- new_sum(res)
       return(res)
     }
-    
+
     betas <- dplyr::select(.data = betas.prep, MARKERS, POP_ID, GT, HOM_O) %>%
       dplyr::group_by(MARKERS, GT) %>%
-      dplyr::summarise_at(.tbl = ., .cols = "HOM_O", .funs = list) %>% 
+      dplyr::summarise_at(.tbl = ., .vars = "HOM_O", .funs = list) %>%
       dplyr::mutate(
         FREQ = unlist(purrr::map(.x = HOM_O, .f = gene_diversity_between))
       ) %>%
       dplyr::group_by(MARKERS) %>%
-      dplyr::summarise(HB = sum(FREQ) * 2) %>% 
+      dplyr::summarise(HB = sum(FREQ) * 2) %>%
       dplyr::full_join(
         dplyr::distinct(.data = betas.prep, MARKERS, POP_ID, HW, N_POP_C), by = "MARKERS"
-      ) %>% 
-      dplyr::mutate(HB = 1 - N_POP_C * HB) %>% 
-      dplyr::group_by(POP_ID) %>% 
+      ) %>%
+      dplyr::mutate(HB = 1 - N_POP_C * HB) %>%
+      dplyr::group_by(POP_ID) %>%
       dplyr::mutate(BETAI = 1 - (sum(HW, na.rm = TRUE) / sum(HB, na.rm = TRUE))) %>%
-      dplyr::select(POP_ID, MARKERS, HW, HB, BETAI) %>% 
+      dplyr::select(POP_ID, MARKERS, HW, HB, BETAI) %>%
       dplyr::ungroup(.)
   }
-  
+
   # plots ----------------------------------------------------------------------
   # message("Generating plots")
   # # manhattan
-  # fh.manhattan.plot <- ggplot(data = fh, aes(x = INDIVIDUALS, y = FH, colour = POP_ID)) + 
-  #   geom_jitter() + 
+  # fh.manhattan.plot <- ggplot(data = fh, aes(x = INDIVIDUALS, y = FH, colour = POP_ID)) +
+  #   geom_jitter() +
   #   labs(y = "Individual IBDg (FH)") +
   #   labs(x = "Individuals") +
   #   labs(colour = "Populations") +
@@ -215,17 +215,17 @@ betas_estimator <- function(
   #   theme_classic() +
   #   # theme_dark() +
   #   theme(
-  #     panel.grid.minor.x = element_blank(), 
-  #     panel.grid.major.y = element_blank(), 
-  #     axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"), 
-  #     axis.text.x = element_blank(), 
-  #     axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"), 
+  #     panel.grid.minor.x = element_blank(),
+  #     panel.grid.major.y = element_blank(),
+  #     axis.title.x = element_text(size = 10, family = "Helvetica", face = "bold"),
+  #     axis.text.x = element_blank(),
+  #     axis.title.y = element_text(size = 10, family = "Helvetica", face = "bold"),
   #     axis.text.y = element_text(size = 8, family = "Helvetica")
   #   )
   # # fh.manhattan.plot
-  
+
   # # Histogram
-  # fh.distribution.plot <- ggplot(data = fh, aes(x = FH)) + 
+  # fh.distribution.plot <- ggplot(data = fh, aes(x = FH)) +
   #   geom_histogram() +
   #   labs(x = "Individual IBDg (FH)") +
   #   labs(y = "Markers (number)") +
@@ -237,15 +237,15 @@ betas_estimator <- function(
   #     strip.text.x = element_text(size = 10, family = "Helvetica", face = "bold")
   #   )
   # # fh.distribution.plot
-  
-  
+
+
   # Results --------------------------------------------------------------------
   res <- list(
-    betaiovl = dplyr::distinct(.data = betas, POP_ID, BETAI), 
+    betaiovl = dplyr::distinct(.data = betas, POP_ID, BETAI),
     Hw = dplyr::distinct(.data = betas, MARKERS, POP_ID, HW),
     Hb = dplyr::distinct(.data = betas, MARKERS, HB)
   )
-  
+
   if (verbose) {
     message("\nBETA per pop (averaged over locus):")
     message(stringi::stri_join(res$betaiovl$POP_ID, " = ", round(res$betaiovl$BETAI, 4), "\n"))
@@ -266,9 +266,9 @@ betas_estimator <- function(
 #   res <- (sum(unlist(utils::combn(x = x$FREQ_ALT, m = 2, FUN = mult, simplify = FALSE))) + sum(unlist(utils::combn(x = x$FREQ_REF, m = 2, FUN = mult, simplify = FALSE))))*2
 #   return(res)
 # }
-# 
-# # 
-# betas <- input %>% 
+#
+# #
+# betas <- input %>%
 #   dplyr::filter(GT_VCF != "./.") %>%
 #   dplyr::group_by(MARKERS, POP_ID) %>%
 #   dplyr::summarise(
@@ -284,13 +284,13 @@ betas_estimator <- function(
 #     HOM_E = (FREQ_REF^2) + (FREQ_ALT^2),# MP2 hierfstat
 #     HET_E = 1 - HOM_E,
 #     HW = NN_C * HET_E
-#   ) %>% 
-#   dplyr::group_by(MARKERS) %>% 
+#   ) %>%
+#   dplyr::group_by(MARKERS) %>%
 #   dplyr::mutate(
 #     N_POP = n(), # number of pop per markers
 #     N_POP_C = 1/(N_POP * (N_POP - 1)) # corrected number of pop per markers
 #   ) %>%
-#   dplyr::ungroup(.) %>% 
+#   dplyr::ungroup(.) %>%
 #   dplyr::select(MARKERS, POP_ID, HW, FREQ_ALT, FREQ_REF, N_POP_C) %>%
 #   dplyr::group_by(MARKERS, N_POP_C) %>%
 #   tidyr::nest(.key = FREQ) %>%
@@ -298,8 +298,8 @@ betas_estimator <- function(
 #     HB = purrr::map(.x = .$FREQ, .f = gene_diversity_between),
 #     HB = 1 - N_POP_C * unlist(HB)
 #   ) %>%
-#   tidyr::unnest(.) %>% 
+#   tidyr::unnest(.) %>%
 #   dplyr::select(POP_ID, MARKERS, HW, HB) %>%
-#   dplyr::group_by(POP_ID) %>% 
-#   dplyr::mutate(BETAI = 1 - (sum(HW, na.rm = TRUE)/sum(HB, na.rm = TRUE))) %>% 
+#   dplyr::group_by(POP_ID) %>%
+#   dplyr::mutate(BETAI = 1 - (sum(HW, na.rm = TRUE)/sum(HB, na.rm = TRUE))) %>%
 #   dplyr::ungroup(.)

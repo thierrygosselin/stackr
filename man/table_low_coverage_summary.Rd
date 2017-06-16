@@ -8,7 +8,7 @@ table_low_coverage_summary(data, pop.levels = NULL, read.depth.threshold,
   filename.low.coverage, filename.low.coverage.imbalance)
 }
 \arguments{
-\item{data}{A tidy vcf object or file (using ".tsv"), 
+\item{data}{A tidy vcf object or file (using ".tsv"),
 created with tidy_genomic_data.}
 
 \item{pop.levels}{Character string defining your ordered populations.}

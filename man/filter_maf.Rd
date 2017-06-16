@@ -32,8 +32,8 @@ to keep (except the GT field that is always imported).
 e.g. \code{vcf.metadata = "PL"} or \code{vcf.metadata = c("DP", "GL")}.
 Default: \code{vcf.metadata = FALSE}.}
 
-\item{interactive.filter}{(optional, logical) Do you want the filtering session to 
-be interactive. With default: \code{interactive.filter == TRUE}, the user is 
+\item{interactive.filter}{(optional, logical) Do you want the filtering session to
+be interactive. With default: \code{interactive.filter == TRUE}, the user is
 asked to see figures of distribution before making decisions for filtering.}
 
 \item{maf.approach}{(character, optional).
@@ -63,7 +63,7 @@ global MAF to pass the thresholds, to keep the marker?}
 this argument is for the number of pop required to pass the maf thresholds
 to keep the locus. Default: \code{maf.pop.num.threshold = 1}}
 
-\item{filename}{(optional) Name of the filtered tidy data frame file 
+\item{filename}{(optional) Name of the filtered tidy data frame file
 written to the working directory (ending with \code{.tsv})
 Default: \code{filename = NULL}.}
 
@@ -183,15 +183,15 @@ With \code{interactive.filter = TRUE}, a list with 5 additionnal objects is crea
 \item $maf.helper.table
 }
 
-The object can be isolated in separate object outside the list by 
+The object can be isolated in separate object outside the list by
 following the example below.
 }
 \description{
 Minor Allele Frequency filter from a tidy data set (long format)
-of any of these file format: 
-vcf, plink (tped/tfam), stacks haplotype file, genind, 
-genepop, data frame in wide format. The function uses 
-\code{\link[stackr]{tidy_genomic_data}} and 
+of any of these file format:
+vcf, plink (tped/tfam), stacks haplotype file, genind,
+genepop, data frame in wide format. The function uses
+\code{\link[stackr]{tidy_genomic_data}} and
 \code{\link[stackr]{tidy_wide}} to load the file.
 }
 \details{
@@ -213,9 +213,9 @@ turtle.maf <- filter_maf(
 data = "turtle.vcf",
 strata = "turtle.strata.tsv",
 maf.thresholds = c(0.04, 0.02)
-) 
-#This will use the default: interactive version, 
-maf.approach = "SNP", 
+)
+#This will use the default: interactive version,
+maf.approach = "SNP",
 maf.operator = "OR",
 maf.pop.num.threshold = 1
 

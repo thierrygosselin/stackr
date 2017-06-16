@@ -51,18 +51,18 @@ Default: \code{strata = NULL}.}
 
 \item{strata.select}{(optional, character) Use this argument to select the column
 from the strata file to generate the PCoA-IBM plot. More than 1 column you
-want to visualize, use a string of character 
+want to visualize, use a string of character
 e.g. \code{strata.select = c("POP_ID", "LANES", "SEQUENCER", "WATERSHED")} to test
 4 grouping columns inside the \code{strata} file.
 Default: \code{strata.select = "POP_ID"}}
 
-\item{distance.method}{(character) The distance measure to be used. 
-This must be one of "euclidean", "maximum", "manhattan", "canberra", 
-"binary" or "minkowski". The function uses \code{\link[stats]{dist}}. 
+\item{distance.method}{(character) The distance measure to be used.
+This must be one of "euclidean", "maximum", "manhattan", "canberra",
+"binary" or "minkowski". The function uses \code{\link[stats]{dist}}.
 Default: \code{distance.method = "euclidean"}}
 
-\item{ind.missing.geno.threshold}{(string) Percentage of missing genotype 
-allowed per individuals. 
+\item{ind.missing.geno.threshold}{(string) Percentage of missing genotype
+allowed per individuals.
 Default:\code{ind.missing.geno.threshold = c(10,20,30,40,50,60,70)}}
 
 \item{pop.levels}{(optional, string) This refers to the levels in a factor. In this
@@ -142,15 +142,15 @@ Default: \code{snp.ld = NULL}.}
 \item{common.markers}{(optional) Logical. Default: \code{common.markers = TRUE},
 will only keep markers in common (genotyped) between all the populations.}
 
-\item{filename}{(optional) Name of the tidy data set, 
+\item{filename}{(optional) Name of the tidy data set,
 written to the working directory.}
 }
 \value{
-A list is created with several objects: the tidy data, 
-the principal coordinates 
-with eigenvalues of the PCoA, the identity-by-missingness plot, several 
+A list is created with several objects: the tidy data,
+the principal coordinates
+with eigenvalues of the PCoA, the identity-by-missingness plot, several
 summary tables and plots of missing information
-per individuals, populations and markers. Blacklisted id are also included. 
+per individuals, populations and markers. Blacklisted id are also included.
 Whitelists of markers with different level of missingness are also created.
 A heatmap showing the missing values in black and genotypes in grey provide a
 general overview of the missing data.
@@ -158,15 +158,15 @@ general overview of the missing data.
 \description{
 Use this function to visualize pattern of missing data.
  \itemize{
-   \item \strong{Imput file:} various file format are supported 
+   \item \strong{Imput file:} various file format are supported
    (see \code{data} argument below).
-   \item \strong{Filters:} genotypes, markers, individuals and populations can be 
+   \item \strong{Filters:} genotypes, markers, individuals and populations can be
   filtered and/or selected in several ways using blacklist,
   whitelist and other arguments.
-   \item \strong{IBM-PCoA:} conduct identity-by-missingness analyses using 
+   \item \strong{IBM-PCoA:} conduct identity-by-missingness analyses using
    Principal Coordinates Analysis, PCoA (also called Multidimensional Scaling, MDS).
    \item \strong{FH measure vs missingness}: missingness at the individual level
-   is contrasted against FH, a new measure of IBDg 
+   is contrasted against FH, a new measure of IBDg
    (Keller et al., 2011; Kardos et al., 2015; Hedrick & Garcia-Dorado, 2016)
    FH is based on the excess in the observed number of homozygous
    genotypes within an individual relative to the mean number of homozygous
@@ -177,12 +177,12 @@ Use this function to visualize pattern of missing data.
    described in (Keller et al., 2011; Kardos et al., 2015).
    The new measure is population-wise and tailored for RADseq data
    (see \code{\link[stackr]{ibdg_fh}} for details).
-   \item \strong{Figures and Tables:} figures and summary tables of 
+   \item \strong{Figures and Tables:} figures and summary tables of
    missing information at the marker, individual and population level are
    generated.
-   \item \strong{Blacklist:} create blacklist of individuals based on 
+   \item \strong{Blacklist:} create blacklist of individuals based on
    desired thresholds of missing genotypes.
-   \item \strong{Tidy data:} if the filename argument is used, the 
+   \item \strong{Tidy data:} if the filename argument is used, the
    function also output the data in a tidy format.
 }
 }
@@ -190,11 +190,11 @@ Use this function to visualize pattern of missing data.
 \dontrun{
 Using a  VCF file, the simplest for of the function:
 ibm.koala <- missing_visualization(
-data = "batch_1.vcf", 
+data = "batch_1.vcf",
 strata = "population.map.strata.tsv"
 )
 # To see what's inside the list
-names(ibm.koala) 
+names(ibm.koala)
 # To view the heatmap:
 ibm.koala$heatmap
 # To view the IBM analysis plot:
@@ -202,7 +202,7 @@ ibm.koala$ibm_plot
 }
 }
 \references{
-Legendre, P. and Legendre, L. (1998) Numerical Ecology, 
+Legendre, P. and Legendre, L. (1998) Numerical Ecology,
 2nd English edition. Amsterdam: Elsevier Science BV.
 
 Keller MC, Visscher PM, Goddard ME (2011)

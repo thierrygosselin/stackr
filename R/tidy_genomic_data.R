@@ -256,7 +256,7 @@
 
 #' @export
 #' @rdname tidy_genomic_data
-#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join summarise_each_ funs
+#' @importFrom dplyr select distinct n_distinct group_by ungroup rename arrange tally filter if_else mutate summarise left_join inner_join right_join anti_join semi_join full_join funs
 #' @importFrom adegenet genind2df
 # @importFrom strataG as.data.frame
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_extract_all_fixed stri_replace_all_regex stri_sub stri_pad_left stri_count_fixed stri_replace_na
@@ -492,7 +492,7 @@ tidy_genomic_data <- function(
         dplyr::mutate(
           CHROM = stringi::stri_replace_all_fixed(CHROM, pattern = "un", replacement = "1")
         ) %>%
-        dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
+        dplyr::mutate_at(.tbl = ., .vars = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
         tibble::rownames_to_column(df = ., var = "KEEP") %>%
         dplyr::mutate(KEEP = as.integer(KEEP))
     } else {# import with vcfR
@@ -572,7 +572,7 @@ tidy_genomic_data <- function(
         input <- dplyr::rename(input, ID = LOCUS) %>%
           tidyr::separate(data = ., col = ID, into = c("LOCUS", "COL"),
                           sep = "_", extra = "drop", remove = FALSE) %>%
-          dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
+          dplyr::mutate_at(.tbl = ., .vars = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
           tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
       }
     } else {
@@ -1804,7 +1804,7 @@ tidy_genomic_data <- function(
     }
 
     input <-  dplyr::mutate_at(
-      .tbl = input, .cols = parse.format.list, .funs =  replace_by_na)
+      .tbl = input, .vars = parse.format.list, .funs =  replace_by_na)
 
     # Cleaning AD (ALLELES_DEPTH)
     if (tibble::has_name(input, "AD")) {
@@ -1867,7 +1867,7 @@ tidy_genomic_data <- function(
             data = ., PL, c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
             sep = ",", extra = "drop", remove = FALSE) %>%
           dplyr::mutate_at(
-            .tbl = ., .cols = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
+            .tbl = ., .vars = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
             .funs = as.numeric) %>%
           dplyr::select(-GT)
         return(res)
@@ -1907,7 +1907,7 @@ tidy_genomic_data <- function(
         # Value 2: probability that it is homozygous ALT
         # system.time(input2 <- input %>%
         #   tidyr::separate(data = ., GL, c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"), sep = ",", extra = "drop", remove = FALSE) %>%
-        #   dplyr::mutate_at(.tbl = ., .cols = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"), .funs = as.numeric)
+        #   dplyr::mutate_at(.tbl = ., .vars = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"), .funs = as.numeric)
         # )
         clean_gl <- function(x) {
           res <- x %>%
@@ -1915,7 +1915,7 @@ tidy_genomic_data <- function(
               data = ., GL, c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
               sep = ",", extra = "drop", remove = FALSE) %>%
             dplyr::mutate_at(
-              .tbl = ., .cols = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
+              .tbl = ., .vars = c("PROB_HOM_REF", "PROB_HET", "PROB_HOM_ALT"),
               .funs = as.numeric)
           return(res)
         }
@@ -2233,7 +2233,7 @@ split_vcf_id <- function(x) {
   res <- dplyr::rename(x, ID = LOCUS) %>%
     tidyr::separate(data = ., col = ID, into = c("LOCUS", "COL"),
                     sep = "_", extra = "drop", remove = FALSE) %>%
-    dplyr::mutate_at(.tbl = ., .cols = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
+    dplyr::mutate_at(.tbl = ., .vars = c("CHROM", "POS", "LOCUS"), .funs = as.character) %>%
     tidyr::unite(MARKERS, c(CHROM, LOCUS, POS), sep = "__", remove = FALSE)
   return(res)
 }#End split_vcf_id

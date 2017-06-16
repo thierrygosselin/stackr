@@ -124,7 +124,7 @@ Default: \code{verbose = TRUE}.}
 }
 \value{
 A list is created with 3 objects:
-betaiovl: Average \eqn{\beta_i} over loci, 
+betaiovl: Average \eqn{\beta_i} over loci,
 Hw: Within population gene diversities
 Hb: Between populations gene diversities
 }
@@ -135,11 +135,11 @@ Estimate \eqn{\beta}s per population.
 \dontrun{
 # Using a  VCF file, the simplest for of the function:
 fh <- ibdg_fh(
-data = "batch_1.vcf", 
+data = "batch_1.vcf",
 strata = "strata.panda.tsv"
 )
 # To see what's inside the list
-names(fh) 
+names(fh)
 # To view the manhattan plot:
 fh$fh.manhattan.plot
 # To view the distribution of FH values:

@@ -12,10 +12,10 @@ summary_stats_vcf_tidy(data, filename = NULL)
 \item{filename}{(optional) Name of the file written to the working directory.}
 }
 \description{
-Summarise and prepare the tidy VCF. 
-Summary, by population and markers (SNP), of frequency of the REF 
-and the ALT alleles, the observed and the expected heterozygosity 
-and the inbreeding coefficient. The Global MAF of Loci, 
-with STACKS GBS/RAD loci = read or de novo haplotypes, 
+Summarise and prepare the tidy VCF.
+Summary, by population and markers (SNP), of frequency of the REF
+and the ALT alleles, the observed and the expected heterozygosity
+and the inbreeding coefficient. The Global MAF of Loci,
+with STACKS GBS/RAD loci = read or de novo haplotypes,
 is included and repeated over SNP.
 }
