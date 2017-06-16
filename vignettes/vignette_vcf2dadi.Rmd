@@ -25,12 +25,8 @@ rm(list=ls())
 
 1. Load the required libraries
 ```r
-if (!require("pacman")) install.packages("pacman")
-library("pacman")
-pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
-pacman::p_load(devtools, reshape2, ggplot2, stringr, stringi, plyr, dplyr, tidyr, readr, purrr, data.table, ape, adegenet, parallel, lazyeval, randomForestSRC)
 if (!require("stackr")){
-  install_github("thierrygosselin/stackr", build_vignettes = TRUE)
+  devtools::install_github("thierrygosselin/stackr", build_vignettes = TRUE)
   library("stackr")
 }
 ```

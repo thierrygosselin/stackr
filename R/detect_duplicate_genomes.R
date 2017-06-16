@@ -83,8 +83,6 @@
 #' @importFrom utils combn
 #' @importFrom stats na.omit var median quantile dist
 #' @importFrom amap Dist
-#' @importFrom reshape2 melt
-#' @importFrom lazyeval interp
 #' @importFrom readr write_tsv
 #' @importFrom parallel detectCores
 #' @importFrom purrr flatten map
