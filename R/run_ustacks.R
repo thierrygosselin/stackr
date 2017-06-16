@@ -527,8 +527,8 @@ run_ustacks <- function(
 
     sample.before <- length(sample.list)
 
+    sample.after <- sample.before - n.sample.assembled
     if (n.sample.assembled > 0) {
-      sample.after <- sample.before - n.sample.assembled
       sample.list <- purrr::discard(.x = sample.list, .p = sample.list %in% sample.assembled)
       message("ustacks restarted, oups...")
       message("  Number of samples in the directory: ", sample.before)
