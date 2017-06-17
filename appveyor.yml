@@ -19,7 +19,11 @@ environment:
     USE_RTOOLS: true
 
 build_script:
-  - travis-tool.sh install_deps install_bioc_deps install_github gdsfmt SNPRelate install_r R.oo R.utils
+  - travis-tool.sh install_bioc_deps
+  - travis-tool.sh install_github zhengxwen/gdsfmt
+  - travis-tool.sh install_github zhengxwen/SNPRelate
+  - travis-tool.sh install_deps
+  - travis-tool.sh install_r R.oo R.utils
 
 test_script:
   - travis-tool.sh run_tests
