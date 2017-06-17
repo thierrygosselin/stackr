@@ -48,10 +48,8 @@ To try out the dev version of **stackr**, copy/paste the code below:
 
 ```r
 if (!require("devtools")) install.packages("devtools") # to install
-source("https://bioconductor.org/biocLite.R") # for bioconductor dependencies
-biocLite() # to install bioconductor
 devtools::install_github("thierrygosselin/stackr")
-library(stackr) # to load
+library(stackr)
 ```
 
 
