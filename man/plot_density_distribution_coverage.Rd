@@ -9,7 +9,7 @@ plot_density_distribution_coverage(data, aes.colour, adjust.bin)
 \arguments{
 \item{data}{Coverage summary file.}
 
-\item{aes.colour}{GGPLOT2 aesthetics colour, 
+\item{aes.colour}{GGPLOT2 aesthetics colour,
 e.g. aes(y = ..scaled.., color = COVERAGE_GROUP).}
 
 \item{adjust.bin}{Adjust GGPLOT2 bin size (0 to 1).}

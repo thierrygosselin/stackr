@@ -1,7 +1,11 @@
-# stackr impute module
+# grur imputations module
 
 #' @name stackr_imputations_module
-#' @title Map-independent imputation of missing genotype
+#' @keywords internal
+
+
+
+#' @title Map-independent imputations of missing genotypes
 #'
 #' @description Used internally in \href{https://github.com/thierrygosselin/assigner}{assigner} and
 #' \href{https://github.com/thierrygosselin/stackr}{stackr} and
@@ -47,7 +51,8 @@
 #'
 #'
 #' Before running this function to populate the original dataset with synthetic
-#' data I highly recommend you look for patterns of missingness \code{\link[stackr]{missing_visualization}}
+#' data I highly recommend you look for patterns of missingness
+#' \code{\link[grur]{missing_visualization}}
 #' and explore the reasons for their presence.
 #' Follow the \href{https://www.dropbox.com/s/4zf032g6yjatj0a/vignette_missing_data_analysis.nb.html?dl=0}{vignette}
 #' for more info.
@@ -221,9 +226,9 @@
 #' Refer to \code{\link[randomForestSRC]{impute.rfsrc}} for arguments documentation.
 #'
 #'
-#' Multiple Correspondence Analysis option available (upcomming):
-#' \emph{ncp}.
-#' Refer to \code{\link[missMDA]{imputeMCA}} for argument documentation.
+# Multiple Correspondence Analysis option available (upcomming):
+# \emph{ncp}.
+# Refer to \code{\link[missMDA]{imputeMCA}} for argument documentation.
 
 #' @note
 #'
@@ -239,7 +244,7 @@
 #' Before conducting the imputations by populations with random forest or extreme
 #' gradient tree boosting, the data is first screened for markers that are
 #' monomorphic within populations. Because for those cases, it's clear what the
-#' missing genotypes should be, the imputations is very simple and missing
+#' missing genotypes should be, the imputations is very \emph{simple} and missing
 #' genotypes are imputed with the only genotype found for the particular population.
 #' The small cost in time is worth it, because the random forest or extreme
 #' gradient tree boosting model will benefit having more complete and
@@ -274,18 +279,16 @@
 #' @export
 #' @rdname stackr_imputations_module
 #' @importFrom parallel detectCores
-#' @importFrom dplyr distinct group_by ungroup rename arrange tally filter filter_ select select_ one_of mutate mutate_all summarise left_join funs bind_rows
+#' @importFrom dplyr distinct group_by ungroup rename arrange tally filter select select_ one_of mutate mutate_all summarise left_join funs bind_rows
 #' @importFrom tidyr gather unite drop_na
 #' @importFrom purrr map flatten keep discard flatten_chr flatten_dbl flatten_lgl
 #' @importFrom purrrlyr invoke_rows
 #' @importFrom stringi stri_replace_na
 #' @importFrom tibble has_name as_data_frame
 #' @importFrom stats predict reformulate as.formula
-#' @importFrom lazyeval interp
+#' @importFrom rlang .data
 #' @importFrom ranger ranger
-# @importFrom missRanger pmm
 #' @importFrom xgboost xgb.DMatrix cb.early.stop xgb.train
-# @importFrom base split
 #' @importFrom randomForestSRC impute.rfsrc
 #' @importFrom readr write_lines write_tsv
 
@@ -293,7 +296,7 @@
 #' \dontrun{
 #' # The simplest way to run when you have a tidy dataset:
 #'
-#' wolf.imputed <- stackr::stackr_imputations_module(data = "wolf.tidy.dataset.tsv")
+#' wolf.imputed <- grur::grur_imputations(data = "wolf.tidy.dataset.tsv")
 #'
 #' # This will impute the missing genotypes by population using random Forests.
 #' # The remaining arguments will be the defaults.
@@ -307,7 +310,7 @@
 #'     vcf.metadata = TRUE,
 #'     whitelist.markers = "whitelist.loci.txt",
 #'     verbose = TRUE) %>%
-#' stackr::stackr_imputations_module(
+#' grur::grur_imputations(
 #'     data = ., imputation.method = "boost", parallel.core = 32)
 #' }
 
@@ -343,7 +346,7 @@ stackr_imputations_module <- function(
   if (verbose) {
     cat("\n\n")
     cat("###############################################################################\n")
-    cat("##################### stackr::stackr_imputations_module #######################\n")
+    cat("########################### grur::grur_imputations ############################\n")
     cat("###############################################################################\n")
   }
   message("Imputation method: ", imputation.method)
@@ -364,7 +367,7 @@ stackr_imputations_module <- function(
   if (length(unknowned_param) > 0) {
     stop("Unknowned \"...\" parameters ",
          stringi::stri_join(unknowned_param, collapse = " "),
-         " to stackr imputation module")
+         " to grur imputation module")
   }
 
   boost.dots <- dotslist[names(dotslist) %in%
@@ -378,7 +381,7 @@ stackr_imputations_module <- function(
   if (!is.null(boost.dots[["eta"]])) {
     eta <- boost.dots[["eta"]]
   } else {
-    eta = 0.2
+    eta = 0.1
   }
 
   # gamma for minimum loss reduction (larger the number, more conservative the algorithm)
@@ -407,7 +410,7 @@ stackr_imputations_module <- function(
   if (!is.null(boost.dots[["subsample"]])) {
     subsample <- boost.dots[["subsample"]]
   } else {
-    subsample = 0.8
+    subsample = 0.5
   }
 
   # colsample_bytree: subsample ratio of columns when growing each tree
@@ -429,7 +432,7 @@ stackr_imputations_module <- function(
   if (!is.null(boost.dots[["nrounds"]])) {
     nrounds <- boost.dots[["nrounds"]]
   } else {
-    nrounds = 200
+    nrounds = 2000
   }
   # save_name: the name or path for periodically saved model file
   if (!is.null(boost.dots[["save_name"]])) {
@@ -510,7 +513,7 @@ stackr_imputations_module <- function(
     }
 
     message("Number of CPUs: ", parallel.core)
-    message("Note: If you have speed issues: follow stackr's vignette on parallel computing\n")
+    message("Note: If you have speed issues: follow grur's vignette on parallel computing\n")
     if (!is.null(filename)) message("Filename: ", filename)
   }
   # Checking for missing and/or default arguments ------------------------------
@@ -573,7 +576,7 @@ stackr_imputations_module <- function(
   } else {
     ref.column <- FALSE
   }
-  biallelic <- detect_biallelic_markers(data = input)
+  biallelic <- stackr::detect_biallelic_markers(data = input)
 
 
   # Manage Genotype Likelihood -------------------------------------------------
@@ -967,11 +970,11 @@ stackr_imputations_module <- function(
         # if (verbose) message("Imputations computed globally, take a break...")
         input.rf.imp <- list() # to store results
         input.rf.imp <- stackr_imputer(data = input,
-                                       hierarchical.levels = hierarchical.levels,
-                                       num.tree = num.tree,
-                                       pred.mean.matching = pred.mean.matching,
-                                       random.seed = random.seed,
-                                       parallel.core = parallel.core)
+                                     hierarchical.levels = hierarchical.levels,
+                                     num.tree = num.tree,
+                                     pred.mean.matching = pred.mean.matching,
+                                     random.seed = random.seed,
+                                     parallel.core = parallel.core)
       } # End imputation RF global
 
 
@@ -1137,7 +1140,7 @@ stackr_imputations_module <- function(
         dplyr::ungroup(.) %>%
         dplyr::mutate_all(.tbl = ., .funs = factor)
 
-      test <- impute_mca(x = input, ncp = 2)
+      # test <- impute_mca(x = input, ncp = 2)
 
 
       # Random Forest by pop
@@ -1146,7 +1149,6 @@ stackr_imputations_module <- function(
 
         input.split <- split(x = input, f = input$POP_ID)
         input.imp <- list()
-        # input.imp <- .stackr_parallel(
         input.imp <- parallel::mclapply(
           X = input.split,
           FUN = impute_mca,
@@ -1253,11 +1255,11 @@ stackr_imputations_module <- function(
   message("\nProportion of missing genotypes after imputations: ", na.after)
 
   # Error notices
-  if (imputation.method == "boost" && file.exists("stackr_imputations_module_error.txt")) {
+  if (imputation.method == "boost" && file.exists("grur_imputations_error.txt")) {
     message("Error notice: Tree boosting imputations encountered error(s),
-please look in the working directory for a file:
-stackr_imputations_module_error.txt
-email the problem to the author: thierrygosselin@icloud.com")
+            please look in the working directory for a file:
+            grur_imputations_error.txt
+            email the problem to the author: thierrygosselin@icloud.com")
   }
 
   if (verbose) {
@@ -1412,15 +1414,10 @@ impute_genotypes <- function(
   message("Marker: ", m)# for diagnostic
 
   # Handling complete and missing data ---------------------------------------
-  data.model <- dplyr::filter_(.data = data, lazyeval::interp(~ m != "missing", m = as.name(m))) %>%
+  data.model <- dplyr::filter(.data = data, rlang::.data[[m]] != "missing") %>%
     dplyr::mutate_all(.tbl = ., .funs = factor)
-  data.missing <- dplyr::filter_(.data = data, lazyeval::interp(~ m == "missing", m = as.name(m))) %>%
+  data.missing <- dplyr::filter(.data = data, rlang::.data[[m]] == "missing") %>%
     dplyr::select(-dplyr::one_of(m))
-
-  # data.model <- dplyr::filter_(.data = data, lazyeval::interp(~ !is.na(m), m = as.name(m)))
-  # data.missing <- dplyr::filter_(.data = data, lazyeval::interp(~is.na(m), m = as.name(m))) %>%
-
-  # test <- is.na(data.na)
 
   # If all missing screening # this should be done with marker.list before all this
   # if (nrow(data.missing) > 0) {
@@ -1606,11 +1603,11 @@ stackr_boost_imputer <- function(
   # m <- "BINDED_M711_M712"
 
   message("Imputation of marker: ", m)
-  data.complete <- dplyr::filter_(.data = input.wide, lazyeval::interp(~ !is.na(m), m = as.name(m)))
+  data.complete <- dplyr::filter(.data = input.wide, !is.na(rlang::.data[[m]]))
   data.label <- dplyr::select(.data = data.complete, dplyr::one_of(m)) %>% purrr::flatten_dbl(.)
   data.complete <- dplyr::select(.data = data.complete, -dplyr::one_of(m)) %>% as.matrix(.)
   data.complete <- xgboost::xgb.DMatrix(data = data.complete, label = data.label, missing = NA)
-  data.missing <- dplyr::filter_(.data = input.wide, lazyeval::interp(~ is.na(m), m = as.name(m)))
+  data.missing <- dplyr::filter(.data = input.wide, is.na(rlang::.data[[m]]))
 
   if (nrow(data.missing) == 0) stop("code error: email author")
 
@@ -1655,7 +1652,7 @@ stackr_boost_imputer <- function(
                              ntreelimit = boost.res$best_ntreelimit,
                              missing = NA)
   } else {
-    readr::write_lines(x = boost.res$error, path = "stackr_imputations_module_error.txt", append = TRUE)
+    readr::write_lines(x = boost.res$error, path = "grur_imputations_error.txt", append = TRUE)
     res$GT <- as.numeric(rep(NA, nrow(res)))
   }
 
@@ -1673,7 +1670,7 @@ stackr_boost_imputer <- function(
 
   # test
   # predicted <- stats::predict(boost.res, data.complete, ntreelimit = boost.res$best_ntreelimit, missing = 0)
-  # observed <- dplyr::filter_(.data = input.wide, lazyeval::interp(~m != 0, m = as.name(m))) %>%
+  # observed <- dplyr::filter(.data = input.wide, rlang::.data[[m]] != 0) %>%
   # dplyr::select(dplyr::one_of(m)) %>% purrr::flatten_dbl(.)
   # predicted
   # observed
@@ -1708,7 +1705,7 @@ encoding_snp <- function(locus.list = NULL, data = NULL) {
     dplyr::group_by(CHROM_LOCUS, POP_ID, INDIVIDUALS) %>%
     tidyr::spread(data = ., key = MARKERS, value = GT) %>%
     tidyr::unite(data = ., col = GT, -CHROM_LOCUS, -POP_ID, -INDIVIDUALS, sep = "_", remove = TRUE) %>%
-    dplyr::mutate(
+    dplyr::mutate(#Haplotype with combination of SNP and NA = NA (up for an argument?)
       GT = stringi::stri_replace_all_fixed(
         str = GT, pattern = "NA", replacement = NA, vectorize_all = FALSE),
       MARKERS = rep(binded.markers, n())

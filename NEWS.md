@@ -1,3 +1,9 @@
+# stackr v.0.5.7 2017-06-17
+
+* **stackr** works with `dplyr v.0.7.0`
+
+
+
 # stackr v.0.5.6 2017-06-08
 
 * `tidy_genomic_data`: bug fix that originated with the new version of PEGAS.

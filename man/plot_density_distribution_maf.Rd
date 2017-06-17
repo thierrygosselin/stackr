@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{plot_density_distribution_maf}
 \alias{plot_density_distribution_maf}
-\title{Figure density distribution of minor allele frequency (MAF) 
+\title{Figure density distribution of minor allele frequency (MAF)
 summary statistics.}
 \usage{
 plot_density_distribution_maf(data, maf.group, aes.colour = aes(y =
@@ -13,7 +13,7 @@ plot_density_distribution_maf(data, maf.group, aes.colour = aes(y =
 
 \item{maf.group}{The GGPLOT2 aes (e.g. aes(x = FREQ_ALT, na.rm = F)).}
 
-\item{aes.colour}{GGPLOT2 aesthetics colour, 
+\item{aes.colour}{GGPLOT2 aesthetics colour,
 e.g. aes(y = ..scaled.., color = POP_ID) or aes(y = ..count.., color = POP_ID)}
 
 \item{adjust.bin}{Adjust GGPLOT2 bin size (0 to 1).}

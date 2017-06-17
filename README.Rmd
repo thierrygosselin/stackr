@@ -107,6 +107,12 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+**v.0.5.7 2017-06-17**
+
+* **stackr** works with `dplyr v.0.7.0`
+
+
+
 **v.0.5.6 2017-06-08**
 
 * `tidy_genomic_data`: bug fix that originated with the new version of PEGAS.

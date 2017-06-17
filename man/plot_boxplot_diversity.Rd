@@ -9,7 +9,7 @@ plot_boxplot_diversity(data, aes.x.y, y.title)
 \arguments{
 \item{data}{The hapstats summary file or object.}
 
-\item{aes.x.y}{The GGPLOT2 aesthetics, 
+\item{aes.x.y}{The GGPLOT2 aesthetics,
 e.g. aes.x.y = aes(x = factor(POP_ID), y = GENE_DIVERSITY, na.rm = T).}
 
 \item{y.title}{Title of the y-axis.}

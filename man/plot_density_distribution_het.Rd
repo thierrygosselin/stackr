@@ -15,7 +15,7 @@ plot_density_distribution_het(data, pop.levels, het.group, aes.colour,
 
 \item{het.group}{= aes(x = HET_MAX, na.rm = F)}
 
-\item{aes.colour}{GGPLOT2 aesthetics colour, 
+\item{aes.colour}{GGPLOT2 aesthetics colour,
 e.g. aes(y = ..scaled.., color = GROUP).}
 
 \item{adjust.bin}{Adjust GGPLOT2 bin size (0 to 1).}

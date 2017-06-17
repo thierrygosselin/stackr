@@ -2,7 +2,7 @@
 % Please edit documentation in R/stackr_imputations_module.R
 \name{stackr_imputations_module}
 \alias{stackr_imputations_module}
-\title{Map-independent imputation of missing genotype}
+\title{Map-independent imputations of missing genotypes}
 \usage{
 stackr_imputations_module(data, imputation.method = "rf",
   hierarchical.levels = "populations", num.tree = 50,
@@ -127,7 +127,8 @@ A progress bar is now available to see if you have time for a coffee break!
 
 
 Before running this function to populate the original dataset with synthetic
-data I highly recommend you look for patterns of missingness \code{\link[stackr]{missing_visualization}}
+data I highly recommend you look for patterns of missingness
+\code{\link[grur]{missing_visualization}}
 and explore the reasons for their presence.
 Follow the \href{https://www.dropbox.com/s/4zf032g6yjatj0a/vignette_missing_data_analysis.nb.html?dl=0}{vignette}
 for more info.
@@ -228,11 +229,6 @@ Refer to \code{\link[xgboost]{xgboost}} for arguments documentation.
 Available arguments for Random forests method:
 \emph{nodesize, nsplit, nimpute}.
 Refer to \code{\link[randomForestSRC]{impute.rfsrc}} for arguments documentation.
-
-
-Multiple Correspondence Analysis option available (upcomming):
-\emph{ncp}.
-Refer to \code{\link[missMDA]{imputeMCA}} for argument documentation.
 }
 \note{
 \strong{Reference genome or linkage map available ?}
@@ -247,7 +243,7 @@ the literature
 Before conducting the imputations by populations with random forest or extreme
 gradient tree boosting, the data is first screened for markers that are
 monomorphic within populations. Because for those cases, it's clear what the
-missing genotypes should be, the imputations is very simple and missing
+missing genotypes should be, the imputations is very \emph{simple} and missing
 genotypes are imputed with the only genotype found for the particular population.
 The small cost in time is worth it, because the random forest or extreme
 gradient tree boosting model will benefit having more complete and
@@ -272,7 +268,7 @@ is now set to 10 iterations.
 \dontrun{
 # The simplest way to run when you have a tidy dataset:
 
-wolf.imputed <- stackr::stackr_imputations_module(data = "wolf.tidy.dataset.tsv")
+wolf.imputed <- grur::grur_imputations(data = "wolf.tidy.dataset.tsv")
 
 # This will impute the missing genotypes by population using random Forests.
 # The remaining arguments will be the defaults.
@@ -286,7 +282,7 @@ wolf.imp <- stackr::tidy_genomic_data(
     vcf.metadata = TRUE,
     whitelist.markers = "whitelist.loci.txt",
     verbose = TRUE) \%>\%
-stackr::stackr_imputations_module(
+grur::grur_imputations(
     data = ., imputation.method = "boost", parallel.core = 32)
 }
 }
@@ -319,3 +315,4 @@ arXiorg: 1–24.
 \author{
 Thierry Gosselin \email{thierrygosselin@icloud.com}
 }
+\keyword{internal}

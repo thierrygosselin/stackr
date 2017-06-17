@@ -9,10 +9,10 @@ plot_distribution_diversity(data, aes.x, aes.colour, x.title, y.title)
 \arguments{
 \item{data}{The hapstats summary file or object.}
 
-\item{aes.x}{GGPLOT2 aesthetics, 
+\item{aes.x}{GGPLOT2 aesthetics,
 e.g. aes.x = aes(x = GENE_DIVERSITY, na.rm = T).}
 
-\item{aes.colour}{GGPLOT2 aesthetics colour, 
+\item{aes.colour}{GGPLOT2 aesthetics colour,
 e.g. aes.colour = aes(y = ..scaled.., colour = POP_ID).}
 
 \item{x.title}{Title of the x-axis.}
