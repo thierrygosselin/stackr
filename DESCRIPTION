@@ -37,17 +37,16 @@ Imports:
     ranger,
     pbmcapply,
     xgboost,
-    SNPRelate,
     UpSetR,
     randomForestSRC,
     pegas,
     purrrlyr,
-    rlang
+    rlang,
+    SNPRelate
 Suggests:
     knitr,
     rmarkdown
-Remotes:
-    github::zhengxwen/SNPRelate
+biocViews:
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr
