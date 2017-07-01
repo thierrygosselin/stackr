@@ -17,7 +17,7 @@ tidy_dart(data, strata, output, pop.levels = NULL, blacklist.id = NULL,
   snp.ld = NULL, plot.number.snp.reads = FALSE, maf.thresholds = NULL,
   maf.pop.num.threshold = 1, maf.approach = "SNP", maf.operator = "OR",
   filename = NULL, imputation.method = NULL,
-  hierarchical.levels = "populations", verbose = FALSE,
+  hierarchical.levels = "populations", verbose = TRUE,
   parallel.core = parallel::detectCores() - 1)
 }
 \arguments{

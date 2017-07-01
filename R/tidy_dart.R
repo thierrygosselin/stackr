@@ -147,7 +147,7 @@ tidy_dart <- function(
   filename = NULL,
   imputation.method = NULL,
   hierarchical.levels = "populations",
-  verbose = FALSE,
+  verbose = TRUE,
   parallel.core = parallel::detectCores() - 1
 ) {
   # for timing
@@ -260,7 +260,7 @@ tidy_dart <- function(
     split.vec <- as.integer(floor((parallel.core * 3 * (1:n.row - 1) / n.row) + 1))
     n.row <- NULL
 
-    dart2gt <- function (x) {
+    dart2gt <- function(x) {
       res <- x %>%
         dplyr::mutate(
           REF = stringi::stri_replace_all_fixed(
@@ -434,7 +434,7 @@ tidy_dart <- function(
     res$missing.before.filters$tidy.data <- NULL
     res$missing.before.filters$tidy.data.binary <- NULL
   }
-  
+
   # Filtering reproducibility  -------------------------------------------------
   if (!is.null(filter.reproducibility)) {
     filter <- input %>%
@@ -456,7 +456,7 @@ tidy_dart <- function(
       res$blacklist.markers.reproducibility <- blacklist.markers.reproducibility
     }
     blacklist.markers.reproducibility <- NULL
-    
+
     if (plot.reproducibility) {
       data.combined <- dplyr::bind_rows(
         data.before <- input %>%
@@ -516,7 +516,7 @@ tidy_dart <- function(
   }
 
   filter <- whitelist.filter <- data.combined <- data.before <- data.after <- NULL
-  
+
   # Filtering coverage --------------------------------------------------------
   input.before.filter <- input
 
@@ -612,7 +612,7 @@ tidy_dart <- function(
   }
   filter <- whitelist.filter <- data.combined <- data.before <- data.after <- input.before.filter <- NULL
   blacklist.markers.coverage.low <- blacklist.markers.coverage.high <- NULL
-  
+
   # Filtering call rate ---------------------------------------------------------
   if (!is.null(filter.call.rate)) {
     filter <- input %>%
@@ -688,7 +688,7 @@ tidy_dart <- function(
 
   filter <- whitelist.filter <- data.combined <- data.before <- data.after <- input.before.filter <- NULL
   blacklist.call.rate <- NULL
-  
+
   # Filtering genotyped individuals --------------------------------------------
   # filter.ind.missing.geno = NULL,
   # plot.ind.missing.geno = FALSE,
@@ -753,7 +753,7 @@ tidy_dart <- function(
         ggplot2::facet_grid(~GROUP)
     }
 
-    if(!(plot.ind.missing.geno)) {
+    if (!(plot.ind.missing.geno)) {
       res$plot.ind.missing.geno <- "not selected"
     }
     input <- filter
@@ -795,7 +795,7 @@ tidy_dart <- function(
 
   filter <- whitelist.filter <- data.combined <- data.before <- data.after <- input.before.filter <- NULL
   blacklist.ind.missing.geno <- ind.geno.prop <- NULL
-  
+
   # Filtering filter.markers.missing.ind  --------------------------------------
   # filter.markers.missing.ind = NULL,
   # plot.markers.missing.ind = FALSE,
@@ -858,7 +858,7 @@ tidy_dart <- function(
         ggplot2::facet_grid(~GROUP)
     }
 
-    if(!(plot.markers.missing.ind)) {
+    if (!(plot.markers.missing.ind)) {
       res$plot.markers.missing.ind <- "not selected"
     }
     input <- filter
@@ -889,7 +889,7 @@ tidy_dart <- function(
 
   filter <- whitelist.filter <- data.combined <- data.before <- data.after <- input.before.filter <- NULL
   blacklist.marker.missing.ind.prop <- marker.missing.ind.prop <- NULL
-  
+
   # snp.ld  --------------------------------------------------------------------
 
   if (plot.number.snp.reads) {
@@ -900,8 +900,8 @@ tidy_dart <- function(
 
     res$number.snp.reads.plot <- ggplot2::ggplot(res$number.snp.reads, ggplot2::aes(factor(SNP_N))) +
       ggplot2::geom_bar() +
-      ggplot2::labs(x="Number of SNP per haplotypes (reads)") +
-      ggplot2::labs(y="Distribution (number)") +
+      ggplot2::labs(x = "Number of SNP per haplotypes (reads)") +
+      ggplot2::labs(y = "Distribution (number)") +
       ggplot2::theme(axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
                      axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
                      legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
@@ -912,7 +912,7 @@ tidy_dart <- function(
   if (!(plot.number.snp.reads)) {
     res$number.snp.reads.plot <- "not selected"
   }
-  
+
   # filter snp per reads
   if (!is.null(snp.ld)) {
     input <- snp_ld(data = input, snp.ld = snp.ld)
