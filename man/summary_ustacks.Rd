@@ -11,7 +11,7 @@ summary_ustacks(ustacks.folder, parallel.core = parallel::detectCores() - 1,
 \item{ustacks.folder}{(logical). Default: \code{mismatch.testing = FALSE}.}
 
 \item{parallel.core}{(optional) The number of core used for parallel
-execution during vcf import.
+execution.
 Default: \code{parallel::detectCores() - 1}.}
 
 \item{verbose}{(optional) Make the function a little more chatty during

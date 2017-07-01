@@ -6,7 +6,7 @@
 #' @param ustacks.folder (logical). Default: \code{mismatch.testing = FALSE}.
 
 #' @param parallel.core (optional) The number of core used for parallel
-#' execution during vcf import.
+#' execution.
 #' Default: \code{parallel::detectCores() - 1}.
 
 #' @param verbose (optional) Make the function a little more chatty during
