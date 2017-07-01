@@ -4,35 +4,37 @@
 \alias{run_sstacks}
 \title{Run STACKS sstacks module}
 \usage{
-run_sstacks(input.path = "06_ustacks_cstacks_sstacks", p = 4, b = 1,
+run_sstacks(input.path = "06_ustacks_cstacks_sstacks",
+  p = parallel::detectCores() - 1, b = "guess",
   catalog.prefix = "batch_1", sample.list = NULL,
   o = "06_ustacks_cstacks_sstacks", g = FALSE, x = FALSE, v = FALSE,
-  h = FALSE, gapped = TRUE)
+  h = FALSE, gapped = TRUE, lnl_dist = TRUE)
 }
 \arguments{
-\item{input.path}{Path to input file. 
+\item{input.path}{Path to input file.
 Default: \code{input.path = "06_ustacks_cstacks_sstacks"}}
 
-\item{p}{Enable parallel execution with num_threads threads. 
-Default: \code{p = 4}}
+\item{p}{(Integer) Enable parallel execution with num_threads threads.
+Default: \code{p = parallel::detectCores() - 1}}
 
-\item{b}{MySQL ID of this batch. 
-Default: \code{b = 1}.}
+\item{b}{(Integer) Database/batch ID of the input catalog to consider.
+Advice: don't modify the default.
+Default: \code{b = "guess"}.}
 
 \item{catalog.prefix}{This is for the \code{c} option in
-\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}. 
+\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}.
 \code{c: TSV file from which to load the catalog loci.}
 Here, you give the prefix of the catalog file and the function take cares of
-the rest. 
+the rest.
 Default: \code{catalog.prefix = "batch_1"}.}
 
 \item{sample.list}{This is for the \code{s} option in
-\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}. 
+\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}.
 \code{s: Filename prefix from which to load sample loci}.
-Here, you have 2 choices: 1. you leave empty and let the function use the 
-default:\code{sample.list = NULL} which will scan for the files in the 
+Here, you have 2 choices: 1. you leave empty and let the function use the
+default:\code{sample.list = NULL} which will scan for the files in the
 \code{input.path} folder given above. 2. you supply a character string of the
-samples. This could come from the \code{INDIVIDUALS_REP} column of the 
+samples. This could come from the \code{INDIVIDUALS_REP} column of the
 project info file, e.g. \code{sample.list = project.info$INDIVIDUALS_REP}.}
 
 \item{o}{output path to write results.
@@ -50,36 +52,46 @@ Default: \code{v = FALSE}}
 \item{h}{Display this help messsage.
 Default: \code{h = FALSE}}
 
-\item{gapped}{Gapped assembly options: do you want to preform 
+\item{gapped}{Gapped assembly options: do you want to preform
 gapped alignments between stacks.
 Default: \code{gapped = TRUE}}
+
+\item{lnl_dist}{(Logical) Print distribution of mean log likelihoods for catalog loci.
+This argument is different from \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks},
+but will save you time and help you for the next step,
+\href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}.
+Use the log-likelihood distribution to choose the appropriate filter thresholds for
+\href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}.
+Default: \code{lnl_dist = TRUE}.}
 }
 \value{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
-returns a \code{.matches.tsv.gz file for each sample}
+returns a \code{.matches.tsv.gz file for each sample}.
+If \code{lnl_dist = TRUE}, the function will also return a
+summary of catalog loci log-likelihood.
 }
 \description{
 Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
-\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks} 
+\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
 module inside R!
 Inside the folder \code{06_ustacks_cstacks_sstacks}, you should have:
 \itemize{
-  \item \strong{3 Catalog files:} the files created in 
-\href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks} 
-and usually looking like this: 
-\code{batch_1.catalog.alleles.tsv.gz, 
-batch_1.catalog.snps.tsv.gz, 
+  \item \strong{3 Catalog files:} the files created in
+\href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks}
+and usually looking like this:
+\code{batch_1.catalog.alleles.tsv.gz,
+batch_1.catalog.snps.tsv.gz,
 batch_1.catalog.tags.tsv.gz}
-  \item \strong{4 files for each samples:} The sample name is the prefix of 
+  \item \strong{4 files for each samples:} The sample name is the prefix of
   the files ending with:
 \code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
-Those files are created in the 
+Those files are created in the
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 module.
 }
 }
 \details{
-\strong{Computer or server problem during the sstacks ?} 
+\strong{Computer or server problem during the sstacks ?}
 Just launch again the same command, the function will start again, but only
 with the unmatched samples!
 }
@@ -88,18 +100,21 @@ with the unmatched samples!
 # The simplest form of the function:
 run_sstacks()
 # that's it ! Now if you have your own workflow folders, etc. Enter them like this:
-run_sstacks (input.path = "/my/input/path", p = 32, b = 2, catalog.prefix = "batch_2", 
+sstacks <- run_sstacks (input.path = "/my/input/path", p = 32, b = 2, catalog.prefix = "batch_2",
 sample.list = c("ind1", "ind2", "..."), o = "/my/output/path", g = FALSE,
 x = FALSE, gapped = FALSE)
+# Get the fig of log-likelihood of catalog loci to help decide for the best
+# rxstacks thresholds:
+sstacks$log.likelihood.fig
 }
 }
 \references{
-Catchen JM, Amores A, Hohenlohe PA et al. (2011) 
-Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences. 
+Catchen JM, Amores A, Hohenlohe PA et al. (2011)
+Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences.
 G3, 1, 171-182.
 
-Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013) 
-Stacks: an analysis tool set for population genomics. 
+Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013)
+Stacks: an analysis tool set for population genomics.
 Molecular Ecology, 22, 3124-3140.
 }
 \seealso{
