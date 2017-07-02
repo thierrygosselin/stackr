@@ -5,10 +5,10 @@
 \title{Run STACKS cstacks module}
 \usage{
 run_cstacks(b = 1, P = "06_ustacks_cstacks_sstacks",
-  M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv", g = FALSE,
-  n = 1, p = parallel::detectCores() - 1, catalog.path = NULL,
-  gapped = TRUE, max_gaps = 2, min_aln_len = 0.8, m = FALSE,
-  k_len = NULL, report_mmatches = FALSE, h = FALSE)
+  M = "population.map.catalog.tsv", g = FALSE, n = 1,
+  p = parallel::detectCores() - 1, catalog.path = NULL, gapped = TRUE,
+  max_gaps = 2, min_aln_len = 0.8, m = FALSE, k_len = NULL,
+  report_mmatches = FALSE, h = FALSE)
 }
 \arguments{
 \item{b}{database/batch ID for this catalog. Advice: don't modify.

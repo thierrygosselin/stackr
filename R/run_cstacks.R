@@ -140,7 +140,7 @@
 run_cstacks <- function(
   b = 1,
   P = "06_ustacks_cstacks_sstacks",
-  M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv",
+  M = "population.map.catalog.tsv",
   g = FALSE,
   n = 1,
   p = parallel::detectCores() - 1,

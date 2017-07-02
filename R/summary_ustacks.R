@@ -3,13 +3,13 @@
 #' @description This function reads inside the output of STACKS ustasks folder
 #' and summarise the information.
 
-#' @param ustacks.folder (logical). Default: \code{mismatch.testing = FALSE}.
+#' @param ustacks.folder (character). The path to the ustacks output files.
 
-#' @param parallel.core (optional) The number of core used for parallel
+#' @param parallel.core (integer, optional) The number of core used for parallel
 #' execution.
 #' Default: \code{parallel::detectCores() - 1}.
 
-#' @param verbose (optional) Make the function a little more chatty during
+#' @param verbose (logical, optional) Make the function a little more chatty during
 #' execution.
 #' Default: \code{verbose = FALSE}.
 

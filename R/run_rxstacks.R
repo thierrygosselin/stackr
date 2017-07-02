@@ -106,6 +106,7 @@
 #' @importFrom stats median
 #' @importFrom tidyr gather
 #' @importFrom ggplot2 ggplot geom_histogram labs facet_wrap theme element_text
+#' @importFrom tibble add_column
 
 
 #' @return \href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}
@@ -282,15 +283,16 @@ run_rxstacks <- function(
   }
 
   # logs file ------------------------------------------------------------------
-  file.date.time <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
   file.date.time <- stringi::stri_replace_all_fixed(
-    file.date.time,
-    pattern = c("-", " ", ":"),
-    replacement = c("", "@", ""),
-    vectorize_all = FALSE
-  )
-  file.date.time <- stringi::stri_sub(file.date.time, from = 1, to = 13)
-
+    str = Sys.time(),
+    pattern = " EDT", replacement = "") %>%
+    stringi::stri_replace_all_fixed(
+      str = .,
+      pattern = c("-", " ", ":"),
+      replacement = c("", "@", ""),
+      vectorize_all = FALSE
+    ) %>%
+    stringi::stri_sub(str = ., from = 1, to = 13)
   # command --------------------------------------------------------------------
   command.arguments <- paste(
     P, o, t, b, lnl_filter, lnl_lim, lnl_dist, conf_filter, conf_lim,
@@ -301,103 +303,22 @@ run_rxstacks <- function(
   system2(command = "rxstacks", args = command.arguments, stderr = rxstacks.log.file)
   res$output <- "look inside output folder"
 
-  if (print.log.likelihood) {
-    log.lik <- stackr::summary_catalog_log_lik(
-      matches.folder = rxstacks.folder,
-      parallel.core = parallel.core,
-      verbose = FALSE)
-    res$log.likelihood.summary <- log.lik$log.likelihood.summary
-    res$log.likelihood.fig <- log.lik$log.likelihood.fig
-    log.lik <- NULL
-  }
+  # summarize rxstacks output  -------------------------------------------------
+  rx.sum <- stackr::summary_rxstacks(
+    rxstacks.folder = rxstacks.folder,
+    strata = strata,
+    parallel.core = parallel.core,
+    verbose = FALSE,
+    ... = file.date.time)
 
+  res$rxstacks.correction.ind <- rx.sum$rxstacks.correction.ind
+  res$rxstacks.correction.overall <- rx.sum$rxstacks.correction.overall
+  res$rxstacks.correction.overall.proportion <- rx.sum$rxstacks.correction.overall.proportion
+  res$rxstacks.correction.filled.bar.plot <- rx.sum$rxstacks.correction.filled.bar.plot
+  res$rxstacks.correction.bar.plot <- rx.sum$rxstacks.correction.bar.plot
+  res$rxstacks.haplo <- rx.sum$rxstacks.haplo
+  res$rxstacks.snps <- rx.sum$rxstacks.snps
 
-  # Import log file created by stacks----
-  log.file <- list.files(
-    path = rxstacks.folder, pattern = "rxstacks.log", full.names = TRUE)
-  new.log.file <- stringi::stri_join("09_log_files/rxstacks_correction_summary_", file.date.time,".log")
-  file.rename(from = log.file, to = new.log.file)
-  message("\nImporting and summarizing stacks log file:\n", new.log.file)
-
-  res$rxstacks.correction.ind <- readr::read_tsv(
-    new.log.file,
-    comment = "#",
-    col_types = "ciiiiiiiiiiiii",
-    col_names = c("INDIVIDUALS", "TOTAL_NUCS", "TOTAL_NUCS_CONVERTED", "UNK_TO_HOM", "UNK_TO_HET", "HOM_TO_UNK", "HET_TO_UNK", "HOM_TO_HET", "HET_TO_HOM","BLACKLIST_CALL_HAPLOTYPE", "BLACKLIST_CONFOUNDED_LOCI", "LNL_FILTERED_LOCI", "PRUNED_HAPLOTYPES_RARE", "PRUNED_HAPLOTYPES_TREE")) %>%
-    dplyr::mutate(
-      PRUNED_HAPLOTYPES = (PRUNED_HAPLOTYPES_RARE + PRUNED_HAPLOTYPES_TREE),
-      BLACKLISTED_TOTAL = BLACKLIST_CALL_HAPLOTYPE + BLACKLIST_CONFOUNDED_LOCI + LNL_FILTERED_LOCI
-    )
-  res$rxstacks.correction.overall <- dplyr::summarise_if(
-    .tbl = res$rxstacks.correction.ind, .predicate = is.integer, .funs = mean) %>%
-    tibble::add_column(.data = ., POP_ID = "OVERALL", .before = 1)
-
-  if (!is.null(strata)) {
-    rxstacks.correction.ind.pop <- dplyr::left_join(
-      res$rxstacks.correction.ind,
-      readr::read_tsv(file = strata, col_types = "cc") %>% dplyr::rename(POP_ID = STRATA),
-      by = "INDIVIDUALS"
-    ) %>% dplyr::group_by(POP_ID)
-
-    res$rxstacks.correction.overall <- dplyr::summarise_if(
-      .tbl = rxstacks.correction.ind.pop, .predicate = is.integer, .funs = mean) %>%
-      dplyr::bind_rows(res$rxstacks.correction.overall)
-    rxstacks.correction.ind.pop <- NULL
-  }
-
-  res$rxstacks.correction.overall.proportion <- dplyr::group_by(res$rxstacks.correction.overall, POP_ID) %>%
-    dplyr::mutate(
-      NUCS_CONVERTED = TOTAL_NUCS_CONVERTED / TOTAL_NUCS,
-      BLACKLISTED = BLACKLISTED_TOTAL / TOTAL_NUCS,
-      PRUNED_HAPLOTYPES = PRUNED_HAPLOTYPES / TOTAL_NUCS,
-      NUC_NOT_CONVERTED = 1 - (NUCS_CONVERTED + BLACKLISTED+PRUNED_HAPLOTYPES),
-      UNK_TO_HOM = UNK_TO_HOM / TOTAL_NUCS_CONVERTED,
-      UNK_TO_HET = UNK_TO_HET / TOTAL_NUCS_CONVERTED,
-      HOM_TO_UNK = HOM_TO_UNK / TOTAL_NUCS_CONVERTED,
-      BLACKLIST_CALL_HAPLOTYPE = BLACKLIST_CALL_HAPLOTYPE / BLACKLISTED_TOTAL,
-      BLACKLIST_CONFOUNDED_LOCI = BLACKLIST_CONFOUNDED_LOCI / BLACKLISTED_TOTAL,
-      LNL_FILTERED_LOCI = LNL_FILTERED_LOCI / BLACKLISTED_TOTAL
-    ) %>%
-    dplyr::select(POP_ID, NUC_NOT_CONVERTED, NUCS_CONVERTED, BLACKLISTED, PRUNED_HAPLOTYPES, UNK_TO_HOM, UNK_TO_HET, HOM_TO_UNK, BLACKLIST_CALL_HAPLOTYPE, BLACKLIST_CONFOUNDED_LOCI, LNL_FILTERED_LOCI)
-
-  # Percentages to make the figure
-
-  fig.data <- tidyr::gather(res$rxstacks.correction.overall.proportion, RXSTACKS, PROPORTION, -POP_ID) %>%
-    dplyr::mutate(
-      GROUP = dplyr::if_else(
-        RXSTACKS == "NUCS_CONVERTED" | RXSTACKS == "BLACKLISTED" | RXSTACKS == "PRUNED_HAPLOTYPES" | RXSTACKS == "NUC_NOT_CONVERTED", "correction",
-        dplyr::if_else(RXSTACKS == "UNK_TO_HOM" | RXSTACKS == "UNK_TO_HET" | RXSTACKS == "HOM_TO_UNK", "converted", "blacklisted")),
-      GROUP = factor(GROUP, levels = c("correction", "converted", "blacklisted"), ordered = TRUE)
-    )
-
-  res$rxstacks.correction.filled.bar.plot <- ggplot2::ggplot(fig.data, ggplot2::aes(x = POP_ID, y = PROPORTION, fill = RXSTACKS)) +
-    ggplot2::geom_bar(stat = "identity", position = "fill") +
-    ggplot2::scale_y_continuous(expand = c(0, 0)) +
-    ggplot2::labs(y = "Proportion") +
-    ggplot2::labs(x = "Sampling sites") +
-    ggplot2::theme(
-      axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
-      axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
-      legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
-      legend.text = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
-      strip.text.y = ggplot2::element_text(angle = 0,size = 12, family = "Helvetica", face = "bold"),
-      strip.text.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold")) +
-    ggplot2::facet_wrap(~GROUP, nrow = 1, ncol = 3)
-
-
-  res$rxstacks.correction.bar.plot <- ggplot2::ggplot(fig.data, ggplot2::aes(x = POP_ID, y = PROPORTION)) +
-    ggplot2::geom_bar(stat = "identity") +
-    ggplot2::labs(y = "Proportion") +
-    ggplot2::labs(x = "Sampling sites") +
-    ggplot2::theme(
-      axis.title.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
-      axis.title.y = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
-      legend.title = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
-      legend.text = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold"),
-      strip.text.y = ggplot2::element_text(angle = 0,size = 12, family = "Helvetica", face = "bold"),
-      strip.text.x = ggplot2::element_text(size = 12, family = "Helvetica", face = "bold")) +
-    ggplot2::facet_wrap(RXSTACKS~GROUP, scales = "free", nrow = 5, ncol = 2)
-  fig.data <- NULL
 
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
