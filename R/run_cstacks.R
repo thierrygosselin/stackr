@@ -20,7 +20,7 @@
 #' }
 
 #' @param M path to a population map file (Required when P is used).
-#' Default: \code{P = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv"}.
+#' Default: \code{M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv"}.
 
 #' @param g base catalog construction on alignment position, not sequence identity.
 #' Advice: don't modify.
@@ -165,6 +165,10 @@ run_cstacks <- function(
 
   if (is.null(catalog.path)) { # no catalog path, searching in the input path...
     old.catalog <- list.files(path = P, pattern = "batch_")
+    detect.rxstacks.lnls <- list.files(path = P, pattern = "rxstacks_lnls")
+    if (length(detect.rxstacks.lnls) == 1) {
+      old.catalog <- purrr::discard(.x = old.catalog, .p = old.catalog %in% detect.rxstacks.lnls)
+    }
     if (length(old.catalog) > 0 & length(old.catalog) == 3) {
       message("Found a catalog in the input folder, using files: ")
       message(stringi::stri_join(old.catalog, "\n"))

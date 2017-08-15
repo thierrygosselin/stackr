@@ -21,7 +21,9 @@ Inside the folder \code{06_ustacks_cstacks_sstacks}, you should have:
 \code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
 Those files are created in the
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
-module.
+and
+\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
+modules.
 }}
 
 \item{o}{(Character) Output path to write results.

@@ -1,3 +1,8 @@
+# stackr v.0.5.8 2017-08-14
+
+* bug fix: removed the progress bar when using parallel computing. This is temporary, while waiting for a fix with `pbmcapply` package.
+
+
 # stackr v.0.5.7 2017-06-17
 
 * **stackr** works with `dplyr v.0.7.0`

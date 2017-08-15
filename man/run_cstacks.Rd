@@ -27,7 +27,7 @@ module.
 }}
 
 \item{M}{path to a population map file (Required when P is used).
-Default: \code{P = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv"}.}
+Default: \code{M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv"}.}
 
 \item{g}{base catalog construction on alignment position, not sequence identity.
 Advice: don't modify.

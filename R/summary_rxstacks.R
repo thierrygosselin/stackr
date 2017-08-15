@@ -158,7 +158,7 @@ summary_rxstacks <- function(
     n.col <- NULL
     rxstacks.correction.ind.pop <- suppressWarnings(dplyr::left_join(
       res$rxstacks.correction.ind, dplyr::select(strata.info, INDIVIDUALS, POP_ID), by = "INDIVIDUALS") %>%
-      dplyr::group_by(POP_ID))
+        dplyr::group_by(POP_ID))
 
     res$rxstacks.correction.overall <- dplyr::summarise_if(
       .tbl = rxstacks.correction.ind.pop, .predicate = is.integer, .funs = mean) %>%
@@ -225,53 +225,56 @@ summary_rxstacks <- function(
   # rxstacks haplotype log file ------------------------------------------------
   haplo.log.file <- list.files(
     path = rxstacks.folder, pattern = "rxstacks.haplotypes.log", full.names = TRUE)
-  new.haplo.log.file <- stringi::stri_join("09_log_files/rxstacks.haplotypes_",
-                                           file.date.time,".log")
-  file.rename(from = haplo.log.file, to = new.haplo.log.file)
-  message("\nImporting and moving stacks rxstacks haplotypes log file:\n", new.haplo.log.file)
-  message("Summarizing by individuals...")
-  res$rxstacks.haplo <- readr::read_tsv(
-    file = new.haplo.log.file,
-    comment = "#",
-    col_types = "iiiccccc",
-    col_names = c("CATALOG_LOCUS", "SQL_ID", "SAMPLE_LOCUS", "SAMPLE_HAPLOTYPE", "CATALOG_HAPLOTYPE", "CORRECTED_SAMPLE_HAPLOTYPE", "CORRECTED_CATALOG_HAPLOTYPE", "ALGORITHM")) %>%
-    dplyr::group_by(SQL_ID, ALGORITHM) %>%
-    dplyr::tally(.) %>%
-    dplyr::group_by(SQL_ID) %>%
-    tidyr::spread(data = ., key = ALGORITHM, value = n) %>%
-    dplyr::rename(RXSTACKS_MST = mst, RXSTACKS_RARE_STEP_1 = rare_step_1)
+  if (length(haplo.log.file) > 0) {
+    new.haplo.log.file <- stringi::stri_join("09_log_files/rxstacks.haplotypes_",
+                                             file.date.time, ".log")
+    file.rename(from = haplo.log.file, to = new.haplo.log.file)
+    message("\nImporting and moving stacks rxstacks haplotypes log file:\n", new.haplo.log.file)
+    message("Summarizing by individuals...")
+    res$rxstacks.haplo <- readr::read_tsv(
+      file = new.haplo.log.file,
+      comment = "#",
+      col_types = "iiiccccc",
+      col_names = c("CATALOG_LOCUS", "SQL_ID", "SAMPLE_LOCUS", "SAMPLE_HAPLOTYPE", "CATALOG_HAPLOTYPE", "CORRECTED_SAMPLE_HAPLOTYPE", "CORRECTED_CATALOG_HAPLOTYPE", "ALGORITHM")) %>%
+      dplyr::group_by(SQL_ID, ALGORITHM) %>%
+      dplyr::tally(.) %>%
+      dplyr::group_by(SQL_ID) %>%
+      tidyr::spread(data = ., key = ALGORITHM, value = n) %>%
+      dplyr::rename(RXSTACKS_MST = mst, RXSTACKS_RARE_STEP_1 = rare_step_1)
 
-  if (tibble::has_name(strata.info, "SQL_ID")) {
-    res$rxstacks.haplo <- dplyr::left_join(res$rxstacks.haplo, strata.info, by = "SQL_ID") %>%
-      dplyr::select(INDIVIDUALS, SQL_ID, POP_ID, RXSTACKS_MST, RXSTACKS_RARE_STEP_1)
+    if (tibble::has_name(strata.info, "SQL_ID")) {
+      res$rxstacks.haplo <- dplyr::left_join(res$rxstacks.haplo, strata.info, by = "SQL_ID") %>%
+        dplyr::select(INDIVIDUALS, SQL_ID, POP_ID, RXSTACKS_MST, RXSTACKS_RARE_STEP_1)
+    }
   }
 
   # rxstacks snps log file ------------------------------------------------
   snps.log.file <- list.files(
     path = rxstacks.folder, pattern = "rxstacks.snps.log", full.names = TRUE)
-  new.snps.log.file <- stringi::stri_join("09_log_files/rxstacks.snps_",
-                                          file.date.time,".log")
-  file.rename(from = snps.log.file, to = new.snps.log.file)
-  message("\nImporting and moving stacks rxstacks snps log file:\n", new.snps.log.file)
-  message("Summarizing by individuals...")
-  res$rxstacks.snps <- readr::read_tsv(
-    file = new.snps.log.file,
-    comment = "#",
-    col_types = "iiicc",
-    col_names = c("SQL_ID", "LOCUS_ID", "SNP_COL", "ORIG_VALUE", "CORR_VALUE")) %>%
-    dplyr::group_by(SQL_ID, ORIG_VALUE, CORR_VALUE) %>%
-    dplyr::tally(.) %>%
-    dplyr::ungroup(.) %>%
-    dplyr::mutate(FROM_TO = stringi::stri_join(ORIG_VALUE, "_", CORR_VALUE)) %>%
-    dplyr::select(-ORIG_VALUE, -CORR_VALUE) %>%
-    dplyr::group_by(SQL_ID) %>%
-    tidyr::spread(data = ., key = FROM_TO, value = n)
+  if (length(snps.log.file) > 0) {
+    new.snps.log.file <- stringi::stri_join("09_log_files/rxstacks.snps_",
+                                            file.date.time, ".log")
+    file.rename(from = snps.log.file, to = new.snps.log.file)
+    message("\nImporting and moving stacks rxstacks snps log file:\n", new.snps.log.file)
+    message("Summarizing by individuals...")
+    res$rxstacks.snps <- readr::read_tsv(
+      file = new.snps.log.file,
+      comment = "#",
+      col_types = "iiicc",
+      col_names = c("SQL_ID", "LOCUS_ID", "SNP_COL", "ORIG_VALUE", "CORR_VALUE")) %>%
+      dplyr::group_by(SQL_ID, ORIG_VALUE, CORR_VALUE) %>%
+      dplyr::tally(.) %>%
+      dplyr::ungroup(.) %>%
+      dplyr::mutate(FROM_TO = stringi::stri_join(ORIG_VALUE, "_", CORR_VALUE)) %>%
+      dplyr::select(-ORIG_VALUE, -CORR_VALUE) %>%
+      dplyr::group_by(SQL_ID) %>%
+      tidyr::spread(data = ., key = FROM_TO, value = n)
 
-  if (tibble::has_name(strata.info, "SQL_ID")) {
-    res$rxstacks.snps <- dplyr::left_join(res$rxstacks.snps, strata.info, by = "SQL_ID") %>%
-      dplyr::select(INDIVIDUALS, SQL_ID, POP_ID, dplyr::everything(.))
+    if (tibble::has_name(strata.info, "SQL_ID")) {
+      res$rxstacks.snps <- dplyr::left_join(res$rxstacks.snps, strata.info, by = "SQL_ID") %>%
+        dplyr::select(INDIVIDUALS, SQL_ID, POP_ID, dplyr::everything(.))
+    }
   }
-
   timing <- proc.time() - timing
   if (verbose) message("\nComputation time: ", round(timing[[3]]), " sec")
   if (verbose) cat("############################## completed ##############################\n")

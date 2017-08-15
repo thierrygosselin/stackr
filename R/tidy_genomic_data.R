@@ -783,7 +783,8 @@ tidy_genomic_data <- function(
         , by = "MARKERS") %>%
       split(x = ., f = .$SPLIT_VEC) %>%
       .stackr_parallel(
-        # parallel::mclapply(
+      # .stackr_parallel_mc(
+      # parallel::mclapply(
         X = .,
         FUN = nuc2integers,
         mc.cores = parallel.core

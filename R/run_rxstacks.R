@@ -14,7 +14,9 @@
 #' \code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
 #' Those files are created in the
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
-#' module.
+#' and
+#' \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
+#' modules.
 #' }
 
 #' @param o (Character) Output path to write results.
@@ -180,8 +182,8 @@ run_rxstacks <- function(
   parallel.core <- t
 
   # Check directory ------------------------------------------------------------
-  if (!dir.exists("07_rxstacks_cstacks_sstacks_populations")) {
-    dir.create("07_rxstacks_cstacks_sstacks_populations")
+  if (!dir.exists(o)) {
+    dir.create(o)
   }
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
 
@@ -299,10 +301,22 @@ run_rxstacks <- function(
     prune_haplo, max_haplo, model_type, alpha, bound_low, bound_high, verbose, h
   )
   rxstacks.log.file <- stringi::stri_join("09_log_files/rxstacks_", file.date.time,".log")
-  message(stringi::stri_join("For progress, look in the log file:\n", rxstacks.log.file))
+  message("For progress, look in the log file:\n", rxstacks.log.file)
   system2(command = "rxstacks", args = command.arguments, stderr = rxstacks.log.file)
   res$output <- "look inside output folder"
 
+
+  # move rxstacks_lnls.tsv -----------------------------------------------------
+  rx.log <- list.files(
+    path = rxstacks.folder, pattern = "rxstacks_lnls.tsv", full.names = TRUE)
+  if (length(rx.log) > 0) {
+    rx.log <- stringi::stri_replace_all_fixed(
+      str = rx.log, pattern = ".tsv", replacement = "", vectorize_all = FALSE)
+    new.rx.log <- stringi::stri_join(
+      "09_log_files/", "rxstacks_", file.date.time, "_", rx.log, ".log")
+    file.rename(from = rx.log, to = new.rx.log)
+    message("\nMoving stacks rxstacks distribution of mean log likelihoods file:\n", new.rx.log)
+  }
   # summarize rxstacks output  -------------------------------------------------
   rx.sum <- stackr::summary_rxstacks(
     rxstacks.folder = rxstacks.folder,
