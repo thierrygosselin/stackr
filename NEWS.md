@@ -1,3 +1,9 @@
+# stackr v.0.5.9 2017-08-15
+
+* restored progress bar when using parallel computing by installing the new dev
+version of `pbmcapply` package.
+
+
 # stackr v.0.5.8 2017-08-15
 
 * bug fix: removed the progress bar when using parallel computing. This is temporary, while waiting for a fix with `pbmcapply` package.

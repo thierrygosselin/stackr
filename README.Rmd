@@ -105,6 +105,12 @@ citation("stackr")
 ## New features
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
+
+**v.0.5.9 2017-08-15**
+
+* restored progress bar when using parallel computing by installing the new dev
+version of `pbmcapply` package.
+
 **v.0.5.8 2017-08-15**
 
 * bug fix: removed the progress bar when using parallel computing. This is temporary, while waiting for a fix with `pbmcapply` package.
