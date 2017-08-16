@@ -144,7 +144,8 @@ summary_haplotypes <- function(
   cat("#################### stackr::summary_haplotypes #######################\n")
   cat("#######################################################################\n")
   timing <- proc.time()
-
+  opt.change <- getOption("width")
+  options(width = 70)
   res <- list() # to store results
 
 
@@ -163,6 +164,23 @@ summary_haplotypes <- function(
     if (length(pop.labels) != length(pop.levels)) stop("pop.labels and pop.levels must have the same length (number of groups)")
     pop.labels <- stringi::stri_replace_all_fixed(pop.labels, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
+
+  # Date and time --------------------------------------------------------------
+  file.date <- stringi::stri_replace_all_fixed(
+    Sys.time(),
+    pattern = " EDT", replacement = "") %>%
+    stringi::stri_replace_all_fixed(
+      str = .,
+      pattern = c("-", " ", ":"), replacement = c("", "@", ""),
+      vectorize_all = FALSE) %>%
+    stringi::stri_sub(str = ., from = 1, to = 13)
+
+  path.folder <- stringi::stri_join(getwd(),"/", "summary_haplotypes_", file.date, sep = "")
+  dir.create(file.path(path.folder))
+
+  message(stringi::stri_join("Folder created: \n", path.folder))
+  file.date <- NULL #unused object
+
 
   # Import haplotype file ------------------------------------------------------
   message("Importing and tidying STACKS haplotype file: ", data)
@@ -306,7 +324,7 @@ summary_haplotypes <- function(
     message("    Generated a file with ", nrow(blacklist.loci.consensus), " consensus loci: blacklist.loci.consensus.txt")
     readr::write_tsv(
       x = blacklist.loci.consensus,
-      path = "blacklist.loci.consensus.txt",
+      path = stringi::stri_join(path.folder, "/blacklist.loci.consensus.txt"),
       col_names = TRUE
     )
 
@@ -385,7 +403,7 @@ summary_haplotypes <- function(
   artifacts.ind <- artifacts.ind %>%
     dplyr::filter(POLYMORPHISM == "artifact") %>%
     dplyr::arrange(LOCUS, POP_ID, INDIVIDUALS) %>%
-    dplyr::select(LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES, POLYMORPHISM)
+    dplyr::select(LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES, ARTIFACTS = POLYMORPHISM)
 
 
   if (nrow(artifacts.ind) > 0) {
@@ -398,8 +416,10 @@ summary_haplotypes <- function(
     } else {
       filename.artifacts.ind <- "blacklist.loci.artifacts.ind.filtered.txt"
     }
-    readr::write_tsv(x = artifacts.ind, path = filename.artifacts.ind,
-                     col_names = TRUE)
+    readr::write_tsv(
+      x = artifacts.ind,
+      path = stringi::stri_join(path.folder, "/", filename.artifacts.ind),
+      col_names = TRUE)
     message("    Generated a file with ",
             nrow(artifacts.ind),
             " artifact loci by individuals: ", filename.artifacts.ind)
@@ -409,13 +429,13 @@ summary_haplotypes <- function(
     #   dplyr::arrange(as.numeric(LOCUS), POP_ID)
 
     res$artifacts.pop <- dplyr::ungroup(artifacts.ind) %>%
-      dplyr::distinct(LOCUS, POP_ID, POLYMORPHISM) %>%
+      dplyr::distinct(LOCUS, POP_ID, ARTIFACTS) %>%
       dplyr::arrange(as.numeric(LOCUS), POP_ID)
 
     artifacts <- res$artifacts.pop %>%
       dplyr::group_by(POP_ID) %>%
       dplyr::tally(.) %>%
-      dplyr::rename(POLYMORPHISM = n)
+      dplyr::rename(ARTIFACTS = n)
 
     res$artifacts.loci <- dplyr::ungroup(res$artifacts.pop) %>%
       dplyr::distinct(LOCUS) %>%
@@ -423,8 +443,8 @@ summary_haplotypes <- function(
 
     blacklist.loci.artifacts.sum <- res$artifacts.loci %>%
       dplyr::ungroup(.) %>%
-      dplyr::summarise(POLYMORPHISM = n()) %>%
-      dplyr::select(POLYMORPHISM)
+      dplyr::summarise(ARTIFACTS = n()) %>%
+      dplyr::select(ARTIFACTS)
 
     # Write the unique list of paralogs blacklisted to a file
     if (is.null(whitelist.markers)) {
@@ -434,8 +454,10 @@ summary_haplotypes <- function(
     }
     readr::write_tsv(
       x = res$artifacts.loci,
-      path = filename.paralogs, col_names = TRUE
+      path = stringi::stri_join(path.folder, "/", filename.paralogs),
+      col_names = TRUE
     )
+
     message("    Generated a file with ", nrow(res$artifacts.loci),
             " artifact loci: ", filename.paralogs)
 
@@ -772,22 +794,22 @@ summary_haplotypes <- function(
   if (keep.consensus) {
     res$summary <- res$summary %>%
       dplyr::group_by(POP_ID) %>%
-      dplyr::mutate(TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS + ARTIFACTS) %>%
       dplyr::mutate(
-        MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
-        POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
-        CONSENSUS_PROP = round(CONSENSUS/TOTAL, 4),
-        ARTIFACTS_PROP = round(ARTIFACTS/TOTAL, 4)
+        TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS + ARTIFACTS,
+        MONOMORPHIC_PROP = round(MONOMORPHIC / TOTAL, 4),
+        POLYMORPHIC_PROP = round(POLYMORPHIC / TOTAL, 4),
+        CONSENSUS_PROP = round(CONSENSUS / TOTAL, 4),
+        ARTIFACTS_PROP = round(ARTIFACTS / TOTAL, 4)
       )
   } else {
     res$summary <- res$summary %>%
       dplyr::select(-CONSENSUS) %>%
       dplyr::group_by(POP_ID) %>%
-      dplyr::mutate(TOTAL = MONOMORPHIC + POLYMORPHIC + ARTIFACTS) %>%
       dplyr::mutate(
-        MONOMORPHIC_PROP = round(MONOMORPHIC/TOTAL, 4),
-        POLYMORPHIC_PROP = round(POLYMORPHIC/TOTAL, 4),
-        ARTIFACTS_PROP = round(ARTIFACTS/TOTAL, 4)
+        TOTAL = MONOMORPHIC + POLYMORPHIC + ARTIFACTS,
+        MONOMORPHIC_PROP = round(MONOMORPHIC / TOTAL, 4),
+        POLYMORPHIC_PROP = round(POLYMORPHIC / TOTAL, 4),
+        ARTIFACTS_PROP = round(ARTIFACTS / TOTAL, 4)
       )
   }
   res$summary <- suppressWarnings(
@@ -839,7 +861,7 @@ summary_haplotypes <- function(
     res$individual.summary,
     pi.data %>%
       dplyr::mutate(
-        PI = (stringdist::stringdist(a = ALLELE1, b = ALLELE2, method = "hamming"))/read.length
+        PI = (stringdist::stringdist(a = ALLELE1, b = ALLELE2, method = "hamming")) / read.length
       ) %>%
       dplyr::group_by(INDIVIDUALS) %>%
       dplyr::summarise(PI = mean(PI))
@@ -864,7 +886,7 @@ summary_haplotypes <- function(
       })
 
       #3 Calculate allele frequency
-      allele.freq <- table(y)/length(y)
+      allele.freq <- table(y) / length(y)
 
       #4 Calculate nucleotide diversity from pairwise mismatches and allele frequency
       pi <- apply(allele.pairwise, 2, function(y) allele.freq[y[1]] * allele.freq[y[2]])
@@ -931,7 +953,7 @@ summary_haplotypes <- function(
   } else {
     filename.sum <- "haplotype.catalog.loci.summary.pop.filtered.tsv"
   }
-  readr::write_tsv(x = res$summary, path = filename.sum)
+  readr::write_tsv(x = res$summary, path = stringi::stri_join(path.folder, "/",filename.sum))
 
   # Figures --------------------------------------------------------------------
   res$scatter.plot.ind <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
@@ -1015,5 +1037,6 @@ summary_haplotypes <- function(
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
   cat("############################## completed ##############################\n")
+  options(width = opt.change)
   return(res)
 }
