@@ -76,7 +76,7 @@
 #' @importFrom tidyr separate gather
 #' @importFrom data.table fread melt.data.table as.data.table
 #' @importFrom parallel detectCores
-#' @importFrom ggplot2 ggplot aes geom_violin geom_boxplot stat_summary labs theme element_blank element_text geom_jitter scale_colour_manual scale_y_reverse theme_light geom_bar facet_grid stat_smooth
+#' @importFrom ggplot2 ggplot aes geom_violin geom_boxplot stat_summary labs theme element_blank element_text geom_jitter scale_colour_manual scale_y_reverse theme_light geom_bar facet_grid stat_smooth ggsave
 #' @importFrom purrr flatten_chr map_df
 
 #' @return The function returns a list with:
@@ -88,11 +88,12 @@
 #' \item $individual.summary: the individual's info for FH and Pi
 #' \item $summary: the summary statistics per populations and averaged over all pops.
 #' }
-#' Also in the list 3 plots:
+#' Also in the list 3 plots (also written in the folder):
 #' \enumerate{
-#' \item $scatter.plot: showing Pi and FH
-#' \item $boxplot.pi: showing the boxplot of Pi for each populations and overall
-#' \item $boxplot.fh: showing the boxplot of FH for each populations and overall
+#' \item $scatter.plot.Pi.Fh.ind: showing Pi and FH per individuals
+#' \item $scatter.plot.Pi.Fh.pop: showing Pi and FH per pop
+#' \item $boxplot.pi: showing the boxplot of Pi per pop
+#' \item $boxplot.fh: showing the boxplot of FH per pop
 #' }
 #' use $ to access each #' objects in the list.
 #' The function potentially write 4 files in the working directory:
@@ -175,10 +176,11 @@ summary_haplotypes <- function(
       vectorize_all = FALSE) %>%
     stringi::stri_sub(str = ., from = 1, to = 13)
 
-  path.folder <- stringi::stri_join(getwd(),"/", "summary_haplotypes_", file.date, sep = "")
+  folder.extension <- stringi::stri_join("summary_haplotypes_", file.date, sep = "")
+  path.folder <- stringi::stri_join(getwd(),"/", folder.extension, sep = "")
   dir.create(file.path(path.folder))
 
-  message(stringi::stri_join("Folder created: \n", path.folder))
+  message(stringi::stri_join("Folder created: \n", folder.extension))
   file.date <- NULL #unused object
 
 
@@ -321,7 +323,8 @@ summary_haplotypes <- function(
       dplyr::ungroup(.) %>%
       dplyr::distinct(LOCUS) %>%
       dplyr::arrange(as.numeric(LOCUS))
-    message("    Generated a file with ", nrow(blacklist.loci.consensus), " consensus loci: blacklist.loci.consensus.txt")
+    message("    Generated a file with ", nrow(blacklist.loci.consensus), " consensus loci")
+    message("    Details in: blacklist.loci.consensus.txt")
     readr::write_tsv(
       x = blacklist.loci.consensus,
       path = stringi::stri_join(path.folder, "/blacklist.loci.consensus.txt"),
@@ -422,7 +425,8 @@ summary_haplotypes <- function(
       col_names = TRUE)
     message("    Generated a file with ",
             nrow(artifacts.ind),
-            " artifact loci by individuals: ", filename.artifacts.ind)
+            " artifact loci by individuals")
+    message("    Details in: ", filename.artifacts.ind)
 
     # res$artifacts.pop <- dplyr::ungroup(artifacts.ind) %>%
     #   dplyr::distinct(LOCUS, POP_ID, ARTIFACTS) %>%
@@ -459,9 +463,11 @@ summary_haplotypes <- function(
     )
 
     message("    Generated a file with ", nrow(res$artifacts.loci),
-            " artifact loci: ", filename.paralogs)
+            " artifact loci")
+    message("    Details in: ", filename.paralogs)
 
-    message("    Out of a total of ", total.genotype.number.haplo, " genotypes, ", percent.haplo, " (", erased.genotype.number, ")"," outlier genotypes will be erased")
+    message("    Out of a total of ", total.genotype.number.haplo, " genotypes")
+    message("      ", percent.haplo, " (", erased.genotype.number, ")"," outlier genotypes will be erased")
     haplotype <- suppressWarnings(
       haplotype %>%
         dplyr::mutate(
@@ -517,8 +523,8 @@ summary_haplotypes <- function(
         HOM = length(POLYMORPHISM[POLYMORPHISM == "hom"]),
         HET = length(POLYMORPHISM[POLYMORPHISM == "het"]),
         N_GENOT = HOM + HET,
-        HOM_O = HOM/N_GENOT,
-        HET_O = HET/N_GENOT
+        HOM_O = HOM / N_GENOT,
+        HET_O = HET / N_GENOT
       ) %>%
       dplyr::mutate(
         NN = 2 * N_GENOT,
@@ -532,8 +538,8 @@ summary_haplotypes <- function(
           HOM = length(POLYMORPHISM[POLYMORPHISM == "hom"]),
           HET = length(POLYMORPHISM[POLYMORPHISM == "het"]),
           N_GENOT = HOM + HET,
-          HOM_O = HOM/N_GENOT,
-          HET_O = HET/N_GENOT
+          HOM_O = HOM / N_GENOT,
+          HET_O = HET / N_GENOT
         ) %>%
         dplyr::mutate(
           NN = 2 * N_GENOT,
@@ -604,29 +610,29 @@ summary_haplotypes <- function(
   summary.pop <- summary.loc.pop %>%
     dplyr::group_by(POP_ID) %>%
     dplyr::summarise(
-      HOM_O = mean(HOM_O),
-      HET_O = mean(HET_O)
+      HOM_O = mean(HOM_O, na.rm = TRUE),
+      HET_O = mean(HET_O, na.rm = TRUE)
     ) %>%
     dplyr::full_join(
       dplyr::group_by(.data = hs, POP_ID) %>%
         dplyr::summarise(
-          HOM_E = mean(HOM_E),
+          HOM_E = mean(HOM_E, na.rm = TRUE),
           HET_E = (1 - HOM_E),
-          HS = mean(HS))
+          HS = mean(HS, na.rm = TRUE))
       , by = "POP_ID")
 
   summary.locus <- summary.loc.pop %>%
     dplyr::group_by(LOCUS) %>%
     dplyr::summarise(
-      HOM_O = mean(HOM_O),
-      HET_O = mean(HET_O)
+      HOM_O = mean(HOM_O, na.rm = TRUE),
+      HET_O = mean(HET_O, na.rm = TRUE)
     ) %>%
     dplyr::full_join(
       dplyr::group_by(.data = hs, LOCUS) %>%
         dplyr::summarise(
-          HOM_E = mean(HOM_E),
+          HOM_E = mean(HOM_E, na.rm = TRUE),
           HET_E = (1 - HOM_E),
-          HS = mean(HS))
+          HS = mean(HS, na.rm = TRUE))
       , by = "LOCUS")
 
   hs <- summary.loc.pop <- NULL
@@ -637,8 +643,8 @@ summary_haplotypes <- function(
       HOM = length(POLYMORPHISM[POLYMORPHISM == "hom"]),
       HET = length(POLYMORPHISM[POLYMORPHISM == "het"]),
       N_GENOT = HOM + HET,
-      HOM_O = HOM/N_GENOT,
-      HET_O = HET/N_GENOT
+      HOM_O = HOM / N_GENOT,
+      HET_O = HET / N_GENOT
     ) %>%
     dplyr::ungroup(.)
 
@@ -720,7 +726,7 @@ summary_haplotypes <- function(
 
   summary.pop <- summary.pop %>%
     dplyr::full_join(
-      dplyr::group_by(.data = res$individual.summary, POP_ID) %>% dplyr::summarise(FH = mean(FH))
+      dplyr::group_by(.data = res$individual.summary, POP_ID) %>% dplyr::summarise(FH = mean(FH, na.rm = TRUE))
       , by = "POP_ID") %>%
     dplyr::mutate(
       FIS = dplyr::if_else(
@@ -745,7 +751,7 @@ summary_haplotypes <- function(
     dplyr::bind_rows(
       summary.pop,
       dplyr::summarise_if(
-        .tbl = summary.pop, .predicate = is.numeric, .funs = mean) %>%
+        .tbl = summary.pop, .predicate = is.numeric, .funs = mean, na.rm = TRUE) %>%
         tibble::add_column(.data = ., POP_ID = "OVERALL", .before = 1)
     ), by = "POP_ID"))
 
@@ -864,7 +870,7 @@ summary_haplotypes <- function(
         PI = (stringdist::stringdist(a = ALLELE1, b = ALLELE2, method = "hamming")) / read.length
       ) %>%
       dplyr::group_by(INDIVIDUALS) %>%
-      dplyr::summarise(PI = mean(PI))
+      dplyr::summarise(PI = mean(PI, na.rm = TRUE))
     , by = "INDIVIDUALS")
 
   # Pi function ----------------------------------------------------------------
@@ -909,7 +915,7 @@ summary_haplotypes <- function(
       read.length = read.length
     ) %>%
       dplyr::bind_rows(.) %>%
-      dplyr::summarise(PI_NEI = mean(PI)) %>%
+      dplyr::summarise(PI_NEI = mean(PI, na.rm = TRUE)) %>%
       tibble::add_column(.data = ., POP_ID = pop, .before = "PI_NEI")
 
     return(pi.pop)
@@ -938,7 +944,7 @@ summary_haplotypes <- function(
     read.length = read.length
   ) %>%
     dplyr::bind_rows(.) %>%
-    dplyr::summarise(PI_NEI = mean(PI)) %>%
+    dplyr::summarise(PI_NEI = mean(PI, na.rm = TRUE)) %>%
     tibble::add_column(.data = ., POP_ID = "OVERALL", .before = "PI_NEI")
 
   # Combine the pop and overall data -------------------------------------------
@@ -956,7 +962,7 @@ summary_haplotypes <- function(
   readr::write_tsv(x = res$summary, path = stringi::stri_join(path.folder, "/",filename.sum))
 
   # Figures --------------------------------------------------------------------
-  res$scatter.plot.ind <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
+  res$scatter.plot.Pi.Fh.ind <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
     ggplot2::ggplot(data = ., ggplot2::aes(x = FH, y = PI)) +
     ggplot2::geom_point(ggplot2::aes(colour = POP_ID)) +
     ggplot2::stat_smooth(method = stats::lm, level = 0.95, fullrange = FALSE, na.rm = TRUE) +
@@ -970,8 +976,13 @@ summary_haplotypes <- function(
       strip.text.y = ggplot2::element_text(angle = 0, size = 10, family = "Helvetica", face = "bold"),
       strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
     )
+  ggplot2::ggsave(
+    filename = stringi::stri_join(path.folder, "/scatter.plot.Pi.Fh.ind.pdf"),
+    plot = res$scatter.plot.Pi.Fh.ind,
+    width = 20, height = 15,
+    dpi = 600, units = "cm", useDingbats = FALSE)
 
-  res$scatter.plot.pop <- dplyr::filter(res$summary, POP_ID != "OVERALL") %>%
+  res$scatter.plot.Pi.Fh.pop <- dplyr::filter(res$summary, POP_ID != "OVERALL") %>%
     ggplot2::ggplot(data = ., ggplot2::aes(x = FH, y = PI_NEI)) +
     ggplot2::geom_point(ggplot2::aes(colour = POP_ID)) +
     ggplot2::stat_smooth(method = stats::lm, level = 0.95, fullrange = FALSE, na.rm = TRUE) +
@@ -985,6 +996,11 @@ summary_haplotypes <- function(
       strip.text.y = ggplot2::element_text(angle = 0, size = 10, family = "Helvetica", face = "bold"),
       strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
     )
+  ggplot2::ggsave(
+    filename = stringi::stri_join(path.folder, "/scatter.plot.Pi.Fh.pop.pdf"),
+    plot = res$scatter.plot.Pi.Fh.pop,
+    width = 20, height = 15,
+    dpi = 600, units = "cm", useDingbats = FALSE)
 
 
   res$boxplot.pi <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
@@ -1002,6 +1018,11 @@ summary_haplotypes <- function(
       legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
       strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
     )
+  ggplot2::ggsave(
+    filename = stringi::stri_join(path.folder, "/boxplot.pi.pdf"),
+    plot = res$boxplot.pi,
+    width = 20, height = 15,
+    dpi = 600, units = "cm", useDingbats = FALSE)
 
   res$boxplot.fh <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
     ggplot2::ggplot(data = ., ggplot2::aes(x = factor(POP_ID), y = FH, na.rm = T)) +
@@ -1018,6 +1039,11 @@ summary_haplotypes <- function(
       legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
       strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
     )
+  ggplot2::ggsave(
+    filename = stringi::stri_join(path.folder, "/boxplot.fh.pdf"),
+    plot = res$boxplot.fh,
+    width = 20, height = 15,
+    dpi = 600, units = "cm", useDingbats = FALSE)
 
   # results --------------------------------------------------------------------
   cat("############################### RESULTS ###############################\n")
@@ -1025,11 +1051,13 @@ summary_haplotypes <- function(
   message("Number of individuals: ", n.individuals)
   message("Number of loci in the catalog: ", n.markers)
   if (!is.null(res$artifacts.pop)) {
-    message("    number of loci in the catalog impacted by assembly artifacts and/or sequencing errors (loci > 2 alleles) = ", dplyr::n_distinct(res$artifacts.pop$LOCUS))
-    message("    number of artefactual genotypes/total genotypes (percent): ", erased.genotype.number, "/", total.genotype.number.haplo, " (", percent.haplo, ")")
+    message("    impacted by assembly artifacts and/or sequencing errors (loci > 2 alleles) = ", dplyr::n_distinct(res$artifacts.pop$LOCUS))
   }
-  message("    number of loci in the catalog with consensus alleles = ", dplyr::n_distinct(res$consensus.pop$LOCUS))
-  message("\nFiles written in this directory: ", getwd())
+  message("    with consensus alleles = ", dplyr::n_distinct(res$consensus.pop$LOCUS))
+  if (!is.null(res$artifacts.pop)) {
+    message("Number of artefactual genotypes/total genotypes (percent): ", erased.genotype.number, "/", total.genotype.number.haplo, " (", percent.haplo, ")")
+  }
+  message("\nFiles written in: ")
   if (!is.null(res$artifacts.pop)) message(filename.artifacts.ind)
   if (!is.null(res$artifacts.pop)) message(filename.paralogs)
   message(filename.sum)

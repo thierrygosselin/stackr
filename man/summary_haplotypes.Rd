@@ -77,11 +77,12 @@ The function returns a list with:
 \item $individual.summary: the individual's info for FH and Pi
 \item $summary: the summary statistics per populations and averaged over all pops.
 }
-Also in the list 3 plots:
+Also in the list 3 plots (also written in the folder):
 \enumerate{
-\item $scatter.plot: showing Pi and FH
-\item $boxplot.pi: showing the boxplot of Pi for each populations and overall
-\item $boxplot.fh: showing the boxplot of FH for each populations and overall
+\item $scatter.plot.Pi.Fh.ind: showing Pi and FH per individuals
+\item $scatter.plot.Pi.Fh.pop: showing Pi and FH per pop
+\item $boxplot.pi: showing the boxplot of Pi per pop
+\item $boxplot.fh: showing the boxplot of FH per pop
 }
 use $ to access each #' objects in the list.
 The function potentially write 4 files in the working directory:
