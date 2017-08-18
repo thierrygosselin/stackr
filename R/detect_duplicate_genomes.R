@@ -158,7 +158,6 @@ detect_duplicate_genomes <- function(
 
   # Manage missing arguments ---------------------------------------------------
   if (missing(data)) stop("missing data argument")
-  if (missing(distance.method)) distance.method <- NULL
 
   # Import data ---------------------------------------------------------------
   if (is.vector(data)) {
