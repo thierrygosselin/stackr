@@ -4,14 +4,16 @@
 
 ------------------------------------------------------------------------
 
-stackr: an R package for the analysis of GBS/RADseq data
-========================================================
+stackr: an R package to run stacks software pipeline
+====================================================
 
 This is the development page of the **stackr**, if you want to help, see [contributions section](https://github.com/thierrygosselin/stackr#contributions)
 
 This new version of `stackr` refocus the package on running [stacks](http://catchenlab.life.illinois.edu/stacks/) sofware inside R. More on this very soon.
 
 The function for filtering, manipulating and visualizing RADseq data are now hosted in a new package: [radiator](https://github.com/thierrygosselin/radiator). Check it out!.
+
+This makes **stackr** and **radiator** simpler, and will make it easier to release fixes for bugs that only affect these packages.
 
 Installation
 ------------
