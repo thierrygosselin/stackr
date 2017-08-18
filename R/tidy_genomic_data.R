@@ -342,10 +342,13 @@ tidy_genomic_data <- function(
 
   if (verbose) {
     cat("#######################################################################\n")
-    cat("###################### stackr::tidy_genomic_data ######################\n")
+    cat("##################### stackr::tidy_genomic_data #####################\n")
     cat("#######################################################################\n")
     timing <- proc.time()
   }
+  opt.change <- getOption("width")
+  options(width = 70)
+
   # Checking for missing and/or default arguments-------------------------------
   if (missing(data)) stop("Input file missing")
 
@@ -386,7 +389,7 @@ tidy_genomic_data <- function(
       stop("The haplotype approach during MAF filtering is for VCF and
            stacks haplotypes file, only. Use the snp approach for the other file types")
     }
-  }
+    }
 
 
   # Strata argument required for VCF and haplotypes files-----------------------
@@ -473,7 +476,7 @@ tidy_genomic_data <- function(
     strata.df$POP_ID <- stringi::stri_replace_all_fixed(strata.df$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
 
-# Import VCF------------------------------------------------------------------
+  # Import VCF------------------------------------------------------------------
   if (data.type == "vcf.file") { # VCF
     if (verbose) message("Importing and tidying the VCF...")
 
@@ -482,6 +485,10 @@ tidy_genomic_data <- function(
     } else {
       import.pegas <- FALSE
     }
+
+    # detect stacks
+    stacks.vcf <- readr::read_lines(file = data, skip = 2, n_max = 1) %>%
+      stringi::stri_detect_fixed(str = ., pattern = "Stacks")
 
     # import vcf with pegas (fastest, but only GT no metadata)
     if (import.pegas) {
@@ -518,7 +525,7 @@ tidy_genomic_data <- function(
         dplyr::arrange(CHROM, LOCUS, POS)
       readr::write_tsv(x = duplicate.markers, path = "duplicated.markers.tsv")
       stop("VCF file contains duplicated CHROM, ID and POS\n
-             A file named: duplicated.markers.tsv was written in the directory")
+           A file named: duplicated.markers.tsv was written in the directory")
     }
 
     # Scan and filter with FILTER column
@@ -551,11 +558,11 @@ tidy_genomic_data <- function(
     # Unique MARKERS column
     # Since stacks v.1.44 ID as LOCUS + COL (from sumstats) the position of the SNP on the locus.
     # Choose the first 100 markers to scan
-    # sample.locus.id <- sample(x = unique(input$LOCUS), size = 100, replace = FALSE)
-    # detect.snp.col <- unique(stringi::stri_detect_fixed(str = sample.locus.id, pattern = "_"))
-    detect.snp.col <- dplyr::n_distinct(input$LOCUS) < length(input$LOCUS)
-
-    if (detect.snp.col) {
+    detect.snp.col <- sample(x = unique(input$LOCUS), size = 100, replace = FALSE) %>%
+      stringi::stri_detect_fixed(str = ., pattern = "_") %>%
+      unique
+    # detect.snp.col <- dplyr::n_distinct(input$LOCUS) < length(input$LOCUS)
+    if (detect.snp.col && stacks.vcf) {
       if (nrow(input) > 30000) {
         input <- input %>%
           dplyr::mutate(
@@ -649,10 +656,6 @@ tidy_genomic_data <- function(
     }
 
     if (!import.pegas) {
-      # GT field only
-      # if (biallelic) {
-      #   input <- dplyr::bind_cols(input, parse_genomic(x = "GT"))
-      # } else {#multi-allelic
       input <- dplyr::bind_cols(
         input,
         parse_genomic(x = "GT", data = vcf.data, return.alleles = TRUE,
@@ -783,8 +786,7 @@ tidy_genomic_data <- function(
         , by = "MARKERS") %>%
       split(x = ., f = .$SPLIT_VEC) %>%
       .stackr_parallel(
-      # .stackr_parallel_mc(
-      # parallel::mclapply(
+        # parallel::mclapply(
         X = .,
         FUN = nuc2integers,
         mc.cores = parallel.core
@@ -840,7 +842,7 @@ tidy_genomic_data <- function(
     input <- suppressWarnings(
       dplyr::select(input, dplyr::one_of(want), dplyr::everything()))
 
-  } # End import VCF
+    } # End import VCF
 
   # Import PLINK ---------------------------------------------------------------
   if (data.type == "plink.file") { # PLINK
@@ -1565,7 +1567,8 @@ tidy_genomic_data <- function(
     if (verbose) message("Erasing genotype: no")
   } else {
     if (verbose) message("Erasing genotype: yes")
-    suppressMessages(
+    want <- c("MARKERS", "CHROM", "LOCUS", "POS", "INDIVIDUALS")
+    suppressWarnings(suppressMessages(
       blacklist.genotype <- readr::read_tsv(blacklist.genotype, col_names = TRUE) %>%
         dplyr::mutate(
           INDIVIDUALS = stringi::stri_replace_all_fixed(
@@ -1574,16 +1577,10 @@ tidy_genomic_data <- function(
             replacement = c("-", "-"),
             vectorize_all = FALSE
           )
-        )
-    )
-    blacklist.genotype <- dplyr::mutate_all(
-      .tbl = blacklist.genotype, .funs = as.character, exclude = NA
-    )
+        ) %>%
+        dplyr::select(dplyr::one_of(want)) %>%
+        dplyr::mutate_all(.tbl = ., .funs = as.character, exclude = NA)))
     columns.names.blacklist.genotype <- colnames(blacklist.genotype)
-
-    if ("CHROM" %in% columns.names.blacklist.genotype) {
-      columns.names.blacklist.genotype$CHROM <- as.character(columns.names.blacklist.genotype$CHROM)
-    }
 
     if (data.type == "haplo.file") {
       blacklist.genotype <- dplyr::select(.data = blacklist.genotype, INDIVIDUALS, LOCUS)
@@ -1595,6 +1592,7 @@ tidy_genomic_data <- function(
       blacklist.genotype  %>%
         dplyr::filter(INDIVIDUALS %in% strata.df$INDIVIDUALS)
     )
+
     # control check to keep only whitelisted markers from the blacklist of genotypes
     if (!is.null(whitelist.markers)) {
       blacklist.genotype <- blacklist.genotype
@@ -1611,44 +1609,29 @@ tidy_genomic_data <- function(
       columns.names.blacklist.genotype <- colnames(blacklist.genotype)
     }
 
-    # Create a column names
+    # Update column names
     columns.names.blacklist.genotype <- colnames(blacklist.genotype)
 
-    # Add one column that will allow to include the blacklist in the dataset
-    # by x column(s) of markers
-    blacklist.genotype <- dplyr::mutate(.data = blacklist.genotype, ERASE = rep("erase", n()))
-
-    input <- suppressWarnings(
-      input %>%
-        dplyr::full_join(blacklist.genotype, by = columns.names.blacklist.genotype) %>%
-        dplyr::mutate(ERASE = stringi::stri_replace_na(str = ERASE, replacement = "ok"))
-    )
-
-    input <- dplyr::mutate(
-      input, GT = dplyr::if_else(ERASE == "erase", "000000", GT))
-
-    if (tibble::has_name(input, "GT_VCF")) {
-      input <- dplyr::mutate(
-        input, GT_VCF = dplyr::if_else(ERASE == "erase", "./.", GT_VCF))
+    input.erase <- dplyr::semi_join(input, blacklist.genotype, by = columns.names.blacklist.genotype) %>%
+      dplyr::mutate(GT = rep("000000", n()))
+    input <- dplyr::anti_join(input, blacklist.genotype, by = columns.names.blacklist.genotype)
+    if (tibble::has_name(input.erase, "GT_VCF")) {
+      input.erase <- dplyr::mutate(input.erase, GT_VCF = rep("./.", n()))
     }
 
-    if (tibble::has_name(input, "GT_VCF_NUC")) {
-      input <- dplyr::mutate(
-        input, GT_VCF_NUC = dplyr::if_else(ERASE == "erase", "./.", GT_VCF_NUC))
+    if (tibble::has_name(input.erase, "GT_VCF_NUC")) {
+      input.erase <- dplyr::mutate(input.erase, GT_VCF_NUC = rep("./.", n()))
     }
 
-    if (tibble::has_name(input, "GT_BIN")) {
-      input <- dplyr::mutate(
-        input, GT_BIN = dplyr::if_else(ERASE == "erase",
-                                       as.numeric(NA_character_), GT_BIN))
+    if (tibble::has_name(input.erase, "GT_BIN")) {
+      input.erase <- dplyr::mutate(input.erase, GT_BIN = rep(as.numeric(NA_character_), n()))
     }
-
-    input <- dplyr::select(input, -ERASE)
+    input <- dplyr::bind_rows(input, input.erase)
   } # End erase genotypes
 
   # dump unused object
-  blacklist.id <- whitelist.markers <- whitelist.markers.ind <- blacklist.genotype <- NULL
-
+  blacklist.id <- whitelist.markers <- whitelist.markers.ind <- NULL
+  want <- blacklist.genotype <- NULL
   # SNP LD  --------------------------------------------------------------------
   if (!is.null(snp.ld)) {
     if (!tibble::has_name(input, "POS")) {
@@ -1701,7 +1684,7 @@ tidy_genomic_data <- function(
     # filtering the VCF to minimize LD
     input <- input %>% dplyr::semi_join(snp.select, by = c("LOCUS", "POS"))
     if (verbose) message("Filtering the tidy VCF to minimize LD by keeping only 1 SNP per short read/haplotype")
-  } # End of snp.ld control
+    } # End of snp.ld control
 
   # Unique markers id ----------------------------------------------------------
   # we want to keep LOCUS in the vcf, but not in the other type of input file
@@ -2060,8 +2043,9 @@ tidy_genomic_data <- function(
     cat("############################## completed ##############################\n")
   }
   res <- input
+  options(width = opt.change)
   return(res)
-} # tidy genomic data
+  } # tidy genomic data
 
 
 # Internal nested Function -----------------------------------------------------
