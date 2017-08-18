@@ -32,7 +32,7 @@
 #' @param strata A tab delimited file with 2 columns with header:
 #' \code{INDIVIDUALS} and \code{STRATA}.
 #' The \code{STRATA} column can be any hierarchical grouping.
-#' To create a strata file see \code{\link[stackr]{individuals2strata}}.
+#' To create a strata file see \code{\link[radiator]{individuals2strata}}.
 #' If you have already run
 #' \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
 #' the strata file is similar to a stacks `population map file`, make sure you
@@ -60,7 +60,7 @@
 #' to keep consensus markers.
 #' Default: \code{keep.consensus = TRUE}.
 
-#' @inheritParams tidy_genomic_data
+#' @inheritParams radiator::tidy_genomic_data
 
 #' @param parallel.core (optional) The number of core for parallel
 #' programming during Pi calculations.
@@ -78,6 +78,7 @@
 #' @importFrom parallel detectCores
 #' @importFrom ggplot2 ggplot aes geom_violin geom_boxplot stat_summary labs theme element_blank element_text geom_jitter scale_colour_manual scale_y_reverse theme_light geom_bar facet_grid stat_smooth ggsave
 #' @importFrom purrr flatten_chr map_df
+#' @importFrom radiator tidy_genomic_data
 
 #' @return The function returns a list with:
 #' \enumerate{
@@ -305,7 +306,7 @@ summary_haplotypes <- function(
   strata.df <- NULL
 
   # using pop.levels and pop.labels info if present
-  haplotype <- change_pop_names(data = haplotype, pop.levels = pop.levels, pop.labels = pop.labels)
+  haplotype <- radiator::change_pop_names(data = haplotype, pop.levels = pop.levels, pop.labels = pop.labels)
 
   pop <- unique(haplotype$POP_ID)
 

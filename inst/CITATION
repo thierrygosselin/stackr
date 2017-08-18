@@ -2,10 +2,10 @@ citHeader("To cite stackr in publications use:")
 
 citEntry(
 entry="Manual",
-title = "stackr: GBS/RAD Data Exploration, Manipulation and Visualization using R",
-year = "2016",
-author = personList(as.person("Thierry Gosselin"), as.person("Louis Bernatchez")),
+title = "stackr: an R package to run stacks software pipeline",
+year = "2017",
+author = personList(as.person("Thierry Gosselin")),
 url = "https://github.com/thierrygosselin/stackr",
 doi = "http://dx.doi.org/10.5281/zenodo.154432",
-textVersion = paste("Thierry Gosselin, Louis Bernatchez, (2016). stackr: GBS/RAD Data Exploration, Manipulation and Visualization using R. R package version 0.4.6 https://github.com/thierrygosselin/stackr. doi : 10.5281/zenodo.154432")
+textVersion = paste("Thierry Gosselin (2017). stackr: an R package to run stacks software pipeline. R package version 1.0.0 https://github.com/thierrygosselin/stackr. doi : 10.5281/zenodo.154432")
 )

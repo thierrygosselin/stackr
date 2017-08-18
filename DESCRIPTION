@@ -1,16 +1,13 @@
 Package: stackr
 Type: Package
-Title: GBS/RADseq Data Exploration, Manipulation and Visualization using R
-Version: 0.5.9
-Date: 2017-08-15
+Title: stackr: an R package to run stacks software pipeline
+Version: 1.0.0
+Date: 2017-08-18
 Encoding: UTF-8
 Authors@R: c(
-  person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")),
-  person("Anne-Laure", "Ferchaud", role = "ctb"),
-  person("Manuel", "Lamothe", role = "ctb"),
-  person("Laura", "Benestan", role = "ctb"))
+  person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")))
 Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
-Description: stackr: an R package for the analysis of GBS/RADseq data.
+Description: stackr: an R package to run stacks software pipeline.
 Depends:
     R (>= 3.2.3)
 Imports:
@@ -20,36 +17,29 @@ Imports:
     tibble,
     tidyr,
     ggplot2,
-    vcfR (>= 1.3.0),
     data.table,
     reshape2,
     stringi,
     ape,
-    stringdist,
     parallel,
-    amap,
     methods,
     magrittr,
     stats,
     utils,
-    adegenet,
     pryr,
-    ranger,
     pbmcapply,
-    xgboost,
-    UpSetR,
-    randomForestSRC,
     pegas,
     purrrlyr,
     rlang,
-    SNPRelate
+    stringdist,
+    radiator
 Suggests:
     knitr,
     rmarkdown
 biocViews:
 Remotes:
-  github::zhengxwen/SNPRelate,
-  github::kvnkuang/pbmcapply
+  github::kvnkuang/pbmcapply,
+  github::thierrygosselin/radiator
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr

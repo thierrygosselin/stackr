@@ -14,7 +14,7 @@ summary_haplotypes(data, strata, read.length, whitelist.markers = NULL,
 \item{strata}{A tab delimited file with 2 columns with header:
 \code{INDIVIDUALS} and \code{STRATA}.
 The \code{STRATA} column can be any hierarchical grouping.
-To create a strata file see \code{\link[stackr]{individuals2strata}}.
+To create a strata file see \code{\link[radiator]{individuals2strata}}.
 If you have already run
 \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
 the strata file is similar to a stacks `population map file`, make sure you

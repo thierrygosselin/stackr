@@ -18,7 +18,7 @@
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
 #' @importFrom dplyr group_by tally ungroup summarise summarise_if mutate filter distinct select bind_rows n_distinct arrange
 #' @importFrom readr read_tsv
-#' @importFrom stats cor
+#' @importFrom stats cor sd
 
 #' @return The function returns a summary (data frame) containing:
 #' \enumerate{
@@ -276,7 +276,7 @@ summary_ustacks <- function(
   if (n.ind > 1) {
     message("Number of individuals: ", n.ind)
     message("Mean number of:")
-    message("  locus +/- \u00B1 SD [range]: ", round(mean.summary$LOCUS_TOTAL), " +/- ", round(sd(res$LOCUS_TOTAL)), " [", stringi::stri_join(range(res$LOCUS_TOTAL), collapse = " - "), "]")
+    message("  locus +/- \u00B1 SD [range]: ", round(mean.summary$LOCUS_TOTAL), " +/- ", round(stats::sd(res$LOCUS_TOTAL)), " [", stringi::stri_join(range(res$LOCUS_TOTAL), collapse = " - "), "]")
     message("  snp/locus [max], excluding artifact locus: ", round(mean.summary$MEAN_NUMBER_SNP_LOCUS), " [", round(mean.summary$MAX_NUMBER_SNP_LOCUS), "]")
     message("  homozygous locus: ", round(mean.summary$HOMOZYGOSITY))
     message("  heterozygous locus: ", round(mean.summary$HETEROZYGOSITY))

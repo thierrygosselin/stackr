@@ -1,3 +1,9 @@
+# stackr v.1.0.0 2017-08-18
+
+* re-focusing `stackr` on running stacks pipeline within R.
+* moving all non-essential functions in a new package called `radiator`.
+
+
 # stackr v.0.5.9 2017-08-15
 
 * restored progress bar when using parallel computing by installing the new dev
