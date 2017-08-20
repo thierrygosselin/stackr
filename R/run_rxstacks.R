@@ -308,14 +308,16 @@ run_rxstacks <- function(
 
   # move rxstacks_lnls.tsv -----------------------------------------------------
   rx.log <- list.files(
+    path = rxstacks.folder, pattern = "rxstacks_lnls.tsv", full.names = FALSE)
+  rx.log.full.path <- list.files(
     path = rxstacks.folder, pattern = "rxstacks_lnls.tsv", full.names = TRUE)
   if (length(rx.log) > 0) {
     rx.log <- stringi::stri_replace_all_fixed(
       str = rx.log, pattern = ".tsv", replacement = "", vectorize_all = FALSE)
     new.rx.log <- stringi::stri_join(
       "09_log_files/", "rxstacks_", file.date.time, "_", rx.log, ".log")
-    file.rename(from = rx.log, to = new.rx.log)
-    message("\nMoving stacks rxstacks distribution of mean log likelihoods file:\n", new.rx.log)
+    file.rename(from = rx.log.full.path, to = new.rx.log)
+    message("\nMoving stacks rxstacks distribution of mean log likelihoods file to:\n", new.rx.log)
   }
   # summarize rxstacks output  -------------------------------------------------
   rx.sum <- stackr::summary_rxstacks(
