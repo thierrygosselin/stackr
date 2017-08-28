@@ -6,7 +6,8 @@
 \usage{
 summary_haplotypes(data, strata, read.length, whitelist.markers = NULL,
   blacklist.id = NULL, keep.consensus = TRUE, pop.levels = NULL,
-  pop.labels = NULL, parallel.core = parallel::detectCores() - 1)
+  pop.labels = NULL, artifact.only = TRUE,
+  parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{data}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -62,6 +63,12 @@ Default: \code{pop.labels = NULL}. If you find this too complicated,
 there is also the \code{strata} argument that can do the same thing,
 see below.
 White spaces in population names are replaced by underscore.}
+
+\item{artifact.only}{(optional, logical) With default \code{artifact.only = TRUE},
+the function will stop after generating blacklists of artifacts and consensus loci
+(no pi, no FH measures). This is faster and useful to run at the beginning of the pipeline.
+Run again at the end, with blacklists and whitelists to get reliable estimates of
+gene diverisity, IBDG and FH.}
 
 \item{parallel.core}{(optional) The number of core for parallel
 programming during Pi calculations.

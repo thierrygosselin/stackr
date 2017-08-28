@@ -62,6 +62,12 @@
 
 #' @inheritParams radiator::tidy_genomic_data
 
+#' @param artifact.only (optional, logical) With default \code{artifact.only = TRUE},
+#' the function will stop after generating blacklists of artifacts and consensus loci
+#' (no pi, no FH measures). This is faster and useful to run at the beginning of the pipeline.
+#' Run again at the end, with blacklists and whitelists to get reliable estimates of
+#' gene diverisity, IBDG and FH.
+
 #' @param parallel.core (optional) The number of core for parallel
 #' programming during Pi calculations.
 #' Default: \code{parallel.core = parallel::detectCores() - 1}.
@@ -140,6 +146,7 @@ summary_haplotypes <- function(
   keep.consensus = TRUE,
   pop.levels = NULL,
   pop.labels = NULL,
+  artifact.only = TRUE,
   parallel.core = parallel::detectCores() - 1
 ) {
   cat("#######################################################################\n")
@@ -149,6 +156,14 @@ summary_haplotypes <- function(
   opt.change <- getOption("width")
   options(width = 70)
   res <- list() # to store results
+
+  if (artifact.only) {
+    message("artifact.only: TRUE
+    the function will only output artifacts and consensus blacklists.\n")
+  } else {
+    message("artifact.only: FALSE
+    the function will run and compute all summary statistics, time for coffee...\n")
+  }
 
 
   if (missing(data)) stop("data argument is missing")
@@ -487,20 +502,16 @@ summary_haplotypes <- function(
   consensus.artifacts <- dplyr::full_join(artifacts, consensus, by = "POP_ID")
   artifacts <- consensus <- NULL
 
-  # Summary dataframe by individual---------------------------------------------
-  message("Genome-Wide Identity-By-Descent calculations (FH)...")
-
-  # haplotype.filtered <- haplotype %>%
-  #   dplyr::filter(
-  #     WHITELIST == "whitelist",
-  #     CONSENSUS == "not_consensus",
-  #     ARTIFACTS == "not_artifact")
-
   haplotype.filtered <- haplotype %>%
     dplyr::filter(WHITELIST == "whitelist", POLYMORPHISM != "not_consensus")
 
   n.individuals <- dplyr::n_distinct(haplotype.filtered$INDIVIDUALS)
   n.markers <- dplyr::n_distinct(haplotype.filtered$LOCUS)
+
+  if (!artifact.only) {
+  # FH ------------------------------------------------------------------------
+  message("Genome-Wide Identity-By-Descent calculations (FH)...")
+
 
   # summary.ind <- dplyr::mutate(
   #   .data = haplotype.filtered,
@@ -823,229 +834,228 @@ summary_haplotypes <- function(
     dplyr::full_join(res$summary, summary.overall, by = "POP_ID"))
 
   consensus.artifacts <- blacklist.loci.consensus.sum <- blacklist.loci.artifacts.sum <- summary.overall <- NULL
+    # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
+    message("Nucleotide diversity (Pi):")
+    message("    Read length used: ", read.length)
 
-  # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
-  message("Nucleotide diversity (Pi):")
-  message("    Read length used: ", read.length)
-
-  # Pi: by individuals----------------------------------------------------------
-  message("    Pi calculations: individuals...")
-  if (keep.consensus) {
-    pi.data <- dplyr::filter(
-      haplotype,
-      !is.na(HAPLOTYPES),
-      WHITELIST == "whitelist" | !POLYMORPHISM %in% "artifact")
-  } else {
-    pi.data <- dplyr::filter(
-      haplotype,
-      !is.na(HAPLOTYPES),
-      WHITELIST == "whitelist",
-      !POLYMORPHISM %in% c("artifact", "consensus"))
-  }
-
-  separate_haplo <- function(x) {
-    res <- dplyr::select(x, LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES)  %>%
-      tidyr::separate(
-        col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
-        sep = "/", extra = "drop", remove = TRUE
-      ) %>%
-      dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
-    return(res)
-  }#End separate_haplo
-
-  n.row <- nrow(pi.data)
-  split.vec <- as.integer(floor((parallel.core * 20 * (1:n.row - 1) / n.row) + 1))
-  n.row <- NULL
-
-  pi.data <- split(x = pi.data, f = split.vec) %>%
-    .stackr_parallel_mc(
-      X = ., FUN = separate_haplo, mc.cores = parallel.core) %>%
-    dplyr::bind_rows(.)
-
-  split.vec <- NULL
-
-  res$individual.summary <- dplyr::full_join(
-    res$individual.summary,
-    pi.data %>%
-      dplyr::mutate(
-        PI = (stringdist::stringdist(a = ALLELE1, b = ALLELE2, method = "hamming")) / read.length
-      ) %>%
-      dplyr::group_by(INDIVIDUALS) %>%
-      dplyr::summarise(PI = mean(PI, na.rm = TRUE))
-    , by = "INDIVIDUALS")
-
-  # Pi function ----------------------------------------------------------------
-
-  pi <- function(data, read.length) {
-    # data <- dplyr::filter(data, LOCUS == "2")#test
-    y <- dplyr::select(data, ALLELES) %>% purrr::flatten_chr(.)
-
-    if (length(unique(y)) <= 1) {
-      pi <- tibble::data_frame(PI = as.numeric(0))
+    # Pi: by individuals----------------------------------------------------------
+    message("    Pi calculations: individuals...")
+    if (keep.consensus) {
+      pi.data <- dplyr::filter(
+        haplotype,
+        !is.na(HAPLOTYPES),
+        WHITELIST == "whitelist" | !POLYMORPHISM %in% "artifact")
     } else {
-
-      #1 Get all pairwise comparison
-      allele.pairwise <- utils::combn(unique(y), 2)
-
-      #2 Calculate pairwise nucleotide mismatches
-      pairwise.mismatches <- apply(allele.pairwise, 2, function(z) {
-        stringdist::stringdist(a = z[1], b = z[2], method = "hamming")
-      })
-
-      #3 Calculate allele frequency
-      allele.freq <- table(y) / length(y)
-
-      #4 Calculate nucleotide diversity from pairwise mismatches and allele frequency
-      pi <- apply(allele.pairwise, 2, function(y) allele.freq[y[1]] * allele.freq[y[2]])
-      pi <- tibble::data_frame(PI = sum(pi * pairwise.mismatches) / read.length)
+      pi.data <- dplyr::filter(
+        haplotype,
+        !is.na(HAPLOTYPES),
+        WHITELIST == "whitelist",
+        !POLYMORPHISM %in% c("artifact", "consensus"))
     }
-    return(pi)
-  }#End pi
 
-  pi_pop <- function(data, read.length, parallel.core) {
-    pop <- unique(data$POP_ID)
-    message("    Pi calculations for pop: ", pop)
-    # data <- df.split.pop[["DD"]]
-    # data <- df.split.pop[["SKY"]]
+    separate_haplo <- function(x) {
+      res <- dplyr::select(x, LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES)  %>%
+        tidyr::separate(
+          col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
+          sep = "/", extra = "drop", remove = TRUE
+        ) %>%
+        dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
+      return(res)
+    }#End separate_haplo
 
-    pi.pop <- split(x = data, f = data$LOCUS)
-    pi.pop <- .stackr_parallel(
-      X = pi.pop,
+    n.row <- nrow(pi.data)
+    split.vec <- as.integer(floor((parallel.core * 20 * (1:n.row - 1) / n.row) + 1))
+    n.row <- NULL
+
+    pi.data <- split(x = pi.data, f = split.vec) %>%
+      .stackr_parallel_mc(
+        X = ., FUN = separate_haplo, mc.cores = parallel.core) %>%
+      dplyr::bind_rows(.)
+
+    split.vec <- NULL
+
+    res$individual.summary <- dplyr::full_join(
+      res$individual.summary,
+      pi.data %>%
+        dplyr::mutate(
+          PI = (stringdist::stringdist(a = ALLELE1, b = ALLELE2, method = "hamming")) / read.length
+        ) %>%
+        dplyr::group_by(INDIVIDUALS) %>%
+        dplyr::summarise(PI = mean(PI, na.rm = TRUE))
+      , by = "INDIVIDUALS")
+
+    # Pi function ----------------------------------------------------------------
+
+    pi <- function(data, read.length) {
+      # data <- dplyr::filter(data, LOCUS == "2")#test
+      y <- dplyr::select(data, ALLELES) %>% purrr::flatten_chr(.)
+
+      if (length(unique(y)) <= 1) {
+        pi <- tibble::data_frame(PI = as.numeric(0))
+      } else {
+
+        #1 Get all pairwise comparison
+        allele.pairwise <- utils::combn(unique(y), 2)
+
+        #2 Calculate pairwise nucleotide mismatches
+        pairwise.mismatches <- apply(allele.pairwise, 2, function(z) {
+          stringdist::stringdist(a = z[1], b = z[2], method = "hamming")
+        })
+
+        #3 Calculate allele frequency
+        allele.freq <- table(y) / length(y)
+
+        #4 Calculate nucleotide diversity from pairwise mismatches and allele frequency
+        pi <- apply(allele.pairwise, 2, function(y) allele.freq[y[1]] * allele.freq[y[2]])
+        pi <- tibble::data_frame(PI = sum(pi * pairwise.mismatches) / read.length)
+      }
+      return(pi)
+    }#End pi
+
+    pi_pop <- function(data, read.length, parallel.core) {
+      pop <- unique(data$POP_ID)
+      message("    Pi calculations for pop: ", pop)
+      # data <- df.split.pop[["DD"]]
+      # data <- df.split.pop[["SKY"]]
+
+      pi.pop <- split(x = data, f = data$LOCUS)
+      pi.pop <- .stackr_parallel(
+        X = pi.pop,
+        FUN = pi,
+        mc.cores = parallel.core,
+        read.length = read.length
+      ) %>%
+        dplyr::bind_rows(.) %>%
+        dplyr::summarise(PI_NEI = mean(PI, na.rm = TRUE)) %>%
+        tibble::add_column(.data = ., POP_ID = pop, .before = "PI_NEI")
+
+      return(pi.pop)
+    }#End pi_pop
+
+    # Pi: by pop------------------------------------------------------------------
+    message("    Pi calculations: populations...")
+    pi.data <- pi.data %>%
+      tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, INDIVIDUALS, POP_ID))
+
+    pi.pop <- pi.data %>%
+      split(x = ., f = .$POP_ID) %>%
+      purrr::map_df(
+        .x = ., .f = pi_pop,
+        read.length = read.length, parallel.core = parallel.core
+      )
+
+    # Pi: overall  ---------------------------------------------------------------
+    message("    Pi calculations: overall")
+    pi.overall <- split(x = pi.data, f = pi.data$LOCUS)
+    pi.data <- NULL
+    pi.overall <- .stackr_parallel(
+      X = pi.overall,
       FUN = pi,
       mc.cores = parallel.core,
       read.length = read.length
     ) %>%
       dplyr::bind_rows(.) %>%
       dplyr::summarise(PI_NEI = mean(PI, na.rm = TRUE)) %>%
-      tibble::add_column(.data = ., POP_ID = pop, .before = "PI_NEI")
+      tibble::add_column(.data = ., POP_ID = "OVERALL", .before = "PI_NEI")
 
-    return(pi.pop)
-  }#End pi_pop
+    # Combine the pop and overall data -------------------------------------------
+    pi.overall <- suppressWarnings(
+      dplyr::bind_rows(pi.pop, pi.overall))
+    pi.pop <- NULL
+    res$summary <- suppressWarnings(dplyr::full_join(res$summary, pi.overall, by = "POP_ID"))
+    pi.overall <- NULL
 
-  # Pi: by pop------------------------------------------------------------------
-  message("    Pi calculations: populations...")
-  pi.data <- pi.data %>%
-    tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, INDIVIDUALS, POP_ID))
+    if (is.null(whitelist.markers)) {
+      filename.sum <- "haplotype.catalog.loci.summary.pop.tsv"
+    } else {
+      filename.sum <- "haplotype.catalog.loci.summary.pop.filtered.tsv"
+    }
+    readr::write_tsv(x = res$summary, path = stringi::stri_join(path.folder, "/",filename.sum))
 
-  pi.pop <- pi.data %>%
-    split(x = ., f = .$POP_ID) %>%
-    purrr::map_df(
-      .x = ., .f = pi_pop,
-      read.length = read.length, parallel.core = parallel.core
-    )
+    # Figures --------------------------------------------------------------------
+    res$scatter.plot.Pi.Fh.ind <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
+      ggplot2::ggplot(data = ., ggplot2::aes(x = FH, y = PI)) +
+      ggplot2::geom_point(ggplot2::aes(colour = POP_ID)) +
+      ggplot2::stat_smooth(method = stats::lm, level = 0.95, fullrange = FALSE, na.rm = TRUE) +
+      ggplot2::labs(x = "Individual IBDg (FH)") +
+      ggplot2::labs(y = "Individual nucleotide diversity (Pi)") +
+      ggplot2::theme(
+        axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        legend.title = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        strip.text.y = ggplot2::element_text(angle = 0, size = 10, family = "Helvetica", face = "bold"),
+        strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
+      )
+    ggplot2::ggsave(
+      filename = stringi::stri_join(path.folder, "/scatter.plot.Pi.Fh.ind.pdf"),
+      plot = res$scatter.plot.Pi.Fh.ind,
+      width = 20, height = 15,
+      dpi = 600, units = "cm", useDingbats = FALSE)
 
-  # Pi: overall  ---------------------------------------------------------------
-  message("    Pi calculations: overall")
-  pi.overall <- split(x = pi.data, f = pi.data$LOCUS)
-  pi.data <- NULL
-  pi.overall <- .stackr_parallel(
-    X = pi.overall,
-    FUN = pi,
-    mc.cores = parallel.core,
-    read.length = read.length
-  ) %>%
-    dplyr::bind_rows(.) %>%
-    dplyr::summarise(PI_NEI = mean(PI, na.rm = TRUE)) %>%
-    tibble::add_column(.data = ., POP_ID = "OVERALL", .before = "PI_NEI")
+    res$scatter.plot.Pi.Fh.pop <- dplyr::filter(res$summary, POP_ID != "OVERALL") %>%
+      ggplot2::ggplot(data = ., ggplot2::aes(x = FH, y = PI_NEI)) +
+      ggplot2::geom_point(ggplot2::aes(colour = POP_ID)) +
+      ggplot2::stat_smooth(method = stats::lm, level = 0.95, fullrange = FALSE, na.rm = TRUE) +
+      ggplot2::labs(x = "Individual IBDg (FH)") +
+      ggplot2::labs(y = "Individual nucleotide diversity (Pi)") +
+      ggplot2::theme(
+        axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        legend.title = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        strip.text.y = ggplot2::element_text(angle = 0, size = 10, family = "Helvetica", face = "bold"),
+        strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
+      )
+    ggplot2::ggsave(
+      filename = stringi::stri_join(path.folder, "/scatter.plot.Pi.Fh.pop.pdf"),
+      plot = res$scatter.plot.Pi.Fh.pop,
+      width = 20, height = 15,
+      dpi = 600, units = "cm", useDingbats = FALSE)
 
-  # Combine the pop and overall data -------------------------------------------
-  pi.overall <- suppressWarnings(
-    dplyr::bind_rows(pi.pop, pi.overall))
-  pi.pop <- NULL
-  res$summary <- suppressWarnings(dplyr::full_join(res$summary, pi.overall, by = "POP_ID"))
-  pi.overall <- NULL
 
-  if (is.null(whitelist.markers)) {
-    filename.sum <- "haplotype.catalog.loci.summary.pop.tsv"
-  } else {
-    filename.sum <- "haplotype.catalog.loci.summary.pop.filtered.tsv"
+    res$boxplot.pi <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
+      ggplot2::ggplot(data = ., ggplot2::aes(x = factor(POP_ID), y = PI, na.rm = TRUE)) +
+      ggplot2::geom_violin(trim = F) +
+      ggplot2::geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA) +
+      ggplot2::stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
+      ggplot2::labs(x = "Sampling sites") +
+      ggplot2::labs(y = "Individual nucleotide diversity (Pi)") +
+      ggplot2::theme(
+        legend.position = "none",
+        axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        legend.title = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
+      )
+    ggplot2::ggsave(
+      filename = stringi::stri_join(path.folder, "/boxplot.pi.pdf"),
+      plot = res$boxplot.pi,
+      width = 20, height = 15,
+      dpi = 600, units = "cm", useDingbats = FALSE)
+
+    res$boxplot.fh <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
+      ggplot2::ggplot(data = ., ggplot2::aes(x = factor(POP_ID), y = FH, na.rm = T)) +
+      ggplot2::geom_violin(trim = F) +
+      ggplot2::geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA) +
+      ggplot2::stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
+      ggplot2::labs(x = "Sampling sites") +
+      ggplot2::labs(y = "Individual IBDg (FH)") +
+      ggplot2::theme(
+        legend.position = "none",
+        axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        legend.title = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
+        strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
+      )
+    ggplot2::ggsave(
+      filename = stringi::stri_join(path.folder, "/boxplot.fh.pdf"),
+      plot = res$boxplot.fh,
+      width = 20, height = 15,
+      dpi = 600, units = "cm", useDingbats = FALSE)
   }
-  readr::write_tsv(x = res$summary, path = stringi::stri_join(path.folder, "/",filename.sum))
-
-  # Figures --------------------------------------------------------------------
-  res$scatter.plot.Pi.Fh.ind <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
-    ggplot2::ggplot(data = ., ggplot2::aes(x = FH, y = PI)) +
-    ggplot2::geom_point(ggplot2::aes(colour = POP_ID)) +
-    ggplot2::stat_smooth(method = stats::lm, level = 0.95, fullrange = FALSE, na.rm = TRUE) +
-    ggplot2::labs(x = "Individual IBDg (FH)") +
-    ggplot2::labs(y = "Individual nucleotide diversity (Pi)") +
-    ggplot2::theme(
-      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      legend.title = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      strip.text.y = ggplot2::element_text(angle = 0, size = 10, family = "Helvetica", face = "bold"),
-      strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
-    )
-  ggplot2::ggsave(
-    filename = stringi::stri_join(path.folder, "/scatter.plot.Pi.Fh.ind.pdf"),
-    plot = res$scatter.plot.Pi.Fh.ind,
-    width = 20, height = 15,
-    dpi = 600, units = "cm", useDingbats = FALSE)
-
-  res$scatter.plot.Pi.Fh.pop <- dplyr::filter(res$summary, POP_ID != "OVERALL") %>%
-    ggplot2::ggplot(data = ., ggplot2::aes(x = FH, y = PI_NEI)) +
-    ggplot2::geom_point(ggplot2::aes(colour = POP_ID)) +
-    ggplot2::stat_smooth(method = stats::lm, level = 0.95, fullrange = FALSE, na.rm = TRUE) +
-    ggplot2::labs(x = "Individual IBDg (FH)") +
-    ggplot2::labs(y = "Individual nucleotide diversity (Pi)") +
-    ggplot2::theme(
-      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      legend.title = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      strip.text.y = ggplot2::element_text(angle = 0, size = 10, family = "Helvetica", face = "bold"),
-      strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
-    )
-  ggplot2::ggsave(
-    filename = stringi::stri_join(path.folder, "/scatter.plot.Pi.Fh.pop.pdf"),
-    plot = res$scatter.plot.Pi.Fh.pop,
-    width = 20, height = 15,
-    dpi = 600, units = "cm", useDingbats = FALSE)
-
-
-  res$boxplot.pi <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
-    ggplot2::ggplot(data = ., ggplot2::aes(x = factor(POP_ID), y = PI, na.rm = TRUE)) +
-    ggplot2::geom_violin(trim = F) +
-    ggplot2::geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA) +
-    ggplot2::stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
-    ggplot2::labs(x = "Sampling sites") +
-    ggplot2::labs(y = "Individual nucleotide diversity (Pi)") +
-    ggplot2::theme(
-      legend.position = "none",
-      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      legend.title = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
-    )
-  ggplot2::ggsave(
-    filename = stringi::stri_join(path.folder, "/boxplot.pi.pdf"),
-    plot = res$boxplot.pi,
-    width = 20, height = 15,
-    dpi = 600, units = "cm", useDingbats = FALSE)
-
-  res$boxplot.fh <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%
-    ggplot2::ggplot(data = ., ggplot2::aes(x = factor(POP_ID), y = FH, na.rm = T)) +
-    ggplot2::geom_violin(trim = F) +
-    ggplot2::geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA) +
-    ggplot2::stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
-    ggplot2::labs(x = "Sampling sites") +
-    ggplot2::labs(y = "Individual IBDg (FH)") +
-    ggplot2::theme(
-      legend.position = "none",
-      axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      legend.title = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      legend.text = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
-      strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
-    )
-  ggplot2::ggsave(
-    filename = stringi::stri_join(path.folder, "/boxplot.fh.pdf"),
-    plot = res$boxplot.fh,
-    width = 20, height = 15,
-    dpi = 600, units = "cm", useDingbats = FALSE)
-
   # results --------------------------------------------------------------------
   cat("############################### RESULTS ###############################\n")
   message("Number of populations: ", length(pop))
@@ -1061,7 +1071,7 @@ summary_haplotypes <- function(
   message("\nFiles written in: ")
   if (!is.null(res$artifacts.pop)) message(filename.artifacts.ind)
   if (!is.null(res$artifacts.pop)) message(filename.paralogs)
-  message(filename.sum)
+  if (!artifact.only) message(filename.sum)
   if (!is.null(res$consensus.loci)) message("blacklist.loci.consensus.txt")
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
