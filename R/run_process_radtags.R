@@ -7,7 +7,7 @@
 
 #' @param project.info (character, path) Path to the project info file.
 #' The file is tab separated and as 3 columns named: \code{LANES}, \code{BRACODES}
-#' and \code{INDIVIDUALS}.
+#' and \code{INDIVIDUALS}. See details for more info.
 
 #' @param path.seq.lanes (character, path) Path to sequencing lanes if
 #' processing single-end sequences.
@@ -131,20 +131,73 @@
 #' @importFrom purrr keep walk pwalk pmap
 #' @importFrom tibble data_frame
 
-#' @return see \href{http://catchenlab.life.illinois.edu/stacks/comp/process_radtags.php}{process_radtags}.
+#' @return For stacks specific output see \href{http://catchenlab.life.illinois.edu/stacks/comp/process_radtags.php}{process_radtags}.
+#'
+#'
 
 
 #' @details
-#' \strong{Power outage? No problem:}
+#' \strong{Step 1. Individual naming}
 #'
-#' Restart the function as it was. After the re-start the project info file
-#' will be used. This ensure: i) that the unique SQL ids are not duplicated and
-#' ii) that run_process_radtags can start at the sample is was before the outage.
+#' Please take a moment to think about the way you want to name your individuals...
+#' Here is my recipe:
+#' \enumerate{
+#' \item Include metadata: SPECIES, POPULATIONS or SAMPLING SITES, MATURITY, YEAR of sampling, numerical ID with 3 to 4 digits.
+#' \item 3 letters in ALL CAPS: capital letters are easier to read and will reduce confusion for other
+#' people in deciphering your handwritting or the font you've used. The 3 letters will keep it short.
+#' \item only 1 type of separator: the dash (-): why? it's the easiest separator to avoid confusion.
+#' Please avoid the underscore (_) as it will sometimes be impossible to tell
+#' if it's a whitespace or an underscore in printd lists or even in some codes.
+#'
+#' \strong{example:}
+#'
+#' Following this convention: SPECIES-POP-MATURITY-YEAR-ID
+#'
+#' My ids: STU-QUE-ADU-2017-0001, STU-ONT-JUV-2016-0002
+#'
+#' \strong{Species: }Sturgeon
+#'
+#' \strong{Sampling site: }Québec and Ontario
+#'
+#' \strong{Year of sampling: } 2016 and 2017
+#'
+#' \strong{MATURITY: } adult and juvenile
+#'
+#' \strong{ID: } 2 samples 0001 and 0002
+#' }
+#'
+#' \strong{Step 2. project info file:}
+#'
+#' Create a tab separated file (e.g. in MS Excel) with 3 columns named:
+#' \code{LANES}, \code{BRACODES} and \code{INDIVIDUALS}.
+#' For each individuals you've just created,
+#' give the barcodes and lanes name.
+#'
+#' \strong{REPLICATES ?}
+#'
+#' You have replicates? Awesome. stackr makes it easy to keep track of replicates.
+#' Use the same name for individual replicates. They will have different barcodes,
+#' and can potentially be on different lanes. No problem. stackr will combine
+#' fastq file at the end, keeping original replicates intact. However, stackr
+#' will be appending integers (e.g. STU-QUE-ADU-2017-0001-1, STU-QUE-ADU-2017-0001-2)
+#' at the end of the names you've chosen). Combined replicates
+#' will have -R at the end (e.g STU-QUE-ADU-2017-0001-R for the combination of the 2 replicates.)
+
 
 
 #' @examples
 #' \dontrun{
-#' to do
+#' # library(stackr)
+#' # If you haven't already build the folders to store all the files:
+#' # stackr::build_stackr_workflow_dir()
+#' #
+#' # run a double digest process_radtags within R:
+#' process.radtags.tuna <- stackr::run_process_radtags(
+#' project.info = "02_project_info/project.info.tuna.tsv",
+#' path.seq.lanes = "03_sequencing_lanes",
+#' renz_1 = "pstI", renz_2 = "mspI",
+#' adapter_1 = "CGAGATCGGAAGAGCGGG", adapter_mm = 2)
+#' # remaining arguments are defaults, so carefully look at them in the doc.
 #' }
 
 
@@ -269,13 +322,14 @@ run_process_radtags <- function(
     dplyr::arrange(LANES_SHORT)
   # write_tsv(sample.per.lanes, "sample.per.lanes.tsv")
 
-  # get the list of sequencing lane names
-  lane.list <- list.files(path = path.seq.lanes, full.names = TRUE)
-
+  # get the list of sequencing lane present in the folder
+  # lane.list <- list.files(path = path.seq.lanes, full.names = TRUE)
   # check lanes in project info file and directory
-  # lane.names <- list.files(path = path.seq.lanes, full.names = FALSE)
-  # no.problem <- identical(lane.names, unique(project.info.file$LANES))
-  # if (!no.problem) stop("Lane names don't match between project info file and lanes in folder...")
+  lane.names <- list.files(path = path.seq.lanes, full.names = FALSE)
+  lanes.todo <- unique(project.info.file$LANES)
+  no.problem <- unique(lanes.todo %in% lane.names)
+  if (!no.problem || length(no.problem) > 1) stop("Lane names don't match between project info file and lanes in folder...")
+  lane.list <- stringi::stri_join(path.seq.lanes, "/", lanes.todo)
 
   process_radtags_lane <- function(
     lane.list,
@@ -314,7 +368,7 @@ run_process_radtags <- function(
     len_limit = NULL,
     barcode_dist_1 = 1,
     barcode_dist_2 = NULL
-    ) {
+  ) {
     # lane.list <- "03_sequencing_lanes/HI.2385.001.GQ20141028-1_R1.fastq.gz" # test
     f <- lane.list
 
@@ -724,7 +778,7 @@ run_process_radtags <- function(
   purrr::walk(.x = folder.list, .f = remove_lane_folder)
 
   # combine replicates in a new fq file-----------------------------------------
-  message("Scanning for replicates...")
+  # message("Scanning for replicates...")
   project.info.file <- project.info.file %>%
     dplyr::mutate(FQ_FILES = stringi::stri_join(INDIVIDUALS_REP, ".fq.gz")) %>%
     dplyr::inner_join(process.radtags.results, by = "INDIVIDUALS_REP")
@@ -816,7 +870,7 @@ run_process_radtags <- function(
     dplyr::mutate(
       SQL_ID = seq(1, n()),
     )
-  message("Updating info fiel with SQL ID")
+  message("Updating info file with SQL ID")
 
   # With Amazon
   # project.info.file.sqlid <- project.info.file.sqlid %>%
@@ -824,13 +878,13 @@ run_process_radtags <- function(
   #     INSTANCE_NUMBER = factor(
   #       cut(x = 1:n(), breaks = instance.number, labels = FALSE))
   #   )
-
-  readr::write_tsv(
-    project.info.file.sqlid,
-    stringi::stri_join("02_project_info/project.info.", file.date, ".tsv"))
-
+  new.info.file.name <- stringi::stri_join("02_project_info/project.info.", file.date, ".tsv")
+  readr::write_tsv(project.info.file.sqlid, new.info.file.name)
+  message("New project info, see: ", new.info.file.name)
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
   cat("############################## completed ##############################\n")
-  return(project.info.file.sqlid)
+  res <- list(project.info = project.info.file.sqlid,
+              sample.per.lanes = sample.per.lanes)
+  return(res)
 } #End run_process_radtags

@@ -20,7 +20,7 @@ run_process_radtags(project.info, path.seq.lanes = "03_sequencing_lanes",
 \arguments{
 \item{project.info}{(character, path) Path to the project info file.
 The file is tab separated and as 3 columns named: \code{LANES}, \code{BRACODES}
-and \code{INDIVIDUALS}.}
+and \code{INDIVIDUALS}. See details for more info.}
 
 \item{path.seq.lanes}{(character, path) Path to sequencing lanes if
 processing single-end sequences.
@@ -159,7 +159,7 @@ programming.
 Default: \code{parallel.core = parallel::detectCores() - 1}.}
 }
 \value{
-see \href{http://catchenlab.life.illinois.edu/stacks/comp/process_radtags.php}{process_radtags}.
+For stacks specific output see \href{http://catchenlab.life.illinois.edu/stacks/comp/process_radtags.php}{process_radtags}.
 }
 \description{
 Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
@@ -168,15 +168,65 @@ module inside R. This function was tested on single-end sequences only.
 If you want to contribute with other types of RAD data, let me know.
 }
 \details{
-\strong{Power outage? No problem:}
+\strong{Step 1. Individual naming}
 
-Restart the function as it was. After the re-start the project info file
-will be used. This ensure: i) that the unique SQL ids are not duplicated and
-ii) that run_process_radtags can start at the sample is was before the outage.
+Please take a moment to think about the way you want to name your individuals...
+Here is my recipe:
+\enumerate{
+\item Include metadata: SPECIES, POPULATIONS or SAMPLING SITES, MATURITY, YEAR of sampling, numerical ID with 3 to 4 digits.
+\item 3 letters in ALL CAPS: capital letters are easier to read and will reduce confusion for other
+people in deciphering your handwritting or the font you've used. The 3 letters will keep it short.
+\item only 1 type of separator: the dash (-): why? it's the easiest separator to avoid confusion.
+Please avoid the underscore (_) as it will sometimes be impossible to tell
+if it's a whitespace or an underscore in printd lists or even in some codes.
+
+\strong{example:}
+
+Following this convention: SPECIES-POP-MATURITY-YEAR-ID
+
+My ids: STU-QUE-ADU-2017-0001, STU-ONT-JUV-2016-0002
+
+\strong{Species: }Sturgeon
+
+\strong{Sampling site: }Québec and Ontario
+
+\strong{Year of sampling: } 2016 and 2017
+
+\strong{MATURITY: } adult and juvenile
+
+\strong{ID: } 2 samples 0001 and 0002
+}
+
+\strong{Step 2. project info file:}
+
+Create a tab separated file (e.g. in MS Excel) with 3 columns named:
+\code{LANES}, \code{BRACODES} and \code{INDIVIDUALS}.
+For each individuals you've just created,
+give the barcodes and lanes name.
+
+\strong{REPLICATES ?}
+
+You have replicates? Awesome. stackr makes it easy to keep track of replicates.
+Use the same name for individual replicates. They will have different barcodes,
+and can potentially be on different lanes. No problem. stackr will combine
+fastq file at the end, keeping original replicates intact. However, stackr
+will be appending integers (e.g. STU-QUE-ADU-2017-0001-1, STU-QUE-ADU-2017-0001-2)
+at the end of the names you've chosen). Combined replicates
+will have -R at the end (e.g STU-QUE-ADU-2017-0001-R for the combination of the 2 replicates.)
 }
 \examples{
 \dontrun{
-to do
+# library(stackr)
+# If you haven't already build the folders to store all the files:
+# stackr::build_stackr_workflow_dir()
+#
+# run a double digest process_radtags within R:
+process.radtags.tuna <- stackr::run_process_radtags(
+project.info = "02_project_info/project.info.tuna.tsv",
+path.seq.lanes = "03_sequencing_lanes",
+renz_1 = "pstI", renz_2 = "mspI",
+adapter_1 = "CGAGATCGGAAGAGCGGG", adapter_mm = 2)
+# remaining arguments are defaults, so carefully look at them in the doc.
 }
 }
 \references{

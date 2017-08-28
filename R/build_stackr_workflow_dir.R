@@ -1,6 +1,6 @@
-#' @name build_stacks_workflow_dir
+#' @name build_stackr_workflow_dir
 #' @title Build stacks workflow directories
-#' @description This prepares the different folder required to run the 
+#' @description This prepares the different folder required to run the
 #' \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS} workflow
 #' proposed in stackr.
 
@@ -13,7 +13,7 @@
 #' Default: \code{date = TRUE}
 
 
-#' @rdname build_stacks_workflow_dir
+#' @rdname build_stackr_workflow_dir
 #' @export
 #' @import stringi
 #' @import dplyr
@@ -25,9 +25,9 @@
 #' @examples
 #' \dontrun{
 #' # The simplest form of the function:
-#' build_stacks_workflow_dir()
+#' build_stackr_workflow_dir()
 #' # that's it ! Now if you have your own main folder name:
-#' build_stacks_workflow_dir(main.folder.name = "stacks_whiteshark", date = TRUE)
+#' build_stackr_workflow_dir(main.folder.name = "stacks_whiteshark", date = TRUE)
 #' }
 
 # # required to pass the R CMD check and have 'no visible binding for global variable'
@@ -37,21 +37,21 @@
 #   )
 # }
 
-build_stacks_workflow_dir <- function (
-  main.folder.name = "stacks_run", 
+build_stackr_workflow_dir <- function (
+  main.folder.name = "stacks_run",
   date = TRUE
 ){
-  
+
   # Get date and time to have unique filenaming --------------------------------
   file.date <- stri_replace_all_fixed(Sys.Date(), pattern = "-", replacement = "")
-  
+
   # Main folder ----------------------------------------------------------------
   if (date) {
     # main.folder.name <- "stacks_test"
     main.folder.name <- stri_paste(main.folder.name, file.date, sep = "_")
   }
   dir.create(path = main.folder.name)
-  
+
   # Workflows folder -----------------------------------------------------------
   dir.create(path = stri_paste(main.folder.name, "/01_scripts"))
   dir.create(path = stri_paste(main.folder.name, "/02_project_info"))
@@ -63,4 +63,4 @@ build_stacks_workflow_dir <- function (
   dir.create(path = stri_paste(main.folder.name, "/08_stacks_results"))
   dir.create(path = stri_paste(main.folder.name, "/09_log_files"))
   dir.create(path = stri_paste(main.folder.name, "/10_filters"))
-} # end build_stacks_workflow_dir
+} # end build_stackr_workflow_dir

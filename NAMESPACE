@@ -3,7 +3,7 @@
 export("%>%")
 export(.stackr_parallel)
 export(.stackr_parallel_mc)
-export(build_stacks_workflow_dir)
+export(build_stackr_workflow_dir)
 export(mclapply_win)
 export(read_stacks_ustacks_log)
 export(run_cstacks)
