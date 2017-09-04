@@ -445,6 +445,8 @@ run_ustacks <- function(
       )
     }
     potential.project.file <- project.file.info <- NULL
+  } else {
+    project.info <- suppressMessages(readr::read_tsv(file = project.info))
   }
 
   if (!tibble::has_name(project.info, "SQL_ID")) {
