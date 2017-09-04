@@ -283,11 +283,18 @@ run_process_radtags <- function(
   duplicate.id <- project.info.file %>%
     dplyr::group_by(INDIVIDUALS) %>%
     dplyr::tally(.) %>%
-    dplyr::filter(n > 1 & !is.na(INDIVIDUALS)) %>%
-    dplyr::distinct(INDIVIDUALS) %>%
-    dplyr::inner_join(project.info.file, by = "INDIVIDUALS") %>%
-    dplyr::group_by(INDIVIDUALS) %>%
-    dplyr::mutate(REPLICATES = seq(1, n()))
+    dplyr::filter(n > 1 & !is.na(INDIVIDUALS))
+
+  if (nrow(duplicate.id) > 0) {
+    duplicate.id <- duplicate.id %>%
+      dplyr::distinct(INDIVIDUALS) %>%
+      dplyr::inner_join(project.info.file, by = "INDIVIDUALS") %>%
+      dplyr::group_by(INDIVIDUALS) %>%
+      dplyr::mutate(REPLICATES = seq(1, n()))
+  } else {
+    duplicate.id <- project.info.file %>%
+      dplyr::mutate(REPLICATES = rep(NA, n()))
+  }
 
   # Manage horrible sequencing lanes names
   short.name.lanes <- project.info.file %>%
