@@ -112,7 +112,18 @@
 
 #' @examples
 #' \dontrun{
-#' to do
+#' # to test different mismatches (M values from 1 to 5) on a sample with an average read number:
+#' mismatch <- stackr::run_ustacks(
+#' mismatch.testing = TRUE,
+#' f = “mismatch_testing_folder_path”,
+#' M = 1:5,
+#' p = 12)
+#' # the other arguments: defaults
+#' # Check out the list to figure out the best threshold to use on all samples
+#' # A summary table is also written in the output folder.
+#'
+#' # To run ustacks on all samples, using defaults:
+#' ustacks.lobster <- stackr::run_ustacks()
 #' }
 
 
