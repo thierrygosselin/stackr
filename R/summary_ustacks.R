@@ -1,7 +1,17 @@
 #' @name summary_ustacks
 #' @title Summarize STACKS ustacks files
-#' @description This function reads inside the output of STACKS ustasks folder
+#' @description This function reads the output of
+#' \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
+#' \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks} folder
 #' and summarise the information.
+#'
+#' The information shown can help to choose individuals to include/exclude from
+#' the catalog, the next step in
+#' \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
+#' \href{https://github.com/thierrygosselin/stackr#stacks-modules-and-radseq-typical-workflow}{pipeline}
+#' (see example).
+#'
+#' This function is run automatically inside \code{\link{run_ustacks}}.
 
 #' @param ustacks.folder (character). The path to the ustacks output files.
 
@@ -39,7 +49,7 @@
 #' @examples
 #' \dontrun{
 #' ustacks.summary <- stackr::summary_ustacks(
-#' ustacks.folder = "06_ustacks_cstacks_sstacks")
+#' ustacks.folder = "06_ustacks_cstacks_sstacks", verbose = TRUE)
 #'
 #' # To get the number of snp/locus for a specific individual:
 #' snp.info <- ustacks.summary %>%
@@ -52,11 +62,64 @@
 #' dplyr::filter(INDIVIDUALS == "ID2") %>%
 #' dplyr::select(INDIVIDUALS, BLACKLIST_ARTIFACT) %>%
 #' tidyr::unnest(.)
+#'
+#' # Decide individuals to include in catalog:
+#'
+#' # Make the ustacks.summary dataframe population wise by including pop info.
+#' # For this we need a strata file ... it's similar to a population map, but with headers.
+#' # It's a 2 columns files with INDIVIDUALS and STRATA as column header.
+#' strata <- readr::read_tsv("strata.octopus.tsv", col_types = "cc") %>%
+#' dplyr::rename(POP_ID = STRATA)
+#'
+#' # join the dataframes
+#' individuals.catalog <- dplyr::left_join(ustacks.summary, strata, by = "INDIVIDUALS") %>%
+#' dplyr::arrange(desc(FILTERED))
+#'
+#' # look at the FILTERED column
+#' hist(individuals.catalog$FILTERED)
+#' boxplot(individuals.catalog$FILTERED)
+#' mean(individuals.catalog$FILTERED)
+#'
+#' # lets say we want to filter out individuals below 45000 markers
+#' individuals.catalog.filtered <- individuals.catalog %>%
+#' dplyr::filter(FILTERED > 45000)
+#'
+#' # number of ind per pop
+#' dplyr::select(individuals.catalog.filtered, INDIVIDUALS, POP_ID) %>%
+#' dplyr::group_by(POP_ID) %>% dplyr::tally(.)
+#'
+#' # choose 20% of individuals per pop to represent the catalog
+#'
+#' individuals.catalog.select <- individuals.catalog.filtered %>%
+#' dplyr::group_by(POP_ID) %>%
+#' dplyr::sample_frac(tbl = ., size = 0.2, replace = FALSE) %>%
+#' dplyr::ungroup(.) %>%
+#' dplyr::arrange(desc(FILTERED)) %>%
+#' dplyr::distinct(INDIVIDUALS, POP_ID)
+#'
+#' # Using desc (from large to lower number of markers) ensure that
+#' # the catalog is populated with samples with the highest number of loci first.
+#' # This speed up the process in cstacks!
+#'
+#'
+#' # Create a file with individuals and pop to use in
+#' # cstacks or run_cstacks
+#'
+#' readr::write_tsv(
+#' x = individuals.catalog.select,
+#' path = "population.map.octopus.samples.catalog.tsv",
+#' col_names = FALSE) # stacks doesn't want column header
 #' }
 
 
 #' @seealso
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
+
+#' \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks}
+
+#' \code{\link{run_ustacks}}
+
+#' \code{\link{run_cstacks}}
 
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011)
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences.
