@@ -441,7 +441,7 @@ summary_haplotypes <- function(
       col_names = TRUE)
     message("    Generated a file with ",
             nrow(artifacts.ind),
-            " artifact loci by individuals")
+            " artifact(s) genotype(s) by individuals")
     message("    Details in: ", filename.artifacts.ind)
 
     # res$artifacts.pop <- dplyr::ungroup(artifacts.ind) %>%
