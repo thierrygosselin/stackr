@@ -223,7 +223,7 @@ run_ustacks <- function(
     if (is.null(sample.list)) {
       stop("No sample provided")
     } else {
-      sample.list.path <- stringi::stri_join(f, "/", sample.list)
+      sample.list.path <- stringi::stri_join(f, "/", sample.list) %>% stringi::stri_replace_all_fixed(str = ., pattern = "//", replacement = "/", vectorize_all = TRUE)
     }
 
     if (mismatch.testing && length(sample.list.path) > 1) {
@@ -430,7 +430,7 @@ run_ustacks <- function(
       pattern = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
       full.names = TRUE)
   } else {
-    sample.list.path <- stringi::stri_join(f, "/", sample.list)
+    sample.list.path <- stringi::stri_join(f, "/", sample.list) %>% stringi::stri_replace_all_fixed(str = ., pattern = "//", replacement = "/", vectorize_all = TRUE)
   }
 
 
@@ -606,7 +606,7 @@ read_stacks_ustacks_log <- function(
   parallel.core = parallel::detectCores() - 1
 ) {
 
-  ustacks.log <- NULL
+  # ustacks.log <- NULL
   ustacks.log <- suppressMessages(readr::read_lines(file = log.file))
 
   mismatch <- suppressWarnings(suppressMessages(
