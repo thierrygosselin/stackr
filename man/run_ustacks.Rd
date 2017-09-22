@@ -7,12 +7,11 @@
 run_ustacks(mismatch.testing = FALSE, sample.list = NULL,
   project.info = NULL, f = "04_process_radtags",
   o = "06_ustacks_cstacks_sstacks", m = 3, M = 2, N = M + 2,
-  t = "gzfastq", R = FALSE, H = TRUE, p = parallel::detectCores() - 1,
+  t = "guess", R = FALSE, H = TRUE, p = parallel::detectCores() - 1,
   h = FALSE, d = TRUE, keep_high_cov = FALSE, max_locus_stacks = 3,
   k_len = NULL, gapped = TRUE, max_gaps = 2, min_aln_len = 0.8,
   model_type = "snp", alpha = 0.05, bound_low = 0, bound_high = 0.2,
-  bc_err_freq = NULL, transfer.s3 = FALSE, from.folder = NULL,
-  destination.folder = NULL)
+  bc_err_freq = NULL)
 }
 \arguments{
 \item{mismatch.testing}{(logical). Default: \code{mismatch.testing = FALSE}.}
@@ -52,7 +51,7 @@ Default: \code{N = M + 2}.}
 
 \item{t}{Input file type.
 Supported types: fasta, fastq, gzfasta, gzfastq, fq.gz, fastq.gz.
-Default: \code{t = "gzfastq"}.}
+Default: \code{t = "guess"}.}
 
 \item{R}{Retain unused reads. Default: \code{R = FALSE}.}
 
@@ -103,15 +102,6 @@ Default: \code{bound_high = 0.2}.}
 
 \item{bc_err_freq}{For the fixed model, specify the barcode error frequency, between 0 and 1.0.
 Default: \code{bc_err_freq = NULL}.}
-
-\item{transfer.s3}{(todo) When working on Amazon CLOUD and S3.
-Default: \code{transfer.s3 = FALSE}.}
-
-\item{from.folder}{(todo) When working on Amazon CLOUD and S3.
-Default: \code{from.folder = NULL}.}
-
-\item{destination.folder}{When working on Amazon CLOUD and S3.
-(todo) Default: \code{destination.folder = NULL}.}
 }
 \value{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}

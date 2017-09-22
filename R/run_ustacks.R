@@ -40,7 +40,7 @@
 #' Default: \code{N = M + 2}.
 #' @param t Input file type.
 #' Supported types: fasta, fastq, gzfasta, gzfastq, fq.gz, fastq.gz.
-#' Default: \code{t = "gzfastq"}.
+#' Default: \code{t = "guess"}.
 #' @param R Retain unused reads. Default: \code{R = FALSE}.
 #' @param H Disable calling haplotypes from secondary reads.
 #' Default: \code{H = TRUE}.
@@ -78,12 +78,12 @@
 #' @param bc_err_freq For the fixed model, specify the barcode error frequency, between 0 and 1.0.
 #' Default: \code{bc_err_freq = NULL}.
 
-#' @param transfer.s3 (todo) When working on Amazon CLOUD and S3.
-#' Default: \code{transfer.s3 = FALSE}.
-#' @param from.folder (todo) When working on Amazon CLOUD and S3.
-#' Default: \code{from.folder = NULL}.
-#' @param destination.folder When working on Amazon CLOUD and S3.
-#' (todo) Default: \code{destination.folder = NULL}.
+# @param transfer.s3 (todo) When working on Amazon CLOUD and S3.
+# Default: \code{transfer.s3 = FALSE}.
+# @param from.folder (todo) When working on Amazon CLOUD and S3.
+# Default: \code{from.folder = NULL}.
+# @param destination.folder When working on Amazon CLOUD and S3.
+# (todo) Default: \code{destination.folder = NULL}.
 
 
 #' @rdname run_ustacks
@@ -148,7 +148,7 @@ run_ustacks <- function(
   m = 3,
   M = 2,
   N = M + 2,
-  t = "gzfastq",
+  t = "guess",
   R = FALSE,
   H = TRUE,
   p = parallel::detectCores() - 1,
@@ -164,10 +164,10 @@ run_ustacks <- function(
   alpha = 0.05,
   bound_low = 0,
   bound_high = 0.2,
-  bc_err_freq = NULL,
-  transfer.s3 = FALSE,
-  from.folder = NULL,
-  destination.folder = NULL
+  bc_err_freq = NULL
+  # transfer.s3 = FALSE,
+  # from.folder = NULL,
+  # destination.folder = NULL
 ) {
 
   cat("#######################################################################\n")
@@ -194,7 +194,7 @@ run_ustacks <- function(
     m = 3,
     M = 2,
     N = M + 2,
-    t = "gzfastq",
+    t = "guess",
     R = FALSE,
     H = TRUE,
     p = parallel::detectCores() - 1,
@@ -210,10 +210,10 @@ run_ustacks <- function(
     alpha = 0.05,
     bound_low = 0,
     bound_high = 0.2,
-    bc_err_freq = NULL,
-    transfer.s3 = FALSE,
-    from.folder = NULL,
-    destination.folder = NULL
+    bc_err_freq = NULL
+    # transfer.s3 = FALSE,
+    # from.folder = NULL,
+    # destination.folder = NULL
   ) {
     # ustacks common options ---------------------------------------------------
     if (mismatch.testing) {
@@ -277,8 +277,11 @@ run_ustacks <- function(
 
     # if(missing(y)) stop("output type, either 'fastq', 'gzfastq', 'fasta',
     # or 'gzfasta' (default is to match the input file type).")
-    t <- stringi::stri_join("-t ", shQuote(t))
-
+    if (t == "guess") {
+      t <- ""
+    } else {
+      t <- stringi::stri_join("-t ", shQuote(t))
+    }
 
     if (R) {
       R <- stringi::stri_join("-R ")
@@ -386,11 +389,11 @@ run_ustacks <- function(
     system2(command = "ustacks", args = command.arguments, stderr = ustacks.sample.log.file)
 
     # transfer back to s3
-    if (transfer.s3) {
-      message("in development")
-      # ustacks.files.to.s3 <- list.files(path = sample.list.path, pattern = individual, full.names = FALSE)
-      # purrr::walk(.x = ustacks.files.to.s3, .f = sunnier::copy_s3, from.folder = from.folder, destination.folder = destination.folder)
-    }
+    # if (transfer.s3) {
+    #   message("in development")
+    #   # ustacks.files.to.s3 <- list.files(path = sample.list.path, pattern = individual, full.names = FALSE)
+    #   # purrr::walk(.x = ustacks.files.to.s3, .f = sunnier::copy_s3, from.folder = from.folder, destination.folder = destination.folder)
+    # }
 
     # compile log when using mismatch testing
     if (mismatch.testing) {
@@ -420,18 +423,26 @@ run_ustacks <- function(
 
   # Samples ---------------------------
   if (is.null(sample.list)) {
-    sample.list <- list.files(
-      path = f,
-      pattern = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
-      full.names = FALSE)
+    # sample.list <- list.files(
+    #   path = f,
+    #   pattern = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
+    #   full.names = FALSE)
+    #
+    # sample.list.path <- list.files(
+    #   path = f,
+    #   pattern = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
+    #   full.names = TRUE)
 
-    sample.list.path <- list.files(
-      path = f,
-      pattern = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
-      full.names = TRUE)
+    sample.list <- list_sample_file(f = f)
+    sample.list.path <- list_sample_file(f = f, full.path = TRUE)
   } else {
-    sample.list.path <- stringi::stri_join(f, "/", sample.list) %>% stringi::stri_replace_all_fixed(str = ., pattern = "//", replacement = "/", vectorize_all = TRUE)
+    sample.list.path <- stringi::stri_join(
+      f, "/", sample.list) %>%
+      stringi::stri_replace_all_fixed(
+        str = ., pattern = "//", replacement = "/", vectorize_all = TRUE)
   }
+
+  fq.file.type <- unique(fq_file_type(sample.list))
 
 
   # Project info file -------------------
@@ -450,7 +461,7 @@ run_ustacks <- function(
       project.info <- tibble::data_frame(
         INDIVIDUALS_REP = stringi::stri_replace_all_fixed(
           str = sample.list,
-          pattern = c(".fq.gz", ".fq", ".fasta", ".fa", ".fa.gz", ".gzfastq", ".fastq", ".fastq.gz"),
+          pattern = fq.file.type,
           replacement = "", vectorize_all = FALSE),
         FQ_FILES = sample.list
       )
@@ -478,12 +489,13 @@ run_ustacks <- function(
     mismatch.to.do <- NULL
 
     mismatch_dir <- function(M, o) {
-      o = stringi::stri_join(o, "/", stringi::stri_replace_all_fixed(str = sample.list, pattern = ".fq.gz", replacement = "", vectorize_all = FALSE),"_mismatch_", M)
+      o = stringi::stri_join(o, "/", stringi::stri_replace_all_fixed(str = sample.list, pattern = fq.file.type, replacement = "", vectorize_all = FALSE),"_mismatch_", M)
       return(o)
     }
 
     # Map samples to ustacks --------------
-    res <- purrr::pmap(
+    res <- list()
+    res$mismatches <- purrr::pmap(
       .l = list(
         M = M,
         N = N,
@@ -494,9 +506,9 @@ run_ustacks <- function(
       mismatch.testing = TRUE,
       sample.list = sample.list,
       project.info = project.info,
-      transfer.s3 = transfer.s3,
-      from.folder = from.folder,
-      destination.folder = destination.folder,
+      # transfer.s3 = transfer.s3,
+      # from.folder = from.folder,
+      # destination.folder = destination.folder,
       f = f,
       m = m,
       t = t,
@@ -516,12 +528,19 @@ run_ustacks <- function(
       bound_high = bound_high,
       bc_err_freq = bc_err_freq
     )
+
+    # summaries the info
+mismatches.summary.list <- mismatch_fig(res$mismatches)
+res$mismatches.summary <- mismatches.summary.list$mismatches.summary
+res$mismatches.plot <- mismatches.summary.list$mismatches.plot
+mismatches.summary.list <- NULL
   } else {
     if (is.null(sample.list)) {
-      sample.list <- list.files(
-        path = f,
-        pattern = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
-        full.names = FALSE)
+      # sample.list <- list.files(
+      #   path = f,
+      #   pattern = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
+      #   full.names = FALSE)
+      sample.list <- list_sample_file(f = f, full.path = FALSE)
     }
 
     # subsample to get extension
@@ -558,9 +577,9 @@ run_ustacks <- function(
       run_ustacks_one_sample,
       mismatch.testing = FALSE,
       project.info = project.info,
-      transfer.s3 = transfer.s3,
-      from.folder = from.folder,
-      destination.folder = destination.folder,
+      # transfer.s3 = transfer.s3,
+      # from.folder = from.folder,
+      # destination.folder = destination.folder,
       f = f,
       o = o,
       m = m,
@@ -594,7 +613,7 @@ run_ustacks <- function(
   return(res)
 }# end run_ustacks
 
-
+# Internal function ------------------------------------------------------------
 #' @title Read stacks ustacks log
 #' @description Read stacks ustacks log
 #' @rdname read_stacks_ustacks_log
@@ -725,3 +744,122 @@ read_stacks_ustacks_log <- function(
   return(res)
 
 }#End read_stacks_ustacks_log
+
+#' @title list_sample_file
+#' @description List sample file in folder
+#' @rdname list_sample_file
+#' @export
+#' @keywords internal
+list_sample_file <- function(f, full.path = FALSE) {
+  sample_file <- function(x, f) {
+    sample.file <- list.files(
+      path = f,
+      pattern = x,
+      full.names = full.path)
+
+    if (length(sample.file) > 0) {
+      return(sample.file)
+    } else {
+      return(NULL)
+    }
+  }
+  sample.list <- purrr::map(
+    .x = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
+    .f = sample_file, f = f) %>%
+    purrr::flatten_chr(.) %>% unique
+}#End list_sample_file
+
+#' @title fq_file_type
+#' @description Detect fq file type
+#' @rdname fq_file_type
+#' @export
+#' @keywords internal
+fq_file_type <- function(x) {
+  fq.file.type <-  stringi::stri_match_all_regex(
+    str = x,
+    omit_no_match = TRUE,
+    pattern = c( ".fq", ".fq.gz", ".fasta", ".gzfasta", ".gzfastq", ".fastq", ".fastq.gz")
+  ) %>% purrr::flatten_chr(.)
+
+  if (identical(x = c(".fastq", ".fastq.gz"), y = fq.file.type)) fq.file.type <- ".fastq.gz"
+  if (identical(x = c(".fq", ".fq.gz"), y = fq.file.type)) fq.file.type <- ".fq.gz"
+  if (identical(x = c(".fasta", ".gzfasta"), y = fq.file.type)) fq.file.type <- ".gzfasta"
+  return(fq.file.type)
+}#End fq_file_type
+
+#' @title mismatch_fig
+#' @description Summary of mismatches
+#' @rdname mismatch_fig
+#' @export
+#' @keywords internal
+mismatch_fig <- function(mismatch.run) {
+  # mismatch.run <- res$mismatches#test
+  res <- list() # store results
+  remove_first_column <- function(x) {
+    x <- x[, -1]
+  }
+  res$mismatches.summary <- mismatch.run[[1]][,1] %>%
+    dplyr::bind_cols(purrr::map(.x = mismatch.run,.f = remove_first_column))
+
+  # write in the working directory
+  readr::write_tsv(x = res$mismatches.summary, path = "mismatches.summary.tsv")
+  message("Summary of all mismatches written in folder: mismatches.summary.tsv")
+
+
+  # lets check the impact of mismatch thresholds on polymorphism discovery
+  mismatch.polymorphism <- res$mismatches.summary %>%
+    tidyr::gather(data = ., key = MISMATCH, value = VALUE, -PARAMETER) %>%
+    dplyr::filter(PARAMETER %in% c("HOMOZYGOSITY", "HETEROZYGOSITY", "BLACKLIST_ARTIFACT")) %>%
+    dplyr::group_by(MISMATCH) %>%
+    dplyr::mutate(
+      VALUE = as.numeric(VALUE),
+      TOTAL = sum(VALUE)) %>%
+    dplyr::ungroup(.) %>%
+    dplyr::mutate(
+      PROP = VALUE/TOTAL,
+      PERCENT = PROP * 100,
+      MISMATCH = as.integer(
+        stringi::stri_replace_all_fixed(
+          str = MISMATCH, pattern = "M_", replacement = "",
+          vectorize_all = FALSE)),
+      PARAMETER = factor(x = PARAMETER,
+                         levels = c("HOMOZYGOSITY", "HETEROZYGOSITY", "BLACKLIST_ARTIFACT"), ordered = TRUE),
+      SPECIES = rep("TA", n()))
+
+  # Generate figure
+  n.mismatch <- dplyr::n_distinct(mismatch.polymorphism$MISMATCH)
+
+  # polymorphism.detail <- c("1 allele/cluster\n(homozygote)",
+  #                          "2 alleles/cluster\n(heterozygote)",
+  #                          ">= 3 alleles/cluster\n(artifacts)")
+
+  polymorphism.detail <- c("1 allele/cluster (homozygote)",
+                           "2 alleles/cluster (heterozygote)",
+                           ">= 3 alleles/cluster (artifacts)")
+
+
+  res$mismatches.plot <- ggplot2::ggplot(
+    mismatch.polymorphism,
+    ggplot2::aes(y = PERCENT, x = MISMATCH)) +
+    ggplot2::geom_line(ggplot2::aes(colour = mismatch.polymorphism$PARAMETER)) +
+    ggplot2::geom_point(ggplot2::aes(colour = mismatch.polymorphism$PARAMETER,
+                                     size = mismatch.polymorphism$TOTAL)) +
+    ggplot2::scale_colour_manual(
+      name = "Haplotype Cluster:",
+      labels = polymorphism.detail, values = c("blue","green","darkred")) +
+    ggplot2::scale_size_continuous(name = "Number of locus") +
+    ggplot2::scale_x_continuous(breaks = 1:n.mismatch) +
+    ggplot2::labs(x = "Maximum divergence between reads within a cluster") +
+    ggplot2::labs(y = "Total clusters (%)") +
+    ggplot2::theme(
+      axis.title = ggplot2::element_text(size = 16, family = "Helvetica",face = "bold"),
+      legend.title = ggplot2::element_text(size = 14,family = "Helvetica",face = "bold"),
+      legend.text = ggplot2::element_text(size = 10,family = "Helvetica"), #,face = "bold"), #legend.position = "bottom",
+      axis.text = ggplot2::element_text(size = 12, family = "Helvetica"))
+
+  ggplot2::ggsave(
+    filename = "mismatches.plot.pdf",
+    plot = res$mismatches.plot,
+    height = 15, width = 30, dpi = 600, units = "cm", useDingbats = FALSE)
+return(res)
+}#End mismatch_fig
