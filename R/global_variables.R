@@ -70,7 +70,7 @@ if (getRversion() >= "2.15.1") {
       "ORIG_VALUE", "SQL_ID", "mst", "rare_step_1", "RXSTACKS_MST",
       "RXSTACKS_RARE_STEP_1", "BARCODES", "DESCRIPTION", "FILENAME", "LANES",
       "LANES_SHORT", "LOWQUALITY", "LOW_QUALITY", "NORADTAG", "NO_RADTAG", "READS",
-      "REPLICATES", "RETAINED"
+      "REPLICATES", "RETAINED", "MISMATCH"
     )
   )
 }
