@@ -1,6 +1,6 @@
 [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-1.0.0-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--09--29-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-2.0.0-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2017--10--12-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -52,6 +52,13 @@ New features
 ------------
 
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
+
+**v.2.0.0 2017-10-11**
+
+-   updated `stackr` to follow Stacks Version 2.0Beta1
+-   `run_populations_v2` will replace `run_populations` in 2 updates
+-   `run_tsv2bam`: new function that runs Stacks tsv2bam module. Additionnally, this function will also generate a summary of Stacks tsv2bam and will merge in parallel BAM sample files into a unique BAM catalog file using SAMtools or Sambamba.
+-   `run_gstacks` runs Stacks gstacks module.
 
 **v.1.0.0 2017-08-18**
 

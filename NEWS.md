@@ -1,3 +1,14 @@
+# stackr v.2.0.0 2017-10-11
+
+* updated `stackr` to follow Stacks Version 2.0Beta1
+* `run_populations_v2` will replace `run_populations` in 2 updates
+* `run_tsv2bam`: new function that runs Stacks tsv2bam module.
+Additionnally, this function will also generate a summary of
+Stacks tsv2bam and will merge in parallel BAM sample files into a unique
+BAM catalog file using SAMtools or Sambamba.
+* `run_gstacks` runs Stacks gstacks module.
+
+
 # stackr v.1.0.0 2017-08-18
 
 * re-focusing `stackr` on running stacks pipeline within R.
