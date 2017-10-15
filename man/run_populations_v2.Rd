@@ -4,23 +4,22 @@
 \alias{run_populations_v2}
 \title{Run STACKS Version 2.0Beta1 populations module}
 \usage{
-run_populations_v2(P = "07_rxstacks_cstacks_sstacks_populations", V = NULL,
-  O = NULL, M, t = parallel::detectCores() - 1, b = "guess",
-  batch_size = 10000, p = 1, r = 0.3, min_maf = NULL,
-  max_obs_het = NULL, m = NULL, lnl_lim = NULL,
-  write_single_snp = FALSE, write_random_snp = FALSE, B = NULL,
-  W = NULL, e = NULL, merge_sites = FALSE, merge_prune_lim = NULL,
-  fstats = FALSE, fst_correction = NULL, p_value_cutoff = 0.05,
-  k = FALSE, sigma = 150000, bootstrap = FALSE, N = 100,
-  bootstrap_pifis = FALSE, bootstrap_fst = FALSE, bootstrap_div = FALSE,
-  bootstrap_phist = FALSE, bootstrap_wl = NULL, ordered_export = FALSE,
-  genomic = FALSE, fasta_samples = FALSE, fasta_samples_raw = FALSE,
-  fasta_loci = FALSE, vcf = TRUE, vcf_haplotypes = TRUE,
-  genepop = FALSE, structure = FALSE, phase = FALSE, fastphase = FALSE,
-  beagle = FALSE, beagle_phased = FALSE, plink = FALSE, hzar = FALSE,
-  phylip = FALSE, phylip_var = FALSE, phylip_var_all = FALSE,
-  treemix = FALSE, h = FALSE, verbose = FALSE, v = FALSE,
-  log_fst_comp = FALSE)
+run_populations_v2(P = "06_ustacks_cstacks_sstacks", V = NULL, O = NULL,
+  M, t = parallel::detectCores() - 1, b = "guess", batch_size = 10000,
+  p = 1, r = 0.3, min_maf = NULL, max_obs_het = NULL, m = NULL,
+  lnl_lim = NULL, write_single_snp = FALSE, write_random_snp = FALSE,
+  B = NULL, W = NULL, e = NULL, merge_sites = FALSE,
+  merge_prune_lim = NULL, fstats = FALSE, fst_correction = NULL,
+  p_value_cutoff = 0.05, k = FALSE, sigma = 150000, bootstrap = FALSE,
+  N = 100, bootstrap_pifis = FALSE, bootstrap_fst = FALSE,
+  bootstrap_div = FALSE, bootstrap_phist = FALSE, bootstrap_wl = NULL,
+  ordered_export = FALSE, genomic = FALSE, fasta_samples = FALSE,
+  fasta_samples_raw = FALSE, fasta_loci = FALSE, vcf = TRUE,
+  vcf_haplotypes = TRUE, genepop = FALSE, structure = FALSE,
+  phase = FALSE, fastphase = FALSE, beagle = FALSE,
+  beagle_phased = FALSE, plink = FALSE, hzar = FALSE, phylip = FALSE,
+  phylip_var = FALSE, phylip_var_all = FALSE, treemix = FALSE,
+  h = FALSE, verbose = FALSE, v = FALSE, log_fst_comp = FALSE)
 }
 \arguments{
 \item{P}{(path, character) Path to the directory containing all the STACKS files.
