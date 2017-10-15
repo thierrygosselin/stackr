@@ -61,7 +61,7 @@
 #' \item MATCH_PERCENT: the percentage of locus with a one-to-one relationship
 #' with the catalog (shown in subplot C)
 #'
-#' Addtionally, the function returns a batch_X.catalog.bam file that was generated
+#' Addtionally, the function returns a catalog.bam file, generated
 #' by merging all the individual BAM files in parallel.
 #' }
 
@@ -226,9 +226,9 @@ run_tsv2bam <- function(
 
   # Merging BAM files ----------------------------------------------------------
   if (use.samtools) {
-    message("Merging BAM files with SAMtools to generate a batch_X.catalog.bam file...")
+    message("Merging BAM files with SAMtools to generate a catalog.bam file...")
   } else {
-    message("Merging BAM files with Sambamba to generate a batch_X.catalog.bam file...")
+    message("Merging BAM files with Sambamba to generate a catalog.bam file...")
   }
 
   merge.res <- merge_parallel(
@@ -354,7 +354,7 @@ merge_parallel <- function(cmd.path, output.folder, parallel.core, batch.id) {
   }
 
   cmd.option <- "merge"
-  catalog.bam <- stringi::stri_join(output.folder, "/batch_", batch.id, ".catalog.bam")
+  catalog.bam <- stringi::stri_join(output.folder, "/catalog.bam")
 
   if (use.samtools) {
     parallel.core <- stringi::stri_join("--threads ", shQuote(parallel.core))
