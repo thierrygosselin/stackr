@@ -60,7 +60,28 @@
 #' to keep consensus markers.
 #' Default: \code{keep.consensus = TRUE}.
 
-#' @inheritParams radiator::tidy_genomic_data
+#' @param pop.levels (optional, string) This refers to the levels in a factor. In this
+#' case, the id of the pop.
+#' Use this argument to have the pop ordered your way instead of the default
+#' alphabetical or numerical order. e.g. \code{pop.levels = c("QUE", "ONT", "ALB")}
+#' instead of the default \code{pop.levels = c("ALB", "ONT", "QUE")}.
+#' White spaces in population names are replaced by underscore.
+#' Default: \code{pop.levels = NULL}.
+
+
+#' @param pop.labels (optional, string) Use this argument to rename/relabel
+#' your pop or combine your pop. e.g. To combine \code{"QUE"} and \code{"ONT"}
+#' into a new pop called \code{"NEW"}:
+#' (1) First, define the levels for your pop with \code{pop.levels} argument:
+#' \code{pop.levels = c("QUE", "ONT", "ALB")}.
+#' (2) then, use \code{pop.labels} argument:
+#' \code{pop.levels = c("NEW", "NEW", "ALB")}.
+#' To rename \code{"QUE"} to \code{"TAS"}:
+#' \code{pop.labels = c("TAS", "ONT", "ALB")}.
+#' Default: \code{pop.labels = NULL}. If you find this too complicated,
+#' there is also the \code{strata} argument that can do the same thing,
+#' see below.
+#' White spaces in population names are replaced by underscore.
 
 #' @param artifact.only (optional, logical) With default \code{artifact.only = TRUE},
 #' the function will stop after generating blacklists of artifacts and consensus loci
@@ -75,16 +96,14 @@
 #' @importFrom stringdist stringdist
 #' @importFrom utils combn count.fields
 #' @importFrom stats lm na.omit
-#' @importFrom stringi stri_replace_all_fixed stri_replace_na stri_join stri_count_fixed
+#' @importFrom stringi stri_replace_all_fixed stri_replace_na stri_join stri_count_fixed stri_detect_fixed
 #' @importFrom tibble as_data_frame data_frame add_column add_row
 #' @importFrom dplyr select rename n_distinct distinct mutate summarise group_by ungroup arrange left_join full_join semi_join anti_join bind_rows bind_cols if_else
 #' @importFrom readr write_tsv read_tsv
 #' @importFrom tidyr separate gather
-#' @importFrom data.table fread melt.data.table as.data.table
 #' @importFrom parallel detectCores
 #' @importFrom ggplot2 ggplot aes geom_violin geom_boxplot stat_summary labs theme element_blank element_text geom_jitter scale_colour_manual scale_y_reverse theme_light geom_bar facet_grid stat_smooth ggsave
 #' @importFrom purrr flatten_chr map_df
-#' @importFrom radiator tidy_genomic_data
 
 #' @return The function returns a list with:
 #' \enumerate{
@@ -165,7 +184,6 @@ summary_haplotypes <- function(
     the function will run and compute all summary statistics, time for coffee...\n")
   }
 
-
   if (missing(data)) stop("data argument is missing")
   if (missing(strata)) stop("strata argument is required")
   if (missing(read.length)) stop("read.length argument is required")
@@ -199,29 +217,21 @@ summary_haplotypes <- function(
   message(stringi::stri_join("Folder created: \n", folder.extension))
   file.date <- NULL #unused object
 
-
   # Import haplotype file ------------------------------------------------------
   message("Importing and tidying STACKS haplotype file: ", data)
-  number.columns <- max(utils::count.fields(data, sep = "\t"))
-
-  haplotype <- data.table::fread(
-    input = data,
-    sep = "\t",
-    header = TRUE,
-    stringsAsFactors = FALSE,
-    colClasses = list(character = 1:number.columns),
-    verbose = FALSE,
-    showProgress = TRUE,
-    data.table = FALSE,
-    na.strings = "-"
-  ) %>%
-    tibble::as_data_frame(.) %>%
+  # readr now faster/easier than fread...
+  haplotype <- readr::read_tsv(
+    file = data, col_names = TRUE, na = "-",
+    col_types = readr::cols(.default = readr::col_character())) %>%
     dplyr::select(-Cnt)
 
-  if (tibble::has_name(haplotype, "# Catalog ID") || tibble::has_name(haplotype, "Catalog ID")) {
+  if (tibble::has_name(haplotype, "# Catalog ID") ||
+      tibble::has_name(haplotype, "Catalog ID") ||
+      tibble::has_name(haplotype, "# Catalog Locus ID")) {
     colnames(haplotype) <- stringi::stri_replace_all_fixed(
       str = colnames(haplotype),
-      pattern = c("# Catalog ID", "Catalog ID"), replacement = c("LOCUS", "LOCUS"), vectorize_all = FALSE
+      pattern = c("# Catalog ID", "Catalog ID", "# Catalog Locus ID"),
+      replacement = c("LOCUS", "LOCUS", "LOCUS"), vectorize_all = FALSE
     )
   }
 
@@ -229,23 +239,13 @@ summary_haplotypes <- function(
     haplotype <- dplyr::select(.data = haplotype, -`Seg Dist`)
   }
 
-  haplotype <- data.table::melt.data.table(
-    data = data.table::as.data.table(haplotype),
-    id.vars = "LOCUS",
-    variable.name = "INDIVIDUALS",
-    variable.factor = FALSE,
-    value.name = "HAPLOTYPES"
-  ) %>%
-    tibble::as_data_frame(.)
+  haplotype <- tidyr::gather(
+    data = haplotype,
+    key = "INDIVIDUALS",
+    value = "HAPLOTYPES", # previously using "GT_HAPLO"
+    -LOCUS)
 
-  number.columns <- NULL
-
-  haplotype$INDIVIDUALS = stringi::stri_replace_all_fixed(
-    str = haplotype$INDIVIDUALS,
-    pattern = c("_", ":"),
-    replacement = c("-", "-"),
-    vectorize_all = FALSE
-  )
+  haplotype$INDIVIDUALS <- clean_ind_names(haplotype$INDIVIDUALS)
 
   # Import whitelist of markers-------------------------------------------------
   if (is.null(whitelist.markers)) {
@@ -273,10 +273,14 @@ summary_haplotypes <- function(
   message("Making the haplotype file population-wise...")
   if (is.vector(strata)) {
     # message("strata file: yes")
-    number.columns.strata <- max(utils::count.fields(strata, sep = "\t"))
-    col.types <- stringi::stri_join(rep("c", number.columns.strata), collapse = "")
-    strata.df <- suppressMessages(readr::read_tsv(file = strata, col_names = TRUE, col_types = col.types) %>%
-                                    dplyr::rename(POP_ID = STRATA))
+     suppressMessages(
+      strata.df <- readr::read_tsv(
+        file = strata, col_names = TRUE,
+        col_types = readr::cols(.default = readr::col_character())
+      ) %>%
+        dplyr::rename(POP_ID = STRATA))
+
+
   } else {
     # message("strata object: yes")
     colnames(strata) <- stringi::stri_replace_all_fixed(
@@ -289,8 +293,8 @@ summary_haplotypes <- function(
   }
 
   # Remove potential whitespace in pop_id
-  strata.df$POP_ID <- stringi::stri_replace_all_fixed(
-    strata.df$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
+  strata.df$POP_ID <- clean_pop_names(strata.df$POP_ID)
+  strata.df$INDIVIDUALS <- clean_ind_names(strata.df$INDIVIDUALS)
 
   # Import and filter blacklist id ---------------------------------------------
   if (!is.null(blacklist.id)) {
@@ -298,30 +302,24 @@ summary_haplotypes <- function(
     message("Filtering with blacklist of individuals: ", nrow(blacklist.id), " individual(s) blacklisted")
     strata.df <- dplyr::anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
 
-    blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
-      str = blacklist.id$INDIVIDUALS,
-      pattern = c("_", ":"),
-      replacement = c("-", "-"),
-      vectorize_all = FALSE
-    )
+    # blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
+    #   str = blacklist.id$INDIVIDUALS,
+    #   pattern = c("_", ":"),
+    #   replacement = c("-", "-"),
+    #   vectorize_all = FALSE
+    # )
+    blacklist.id$INDIVIDUALS <- clean_ind_names(blacklist.id$INDIVIDUALS)
 
     haplotype <- suppressWarnings(dplyr::anti_join(haplotype, blacklist.id, by = "INDIVIDUALS"))
     blacklist.id <- NULL
   }
 
   # Population levels and strata -----------------------------------------------
-  strata.df$INDIVIDUALS = stringi::stri_replace_all_fixed(
-    str = strata.df$INDIVIDUALS,
-    pattern = c("_", ":"),
-    replacement = c("-", "-"),
-    vectorize_all = FALSE
-  )
-
   haplotype <- dplyr::left_join(x = haplotype, y = strata.df, by = "INDIVIDUALS")
   strata.df <- NULL
 
   # using pop.levels and pop.labels info if present
-  haplotype <- radiator::change_pop_names(data = haplotype, pop.levels = pop.levels, pop.labels = pop.labels)
+  haplotype <- change_pop_names(data = haplotype, pop.levels = pop.levels, pop.labels = pop.labels)
 
   pop <- unique(haplotype$POP_ID)
 
@@ -398,7 +396,9 @@ summary_haplotypes <- function(
         POLYMORPHISM > 1, "artifact",
         dplyr::if_else(
           POLYMORPHISM == 1, "het", "hom", missing = "missing")),
-      POLYMORPHISM = dplyr::if_else(CONSENSUS == "consensus", "consensus", POLYMORPHISM)
+      POLYMORPHISM = dplyr::if_else(CONSENSUS == "consensus", "consensus", POLYMORPHISM),
+      POLYMORPHISM = dplyr::if_else(stringi::stri_detect_fixed(HAPLOTYPES, "N"),
+                                    "artifact", POLYMORPHISM)
     ) %>%
     dplyr::select(POP_ID, INDIVIDUALS, LOCUS, HAPLOTYPES, WHITELIST, POLYMORPHISM)
 
@@ -414,11 +414,6 @@ summary_haplotypes <- function(
 
   total.genotype.number.haplo <- length(stats::na.omit(artifacts.ind$HAPLOTYPES))
 
-  # artifacts.ind <- artifacts.ind %>%
-  #   dplyr::filter(ARTIFACTS == "artifact") %>%
-  #   dplyr::arrange(LOCUS, POP_ID, INDIVIDUALS) %>%
-  #   dplyr::select(LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES, ARTIFACTS)
-  #
   artifacts.ind <- artifacts.ind %>%
     dplyr::filter(POLYMORPHISM == "artifact") %>%
     dplyr::arrange(LOCUS, POP_ID, INDIVIDUALS) %>%
@@ -544,25 +539,11 @@ summary_haplotypes <- function(
       ) %>%
       dplyr::ungroup(.)
   } else {
-    loc_pop_stats <- function(x) {
-      res <- dplyr::group_by(x, LOCUS, POP_ID) %>%
-        dplyr::summarise(
-          HOM = length(POLYMORPHISM[POLYMORPHISM == "hom"]),
-          HET = length(POLYMORPHISM[POLYMORPHISM == "het"]),
-          N_GENOT = HOM + HET,
-          HOM_O = HOM / N_GENOT,
-          HET_O = HET / N_GENOT
-        ) %>%
-        dplyr::mutate(
-          NN = 2 * N_GENOT,
-          N_INV = N_GENOT / (N_GENOT - 1)
-        ) %>%
-        dplyr::ungroup(.)
-      return(res)
-    }#End individual_stats
 
     split.vec <- dplyr::distinct(haplotype.filtered, LOCUS) %>%
       dplyr::mutate(SPLIT_VEC = as.integer(floor((parallel.core * 3 * (1:n.markers - 1) / n.markers) + 1)))
+
+    # split_vec_row
 
     summary.loc.pop <- haplotype.filtered %>%
       dplyr::left_join(split.vec, by = "LOCUS") %>%
@@ -582,19 +563,6 @@ summary_haplotypes <- function(
 
   # haplotype.filtered.genotyped <- haplotype.filtered %>% dplyr::filter(!is.na(HAPLOTYPES))
 
-  separate_haplo <- function(x) {
-    res <- dplyr::select(x, LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES)  %>%
-      tidyr::separate(
-        col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
-        sep = "/", extra = "drop", remove = TRUE
-      ) %>%
-      dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
-      dplyr::select(-INDIVIDUALS) %>%
-      tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID)) %>%
-      dplyr::select(-ALLELE_GROUP)
-    return(res)
-  }#End separate_haplo
-
   n.row <- nrow(haplotype.filtered)
   split.vec <- as.integer(floor((parallel.core * 20 * (1:n.row - 1) / n.row) + 1))
   n.row <- NULL
@@ -606,7 +574,7 @@ summary_haplotypes <- function(
 
   haplotype.filtered.split <- split(x = haplotype.filtered, f = split.vec) %>%
     .stackr_parallel_mc(
-      X = ., FUN = separate_haplo, mc.cores = parallel.core) %>%
+      X = ., FUN = separate_haplo_long, mc.cores = parallel.core) %>%
     dplyr::bind_rows(.)
 
   hs <- haplotype.filtered.split %>%
@@ -853,16 +821,6 @@ summary_haplotypes <- function(
         !POLYMORPHISM %in% c("artifact", "consensus"))
     }
 
-    separate_haplo <- function(x) {
-      res <- dplyr::select(x, LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES)  %>%
-        tidyr::separate(
-          col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
-          sep = "/", extra = "drop", remove = TRUE
-        ) %>%
-        dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
-      return(res)
-    }#End separate_haplo
-
     n.row <- nrow(pi.data)
     split.vec <- as.integer(floor((parallel.core * 20 * (1:n.row - 1) / n.row) + 1))
     n.row <- NULL
@@ -884,53 +842,6 @@ summary_haplotypes <- function(
         dplyr::summarise(PI = mean(PI, na.rm = TRUE))
       , by = "INDIVIDUALS")
 
-    # Pi function ----------------------------------------------------------------
-
-    pi <- function(data, read.length) {
-      # data <- dplyr::filter(data, LOCUS == "2")#test
-      y <- dplyr::select(data, ALLELES) %>% purrr::flatten_chr(.)
-
-      if (length(unique(y)) <= 1) {
-        pi <- tibble::data_frame(PI = as.numeric(0))
-      } else {
-
-        #1 Get all pairwise comparison
-        allele.pairwise <- utils::combn(unique(y), 2)
-
-        #2 Calculate pairwise nucleotide mismatches
-        pairwise.mismatches <- apply(allele.pairwise, 2, function(z) {
-          stringdist::stringdist(a = z[1], b = z[2], method = "hamming")
-        })
-
-        #3 Calculate allele frequency
-        allele.freq <- table(y) / length(y)
-
-        #4 Calculate nucleotide diversity from pairwise mismatches and allele frequency
-        pi <- apply(allele.pairwise, 2, function(y) allele.freq[y[1]] * allele.freq[y[2]])
-        pi <- tibble::data_frame(PI = sum(pi * pairwise.mismatches) / read.length)
-      }
-      return(pi)
-    }#End pi
-
-    pi_pop <- function(data, read.length, parallel.core) {
-      pop <- unique(data$POP_ID)
-      message("    Pi calculations for pop: ", pop)
-      # data <- df.split.pop[["DD"]]
-      # data <- df.split.pop[["SKY"]]
-
-      pi.pop <- split(x = data, f = data$LOCUS)
-      pi.pop <- .stackr_parallel(
-        X = pi.pop,
-        FUN = pi,
-        mc.cores = parallel.core,
-        read.length = read.length
-      ) %>%
-        dplyr::bind_rows(.) %>%
-        dplyr::summarise(PI_NEI = mean(PI, na.rm = TRUE)) %>%
-        tibble::add_column(.data = ., POP_ID = pop, .before = "PI_NEI")
-
-      return(pi.pop)
-    }#End pi_pop
 
     # Pi: by pop------------------------------------------------------------------
     message("    Pi calculations: populations...")
@@ -1079,3 +990,228 @@ summary_haplotypes <- function(
   options(width = opt.change)
   return(res)
 }
+
+
+# Internal nested Function -----------------------------------------------------
+
+
+#' @title Clean marker's name
+#' @description Function to clean marker's name
+#' of weird separators
+#' that interfere with some packages
+#' or codes. \code{/}, \code{:}, \code{-} and \code{.} are changed to an underscore
+#' \code{_}.
+#' @param x (character string) Markers character string.
+#' @rdname clean_markers_names
+#' @importFrom stringi stri_replace_all_fixed
+#' @export
+#' @keywords internal
+
+clean_markers_names <- function(x) {
+  x <- stringi::stri_replace_all_fixed(
+    str = as.character(x),
+    pattern = c("/", ":", "-", "."),
+    replacement = "_",
+    vectorize_all = FALSE)
+}#End clean_markers_names
+
+#' @title clean individual's name
+#' @description function to clean individual's name
+#' that interfere with some packages
+#' or codes. \code{_} and \code{:} are changed to a dash \code{-}.
+#' @param x (character string) Individuals character string.
+#' @rdname clean_ind_names
+#' @importFrom stringi stri_replace_all_fixed
+#' @export
+#' @keywords internal
+clean_ind_names <- function(x) {
+  x <- stringi::stri_replace_all_fixed(
+    str = as.character(x),
+    pattern = c("_", ":"),
+    replacement = c("-", "-"),
+    vectorize_all = FALSE)
+}#End clean_ind_names
+
+#' @title Clean population's name
+#' @description Function to clean pop's name
+#' that interfere with some packages
+#' or codes. Space is changed to an underscore \code{_}.
+#' @param x (character string) Population character string.
+#' @rdname clean_pop_names
+#' @export
+#' @keywords internal
+#' @importFrom stringi stri_replace_all_fixed
+clean_pop_names <- function(x) {
+  x <- stringi::stri_replace_all_fixed(
+    str = as.character(x),
+    pattern = " ",
+    replacement = "_",
+    vectorize_all = FALSE)
+}#End clean_pop_names
+
+
+
+#' @title loc_pop_stats
+#' @rdname loc_pop_stats
+#' @description locus stats per individual
+#' @export
+#' @keywords internal
+loc_pop_stats <- function(x) {
+  res <- dplyr::group_by(x, LOCUS, POP_ID) %>%
+    dplyr::summarise(
+      HOM = length(POLYMORPHISM[POLYMORPHISM == "hom"]),
+      HET = length(POLYMORPHISM[POLYMORPHISM == "het"]),
+      N_GENOT = HOM + HET,
+      HOM_O = HOM / N_GENOT,
+      HET_O = HET / N_GENOT
+    ) %>%
+    dplyr::mutate(
+      NN = 2 * N_GENOT,
+      N_INV = N_GENOT / (N_GENOT - 1)
+    ) %>%
+    dplyr::ungroup(.)
+  return(res)
+}#End individual_stats
+
+#' @title separate_haplo_long
+#' @rdname separate_haplo_long
+#' @description separate haplotype and gather
+#' @export
+#' @keywords internal
+
+separate_haplo_long <- function(x) {
+  res <- dplyr::select(x, LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES)  %>%
+    tidyr::separate(
+      col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
+      sep = "/", extra = "drop", remove = TRUE
+    ) %>%
+    dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
+    dplyr::select(-INDIVIDUALS) %>%
+    tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID)) %>%
+    dplyr::select(-ALLELE_GROUP)
+  return(res)
+}#End separate_haplo_long
+
+#' @title separate_haplo
+#' @rdname separate_haplo
+#' @description separate haplotype. NO gather
+#' @export
+#' @keywords internal
+separate_haplo <- function(x) {
+  res <- dplyr::select(x, LOCUS, POP_ID, INDIVIDUALS, HAPLOTYPES)  %>%
+    tidyr::separate(
+      col = HAPLOTYPES, into = c("ALLELE1", "ALLELE2"),
+      sep = "/", extra = "drop", remove = TRUE
+    ) %>%
+    dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2))
+  return(res)
+}#End separate_haplo
+
+# Pi function ----------------------------------------------------------------
+#' @title pi
+#' @rdname pi
+#' @description Calculates pi
+#' @export
+#' @keywords internal
+pi <- function(data, read.length) {
+  # data <- dplyr::filter(data, LOCUS == "2")#test
+  y <- dplyr::select(data, ALLELES) %>% purrr::flatten_chr(.)
+
+  if (length(unique(y)) <= 1) {
+    pi <- tibble::data_frame(PI = as.numeric(0))
+  } else {
+
+    #1 Get all pairwise comparison
+    allele.pairwise <- utils::combn(unique(y), 2)
+
+    #2 Calculate pairwise nucleotide mismatches
+    pairwise.mismatches <- apply(allele.pairwise, 2, function(z) {
+      stringdist::stringdist(a = z[1], b = z[2], method = "hamming")
+    })
+
+    #3 Calculate allele frequency
+    allele.freq <- table(y) / length(y)
+
+    #4 Calculate nucleotide diversity from pairwise mismatches and allele frequency
+    pi <- apply(allele.pairwise, 2, function(y) allele.freq[y[1]] * allele.freq[y[2]])
+    pi <- tibble::data_frame(PI = sum(pi * pairwise.mismatches) / read.length)
+  }
+  return(pi)
+}#End pi
+
+
+#' @title pi_pop
+#' @rdname pi_pop
+#' @description Calculates pi per pop
+#' @export
+#' @keywords internal
+pi_pop <- function(data, read.length, parallel.core) {
+  pop <- unique(data$POP_ID)
+  message("    Pi calculations for pop: ", pop)
+  # data <- df.split.pop[["DD"]]
+  # data <- df.split.pop[["SKY"]]
+
+  pi.pop <- split(x = data, f = data$LOCUS)
+  pi.pop <- .stackr_parallel(
+    X = pi.pop,
+    FUN = pi,
+    mc.cores = parallel.core,
+    read.length = read.length
+  ) %>%
+    dplyr::bind_rows(.) %>%
+    dplyr::summarise(PI_NEI = mean(PI, na.rm = TRUE)) %>%
+    tibble::add_column(.data = ., POP_ID = pop, .before = "PI_NEI")
+
+  return(pi.pop)
+}#End pi_pop
+
+
+# change POP_ID names
+
+#' @name change_pop_names
+#' @title Transform into a factor the POP_ID column, change names and reorder the levels
+#' @description Transform into a factor the POP_ID column, change names and reorder the levels
+#' @rdname change_pop_names
+#' @export
+#' @keywords internal
+
+change_pop_names <- function(data, pop.levels = NULL, pop.labels = NULL) {
+
+  # checks ---------------------------------------------------------------------
+  if (missing(data)) stop("Input file missing")
+
+  # POP_ID in gsi_sim does not like spaces, we need to remove space in everything touching POP_ID...
+
+  # removing spaces in data$POP_ID, pop.levels and pop.labels
+  if (!is.null(pop.levels) & is.null(pop.labels)) {
+    pop.levels <- stringi::stri_replace_all_fixed(pop.levels, pattern = " ", replacement = "_", vectorize_all = FALSE)
+    pop.labels <- pop.levels
+  }
+
+  if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
+
+  if (!is.null(pop.labels)) {
+    if (length(pop.labels) != length(pop.levels)) stop("pop.labels and pop.levels must have the same length (number of groups)")
+    pop.labels <- stringi::stri_replace_all_fixed(pop.labels, pattern = " ", replacement = "_", vectorize_all = FALSE)
+  }
+
+  # in the data
+  data$POP_ID <- stringi::stri_replace_all_fixed(data$POP_ID, pattern = " ", replacement = "_", vectorize_all = FALSE)
+
+
+  # the number of pop in data == pop.levels
+  if (!is.null(pop.levels)) {
+    if (dplyr::n_distinct(data$POP_ID) != length(pop.levels)) {
+      stop("The number of groups in your input file doesn't match the number of groups in pop.levels")
+    }
+  }
+  # convert POP_ID to factor and change names-----------------------------------
+
+  if (is.null(pop.levels)) { # no pop.levels
+    data$POP_ID <- factor(data$POP_ID)
+  } else {# with pop.levels
+    data$POP_ID <- factor(x = data$POP_ID, levels = pop.levels, ordered = TRUE)
+    levels(data$POP_ID) <- pop.labels
+  }
+  return(data)
+}# end function change_pop_names

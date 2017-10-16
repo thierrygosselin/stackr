@@ -27,7 +27,7 @@ proposed in stackr.
 \examples{
 \dontrun{
 # The simplest form of the function:
-build_stackr_workflow_dir()
+stackr::build_stackr_workflow_dir()
 # that's it ! Now if you have your own main folder name:
 build_stackr_workflow_dir(main.folder.name = "stacks_whiteshark", date = TRUE)
 }

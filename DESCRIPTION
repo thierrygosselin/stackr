@@ -17,8 +17,6 @@ Imports:
     tibble,
     tidyr,
     ggplot2,
-    data.table,
-    reshape2,
     stringi,
     ape,
     parallel,
@@ -26,13 +24,11 @@ Imports:
     magrittr,
     stats,
     utils,
-    pryr,
     pbmcapply,
     pegas,
     purrrlyr,
     rlang,
     stringdist,
-    radiator,
     cowplot
 Suggests:
     knitr,
@@ -40,7 +36,6 @@ Suggests:
 biocViews: 
 Remotes:
   github::kvnkuang/pbmcapply,
-  github::thierrygosselin/radiator
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr

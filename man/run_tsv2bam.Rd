@@ -61,7 +61,7 @@ with the catalog
 \item MATCH_PERCENT: the percentage of locus with a one-to-one relationship
 with the catalog (shown in subplot C)
 
-Addtionally, the function returns a batch_X.catalog.bam file that was generated
+Addtionally, the function returns a catalog.bam file, generated
 by merging all the individual BAM files in parallel.
 }
 }
