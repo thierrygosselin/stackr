@@ -1,5 +1,5 @@
 #' @name run_populations_v2
-#' @title Run STACKS Version 2.0Beta1 populations module
+#' @title Run STACKS Version 2.0Beta2 populations module
 #' @description Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/populations.php}{populations}
 #' module inside R!
@@ -166,7 +166,7 @@
 #' @seealso
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/populations.php}{populations}
 
-#' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{STACKS Version 2.0Beta1}
+#' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{STACKS Version 2.0Beta2}
 
 
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011)
