@@ -22,14 +22,28 @@
 #' modules
 #' }.
 
-#' @param b (integer) De novo mode. Database/batch ID of the input catalog
-#' to consider. Advice: don't modify the default.
-#' Default: \code{b = "guess"}.
+# @param b (integer) De novo mode. Database/batch ID of the input catalog
+# to consider. Advice: don't modify the default.
+# Default: \code{b = "guess"}.
 
-#' @param B (character, path) Reference-based mode. Path to input BAM file.
-#' The input BAM file should (i) be sorted by coordinate and (ii) comprise
-#' all aligned reads for all samples, with reads assigned to samples using
-#' BAM "reads groups" (gstacks uses the SN, "sample name" field).
+#' @param I (character, path) Reference-based mode.
+#' Input directory containing BAM files. With \code{I}, read groups
+#' are ignored.
+#' Default: \code{I = NULL}.
+
+#' @param s (logical) With \code{I} and \code{M}, spacer for file names:
+#' by default this is empty and the program looks for files named
+#' 'SAMPLE_NAME.bam'; if this option is given the program looks for
+#' 'SAMPLE_NAME.SPACER.bam'
+#' Default: \code{s = FALSE}.
+
+
+#' @param B (character, path) Reference-based mode. Path to input BAM files.
+#' The input BAM file should be sorted by coordinate.
+#' With \code{B}, records must be assigned to samples using BAM "reads groups"
+#' (gstacks uses the ID "identifier" and SM "sample name" fields). Read groups,
+#' if repeated in several files, must be consistent. With \code{I}, read groups
+#' are ignored.
 #' Please refer to the gstacks manual page for information about how to
 #' generate such a BAM file with Samtools or Sambamba, and examples.
 #' Default: \code{B = NULL}.
@@ -59,10 +73,26 @@
 #' Default: \code{var.alpha = 0.05}.
 #' @param gt.alpha (double) Alpha threshold for calling genotypes.
 #' Default: \code{gt.alpha = 0.05}.
-#' @param kmer.length (integer) kmer length for the de Bruijn graph. For expert.
+
+
+#' @param kmer.length (integer) De novo mode.
+#' kmer length for the de Bruijn graph. For expert.
 #' Default: \code{kmer.length = 31}.
-#' @param min.kmer.cov (integer) Minimum coverage to consider a kmer. For exptert.
+#' @param min.kmer.cov (integer) De novo mode.
+#' Minimum coverage to consider a kmer. For expert.
 #' Default: \code{min.kmer.cov =2}.
+
+
+#' @param min.mapq (double) Reference-based mode.
+#' Minimum PHRED-scaled mapping quality to consider a read.
+#' Default: \code{min.mapq = 10}.
+#' @param max.clipped (double) Reference-based mode.
+#' Maximum soft-clipping level, in fraction of read length.
+#' Default: \code{max.clipped = 0.20}.
+#' @param max.insert.len (integer) Reference-based mode.
+#' Maximum allowed sequencing insert length
+#' Default: \code{max.insert.len = 1000}.
+
 
 #' @param h Display this help messsage.
 #' Default: \code{h = FALSE}
@@ -113,7 +143,9 @@
 
 run_gstacks <- function(
   P = "06_ustacks_cstacks_sstacks",
-  b = "guess",
+  # b = "guess",
+  I = NULL,
+  s = FALSE,
   B = NULL,
   O = NULL,
   paired = FALSE,
@@ -125,6 +157,9 @@ run_gstacks <- function(
   gt.alpha = 0.05,
   kmer.length = 31,
   min.kmer.cov = 2,
+  min.mapq = 10,
+  max.clipped = 0.20,
+  max.insert.len = 1000,
   h = FALSE
   ) {
 
@@ -163,17 +198,25 @@ run_gstacks <- function(
   P <- stringi::stri_join("-P ", shQuote(P))
 
   # Catalog batch ID
-  if (b == "guess") {
-    b <- ""
-  } else {
-    b <- stringi::stri_join("-b ", b)
-  }
+  # if (b == "guess") {
+  #   b <- ""
+  # } else {
+  #   b <- stringi::stri_join("-b ", b)
+  # }
 
 
   # reference-based approach ---------------------------------------------------
-  if (!is.null(B)) {
-    B.bk <- B
-    B <- stringi::stri_join("-B ", B)
+  if (!is.null(B) || !is.null(I)) {
+
+
+    if (!is.null(B)) {
+      B.bk <- B
+      B <- stringi::stri_join("-B ", B)
+    } else {
+      B <- ""
+    }
+
+
     if (!is.null(O)) {
       O <- stringi::stri_join("-O ", O)
     } else {
@@ -190,7 +233,17 @@ run_gstacks <- function(
     paired <- ""
   }
 
+  if (!is.null(I)) {
+    I <- stringi::stri_join("-I ", I)
+  } else {
+    I <- ""
+  }
 
+  if (s) {
+    s <- "-s "
+  } else {
+    s <- ""
+  }
 
   # Shared options -------------------------------------------------------------
 
@@ -223,6 +276,10 @@ run_gstacks <- function(
   kmer.length <- stringi::stri_join("--kmer-length ", kmer.length)
   min.kmer.cov <- stringi::stri_join("--min-kmer-cov ", min.kmer.cov)
 
+  min.mapq <- stringi::stri_join("--min-mapq ", min.mapq)
+  max.clipped <- stringi::stri_join("--max-clipped ", max.clipped)
+  max.insert.len <- stringi::stri_join("--max-insert-len ", max.insert.len)
+
   # Help
   if (h) {
     h <- stringi::stri_join("-h ")
@@ -232,8 +289,10 @@ run_gstacks <- function(
 
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
-    P, b, B, O, paired, t, details, ignore.pe.reads, model, var.alpha, gt.alpha,
-    kmer.length, min.kmer.cov, h)
+    P,
+    # b,
+    I, s, B, O, paired, t, details, ignore.pe.reads, model, var.alpha, gt.alpha,
+    kmer.length, min.kmer.cov, min.mapq, max.clipped, max.insert.len, h)
 
   # run command ----------------------------------------------------------------
   system2(command = "gstacks", args = command.arguments, stderr = gstacks.log.file,

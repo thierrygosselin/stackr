@@ -4,11 +4,11 @@
 \alias{run_gstacks}
 \title{Run STACKS new module called gstacks}
 \usage{
-run_gstacks(P = "06_ustacks_cstacks_sstacks", b = "guess", B = NULL,
-  O = NULL, paired = FALSE, t = parallel::detectCores() - 1,
+run_gstacks(P = "06_ustacks_cstacks_sstacks", I = NULL, s = FALSE,
+  B = NULL, O = NULL, paired = FALSE, t = parallel::detectCores() - 1,
   details = TRUE, ignore.pe.reads = TRUE, model = "marukilow",
   var.alpha = 0.05, gt.alpha = 0.05, kmer.length = 31, min.kmer.cov = 2,
-  h = FALSE)
+  min.mapq = 10, max.clipped = 0.2, max.insert.len = 1000, h = FALSE)
 }
 \arguments{
 \item{P}{(path, character) De novo mode.
@@ -29,14 +29,23 @@ Those files are created in the
 modules
 }.}
 
-\item{b}{(integer) De novo mode. Database/batch ID of the input catalog
-to consider. Advice: don't modify the default.
-Default: \code{b = "guess"}.}
+\item{I}{(character, path) Reference-based mode.
+Input directory containing BAM files. With \code{I}, read groups
+are ignored.
+Default: \code{I = NULL}.}
 
-\item{B}{(character, path) Reference-based mode. Path to input BAM file.
-The input BAM file should (i) be sorted by coordinate and (ii) comprise
-all aligned reads for all samples, with reads assigned to samples using
-BAM "reads groups" (gstacks uses the SN, "sample name" field).
+\item{s}{(logical) With \code{I} and \code{M}, spacer for file names:
+by default this is empty and the program looks for files named
+'SAMPLE_NAME.bam'; if this option is given the program looks for
+'SAMPLE_NAME.SPACER.bam'
+Default: \code{s = FALSE}.}
+
+\item{B}{(character, path) Reference-based mode. Path to input BAM files.
+The input BAM file should be sorted by coordinate.
+With \code{B}, records must be assigned to samples using BAM "reads groups"
+(gstacks uses the ID "identifier" and SM "sample name" fields). Read groups,
+if repeated in several files, must be consistent. With \code{I}, read groups
+are ignored.
 Please refer to the gstacks manual page for information about how to
 generate such a BAM file with Samtools or Sambamba, and examples.
 Default: \code{B = NULL}.}
@@ -75,6 +84,18 @@ Default: \code{kmer.length = 31}.}
 
 \item{min.kmer.cov}{(integer) Minimum coverage to consider a kmer. For exptert.
 Default: \code{min.kmer.cov =2}.}
+
+\item{min.mapq}{(double) Reference-based mode.
+Minimum PHRED-scaled mapping quality to consider a read.
+Default: \code{min.mapq = 10}.}
+
+\item{max.clipped}{(double) Reference-based mode.
+Maximum soft-clipping level, in fraction of read length.
+Default: \code{max.clipped = 0.20}.}
+
+\item{max.insert.len}{(integer) Reference-based mode.
+Maximum allowed sequencing insert length
+Default: \code{max.insert.len = 1000}.}
 
 \item{h}{Display this help messsage.
 Default: \code{h = FALSE}}

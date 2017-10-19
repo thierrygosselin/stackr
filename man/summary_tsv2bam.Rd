@@ -51,5 +51,5 @@ Stacks: an analysis tool set for population genomics.
 Molecular Ecology, 22, 3124-3140.
 }
 \seealso{
-\href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{stacks Version 2.0Beta1}
+\href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{stacks Version 2.0Beta2}
 }
