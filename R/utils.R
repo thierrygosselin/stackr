@@ -1,6 +1,12 @@
-#' @importFrom magrittr %>%
+#' Pipe operator
+#'
+#' @name %>%
+#' @rdname pipe
+#' @keywords internal
 #' @export
-magrittr::`%>%`
+#' @importFrom magrittr %>%
+#' @usage lhs \%>\% rhs
+NULL
 
 #' @importFrom utils packageDescription
 #' @importFrom stringi stri_join
@@ -32,3 +38,8 @@ split_vec_row <- function(x, cpu.rounds, parallel.core = parallel::detectCores()
   split.vec <- as.integer(floor((parallel.core * cpu.rounds * (1:n.row - 1) / n.row) + 1))
   return(split.vec)
 }#End split_vec_row
+
+
+.onUnload <- function(libpath) {
+  library.dynam.unload("stackr", libpath)
+}
