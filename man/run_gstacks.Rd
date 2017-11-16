@@ -79,10 +79,12 @@ Default: \code{var.alpha = 0.05}.}
 \item{gt.alpha}{(double) Alpha threshold for calling genotypes.
 Default: \code{gt.alpha = 0.05}.}
 
-\item{kmer.length}{(integer) kmer length for the de Bruijn graph. For expert.
+\item{kmer.length}{(integer) De novo mode.
+kmer length for the de Bruijn graph. For expert.
 Default: \code{kmer.length = 31}.}
 
-\item{min.kmer.cov}{(integer) Minimum coverage to consider a kmer. For exptert.
+\item{min.kmer.cov}{(integer) De novo mode.
+Minimum coverage to consider a kmer. For expert.
 Default: \code{min.kmer.cov =2}.}
 
 \item{min.mapq}{(double) Reference-based mode.

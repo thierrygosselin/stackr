@@ -246,16 +246,7 @@ run_populations_v2 <- function(
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
 
   # file data and time ---------------------------------------------------------
-  file.date.time <- stringi::stri_replace_all_fixed(
-    str = Sys.time(),
-    pattern = " EDT", replacement = "") %>%
-    stringi::stri_replace_all_fixed(
-      str = .,
-      pattern = c("-", " ", ":"),
-      replacement = c("", "@", ""),
-      vectorize_all = FALSE
-    ) %>%
-    stringi::stri_sub(str = ., from = 1, to = 13)
+  file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
 
   # logs file ------------------------------------------------------------------
   populations.log.file <- stringi::stri_join("09_log_files/populations_", file.date.time,".log")

@@ -22,6 +22,9 @@ software in R and reading particular files it produces.\n
 For filters and other functions that was in stackr,
 please see my new package called radiator.
 https://github.com/thierrygosselin/radiator
+
+
+Reproducibility note: all zenodo DOI and stackr versions were left intact.
 ********************************************************************************",
 sep = "")
 packageStartupMessage(startup.message)
@@ -40,6 +43,6 @@ split_vec_row <- function(x, cpu.rounds, parallel.core = parallel::detectCores()
 }#End split_vec_row
 
 
-.onUnload <- function(libpath) {
-  library.dynam.unload("stackr", libpath)
-}
+# .onUnload <- function(libpath) {
+#   library.dynam.unload("stackr", libpath)
+# }
