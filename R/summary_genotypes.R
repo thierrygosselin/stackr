@@ -167,7 +167,7 @@ summary_genotypes <- function(
   }
 
   # abxac and/or abxcd markers
-  message("for abxac and/or abxcd markers")
+  message("\nGenerating abxac and/or abxcd markers...")
   pattern.A <- geno.sum %>%
     dplyr::filter(PATTERN == "abxac" | PATTERN == "abxcd") %>%
     dplyr::group_by(LOCUS) %>%
@@ -184,7 +184,7 @@ summary_genotypes <- function(
     dplyr::select(-CHISQ)
 
   # abxab markers
-  message("for abxab markers")
+  message("\nGenerating abxab markers...")
 
   pattern.B <- geno.sum %>%
     dplyr::filter(PATTERN == "abxab") %>%
@@ -202,7 +202,7 @@ summary_genotypes <- function(
     dplyr::select(-CHISQ)
 
   # aaxab and/or abxaa markers
-  message("for aaxab and/or abxaa markers")
+  message("\nGenerating aaxab and/or abxaa markers")
   pattern.D <- geno.sum %>%
     dplyr::filter(PATTERN=="aaxab" | PATTERN=="abxaa") %>%
     dplyr::group_by(LOCUS) %>%
@@ -246,7 +246,7 @@ summary_genotypes <- function(
   }
 
   # Filter number of individuals genotyped
-  message("Filterin number of individuals genotyped")
+  message("\nFiltering number of individuals genotyped")
   geno.sum <- dplyr::filter(geno.sum, TOTAL_GENOTYPES > ind.genotyped)
 
   # pattern summary
@@ -262,7 +262,6 @@ summary_genotypes <- function(
 
   # joinmap output--------------------------------------------------------------
   if (!is.null(joinmap)) {
-    message("JoinMap output was selected ...")
     joinmap.data <- genotypes.file %>%
       dplyr::select(LOCUS, INDIVIDUALS, GENOTYPES) %>%
       dplyr::inner_join(
@@ -307,7 +306,6 @@ summary_genotypes <- function(
 
   # onemap output--------------------------------------------------------------
   if (!is.null(onemap)) {
-    message("OneMap output was selected ...")
     onemap.data <- genotypes.file %>%
       dplyr::select(LOCUS, INDIVIDUALS, GENOTYPES) %>%
       dplyr::inner_join(
