@@ -243,6 +243,7 @@ summary_haplotypes <- function(
   if (!is.null(blacklist.id)) {
     blacklist.id <- suppressMessages(readr::read_tsv(blacklist.id, col_names = TRUE))
     message("Filtering with blacklist of individuals: ", nrow(blacklist.id), " individual(s) blacklisted")
+    blacklist.id$INDIVIDUALS <- clean_ind_names(blacklist.id$INDIVIDUALS)
     strata.df <- dplyr::anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
 
     # blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
@@ -251,9 +252,8 @@ summary_haplotypes <- function(
     #   replacement = c("-", "-"),
     #   vectorize_all = FALSE
     # )
-    blacklist.id$INDIVIDUALS <- clean_ind_names(blacklist.id$INDIVIDUALS)
 
-    haplotype <- suppressWarnings(dplyr::anti_join(haplotype, blacklist.id, by = "INDIVIDUALS"))
+    # haplotype <- suppressWarnings(dplyr::anti_join(haplotype, blacklist.id, by = "INDIVIDUALS"))
     blacklist.id <- NULL
   }
 
@@ -267,7 +267,6 @@ summary_haplotypes <- function(
     dplyr::bind_rows(
       dplyr::select(strata.df, INFO = INDIVIDUALS) %>%
         dplyr::mutate(COL_TYPE = rep("c", n())))
-
 
   haplo.col.type <- readr::read_tsv(
     file = data,

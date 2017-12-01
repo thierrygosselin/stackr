@@ -19,7 +19,9 @@ To create a strata file see \code{\link[radiator]{individuals2strata}}.
 If you have already run
 \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
 the strata file is similar to a stacks `population map file`, make sure you
-have the required column names (\code{INDIVIDUALS} and \code{STRATA}).}
+have the required column names (\code{INDIVIDUALS} and \code{STRATA}).
+The strata also works as a whitelist of ids,
+individuals not in the strata file will be removed from the dataset.}
 
 \item{read.length}{(number) The length in nucleotide of your reads
 (e.g. \code{read.length = 100}).}
