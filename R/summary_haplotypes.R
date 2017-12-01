@@ -37,6 +37,8 @@
 #' \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
 #' the strata file is similar to a stacks `population map file`, make sure you
 #' have the required column names (\code{INDIVIDUALS} and \code{STRATA}).
+#' The strata also works as a whitelist of ids,
+#' individuals not in the strata file will be removed from the dataset.
 
 #' @param read.length (number) The length in nucleotide of your reads
 #' (e.g. \code{read.length = 100}).
@@ -201,79 +203,18 @@ summary_haplotypes <- function(
   }
 
   # Date and time --------------------------------------------------------------
-  file.date <- stringi::stri_replace_all_fixed(
-    Sys.time(),
-    pattern = " EDT", replacement = "") %>%
-    stringi::stri_replace_all_fixed(
-      str = .,
-      pattern = c("-", " ", ":"), replacement = c("", "@", ""),
-      vectorize_all = FALSE) %>%
-    stringi::stri_sub(str = ., from = 1, to = 13)
-
+  file.date <- format(Sys.time(), "%Y%m%d@%H%M")
   folder.extension <- stringi::stri_join("summary_haplotypes_", file.date, sep = "")
-  path.folder <- stringi::stri_join(getwd(),"/", folder.extension, sep = "")
-  dir.create(file.path(path.folder))
+  path.folder <- file.path(getwd(), folder.extension)
+  dir.create(path.folder)
 
-  message(stringi::stri_join("Folder created: \n", folder.extension))
+  message("Folder created: \n", folder.extension)
   file.date <- NULL #unused object
 
-  # Import haplotype file ------------------------------------------------------
-  message("Importing and tidying STACKS haplotype file: ", data)
-  # readr now faster/easier than fread...
-  haplotype <- readr::read_tsv(
-    file = data, col_names = TRUE, na = "-",
-    col_types = readr::cols(.default = readr::col_character())) %>%
-    dplyr::select(-Cnt)
-
-  if (tibble::has_name(haplotype, "# Catalog ID") ||
-      tibble::has_name(haplotype, "Catalog ID") ||
-      tibble::has_name(haplotype, "# Catalog Locus ID")) {
-    colnames(haplotype) <- stringi::stri_replace_all_fixed(
-      str = colnames(haplotype),
-      pattern = c("# Catalog ID", "Catalog ID", "# Catalog Locus ID"),
-      replacement = c("LOCUS", "LOCUS", "LOCUS"), vectorize_all = FALSE
-    )
-  }
-
-  if (tibble::has_name(haplotype, "Seg Dist")) {
-    haplotype <- dplyr::select(.data = haplotype, -`Seg Dist`)
-  }
-
-  haplotype <- tidyr::gather(
-    data = haplotype,
-    key = "INDIVIDUALS",
-    value = "HAPLOTYPES", # previously using "GT_HAPLO"
-    -LOCUS)
-
-  haplotype$INDIVIDUALS <- clean_ind_names(haplotype$INDIVIDUALS)
-
-  # Import whitelist of markers-------------------------------------------------
-  if (is.null(whitelist.markers)) {
-    haplotype <- dplyr::mutate(haplotype, WHITELIST = rep("whitelist", n()))
-  } else {
-    whitelist.markers <- suppressMessages(readr::read_tsv(whitelist.markers, col_names = TRUE))
-
-    # Check that whitelist has "LOCUS" column
-    if (!tibble::has_name(whitelist.markers, "LOCUS")) {
-      stop("Whitelist requires a LOCUS column, check argument documentation...")
-    }
-    whitelist.markers <- dplyr::select(.data = whitelist.markers, LOCUS) %>%
-      dplyr::mutate(LOCUS = as.character(LOCUS)) %>%
-      dplyr::arrange(as.integer(LOCUS))
-
-    haplotype <- haplotype %>%
-      dplyr::mutate(
-        WHITELIST = dplyr::if_else(LOCUS %in% whitelist.markers$LOCUS,
-                                   "whitelist", "blacklist")
-      )
-    whitelist.markers <- "whitelist"
-  }
-
   # population levels and strata------------------------------------------------
-  message("Making the haplotype file population-wise...")
   if (is.vector(strata)) {
     # message("strata file: yes")
-     suppressMessages(
+    suppressMessages(
       strata.df <- readr::read_tsv(
         file = strata, col_names = TRUE,
         col_types = readr::cols(.default = readr::col_character())
@@ -291,6 +232,8 @@ summary_haplotypes <- function(
     )
     strata.df <- strata
   }
+
+  strata.df <- dplyr::distinct(strata.df, POP_ID, INDIVIDUALS)
 
   # Remove potential whitespace in pop_id
   strata.df$POP_ID <- clean_pop_names(strata.df$POP_ID)
@@ -314,7 +257,87 @@ summary_haplotypes <- function(
     blacklist.id <- NULL
   }
 
+  # Import haplotype file ------------------------------------------------------
+  message("Importing and tidying STACKS haplotype file: ", data)
+
+  # import header row
+  want <- tibble::data_frame(
+    INFO = "Catalog ID",
+    COL_TYPE = "c") %>%
+    dplyr::bind_rows(
+      dplyr::select(strata.df, INFO = INDIVIDUALS) %>%
+        dplyr::mutate(COL_TYPE = rep("c", n())))
+
+
+  haplo.col.type <- readr::read_tsv(
+    file = data,
+    n_max = 1,
+    na = "-",
+    col_names = FALSE,
+    col_types = readr::cols(.default = readr::col_character())) %>%
+    tidyr::gather(data = .,key = DELETE, value = INFO) %>%
+    dplyr::mutate(INFO = clean_ind_names(INFO)) %>%
+    dplyr::select(-DELETE) %>%
+    dplyr::left_join(want, by = "INFO") %>%
+    dplyr::mutate(COL_TYPE = stringi::stri_replace_na(str = COL_TYPE, replacement = "_")) %>%
+    dplyr::select(COL_TYPE) %>%
+    purrr::flatten_chr(.) %>% stringi::stri_join(collapse = "")
+
+  # readr now faster/easier than fread...
+  haplotype <- readr::read_tsv(
+    file = data, col_names = TRUE, na = "-",
+    col_types = haplo.col.type)
+
+  if (tibble::has_name(haplotype, "# Catalog ID") ||
+      tibble::has_name(haplotype, "Catalog ID") ||
+      tibble::has_name(haplotype, "# Catalog Locus ID")) {
+    colnames(haplotype) <- stringi::stri_replace_all_fixed(
+      str = colnames(haplotype),
+      pattern = c("# Catalog ID", "Catalog ID", "# Catalog Locus ID"),
+      replacement = c("LOCUS", "LOCUS", "LOCUS"), vectorize_all = FALSE
+    )
+  }
+
+  if (tibble::has_name(haplotype, "Seg Dist")) {
+    haplotype <- dplyr::select(.data = haplotype, -`Seg Dist`)
+  }
+
+  haplotype <- tidyr::gather(
+    data = haplotype,
+    key = "INDIVIDUALS",
+    value = "HAPLOTYPES", # previously using "GT_HAPLO"
+    -LOCUS)
+
+  haplotype$INDIVIDUALS <- clean_ind_names(haplotype$INDIVIDUALS)
+
+  want <- haplo.col.type <- NULL
+
+  # Import whitelist of markers-------------------------------------------------
+  if (is.null(whitelist.markers)) {
+    haplotype <- dplyr::mutate(haplotype, WHITELIST = rep("whitelist", n()))
+  } else {
+    whitelist.markers <- suppressMessages(readr::read_tsv(whitelist.markers, col_names = TRUE))
+
+    # Check that whitelist has "LOCUS" column
+    if (!tibble::has_name(whitelist.markers, "LOCUS")) {
+      stop("Whitelist requires a LOCUS column, check argument documentation...")
+    }
+    whitelist.markers <- dplyr::select(.data = whitelist.markers, LOCUS) %>%
+      dplyr::mutate(LOCUS = as.character(LOCUS)) %>%
+      dplyr::arrange(as.integer(LOCUS))
+
+    haplotype <- haplotype %>%
+      dplyr::mutate(
+        WHITELIST = dplyr::if_else(LOCUS %in% whitelist.markers$LOCUS,
+                                   "whitelist", "blacklist")
+      )
+    whitelist.markers <- "whitelist"
+  }
+
+
+
   # Population levels and strata -----------------------------------------------
+  message("Making the haplotype file population-wise...")
   haplotype <- dplyr::left_join(x = haplotype, y = strata.df, by = "INDIVIDUALS")
   strata.df <- NULL
 
