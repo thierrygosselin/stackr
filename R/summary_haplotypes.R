@@ -160,7 +160,7 @@
 
 summary_haplotypes <- function(
   data,
-  strata,
+  strata = NULL,
   read.length,
   whitelist.markers = NULL,
   blacklist.id = NULL,
@@ -187,7 +187,6 @@ summary_haplotypes <- function(
   }
 
   if (missing(data)) stop("data argument is missing")
-  if (missing(strata)) stop("strata argument is required")
   if (missing(read.length)) stop("read.length argument is required")
 
   if (!is.null(pop.levels) & is.null(pop.labels)) {
@@ -198,7 +197,7 @@ summary_haplotypes <- function(
   if (!is.null(pop.labels) & is.null(pop.levels)) stop("pop.levels is required if you use pop.labels")
 
   if (!is.null(pop.labels)) {
-    if (length(pop.labels) != length(pop.levels)) stop("pop.labels and pop.levels must have the same length (number of groups)")
+    if (length(pop.labels) != length(pop.levels)) stop("pop.levels and pop.labels with different length: check arguments")
     pop.labels <- stringi::stri_replace_all_fixed(pop.labels, pattern = " ", replacement = "_", vectorize_all = FALSE)
   }
 
@@ -211,51 +210,15 @@ summary_haplotypes <- function(
   message("Folder created: \n", folder.extension)
   file.date <- NULL #unused object
 
-  # population levels and strata------------------------------------------------
-  if (is.vector(strata)) {
-    # message("strata file: yes")
-    suppressMessages(
-      strata.df <- readr::read_tsv(
-        file = strata, col_names = TRUE,
-        col_types = readr::cols(.default = readr::col_character())
-      ) %>%
-        dplyr::rename(POP_ID = STRATA))
-
-
-  } else {
-    # message("strata object: yes")
-    colnames(strata) <- stringi::stri_replace_all_fixed(
-      str = colnames(strata),
-      pattern = "STRATA",
-      replacement = "POP_ID",
-      vectorize_all = FALSE
-    )
-    strata.df <- strata
-  }
-
-  strata.df <- dplyr::distinct(strata.df, POP_ID, INDIVIDUALS)
-
-  # Remove potential whitespace in pop_id
-  strata.df$POP_ID <- clean_pop_names(strata.df$POP_ID)
-  strata.df$INDIVIDUALS <- clean_ind_names(strata.df$INDIVIDUALS)
-
   # Import and filter blacklist id ---------------------------------------------
   if (!is.null(blacklist.id)) {
     blacklist.id <- suppressMessages(readr::read_tsv(blacklist.id, col_names = TRUE))
     message("Filtering with blacklist of individuals: ", nrow(blacklist.id), " individual(s) blacklisted")
     blacklist.id$INDIVIDUALS <- clean_ind_names(blacklist.id$INDIVIDUALS)
-    strata.df <- dplyr::anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
-
-    # blacklist.id$INDIVIDUALS <- stringi::stri_replace_all_fixed(
-    #   str = blacklist.id$INDIVIDUALS,
-    #   pattern = c("_", ":"),
-    #   replacement = c("-", "-"),
-    #   vectorize_all = FALSE
-    # )
-
-    # haplotype <- suppressWarnings(dplyr::anti_join(haplotype, blacklist.id, by = "INDIVIDUALS"))
-    blacklist.id <- NULL
   }
+
+  # STRATA ---------------------------------------------------------------------
+  strata.df <- strata_haplo(strata = strata, data = data, blacklist.id = blacklist.id)
 
   # Import haplotype file ------------------------------------------------------
   message("Importing and tidying STACKS haplotype file: ", data)
@@ -1016,6 +979,63 @@ summary_haplotypes <- function(
 
 # Internal nested Function -----------------------------------------------------
 
+#' @title strata_haplo
+#' @description Manage strata
+#' @rdname strata_haplo
+#' @keywords internal
+#' @export
+strata_haplo <- function(strata = NULL, data = NULL, blacklist.id = NULL) {
+
+  if (is.null(strata)) {
+    message("No strata file provided")
+    message("    generating a strata with 1 grouping")
+    if (is.null(data)) stop("data required to generate strata")
+    strata.df <- readr::read_tsv(
+      file = data,
+      n_max = 1,
+      na = "-",
+      col_names = FALSE,
+      col_types = readr::cols(.default = readr::col_character())) %>%
+      tidyr::gather(data = .,key = DELETE, value = INDIVIDUALS) %>%
+      dplyr::mutate(INDIVIDUALS = clean_ind_names(INDIVIDUALS)) %>%
+      dplyr::select(-DELETE) %>%
+      dplyr::filter(!INDIVIDUALS %in% c("Catalog ID", "Cnt")) %>%
+      dplyr::distinct(INDIVIDUALS) %>%
+      dplyr::mutate(STRATA = rep("pop1", n()))
+  } else {
+    if (is.vector(strata)) {
+      suppressMessages(
+        strata.df <- readr::read_tsv(
+          file = strata, col_names = TRUE,
+          # col_types = col.types
+          col_types = readr::cols(.default = readr::col_character())
+        ))
+    } else {
+      strata.df <- strata
+    }
+  }
+
+  colnames(strata.df) <- stringi::stri_replace_all_fixed(
+    str = colnames(strata.df),
+    pattern = "STRATA",
+    replacement = "POP_ID",
+    vectorize_all = FALSE
+  )
+  # Remove potential whitespace in pop_id
+  strata.df$POP_ID <- clean_pop_names(strata.df$POP_ID)
+  colnames.strata <- colnames(strata.df)
+
+  # clean ids
+  strata.df$INDIVIDUALS <- clean_ind_names(strata.df$INDIVIDUALS)
+
+  # filtering the strata if blacklist id available
+  if (!is.null(blacklist.id)) {
+    strata.df <- dplyr::anti_join(x = strata.df, y = blacklist.id, by = "INDIVIDUALS")
+  }
+
+  strata.df <- dplyr::distinct(strata.df, POP_ID, INDIVIDUALS)
+  return(strata.df)
+}#End strata_haplo
 
 #' @title Clean marker's name
 #' @description Function to clean marker's name
