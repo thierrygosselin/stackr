@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_populations_v2.R
 \name{run_populations_v2}
 \alias{run_populations_v2}
-\title{Run STACKS Version 2.0Beta2 populations module}
+\title{Run STACKS Version 2.0Beta6 populations module}
 \usage{
 run_populations_v2(P = "06_ustacks_cstacks_sstacks", V = NULL, O = NULL,
   M, t = parallel::detectCores() - 1, b = "guess", batch_size = 10000,
@@ -221,5 +221,5 @@ Molecular Ecology, 22, 3124-3140.
 }
 \seealso{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/populations.php}{populations}
-\href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{STACKS Version 2.0Beta2}
+\href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{STACKS Version 2.0Beta6}
 }
