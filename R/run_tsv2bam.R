@@ -82,7 +82,7 @@
 #'
 #'\href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 #'
-#' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{stacks Version 2.0Beta2}
+#' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{stacks Version 2.0Beta6}
 #'
 #' \href{http://www.htslib.org}{SAMtools}
 #'

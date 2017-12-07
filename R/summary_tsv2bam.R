@@ -45,7 +45,7 @@
 
 
 #' @seealso
-#' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{stacks Version 2.0Beta2}
+#' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{stacks Version 2.0Beta6}
 
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011)
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences.
