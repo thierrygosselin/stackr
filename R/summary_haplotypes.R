@@ -225,11 +225,14 @@ summary_haplotypes <- function(
 
   # import header row
   want <- tibble::data_frame(
-    INFO = "Catalog ID",
+    INFO = "CATALOG",
     COL_TYPE = "c") %>%
     dplyr::bind_rows(
       dplyr::select(strata.df, INFO = INDIVIDUALS) %>%
-        dplyr::mutate(COL_TYPE = rep("c", n())))
+        dplyr::mutate(
+          COL_TYPE = rep("c", n()),
+      INFO = clean_ind_names(INFO)
+    ))
 
   haplo.col.type <- readr::read_tsv(
     file = data,
@@ -240,30 +243,28 @@ summary_haplotypes <- function(
     tidyr::gather(data = .,key = DELETE, value = INFO) %>%
     dplyr::mutate(INFO = clean_ind_names(INFO)) %>%
     dplyr::select(-DELETE) %>%
+    dplyr::mutate(INFO = clean_ind_names(INFO)) %>%
     dplyr::left_join(want, by = "INFO") %>%
     dplyr::mutate(COL_TYPE = stringi::stri_replace_na(str = COL_TYPE, replacement = "_")) %>%
-    dplyr::select(COL_TYPE) %>%
-    purrr::flatten_chr(.) %>% stringi::stri_join(collapse = "")
+    dplyr::select(COL_TYPE)
+
+  haplo.col.type[1,1] <- "c"
+
+  haplo.col.type <- purrr::flatten_chr(haplo.col.type) %>% stringi::stri_join(collapse = "")
 
   # readr now faster/easier than fread...
   haplotype <- readr::read_tsv(
     file = data, col_names = TRUE, na = "-",
     col_types = haplo.col.type)
 
-  if (tibble::has_name(haplotype, "# Catalog ID") ||
-      tibble::has_name(haplotype, "Catalog ID") ||
-      tibble::has_name(haplotype, "# Catalog Locus ID")) {
-    colnames(haplotype) <- stringi::stri_replace_all_fixed(
-      str = colnames(haplotype),
-      pattern = c("# Catalog ID", "Catalog ID", "# Catalog Locus ID"),
-      replacement = c("LOCUS", "LOCUS", "LOCUS"), vectorize_all = FALSE
-    )
-  }
+  colnames(haplotype) <- stringi::stri_replace_all_fixed(
+    str = colnames(haplotype),
+    pattern = c("# Catalog ID", "Catalog ID", "# Catalog Locus ID"),
+    replacement = c("LOCUS", "LOCUS", "LOCUS"), vectorize_all = FALSE)
 
   if (tibble::has_name(haplotype, "Seg Dist")) {
     haplotype <- dplyr::select(.data = haplotype, -`Seg Dist`)
   }
-
   haplotype <- tidyr::gather(
     data = haplotype,
     key = "INDIVIDUALS",
@@ -489,28 +490,121 @@ summary_haplotypes <- function(
   n.markers <- dplyr::n_distinct(haplotype.filtered$LOCUS)
 
   if (!artifact.only) {
-  # FH ------------------------------------------------------------------------
-  message("Genome-Wide Identity-By-Descent calculations (FH)...")
+    # FH ------------------------------------------------------------------------
+    message("Genome-Wide Identity-By-Descent calculations (FH)...")
 
 
-  # summary.ind <- dplyr::mutate(
-  #   .data = haplotype.filtered,
-  #   IND_LEVEL_POLYMORPHISM = dplyr::if_else(
-  #     stringi::stri_count_fixed(HAPLOTYPES, "/") == 1,
-  #     "het", "hom", missing = "missing"))
+    # summary.ind <- dplyr::mutate(
+    #   .data = haplotype.filtered,
+    #   IND_LEVEL_POLYMORPHISM = dplyr::if_else(
+    #     stringi::stri_count_fixed(HAPLOTYPES, "/") == 1,
+    #     "het", "hom", missing = "missing"))
 
-  # summary <- dplyr::mutate(
-  #   .data = haplotype.filtered,
-  #   IND_LEVEL_POLYMORPHISM = dplyr::if_else(
-  #     stringi::stri_count_fixed(HAPLOTYPES, "/") == 1,
-  #     "het", "hom", missing = "missing"))
+    # summary <- dplyr::mutate(
+    #   .data = haplotype.filtered,
+    #   IND_LEVEL_POLYMORPHISM = dplyr::if_else(
+    #     stringi::stri_count_fixed(HAPLOTYPES, "/") == 1,
+    #     "het", "hom", missing = "missing"))
 
-  # Some could start averaging by individuals accross markers and then by populations...
-  # GenoDive, Hierfstat and Nei computes by locus...
+    # Some could start averaging by individuals accross markers and then by populations...
+    # GenoDive, Hierfstat and Nei computes by locus...
 
-  if (n.markers < 5000) {
-    summary.loc.pop <- haplotype.filtered %>%
+    if (n.markers < 5000) {
+      summary.loc.pop <- haplotype.filtered %>%
+        dplyr::group_by(LOCUS, POP_ID) %>%
+        dplyr::summarise(
+          HOM = length(POLYMORPHISM[POLYMORPHISM == "hom"]),
+          HET = length(POLYMORPHISM[POLYMORPHISM == "het"]),
+          N_GENOT = HOM + HET,
+          HOM_O = HOM / N_GENOT,
+          HET_O = HET / N_GENOT
+        ) %>%
+        dplyr::mutate(
+          NN = 2 * N_GENOT,
+          N_INV = N_GENOT / (N_GENOT - 1)
+        ) %>%
+        dplyr::ungroup(.)
+    } else {
+
+      split.vec <- dplyr::distinct(haplotype.filtered, LOCUS) %>%
+        dplyr::mutate(SPLIT_VEC = as.integer(floor((parallel.core * 3 * (1:n.markers - 1) / n.markers) + 1)))
+
+      # split_vec_row
+
+      summary.loc.pop <- haplotype.filtered %>%
+        dplyr::left_join(split.vec, by = "LOCUS") %>%
+        split(x = ., f = .$SPLIT_VEC) %>%
+        .stackr_parallel(
+          X = .,
+          FUN = loc_pop_stats,
+          mc.cores = parallel.core
+        ) %>%
+        dplyr::bind_rows(.)
+
+      split.vec <- NULL
+    }
+
+    # HS Gene Diversity within populations ---------------------------------------
+    # not the same as Expected Heterozygosity
+
+    # haplotype.filtered.genotyped <- haplotype.filtered %>% dplyr::filter(!is.na(HAPLOTYPES))
+
+    n.row <- nrow(haplotype.filtered)
+    split.vec <- as.integer(floor((parallel.core * 20 * (1:n.row - 1) / n.row) + 1))
+    n.row <- NULL
+
+    # split.vec.locus <- dplyr::distinct(haplotype.filtered, LOCUS) %>%
+    #   dplyr::mutate(
+    #     SPLIT_VEC = factor(as.integer(floor((parallel.core * 20 * (1:n() - 1) / n()) + 1)))
+    #   )
+
+    haplotype.filtered.split <- split(x = haplotype.filtered, f = split.vec) %>%
+      .stackr_parallel_mc(
+        X = ., FUN = separate_haplo_long, mc.cores = parallel.core) %>%
+      dplyr::bind_rows(.)
+
+    hs <- haplotype.filtered.split %>%
       dplyr::group_by(LOCUS, POP_ID) %>%
+      dplyr::count(ALLELES) %>%
+      dplyr::summarise(HOM_E = sum((n / sum(n))^2)) %>%
+      dplyr::ungroup(.) %>%
+      dplyr::full_join(dplyr::select(summary.loc.pop, LOCUS, POP_ID, HET_O, NN, N_INV), by = c("LOCUS", "POP_ID")) %>%
+      dplyr::group_by(LOCUS, POP_ID) %>%
+      dplyr::mutate(HS = N_INV * (1 - HOM_E - HET_O / NN)) %>%
+      dplyr::ungroup(.)
+
+    summary.pop <- summary.loc.pop %>%
+      dplyr::group_by(POP_ID) %>%
+      dplyr::summarise(
+        HOM_O = mean(HOM_O, na.rm = TRUE),
+        HET_O = mean(HET_O, na.rm = TRUE)
+      ) %>%
+      dplyr::full_join(
+        dplyr::group_by(.data = hs, POP_ID) %>%
+          dplyr::summarise(
+            HOM_E = mean(HOM_E, na.rm = TRUE),
+            HET_E = (1 - HOM_E),
+            HS = mean(HS, na.rm = TRUE))
+        , by = "POP_ID")
+
+    summary.locus <- summary.loc.pop %>%
+      dplyr::group_by(LOCUS) %>%
+      dplyr::summarise(
+        HOM_O = mean(HOM_O, na.rm = TRUE),
+        HET_O = mean(HET_O, na.rm = TRUE)
+      ) %>%
+      dplyr::full_join(
+        dplyr::group_by(.data = hs, LOCUS) %>%
+          dplyr::summarise(
+            HOM_E = mean(HOM_E, na.rm = TRUE),
+            HET_E = (1 - HOM_E),
+            HS = mean(HS, na.rm = TRUE))
+        , by = "LOCUS")
+
+    hs <- summary.loc.pop <- NULL
+
+    summary.ind <- haplotype.filtered %>%
+      dplyr::group_by(INDIVIDUALS, POP_ID) %>%
       dplyr::summarise(
         HOM = length(POLYMORPHISM[POLYMORPHISM == "hom"]),
         HET = length(POLYMORPHISM[POLYMORPHISM == "het"]),
@@ -518,275 +612,182 @@ summary_haplotypes <- function(
         HOM_O = HOM / N_GENOT,
         HET_O = HET / N_GENOT
       ) %>%
-      dplyr::mutate(
-        NN = 2 * N_GENOT,
-        N_INV = N_GENOT / (N_GENOT - 1)
-      ) %>%
       dplyr::ungroup(.)
-  } else {
 
-    split.vec <- dplyr::distinct(haplotype.filtered, LOCUS) %>%
-      dplyr::mutate(SPLIT_VEC = as.integer(floor((parallel.core * 3 * (1:n.markers - 1) / n.markers) + 1)))
+    haplotype.filtered <- NULL
 
-    # split_vec_row
+    # required functions
+    # freq_hom <- function(x) {
+    #   res <- dplyr::select(x, -SPLIT_VEC) %>%
+    #     dplyr::group_by(LOCUS, POP_ID, ALLELES) %>%
+    #     dplyr::summarise(
+    #       FREQ_ALLELES = length(ALLELES)/mean(DIPLO),
+    #       HOM_E = FREQ_ALLELES * FREQ_ALLELES
+    #     ) %>%
+    #     dplyr::select(-FREQ_ALLELES) %>%
+    #     dplyr::ungroup(.)
+    #   return(res)
+    # }#End freq_hom
 
-    summary.loc.pop <- haplotype.filtered %>%
-      dplyr::left_join(split.vec, by = "LOCUS") %>%
-      split(x = ., f = .$SPLIT_VEC) %>%
-      .stackr_parallel(
-        X = .,
-        FUN = loc_pop_stats,
-        mc.cores = parallel.core
-      ) %>%
-      dplyr::bind_rows(.)
+    # freq.hom.pop <- haplotype.filtered %>%
+    #   dplyr::filter(!is.na(HAPLOTYPES))
+
+    # diplo <- freq.hom.pop %>%
+    #   dplyr::distinct(LOCUS, POP_ID, INDIVIDUALS) %>%
+    #   dplyr::group_by(LOCUS, POP_ID) %>%
+    #   dplyr::tally(.) %>%
+    #   dplyr::ungroup(.) %>%
+    #   dplyr::mutate(n = 2 * n) %>%
+    #   dplyr::rename(DIPLO = n)
+
+    # n.row <- nrow(haplotype.filtered.split)
+    # split.vec <- as.integer(floor((parallel.core * 20 * (1:n.row - 1) / n.row) + 1))
+    # n.row <- NULL
+
+    # split.vec.locus <- dplyr::distinct(haplotype.filtered.split, LOCUS) %>%
+    #   dplyr::mutate(
+    #     SPLIT_VEC = factor(as.integer(floor((parallel.core * 20 * (1:n() - 1) / n()) + 1)))
+    #   )
+
+    # # freq.hom.pop <- split(x = freq.hom.pop, f = split.vec) %>%
+    # #   .stackr_parallel_mc(
+    # #     X = ., FUN = separate_haplo, mc.cores = parallel.core) %>%
+    # #   dplyr::bind_rows(.) %>%
+    # #   dplyr::left_join(diplo, by = c("LOCUS", "POP_ID")) %>%
+    # #   dplyr::left_join(split.vec.locus, by = "LOCUS") %>%
+    # #   split(x = ., f = .$SPLIT_VEC) %>%
+    # #   .stackr_parallel_mc(
+    # #     X = ., FUN = freq_hom, mc.cores = parallel.core) %>%
+    # #   dplyr::bind_rows(.) %>%
+    # #   dplyr::group_by(LOCUS, POP_ID) %>%
+    # #   dplyr::summarise(HOM_E = sum(HOM_E)) %>%
+    # #   dplyr::group_by(POP_ID) %>%
+    # #   dplyr::summarise(HOM_E = mean(HOM_E))
+    #
+    #
+    # freq.hom.pop <- hs %>%
+    #   dplyr::group_by(POP_ID) %>%
+    #   dplyr::summarise(HOM_E = mean(HOM_E))
 
     split.vec <- NULL
-  }
+    # diplo <- split.vec.locus <- split.vec <- NULL
 
-  # HS Gene Diversity within populations ---------------------------------------
-  # not the same as Expected Heterozygosity
+    # IBDg with FH ---------------------------------------------------------------
+    # ok so here we need the info by id
 
-  # haplotype.filtered.genotyped <- haplotype.filtered %>% dplyr::filter(!is.na(HAPLOTYPES))
+    # fh.i <- suppressWarnings(
+    #   summary.ind %>%
+    #     dplyr::full_join(freq.hom.pop, by = "POP_ID") %>%
+    #     dplyr::mutate(FH = ((HOM_O - HOM_E)/(N_GENOT - HOM_E))) %>%
+    #     dplyr::select(INDIVIDUALS, POP_ID, FH)
+    # )
 
-  n.row <- nrow(haplotype.filtered)
-  split.vec <- as.integer(floor((parallel.core * 20 * (1:n.row - 1) / n.row) + 1))
-  n.row <- NULL
-
-  # split.vec.locus <- dplyr::distinct(haplotype.filtered, LOCUS) %>%
-  #   dplyr::mutate(
-  #     SPLIT_VEC = factor(as.integer(floor((parallel.core * 20 * (1:n() - 1) / n()) + 1)))
-  #   )
-
-  haplotype.filtered.split <- split(x = haplotype.filtered, f = split.vec) %>%
-    .stackr_parallel_mc(
-      X = ., FUN = separate_haplo_long, mc.cores = parallel.core) %>%
-    dplyr::bind_rows(.)
-
-  hs <- haplotype.filtered.split %>%
-    dplyr::group_by(LOCUS, POP_ID) %>%
-    dplyr::count(ALLELES) %>%
-    dplyr::summarise(HOM_E = sum((n / sum(n))^2)) %>%
-    dplyr::ungroup(.) %>%
-    dplyr::full_join(dplyr::select(summary.loc.pop, LOCUS, POP_ID, HET_O, NN, N_INV), by = c("LOCUS", "POP_ID")) %>%
-    dplyr::group_by(LOCUS, POP_ID) %>%
-    dplyr::mutate(HS = N_INV * (1 - HOM_E - HET_O / NN)) %>%
-    dplyr::ungroup(.)
-
-  summary.pop <- summary.loc.pop %>%
-    dplyr::group_by(POP_ID) %>%
-    dplyr::summarise(
-      HOM_O = mean(HOM_O, na.rm = TRUE),
-      HET_O = mean(HET_O, na.rm = TRUE)
-    ) %>%
-    dplyr::full_join(
-      dplyr::group_by(.data = hs, POP_ID) %>%
-        dplyr::summarise(
-          HOM_E = mean(HOM_E, na.rm = TRUE),
-          HET_E = (1 - HOM_E),
-          HS = mean(HS, na.rm = TRUE))
-      , by = "POP_ID")
-
-  summary.locus <- summary.loc.pop %>%
-    dplyr::group_by(LOCUS) %>%
-    dplyr::summarise(
-      HOM_O = mean(HOM_O, na.rm = TRUE),
-      HET_O = mean(HET_O, na.rm = TRUE)
-    ) %>%
-    dplyr::full_join(
-      dplyr::group_by(.data = hs, LOCUS) %>%
-        dplyr::summarise(
-          HOM_E = mean(HOM_E, na.rm = TRUE),
-          HET_E = (1 - HOM_E),
-          HS = mean(HS, na.rm = TRUE))
-      , by = "LOCUS")
-
-  hs <- summary.loc.pop <- NULL
-
-  summary.ind <- haplotype.filtered %>%
-    dplyr::group_by(INDIVIDUALS, POP_ID) %>%
-    dplyr::summarise(
-      HOM = length(POLYMORPHISM[POLYMORPHISM == "hom"]),
-      HET = length(POLYMORPHISM[POLYMORPHISM == "het"]),
-      N_GENOT = HOM + HET,
-      HOM_O = HOM / N_GENOT,
-      HET_O = HET / N_GENOT
-    ) %>%
-    dplyr::ungroup(.)
-
-  haplotype.filtered <- NULL
-
-  # required functions
-  # freq_hom <- function(x) {
-  #   res <- dplyr::select(x, -SPLIT_VEC) %>%
-  #     dplyr::group_by(LOCUS, POP_ID, ALLELES) %>%
-  #     dplyr::summarise(
-  #       FREQ_ALLELES = length(ALLELES)/mean(DIPLO),
-  #       HOM_E = FREQ_ALLELES * FREQ_ALLELES
-  #     ) %>%
-  #     dplyr::select(-FREQ_ALLELES) %>%
-  #     dplyr::ungroup(.)
-  #   return(res)
-  # }#End freq_hom
-
-  # freq.hom.pop <- haplotype.filtered %>%
-  #   dplyr::filter(!is.na(HAPLOTYPES))
-
-  # diplo <- freq.hom.pop %>%
-  #   dplyr::distinct(LOCUS, POP_ID, INDIVIDUALS) %>%
-  #   dplyr::group_by(LOCUS, POP_ID) %>%
-  #   dplyr::tally(.) %>%
-  #   dplyr::ungroup(.) %>%
-  #   dplyr::mutate(n = 2 * n) %>%
-  #   dplyr::rename(DIPLO = n)
-
-  # n.row <- nrow(haplotype.filtered.split)
-  # split.vec <- as.integer(floor((parallel.core * 20 * (1:n.row - 1) / n.row) + 1))
-  # n.row <- NULL
-
-  # split.vec.locus <- dplyr::distinct(haplotype.filtered.split, LOCUS) %>%
-  #   dplyr::mutate(
-  #     SPLIT_VEC = factor(as.integer(floor((parallel.core * 20 * (1:n() - 1) / n()) + 1)))
-  #   )
-
-  # # freq.hom.pop <- split(x = freq.hom.pop, f = split.vec) %>%
-  # #   .stackr_parallel_mc(
-  # #     X = ., FUN = separate_haplo, mc.cores = parallel.core) %>%
-  # #   dplyr::bind_rows(.) %>%
-  # #   dplyr::left_join(diplo, by = c("LOCUS", "POP_ID")) %>%
-  # #   dplyr::left_join(split.vec.locus, by = "LOCUS") %>%
-  # #   split(x = ., f = .$SPLIT_VEC) %>%
-  # #   .stackr_parallel_mc(
-  # #     X = ., FUN = freq_hom, mc.cores = parallel.core) %>%
-  # #   dplyr::bind_rows(.) %>%
-  # #   dplyr::group_by(LOCUS, POP_ID) %>%
-  # #   dplyr::summarise(HOM_E = sum(HOM_E)) %>%
-  # #   dplyr::group_by(POP_ID) %>%
-  # #   dplyr::summarise(HOM_E = mean(HOM_E))
-  #
-  #
-  # freq.hom.pop <- hs %>%
-  #   dplyr::group_by(POP_ID) %>%
-  #   dplyr::summarise(HOM_E = mean(HOM_E))
-
-  split.vec <- NULL
-  # diplo <- split.vec.locus <- split.vec <- NULL
-
-  # IBDg with FH ---------------------------------------------------------------
-  # ok so here we need the info by id
-
-  # fh.i <- suppressWarnings(
-  #   summary.ind %>%
-  #     dplyr::full_join(freq.hom.pop, by = "POP_ID") %>%
-  #     dplyr::mutate(FH = ((HOM_O - HOM_E)/(N_GENOT - HOM_E))) %>%
-  #     dplyr::select(INDIVIDUALS, POP_ID, FH)
-  # )
-
-  res$individual.summary <- suppressWarnings(
-    summary.ind %>%
-      dplyr::full_join(dplyr::select(summary.pop, -HOM_O, -HET_O), by = "POP_ID") %>%
-      dplyr::mutate(FH = ((HOM_O - HOM_E)/(N_GENOT - HOM_E))) %>%
-      dplyr::select(INDIVIDUALS, POP_ID, FH)
-  )
-  summary.ind <- NULL
-
-  summary.pop <- summary.pop %>%
-    dplyr::full_join(
-      dplyr::group_by(.data = res$individual.summary, POP_ID) %>% dplyr::summarise(FH = mean(FH, na.rm = TRUE))
-      , by = "POP_ID") %>%
-    dplyr::mutate(
-      FIS = dplyr::if_else(
-        HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6)),
-      GIS = dplyr::if_else(
-        HET_O == 0, 0, round(1 - HET_O / HS, 6))
-    ) %>%
-    dplyr::select(POP_ID, HOM_O, HOM_E, HET_O, HET_E, HS, FIS, GIS, FH)
-
-  summary.locus <- summary.locus %>%
-    dplyr::mutate(
-      FIS = dplyr::if_else(
-        HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6)),
-      GIS = dplyr::if_else(
-        HET_O == 0, 0, round(1 - HET_O / HS, 6))
+    res$individual.summary <- suppressWarnings(
+      summary.ind %>%
+        dplyr::full_join(dplyr::select(summary.pop, -HOM_O, -HET_O), by = "POP_ID") %>%
+        dplyr::mutate(FH = ((HOM_O - HOM_E)/(N_GENOT - HOM_E))) %>%
+        dplyr::select(INDIVIDUALS, POP_ID, FH)
     )
+    summary.ind <- NULL
 
-  summary.locus <- NULL
+    summary.pop <- summary.pop %>%
+      dplyr::full_join(
+        dplyr::group_by(.data = res$individual.summary, POP_ID) %>% dplyr::summarise(FH = mean(FH, na.rm = TRUE))
+        , by = "POP_ID") %>%
+      dplyr::mutate(
+        FIS = dplyr::if_else(
+          HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6)),
+        GIS = dplyr::if_else(
+          HET_O == 0, 0, round(1 - HET_O / HS, 6))
+      ) %>%
+      dplyr::select(POP_ID, HOM_O, HOM_E, HET_O, HET_E, HS, FIS, GIS, FH)
 
-  summary.overall <- suppressWarnings(dplyr::full_join(
-    sample.number,
-    dplyr::bind_rows(
-      summary.pop,
-      dplyr::summarise_if(
-        .tbl = summary.pop, .predicate = is.numeric, .funs = mean, na.rm = TRUE) %>%
-        tibble::add_column(.data = ., POP_ID = "OVERALL", .before = 1)
-    ), by = "POP_ID"))
+    summary.locus <- summary.locus %>%
+      dplyr::mutate(
+        FIS = dplyr::if_else(
+          HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6)),
+        GIS = dplyr::if_else(
+          HET_O == 0, 0, round(1 - HET_O / HS, 6))
+      )
 
-  sample.number <- summary.pop <- NULL
-  # fh.tot <- fh.i %>%
-  #   dplyr::summarise(
-  #     HOM_O = round(mean(HOM_O), 6),
-  #     HOM_E = round(mean(HOM_E), 6),
-  #     HET_O = round(mean(1 - HOM_O), 6),
-  #     HET_E = round(mean(1 - HOM_E), 6),
-  #     FIS = ifelse(HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6)),
-  #     FH = mean(FH)
-  #   )
+    summary.locus <- NULL
 
-  # fh.tot <- tibble::data_frame(POP_ID = "OVERALL") %>%
-  #   dplyr::bind_cols(fh.tot)
+    summary.overall <- suppressWarnings(dplyr::full_join(
+      sample.number,
+      dplyr::bind_rows(
+        summary.pop,
+        dplyr::summarise_if(
+          .tbl = summary.pop, .predicate = is.numeric, .funs = mean, na.rm = TRUE) %>%
+          tibble::add_column(.data = ., POP_ID = "OVERALL", .before = 1)
+      ), by = "POP_ID"))
 
-  # fh.res <- suppressWarnings(dplyr::bind_rows(fh.pop, fh.tot) %>% dplyr::select(-POP_ID))
-  res$summary <- suppressWarnings(
-    dplyr::bind_rows(
-      haplotype.filtered.split %>%
-        dplyr::distinct(LOCUS, POP_ID, ALLELES) %>%
-        dplyr::group_by(LOCUS, POP_ID) %>%
-        dplyr::summarise(ALLELES_COUNT = length(ALLELES)) %>%
+    sample.number <- summary.pop <- NULL
+    # fh.tot <- fh.i %>%
+    #   dplyr::summarise(
+    #     HOM_O = round(mean(HOM_O), 6),
+    #     HOM_E = round(mean(HOM_E), 6),
+    #     HET_O = round(mean(1 - HOM_O), 6),
+    #     HET_E = round(mean(1 - HOM_E), 6),
+    #     FIS = ifelse(HET_O == 0, 0, round(((HET_E - HET_O) / HET_E), 6)),
+    #     FH = mean(FH)
+    #   )
+
+    # fh.tot <- tibble::data_frame(POP_ID = "OVERALL") %>%
+    #   dplyr::bind_cols(fh.tot)
+
+    # fh.res <- suppressWarnings(dplyr::bind_rows(fh.pop, fh.tot) %>% dplyr::select(-POP_ID))
+    res$summary <- suppressWarnings(
+      dplyr::bind_rows(
+        haplotype.filtered.split %>%
+          dplyr::distinct(LOCUS, POP_ID, ALLELES) %>%
+          dplyr::group_by(LOCUS, POP_ID) %>%
+          dplyr::summarise(ALLELES_COUNT = length(ALLELES)) %>%
+          dplyr::group_by(POP_ID) %>%
+          dplyr::summarise(
+            MONOMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT == 1]),
+            POLYMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT >= 2])
+          ) %>%
+          dplyr::full_join(consensus.artifacts, by = "POP_ID"),
+        haplotype.filtered.split %>%
+          dplyr::distinct(LOCUS, ALLELES) %>%
+          dplyr::group_by(LOCUS) %>%
+          dplyr::summarise(ALLELES_COUNT_OVERALL = length(ALLELES)) %>%
+          dplyr::ungroup(.) %>%
+          dplyr::summarise(
+            MONOMORPHIC = length(ALLELES_COUNT_OVERALL[ALLELES_COUNT_OVERALL == 1]),
+            POLYMORPHIC = length(ALLELES_COUNT_OVERALL[ALLELES_COUNT_OVERALL >= 2])
+          ) %>%
+          dplyr::bind_cols(blacklist.loci.consensus.sum) %>%
+          dplyr::bind_cols(blacklist.loci.artifacts.sum) %>%
+          tibble::add_column(.data = ., POP_ID = "OVERALL", .before = 1)))
+
+    haplotype.filtered.split <- NULL
+
+    if (keep.consensus) {
+      res$summary <- res$summary %>%
         dplyr::group_by(POP_ID) %>%
-        dplyr::summarise(
-          MONOMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT == 1]),
-          POLYMORPHIC = length(ALLELES_COUNT[ALLELES_COUNT >= 2])
-        ) %>%
-        dplyr::full_join(consensus.artifacts, by = "POP_ID"),
-      haplotype.filtered.split %>%
-        dplyr::distinct(LOCUS, ALLELES) %>%
-        dplyr::group_by(LOCUS) %>%
-        dplyr::summarise(ALLELES_COUNT_OVERALL = length(ALLELES)) %>%
-        dplyr::ungroup(.) %>%
-        dplyr::summarise(
-          MONOMORPHIC = length(ALLELES_COUNT_OVERALL[ALLELES_COUNT_OVERALL == 1]),
-          POLYMORPHIC = length(ALLELES_COUNT_OVERALL[ALLELES_COUNT_OVERALL >= 2])
-        ) %>%
-        dplyr::bind_cols(blacklist.loci.consensus.sum) %>%
-        dplyr::bind_cols(blacklist.loci.artifacts.sum) %>%
-        tibble::add_column(.data = ., POP_ID = "OVERALL", .before = 1)))
+        dplyr::mutate(
+          TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS + ARTIFACTS,
+          MONOMORPHIC_PROP = round(MONOMORPHIC / TOTAL, 4),
+          POLYMORPHIC_PROP = round(POLYMORPHIC / TOTAL, 4),
+          CONSENSUS_PROP = round(CONSENSUS / TOTAL, 4),
+          ARTIFACTS_PROP = round(ARTIFACTS / TOTAL, 4)
+        )
+    } else {
+      res$summary <- res$summary %>%
+        dplyr::select(-CONSENSUS) %>%
+        dplyr::group_by(POP_ID) %>%
+        dplyr::mutate(
+          TOTAL = MONOMORPHIC + POLYMORPHIC + ARTIFACTS,
+          MONOMORPHIC_PROP = round(MONOMORPHIC / TOTAL, 4),
+          POLYMORPHIC_PROP = round(POLYMORPHIC / TOTAL, 4),
+          ARTIFACTS_PROP = round(ARTIFACTS / TOTAL, 4)
+        )
+    }
+    res$summary <- suppressWarnings(
+      dplyr::full_join(res$summary, summary.overall, by = "POP_ID"))
 
-  haplotype.filtered.split <- NULL
-
-  if (keep.consensus) {
-    res$summary <- res$summary %>%
-      dplyr::group_by(POP_ID) %>%
-      dplyr::mutate(
-        TOTAL = MONOMORPHIC + POLYMORPHIC + CONSENSUS + ARTIFACTS,
-        MONOMORPHIC_PROP = round(MONOMORPHIC / TOTAL, 4),
-        POLYMORPHIC_PROP = round(POLYMORPHIC / TOTAL, 4),
-        CONSENSUS_PROP = round(CONSENSUS / TOTAL, 4),
-        ARTIFACTS_PROP = round(ARTIFACTS / TOTAL, 4)
-      )
-  } else {
-    res$summary <- res$summary %>%
-      dplyr::select(-CONSENSUS) %>%
-      dplyr::group_by(POP_ID) %>%
-      dplyr::mutate(
-        TOTAL = MONOMORPHIC + POLYMORPHIC + ARTIFACTS,
-        MONOMORPHIC_PROP = round(MONOMORPHIC / TOTAL, 4),
-        POLYMORPHIC_PROP = round(POLYMORPHIC / TOTAL, 4),
-        ARTIFACTS_PROP = round(ARTIFACTS / TOTAL, 4)
-      )
-  }
-  res$summary <- suppressWarnings(
-    dplyr::full_join(res$summary, summary.overall, by = "POP_ID"))
-
-  consensus.artifacts <- blacklist.loci.consensus.sum <- blacklist.loci.artifacts.sum <- summary.overall <- NULL
+    consensus.artifacts <- blacklist.loci.consensus.sum <- blacklist.loci.artifacts.sum <- summary.overall <- NULL
     # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
     message("Nucleotide diversity (Pi):")
     message("    Read length used: ", read.length)
