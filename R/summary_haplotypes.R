@@ -25,6 +25,7 @@
 #' genotypes expected under random mating (Keller et al., 2011; Kardos et al., 2015).
 #' \item \strong{Pi}: the nucleotide diversity measured here consider the
 #' consensus reads in the catalog (no variation between population sequences).
+#' \item \strong{PRIVATE_HAPLOTYPES}: the number of private haplotypes.
 #' }
 
 #' @param data The 'batch_x.haplotypes.tsv' created by STACKS.
@@ -115,6 +116,8 @@
 #' \item $artifacts.loci # if artifacts are found
 #' \item $individual.summary: the individual's info for FH and Pi
 #' \item $summary: the summary statistics per populations and averaged over all pops.
+#' \item $private.haplotypes: a tibble with LOCUS, POP_ID and private haplotypes
+#' \item $private.haplotypes.summary: a summary of the number of private haplotypes per populations
 #' }
 #' Also in the list 3 plots (also written in the folder):
 #' \enumerate{
@@ -136,6 +139,12 @@
 #' data = "batch_1.haplotypes.tsv",
 #' strata = "strata_brook_charr.tsv",
 #' read.length = 90)
+#' # if you want pi and fh calculated (ideally on filtered data):
+#' sum <- summary_haplotypes(
+#' data = "batch_1.haplotypes.tsv",
+#' strata = "strata_brook_charr.tsv",
+#' read.length = 90,
+#' artifact.only = FALSE)
 #' }
 
 
@@ -761,7 +770,6 @@ summary_haplotypes <- function(
           dplyr::bind_cols(blacklist.loci.artifacts.sum) %>%
           tibble::add_column(.data = ., POP_ID = "OVERALL", .before = 1)))
 
-    haplotype.filtered.split <- NULL
 
     if (keep.consensus) {
       res$summary <- res$summary %>%
@@ -788,11 +796,41 @@ summary_haplotypes <- function(
       dplyr::full_join(res$summary, summary.overall, by = "POP_ID"))
 
     consensus.artifacts <- blacklist.loci.consensus.sum <- blacklist.loci.artifacts.sum <- summary.overall <- NULL
-    # Nei & Li 1979 Nucleotide Diversity -----------------------------------------
+
+    # Private haplotypes -------------------------------------------------------
+    haplotype.filtered.split <- haplotype.filtered.split %>%
+      dplyr::select(LOCUS, POP_ID, HAPLOTYPES = ALLELES) %>%
+      dplyr::filter(!is.na(HAPLOTYPES)) %>%
+      dplyr::distinct(LOCUS, POP_ID, HAPLOTYPES)
+
+    res$private.haplotypes <- haplotype.filtered.split %>%
+      dplyr::group_by(LOCUS, HAPLOTYPES) %>%
+      dplyr::tally(.) %>%
+      dplyr::filter(n == 1) %>%
+      dplyr::select(-n) %>%
+      dplyr::ungroup(.) %>%
+      dplyr::left_join(haplotype.filtered.split, by = c("LOCUS", "HAPLOTYPES")) %>%
+      dplyr::select(LOCUS, POP_ID, HAPLOTYPES) %>%
+      readr::write_tsv(x = ., path = file.path(path.folder, "private.haplotypes.tsv"))
+
+    res$private.haplotypes.summary <- res$private.haplotypes %>%
+      dplyr::group_by(POP_ID) %>%
+      dplyr::tally(.) %>%
+      dplyr::ungroup(.) %>%
+      tibble::add_row(.data = ., POP_ID = "OVERALL", n = sum(.$n)) %>%
+      dplyr::mutate(PRIVATE_HAPLOTYPES = stringi::stri_join(POP_ID, " = ", n)) %>%
+      readr::write_tsv(x = ., path = file.path(path.folder, "private.haplotypes.summary.tsv"))
+
+    message("Number of private haplotypes = ", nrow(res$private.haplotypes))
+    message("Strata with the highest number of private haplotypes = ", res$private.haplotypes.summary$POP_ID[res$private.haplotypes.summary$n == max(res$private.haplotypes.summary$n)])
+    message("Number of private haplotype(s) per strata:\n", stringi::stri_join(res$private.haplotypes.summary$PRIVATE_HAPLOTYPES, collapse = "\n"))
+
+    haplotype.filtered.split <- NULL
+    # Nei & Li 1979 Nucleotide Diversity ---------------------------------------
     message("Nucleotide diversity (Pi):")
     message("    Read length used: ", read.length)
 
-    # Pi: by individuals----------------------------------------------------------
+    # Pi: by individuals--------------------------------------------------------
     message("    Pi calculations: individuals...")
     if (keep.consensus) {
       pi.data <- dplyr::filter(
@@ -859,8 +897,13 @@ summary_haplotypes <- function(
     pi.overall <- suppressWarnings(
       dplyr::bind_rows(pi.pop, pi.overall))
     pi.pop <- NULL
-    res$summary <- suppressWarnings(dplyr::full_join(res$summary, pi.overall, by = "POP_ID"))
+    res$summary <- suppressWarnings(dplyr::full_join(res$summary, pi.overall, by = "POP_ID")) %>%
+      dplyr::ungroup(.)
     pi.overall <- NULL
+
+    res$summary <- tibble::add_column(
+      .data = res$summary,
+      PRIVATE_HAPLOTYPES = res$private.haplotypes.summary$n)
 
     if (is.null(whitelist.markers)) {
       filename.sum <- "haplotype.catalog.loci.summary.pop.tsv"
@@ -965,11 +1008,13 @@ summary_haplotypes <- function(
   if (!is.null(res$artifacts.pop)) {
     message("Number of artefactual genotypes/total genotypes (percent): ", erased.genotype.number, "/", total.genotype.number.haplo, " (", percent.haplo, ")")
   }
-  message("\nFiles written in: ")
+  message("\nFiles written: ")
   if (!is.null(res$artifacts.pop)) message(filename.artifacts.ind)
   if (!is.null(res$artifacts.pop)) message(filename.paralogs)
   if (!artifact.only) message(filename.sum)
   if (!is.null(res$consensus.loci)) message("blacklist.loci.consensus.txt")
+  if (!artifact.only) message("private.haplotypes.tsv")
+  if (!artifact.only) message("private.haplotypes.summary.tsv")
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
   cat("############################## completed ##############################\n")
@@ -1258,3 +1303,5 @@ change_pop_names <- function(data, pop.levels = NULL, pop.labels = NULL) {
   }
   return(data)
 }# end function change_pop_names
+
+

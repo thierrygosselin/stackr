@@ -85,6 +85,8 @@ The function returns a list with:
 \item $artifacts.loci # if artifacts are found
 \item $individual.summary: the individual's info for FH and Pi
 \item $summary: the summary statistics per populations and averaged over all pops.
+\item $private.haplotypes: a tibble with LOCUS, POP_ID and private haplotypes
+\item $private.haplotypes.summary: a summary of the number of private haplotypes per populations
 }
 Also in the list 3 plots (also written in the folder):
 \enumerate{
@@ -124,6 +126,7 @@ genotypes within an individual relative to the mean number of homozygous
 genotypes expected under random mating (Keller et al., 2011; Kardos et al., 2015).
 \item \strong{Pi}: the nucleotide diversity measured here consider the
 consensus reads in the catalog (no variation between population sequences).
+\item \strong{PRIVATE_HAPLOTYPES}: the number of private haplotypes.
 }
 }
 \examples{
@@ -133,6 +136,12 @@ sum <- summary_haplotypes(
 data = "batch_1.haplotypes.tsv",
 strata = "strata_brook_charr.tsv",
 read.length = 90)
+# if you want pi and fh calculated (ideally on filtered data):
+sum <- summary_haplotypes(
+data = "batch_1.haplotypes.tsv",
+strata = "strata_brook_charr.tsv",
+read.length = 90,
+artifact.only = FALSE)
 }
 }
 \references{
