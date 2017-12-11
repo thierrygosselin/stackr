@@ -1,3 +1,8 @@
+# stackr v.2.0.1 2017-12-11
+
+* `stackr` is working nice with beta6 and waiting for final and stable version
+
+
 # stackr v.2.0.0 2017-10-11
 
 * updated `stackr` to follow Stacks Version 2.0Beta1
