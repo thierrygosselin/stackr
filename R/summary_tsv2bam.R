@@ -77,13 +77,13 @@ summary_tsv2bam <- function(tsv2bam.output = "06_ustacks_cstacks_sstacks",
 
   n.ind.match <-  which(stringi::stri_detect_fixed(str = tsv2bam.log$INPUT,
                                                    pattern = "Num. samples: "))
-  res$n.ind <- readr::read_lines(file = log.file, skip = n.ind.match, n_max = 1) %>%
+  res$n.ind <- readr::read_lines(file = log.file, skip = n.ind.match - 1, n_max = 1) %>%
     stringi::stri_extract_all_regex(str = ., pattern = "[1-9]+", simplify = TRUE) %>%
     as.integer
 
   res$batch.id <- which(stringi::stri_detect_fixed(str = tsv2bam.log$INPUT,
                                                                pattern = "Batch ID: "))
-  res$batch.id <- readr::read_lines(file = log.file, skip = res$batch.id, n_max = 1) %>%
+  res$batch.id <- readr::read_lines(file = log.file, skip = res$batch.id - 1, n_max = 1) %>%
     stringi::stri_extract_all_regex(str = ., pattern = "[1-9]+", simplify = TRUE) %>%
     as.integer
 

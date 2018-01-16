@@ -4,11 +4,12 @@
 \alias{run_gstacks}
 \title{Run STACKS new module called gstacks}
 \usage{
-run_gstacks(P = "06_ustacks_cstacks_sstacks", I = NULL, s = FALSE,
+run_gstacks(P = "06_ustacks_cstacks_sstacks", M, I = NULL, s = FALSE,
   B = NULL, O = NULL, paired = FALSE, t = parallel::detectCores() - 1,
   details = TRUE, ignore.pe.reads = TRUE, model = "marukilow",
   var.alpha = 0.05, gt.alpha = 0.05, kmer.length = 31, min.kmer.cov = 2,
-  min.mapq = 10, max.clipped = 0.2, max.insert.len = 1000, h = FALSE)
+  rm.unpaired.reads = FALSE, rm.pcr.duplicates = FALSE, min.mapq = 10,
+  max.clipped = 0.2, max.insert.len = 1000, h = FALSE)
 }
 \arguments{
 \item{P}{(path, character) De novo mode.
@@ -28,6 +29,8 @@ Those files are created in the
 \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{tsv2bam}
 modules
 }.}
+
+\item{M}{(path, character) Path to a population map giving the list of samples.}
 
 \item{I}{(character, path) Reference-based mode.
 Input directory containing BAM files. With \code{I}, read groups
@@ -50,8 +53,8 @@ Please refer to the gstacks manual page for information about how to
 generate such a BAM file with Samtools or Sambamba, and examples.
 Default: \code{B = NULL}.}
 
-\item{O}{(character, path) Reference-based mode. Path to output directory.
-Default: \code{O = NULL}.}
+\item{O}{(character, path) Path to output directory.
+Default: \code{O = NULL} (same as input)}
 
 \item{paired}{(logical) Reference-based mode. True if reads are paired.
 Note that the RAD loci will be defined by READ1 alignments.
@@ -86,6 +89,13 @@ Default: \code{kmer.length = 31}.}
 \item{min.kmer.cov}{(integer) De novo mode.
 Minimum coverage to consider a kmer. For expert.
 Default: \code{min.kmer.cov =2}.}
+
+\item{rm.unpaired.reads}{(logical) Discard unpaired reads
+(in reference-based mode, implies \code{paired = TRUE})
+Default: \code{rm.unpaired.reads = TRUE}.}
+
+\item{rm.pcr.duplicates}{(logical) Remove read pairs of the same insert
+length (implies \code{rm.unpaired.reads = TRUE})}
 
 \item{min.mapq}{(double) Reference-based mode.
 Minimum PHRED-scaled mapping quality to consider a read.
@@ -128,7 +138,7 @@ module inside R!
 \examples{
 \dontrun{
 # The simplest form of the function with De novo data:
-bam.sum <- stackr::run_gstacks() # that's it !
+bam.sum <- stackr::run_gstacks(M = "population.map.tsv") # that's it !
 }
 }
 \references{

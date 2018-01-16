@@ -22,6 +22,8 @@
 #' modules
 #' }.
 
+#' @param M (path, character) Path to a population map giving the list of samples.
+
 # @param b (integer) De novo mode. Database/batch ID of the input catalog
 # to consider. Advice: don't modify the default.
 # Default: \code{b = "guess"}.
@@ -47,8 +49,10 @@
 #' Please refer to the gstacks manual page for information about how to
 #' generate such a BAM file with Samtools or Sambamba, and examples.
 #' Default: \code{B = NULL}.
-#' @param O (character, path) Reference-based mode. Path to output directory.
-#' Default: \code{O = NULL}.
+#
+#' @param O (character, path) Path to output directory.
+#' Default: \code{O = NULL} (same as input)
+
 #' @param paired (logical) Reference-based mode. True if reads are paired.
 #' Note that the RAD loci will be defined by READ1 alignments.
 #' Default: \code{paired = FALSE}.
@@ -81,6 +85,11 @@
 #' @param min.kmer.cov (integer) De novo mode.
 #' Minimum coverage to consider a kmer. For expert.
 #' Default: \code{min.kmer.cov =2}.
+#' @param rm.unpaired.reads (logical) Discard unpaired reads
+#' (in reference-based mode, implies \code{paired = TRUE})
+#' Default: \code{rm.unpaired.reads = TRUE}.
+#' @param rm.pcr.duplicates (logical) Remove read pairs of the same insert
+#' length (implies \code{rm.unpaired.reads = TRUE})
 
 
 #' @param min.mapq (double) Reference-based mode.
@@ -123,7 +132,7 @@
 #' @examples
 #' \dontrun{
 #' # The simplest form of the function with De novo data:
-#' bam.sum <- stackr::run_gstacks() # that's it !
+#' bam.sum <- stackr::run_gstacks(M = "population.map.tsv") # that's it !
 #' }
 
 #' @seealso
@@ -143,6 +152,7 @@
 
 run_gstacks <- function(
   P = "06_ustacks_cstacks_sstacks",
+  M,
   # b = "guess",
   I = NULL,
   s = FALSE,
@@ -157,6 +167,8 @@ run_gstacks <- function(
   gt.alpha = 0.05,
   kmer.length = 31,
   min.kmer.cov = 2,
+  rm.unpaired.reads = FALSE,
+  rm.pcr.duplicates = FALSE,
   min.mapq = 10,
   max.clipped = 0.20,
   max.insert.len = 1000,
@@ -192,6 +204,9 @@ run_gstacks <- function(
 
   # gstacks arguments ----------------------------------------------------------
 
+  if (missing(M)) stop("Population map required")
+  M <- stringi::stri_join("-M ", M)
+
   # De novo approach -----------------------------------------------------------
   # Input filder path
   output.folder <- P # keep a distinct copy for other use
@@ -224,13 +239,29 @@ run_gstacks <- function(
     }
     if (paired) {
       paired <- "--paired"
+
+      if (rm.unpaired.reads) {
+        rm.unpaired.reads <- "--rm-unpaired-reads"
+        if (rm.pcr.duplicates) {
+          rm.pcr.duplicates <- "--rm-pcr-duplicates"
+        } else {
+          rm.pcr.duplicates <- ""
+        }
+      } else {
+        rm.unpaired.reads <- ""
+        rm.pcr.duplicates <- ""
+      }
     } else {
       paired <- ""
+      rm.unpaired.reads <- ""
+      rm.pcr.duplicates <- ""
     }
   } else {
     B <- ""
     O <- ""
     paired <- ""
+    rm.unpaired.reads <- ""
+    rm.pcr.duplicates <- ""
   }
 
   if (!is.null(I)) {
@@ -289,10 +320,11 @@ run_gstacks <- function(
 
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
-    P,
+    P, M,
     # b,
     I, s, B, O, paired, t, details, ignore.pe.reads, model, var.alpha, gt.alpha,
-    kmer.length, min.kmer.cov, min.mapq, max.clipped, max.insert.len, h)
+    kmer.length, min.kmer.cov, rm.unpaired.reads, rm.pcr.duplicates, min.mapq,
+    max.clipped, max.insert.len, h)
 
   # run command ----------------------------------------------------------------
   system2(command = "gstacks", args = command.arguments, stderr = gstacks.log.file,
