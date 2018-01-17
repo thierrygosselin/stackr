@@ -75,6 +75,11 @@
 
 #' @param k (logical) Enable kernel-smoothed Pi, Fis, Fst, Fst', and Phi_st calculations.
 #' Default: \code{k = FALSE}.
+#' @param smooth_fstats (logical) Enable kernel-smoothed Fst, Fst', and Phi_st calculations.
+#' Default: \code{smooth_fstats = FALSE}.
+#' @param smooth_popstats (logical) Enable kernel-smoothed Pi and Fis calculations.
+#' Default: \code{smooth_popstats = FALSE}.
+
 #' @param sigma (integer) Standard deviation of the kernel smoothing weight distribution.
 #' Default: \code{sigma = 150000} (150kb).
 #' @param bootstrap (logical) Turn on boostrap resampling for all smoothed statistics.
@@ -204,6 +209,8 @@ run_populations_v2 <- function(
   fst_correction = NULL,
   p_value_cutoff = 0.05,
   k = FALSE,
+  smooth_fstats = FALSE,
+  smooth_popstats = FALSE,
   sigma = 150000,
   bootstrap = FALSE,
   N = 100,
@@ -391,6 +398,22 @@ run_populations_v2 <- function(
   } else {
     kernel.smoothed <- FALSE
     k <- ""
+  }
+
+  if (smooth_fstats) {
+    smooth_fstats <- TRUE
+    smooth_fstats <- "--smooth_fstats "
+  } else {
+    smooth_fstats <- FALSE
+    smooth_fstats <- ""
+  }
+
+  if (smooth_popstats) {
+    smooth_popstats <- TRUE
+    smooth_popstats <- "--smooth_popstats "
+  } else {
+    smooth_popstats <- FALSE
+    smooth_popstats <- ""
   }
 
   if (kernel.smoothed) {
@@ -590,7 +613,7 @@ run_populations_v2 <- function(
   command.arguments <- paste(
     P, V, O, M, t, b, batch_size, p, r, min_maf, max_obs_het, m, lnl_lim, write_single_snp,
     write_random_snp, B, W, e, merge_sites, merge_prune_lim, fstats, fst_correction,
-    p_value_cutoff, k, sigma, bootstrap, N, bootstrap_pifis, bootstrap_fst,
+    p_value_cutoff, k, smooth_fstats, smooth_popstats, sigma, bootstrap, N, bootstrap_pifis, bootstrap_fst,
     bootstrap_div, bootstrap_phist, bootstrap_wl, ordered_export, genomic,
     fasta_samples, fasta_samples_raw, fasta_loci, vcf, vcf_haplotypes, genepop, structure, phase,
     fastphase, beagle, beagle_phased, plink, hzar, phylip, phylip_var,

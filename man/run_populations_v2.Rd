@@ -10,16 +10,17 @@ run_populations_v2(P = "06_ustacks_cstacks_sstacks", V = NULL, O = NULL,
   lnl_lim = NULL, write_single_snp = FALSE, write_random_snp = FALSE,
   B = NULL, W = NULL, e = NULL, merge_sites = FALSE,
   merge_prune_lim = NULL, fstats = FALSE, fst_correction = NULL,
-  p_value_cutoff = 0.05, k = FALSE, sigma = 150000, bootstrap = FALSE,
-  N = 100, bootstrap_pifis = FALSE, bootstrap_fst = FALSE,
-  bootstrap_div = FALSE, bootstrap_phist = FALSE, bootstrap_wl = NULL,
-  ordered_export = FALSE, genomic = FALSE, fasta_samples = FALSE,
-  fasta_samples_raw = FALSE, fasta_loci = FALSE, vcf = TRUE,
-  vcf_haplotypes = TRUE, genepop = FALSE, structure = FALSE,
-  phase = FALSE, fastphase = FALSE, beagle = FALSE,
-  beagle_phased = FALSE, plink = FALSE, hzar = FALSE, phylip = FALSE,
-  phylip_var = FALSE, phylip_var_all = FALSE, treemix = FALSE,
-  h = FALSE, verbose = FALSE, v = FALSE, log_fst_comp = FALSE)
+  p_value_cutoff = 0.05, k = FALSE, smooth_fstats = FALSE,
+  smooth_popstats = FALSE, sigma = 150000, bootstrap = FALSE, N = 100,
+  bootstrap_pifis = FALSE, bootstrap_fst = FALSE, bootstrap_div = FALSE,
+  bootstrap_phist = FALSE, bootstrap_wl = NULL, ordered_export = FALSE,
+  genomic = FALSE, fasta_samples = FALSE, fasta_samples_raw = FALSE,
+  fasta_loci = FALSE, vcf = TRUE, vcf_haplotypes = TRUE,
+  genepop = FALSE, structure = FALSE, phase = FALSE, fastphase = FALSE,
+  beagle = FALSE, beagle_phased = FALSE, plink = FALSE, hzar = FALSE,
+  phylip = FALSE, phylip_var = FALSE, phylip_var_all = FALSE,
+  treemix = FALSE, h = FALSE, verbose = FALSE, v = FALSE,
+  log_fst_comp = FALSE)
 }
 \arguments{
 \item{P}{(path, character) Path to the directory containing all the STACKS files.
@@ -102,6 +103,12 @@ Default: \code{p_value_cutoff = 0.05}.}
 
 \item{k}{(logical) Enable kernel-smoothed Pi, Fis, Fst, Fst', and Phi_st calculations.
 Default: \code{k = FALSE}.}
+
+\item{smooth_fstats}{(logical) Enable kernel-smoothed Fst, Fst', and Phi_st calculations.
+Default: \code{smooth_fstats = FALSE}.}
+
+\item{smooth_popstats}{(logical) Enable kernel-smoothed Pi and Fis calculations.
+Default: \code{smooth_popstats = FALSE}.}
 
 \item{sigma}{(integer) Standard deviation of the kernel smoothing weight distribution.
 Default: \code{sigma = 150000} (150kb).}
