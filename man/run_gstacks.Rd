@@ -4,12 +4,14 @@
 \alias{run_gstacks}
 \title{Run STACKS new module called gstacks}
 \usage{
-run_gstacks(P = "06_ustacks_cstacks_sstacks", M, I = NULL, s = FALSE,
-  B = NULL, O = NULL, paired = FALSE, t = parallel::detectCores() - 1,
-  details = TRUE, ignore.pe.reads = TRUE, model = "marukilow",
-  var.alpha = 0.05, gt.alpha = 0.05, kmer.length = 31, min.kmer.cov = 2,
-  rm.unpaired.reads = FALSE, rm.pcr.duplicates = FALSE, min.mapq = 10,
-  max.clipped = 0.2, max.insert.len = 1000, h = FALSE)
+run_gstacks(P = "06_ustacks_cstacks_sstacks",
+  M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv", I = NULL,
+  s = FALSE, B = NULL, O = NULL, unpaired = TRUE,
+  t = parallel::detectCores() - 1, details = TRUE, ignore.pe.reads = TRUE,
+  model = "marukilow", var.alpha = 0.05, gt.alpha = 0.05,
+  kmer.length = 31, min.kmer.cov = 2, rm.unpaired.reads = FALSE,
+  rm.pcr.duplicates = FALSE, min.mapq = 10, max.clipped = 0.2,
+  max.insert.len = 1000, h = FALSE)
 }
 \arguments{
 \item{P}{(path, character) De novo mode.
@@ -44,11 +46,11 @@ by default this is empty and the program looks for files named
 Default: \code{s = FALSE}.}
 
 \item{B}{(character, path) Reference-based mode. Path to input BAM files.
-The input BAM file should be sorted by coordinate.
+The input BAM file(s) must be sorted by coordinate.
 With \code{B}, records must be assigned to samples using BAM "reads groups"
-(gstacks uses the ID "identifier" and SM "sample name" fields). Read groups,
-if repeated in several files, must be consistent. With \code{I}, read groups
-are ignored.
+(gstacks uses the ID/identifier and SM/sample name fields). Read groups
+must be consistent if repeated different files. With \code{I},
+read groups are unneeded and ignored.
 Please refer to the gstacks manual page for information about how to
 generate such a BAM file with Samtools or Sambamba, and examples.
 Default: \code{B = NULL}.}
@@ -56,9 +58,9 @@ Default: \code{B = NULL}.}
 \item{O}{(character, path) Path to output directory.
 Default: \code{O = NULL} (same as input)}
 
-\item{paired}{(logical) Reference-based mode. True if reads are paired.
-Note that the RAD loci will be defined by READ1 alignments.
-Default: \code{paired = FALSE}.}
+\item{unpaired}{(logical) Reference-based mode.
+Ignore read pairing (for ddRAD; treat READ2's as if they were READ1's)
+Default: \code{unpaired = TRUE}.}
 
 \item{t}{(integer) Enable parallel execution with the number of threads.
 Default: \code{t = parallel::detectCores() - 1}.}
@@ -138,7 +140,8 @@ module inside R!
 \examples{
 \dontrun{
 # The simplest form of the function with De novo data:
-bam.sum <- stackr::run_gstacks(M = "population.map.tsv") # that's it !
+bam.sum <- stackr::run_gstacks() # that's it !
+# This will use, by default, the same population map used in run_tsv2bam
 }
 }
 \references{

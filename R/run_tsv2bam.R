@@ -138,16 +138,7 @@ run_tsv2bam <- function(
 
 
   # file data and time ---------------------------------------------------------
-  file.date.time <- stringi::stri_replace_all_fixed(
-    str = Sys.time(),
-    pattern = " EDT", replacement = "") %>%
-    stringi::stri_replace_all_fixed(
-      str = .,
-      pattern = c("-", " ", ":"),
-      replacement = c("", "@", ""),
-      vectorize_all = FALSE
-    ) %>%
-    stringi::stri_sub(str = ., from = 1, to = 13)
+  file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
 
   # logs file ------------------------------------------------------------------
   tsv2bam.log.file <- stringi::stri_join("09_log_files/tsv2bam_", file.date.time,".log")

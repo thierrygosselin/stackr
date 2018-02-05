@@ -95,13 +95,16 @@
 #' Next example, let say you only want to include 10 individuals/pop and
 #' include in the catalog samples with more than 2000000 reads. With the project
 #' info file in the global environment:
+#' library(tidyverse)
 #' individuals.catalog <- project.info.file) %>%
 #' filter(RETAINED > 2000000) %>%
 #' group_by(POP_ID) %>%
 #' sample_n(size = 10, replace = FALSE) %>%
 #' ungroup %>%
 #' arrange(desc(RETAINED)) %>%
-#' distinct(INDIVIDUALS_REP)
+#' distinct(INDIVIDUALS_REP, POP_ID)
+#' # Write file to disk
+#' readr::write_tsv(x = individuals.catalog, path = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv")
 #' # The next line will give you the list of individuals to include
 #' individuals.catalog <- individuals.catalog$INDIVIDUALS_REP
 #'
@@ -140,7 +143,7 @@
 run_cstacks <- function(
   b = 1,
   P = "06_ustacks_cstacks_sstacks",
-  M = "population.map.catalog.tsv",
+  M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv",
   g = FALSE,
   n = 1,
   p = parallel::detectCores() - 1,

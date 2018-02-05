@@ -1,41 +1,40 @@
 #' @name run_populations
-#' @title Run STACKS populations module
+#' @title Run STACKS Version 2.0Beta8 populations module
 #' @description Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/populations.php}{populations}
 #' module inside R!
 
-#' @param P (character) Path to the directory containing STACKS files.
-#' Default: \code{P = "07_rxstacks_cstacks_sstacks_populations"}.
-#' Inside the folder, you should have:
-#' \itemize{
-#'   \item \strong{the catalog files:} starting with \code{batch_} and ending with
-#'   \code{.alleles.tsv.gz, .snps.tsv.gz, .tags.tsv.gz};
-#'   \item \strong{4 files for each samples:} The sample name is the prefix for
-#'   the files ending with:
-#' \code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
-#' Those files are created in the
-#' \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks},
-#' \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks} and
-#' \href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}
-#' modules.
-#' }
+#' @param P (path, character) Path to the directory containing all the STACKS files.
+#' Default: \code{P = "06_ustacks_cstacks_sstacks"}.
+
 #' @param V (character) Path to an input VCF file. When this module is used to
 #' filter an existing vcf file.
 #' Default: \code{V = NULL}.
+
 #' @param O (character) Path to a directory where to write the output files.
 #' With default: \code{O = NULL}, the function creates a folder inside
 #' \code{P} with date and time appended to \code{stackr_stacks_populations_}.
+
 #' @param M path to a population map file. The format is a tab-separated file,
 #' with first column containing sample name and second column population id.
 #' No heather (column name).
 #' e.g. \code{M = "07_rxstacks_cstacks_sstacks_populations/population.map.catalog.tsv"}
+
 #' @param t (integer) enable parallel execution with num_threads threads.
 #' Default: \code{t = parallel::detectCores() - 1}
+
 #' @param b (integer) Database/batch ID of the input catalog to consider.
 #' Advice: don't modify the default.
 #' Default: \code{b = "guess"}.
-#' @param s (logical) Output a file to import results into an SQL database.
-#' Default: \code{s = FALSE}.
+
+#' @param batch_size (integer) The number of loci (de novo mode) or
+#' chromosome (reference mode), to process in a batch.
+#' Increase to speed analysis, uses more memory, decrease to save memory).
+#' Default in de novo mode (loci/batch): \code{batch_size = 10000}.
+#' Default in reference mode (chromosome/batch): \code{batch_size = 1}.
+
+# @param s (logical) Output a file to import results into an SQL database.
+# Default: \code{s = FALSE}.
 
 
 #' @param p (integer) Minimum number of populations a locus must be present in to process a locus.
@@ -66,6 +65,11 @@
 #' @param merge_prune_lim (integer) When merging adjacent loci, if at least X% samples posses both loci prune the remaining samples out of the analysis.
 #' Default: \code{merge_prune_lim = NULL}.
 
+#' @param hwe (logical) Calculate divergence from Hardy-Weinberg equilibrium
+#' using the exact test at the SNP level and Guo and Thompson MCMC algorithm at
+#' the haplotype level.
+#' Default: \code{hwe = FALSE}.
+
 #' @param fstats (logical) Enable SNP and haplotype-based F statistics.
 #' Default: \code{fstats = FALSE}.
 #' @param fst_correction (character) Specify a correction to be applied to Fst values: 'p_value', 'bonferroni_win', or 'bonferroni_gen'.
@@ -76,6 +80,11 @@
 
 #' @param k (logical) Enable kernel-smoothed Pi, Fis, Fst, Fst', and Phi_st calculations.
 #' Default: \code{k = FALSE}.
+#' @param smooth_fstats (logical) Enable kernel-smoothed Fst, Fst', and Phi_st calculations.
+#' Default: \code{smooth_fstats = FALSE}.
+#' @param smooth_popstats (logical) Enable kernel-smoothed Pi and Fis calculations.
+#' Default: \code{smooth_popstats = FALSE}.
+
 #' @param sigma (integer) Standard deviation of the kernel smoothing weight distribution.
 #' Default: \code{sigma = 150000} (150kb).
 #' @param bootstrap (logical) Turn on boostrap resampling for all smoothed statistics.
@@ -98,18 +107,20 @@
 #' Default: \code{ordered_export = FALSE}.
 #' @param genomic (logical) Output each nucleotide position (fixed or polymorphic) in all population members to a file (requires restriction enzyme name \code{e}).
 #' Default: \code{genomic = FALSE}.
-#' @param fasta (logical) Output full sequence for each unique haplotype, from each sample locus in FASTA format, regardless of plausibility.
-#' Default: \code{fasta = FALSE}.
-#' @param fasta_strict (logical) Output full sequence for each haplotype, from each sample locus in FASTA format, only for biologically plausible loci.
-#' Default: \code{fasta_strict = FALSE}.
+#' @param fasta_samples (logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
+#' Default: \code{fasta_samples = FALSE}.
+#' @param fasta_samples_raw (logical) Output all haplotypes observed in each sample, for each locus, in FASTA format.
+#' Default: \code{fasta_samples_raw = FALSE}.
+#' @param fasta_loci (logical) Output consensus sequences of all loci, in FASTA format.
+#' Default: \code{fasta_loci = FALSE}.
 #' @param vcf  (logical) Output SNPs in Variant Call Format (VCF).
 #' Default: \code{vcf = TRUE}.
-#' @param vcf_haplotypes (logical) Output haplotypes in Variant Call Format (VCF).
-#' Default: \code{vcf_haplotypes = TRUE}.
 #' @param genepop (logical) Output results in GenePop format.
 #' Default: \code{genepop = FALSE}.
 #' @param structure (logical) Output results in Structure format.
 #' Default: \code{structure = FALSE}.
+#' @param finestructure (logical) Output results in FineStructure/FineRADStructure format.
+#' Default: \code{finestructure = FALSE}.
 #' @param phase (logical) Output genotypes in PHASE format.
 #' Default: \code{phase = FALSE}.
 #' @param fastphase (logical) Output genotypes in fastPHASE format.
@@ -158,12 +169,15 @@
 
 #' @examples
 #' \dontrun{
-#' to do
+#' pop <- stackr::run_populations(M = "population.map.tsv")
 #' }
 
 
 #' @seealso
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/populations.php}{populations}
+
+#' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{STACKS Version 2.0Beta8}
+
 
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011)
 #' Stacks: Building and Genotyping Loci De Novo From Short-Read Sequences.
@@ -171,17 +185,21 @@
 #' @references Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013)
 #' Stacks: an analysis tool set for population genomics.
 #' Molecular Ecology, 22, 3124-3140.
+#' @references Guo SW, Thompson EA (1992)
+#' Performing the exact test of Hardy-Weinberg proportion for multiple alleles.
+#' Biometrics, 48, 361-372.
 
 # populations ------------------------------------------------------------------
 
 run_populations <- function(
-  P = "07_rxstacks_cstacks_sstacks_populations",
+  P = "06_ustacks_cstacks_sstacks",
   V = NULL,
   O = NULL,
   M,
   t = parallel::detectCores() - 1,
   b = "guess",
-  s = FALSE,
+  batch_size = 10000,
+  # s = FALSE,
   p = 1,
   r = 0.3,
   min_maf = NULL,
@@ -195,10 +213,13 @@ run_populations <- function(
   e = NULL,
   merge_sites = FALSE,
   merge_prune_lim = NULL,
+  hwe = FALSE,
   fstats = FALSE,
   fst_correction = NULL,
   p_value_cutoff = 0.05,
   k = FALSE,
+  smooth_fstats = FALSE,
+  smooth_popstats = FALSE,
   sigma = 150000,
   bootstrap = FALSE,
   N = 100,
@@ -209,12 +230,13 @@ run_populations <- function(
   bootstrap_wl = NULL,
   ordered_export = FALSE,
   genomic = FALSE,
-  fasta = FALSE,
-  fasta_strict = FALSE,
+  fasta_samples = FALSE,
+  fasta_samples_raw = FALSE,
+  fasta_loci = FALSE,
   vcf = TRUE,
-  vcf_haplotypes = TRUE,
   genepop = FALSE,
   structure = FALSE,
+  finestructure = FALSE,
   phase = FALSE,
   fastphase = FALSE,
   beagle = FALSE,
@@ -237,20 +259,10 @@ run_populations <- function(
   timing <- proc.time()
 
   # Check directory ------------------------------------------------------------
-  if (!dir.exists("07_rxstacks_cstacks_sstacks_populations")) dir.create("07_rxstacks_cstacks_sstacks_populations")
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
 
   # file data and time ---------------------------------------------------------
-  file.date.time <- stringi::stri_replace_all_fixed(
-    str = Sys.time(),
-    pattern = " EDT", replacement = "") %>%
-    stringi::stri_replace_all_fixed(
-      str = .,
-      pattern = c("-", " ", ":"),
-      replacement = c("", "@", ""),
-      vectorize_all = FALSE
-    ) %>%
-    stringi::stri_sub(str = ., from = 1, to = 13)
+  file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
 
   # logs file ------------------------------------------------------------------
   populations.log.file <- stringi::stri_join("09_log_files/populations_", file.date.time,".log")
@@ -295,11 +307,7 @@ run_populations <- function(
     b <- stringi::stri_join("-b ", b)
   }
 
-  if (s) {
-    s <- "-s "
-  } else {
-    s <- ""
-  }
+  batch_size <- stringi::stri_join("--batch_size ", batch_size)
 
   # Data Filtering -------------------------------------------------------------
   p <- stringi::stri_join("-p ", p)
@@ -373,6 +381,13 @@ run_populations <- function(
     merge_prune_lim <- stringi::stri_join("--merge_prune_lim ", merge_prune_lim)
   }
 
+  # Locus stats ----------------------------------------------------------------
+  if (hwe) {
+    hwe <- "--hwe "
+  } else {
+    hwe <- ""
+  }
+
   # Fstats ---------------------------------------------------------------------
   if (fstats) {
     fstats <- "--fstats "
@@ -399,6 +414,22 @@ run_populations <- function(
   } else {
     kernel.smoothed <- FALSE
     k <- ""
+  }
+
+  if (smooth_fstats) {
+    smooth_fstats <- TRUE
+    smooth_fstats <- "--smooth_fstats "
+  } else {
+    smooth_fstats <- FALSE
+    smooth_fstats <- ""
+  }
+
+  if (smooth_popstats) {
+    smooth_popstats <- TRUE
+    smooth_popstats <- "--smooth_popstats "
+  } else {
+    smooth_popstats <- FALSE
+    smooth_popstats <- ""
   }
 
   if (kernel.smoothed) {
@@ -463,28 +494,28 @@ run_populations <- function(
     genomic <- ""
   }
 
-  if (fasta) {
-    fasta <- "--fasta "
+  if (fasta_samples) {
+    fasta_samples <- "--fasta_samples "
   } else {
-    fasta <- ""
+    fasta_samples <- ""
   }
 
-  if (fasta_strict) {
-    fasta_strict <- "--fasta_strict "
+  if (fasta_samples_raw) {
+    fasta_samples_raw <- "--fasta_samples_raw "
   } else {
-    fasta_strict <- ""
+    fasta_samples_raw <- ""
+  }
+
+  if (fasta_loci) {
+    fasta_loci <- "--fasta_loci "
+  } else {
+    fasta_loci <- ""
   }
 
   if (vcf) {
     vcf <- "--vcf "
   } else {
     vcf <- ""
-  }
-
-  if (vcf_haplotypes) {
-    vcf_haplotypes <- "--vcf_haplotypes "
-  } else {
-    vcf_haplotypes <- ""
   }
 
   if (genepop) {
@@ -497,6 +528,12 @@ run_populations <- function(
     structure <- "--structure "
   } else {
     structure <- ""
+  }
+
+  if (finestructure) {
+    finestructure <- "--finestructure "
+  } else {
+    finestructure <- ""
   }
 
   if (phase) {
@@ -590,11 +627,12 @@ run_populations <- function(
 
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
-    P, V, O, M, t, b, s, p, r, min_maf, max_obs_het, m, lnl_lim, write_single_snp,
-    write_random_snp, B, W, e, merge_sites, merge_prune_lim, fstats, fst_correction,
-    p_value_cutoff, k, sigma, bootstrap, N, bootstrap_pifis, bootstrap_fst,
+    P, V, O, M, t, b, batch_size, p, r, min_maf, max_obs_het, m, lnl_lim, write_single_snp,
+    write_random_snp, B, W, e, merge_sites, merge_prune_lim, hwe, fstats, fst_correction,
+    p_value_cutoff, k, smooth_fstats, smooth_popstats, sigma, bootstrap, N, bootstrap_pifis, bootstrap_fst,
     bootstrap_div, bootstrap_phist, bootstrap_wl, ordered_export, genomic,
-    fasta, fasta_strict, vcf, vcf_haplotypes, genepop, structure, phase,
+    fasta_samples, fasta_samples_raw, fasta_loci, vcf, genepop, structure,
+    finestructure, phase,
     fastphase, beagle, beagle_phased, plink, hzar, phylip, phylip_var,
     phylip_var_all, treemix, h, verbose, v, log_fst_comp
   )
@@ -605,6 +643,6 @@ run_populations <- function(
 
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
-  cat("############################## completed ##############################\n")
+  cat("######################## populations completed ########################\n")
   # return(res)
 }# end run_populations

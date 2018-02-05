@@ -2,41 +2,29 @@
 % Please edit documentation in R/run_populations.R
 \name{run_populations}
 \alias{run_populations}
-\title{Run STACKS populations module}
+\title{Run STACKS Version 2.0Beta8 populations module}
 \usage{
-run_populations(P = "07_rxstacks_cstacks_sstacks_populations", V = NULL,
-  O = NULL, M, t = parallel::detectCores() - 1, b = "guess", s = FALSE,
+run_populations(P = "06_ustacks_cstacks_sstacks", V = NULL, O = NULL, M,
+  t = parallel::detectCores() - 1, b = "guess", batch_size = 10000,
   p = 1, r = 0.3, min_maf = NULL, max_obs_het = NULL, m = NULL,
   lnl_lim = NULL, write_single_snp = FALSE, write_random_snp = FALSE,
   B = NULL, W = NULL, e = NULL, merge_sites = FALSE,
-  merge_prune_lim = NULL, fstats = FALSE, fst_correction = NULL,
-  p_value_cutoff = 0.05, k = FALSE, sigma = 150000, bootstrap = FALSE,
-  N = 100, bootstrap_pifis = FALSE, bootstrap_fst = FALSE,
-  bootstrap_div = FALSE, bootstrap_phist = FALSE, bootstrap_wl = NULL,
-  ordered_export = FALSE, genomic = FALSE, fasta = FALSE,
-  fasta_strict = FALSE, vcf = TRUE, vcf_haplotypes = TRUE,
-  genepop = FALSE, structure = FALSE, phase = FALSE, fastphase = FALSE,
-  beagle = FALSE, beagle_phased = FALSE, plink = FALSE, hzar = FALSE,
-  phylip = FALSE, phylip_var = FALSE, phylip_var_all = FALSE,
-  treemix = FALSE, h = FALSE, verbose = FALSE, v = FALSE,
-  log_fst_comp = FALSE)
+  merge_prune_lim = NULL, hwe = FALSE, fstats = FALSE,
+  fst_correction = NULL, p_value_cutoff = 0.05, k = FALSE,
+  smooth_fstats = FALSE, smooth_popstats = FALSE, sigma = 150000,
+  bootstrap = FALSE, N = 100, bootstrap_pifis = FALSE,
+  bootstrap_fst = FALSE, bootstrap_div = FALSE, bootstrap_phist = FALSE,
+  bootstrap_wl = NULL, ordered_export = FALSE, genomic = FALSE,
+  fasta_samples = FALSE, fasta_samples_raw = FALSE, fasta_loci = FALSE,
+  vcf = TRUE, genepop = FALSE, structure = FALSE, finestructure = FALSE,
+  phase = FALSE, fastphase = FALSE, beagle = FALSE,
+  beagle_phased = FALSE, plink = FALSE, hzar = FALSE, phylip = FALSE,
+  phylip_var = FALSE, phylip_var_all = FALSE, treemix = FALSE,
+  h = FALSE, verbose = FALSE, v = FALSE, log_fst_comp = FALSE)
 }
 \arguments{
-\item{P}{(character) Path to the directory containing STACKS files.
-Default: \code{P = "07_rxstacks_cstacks_sstacks_populations"}.
-Inside the folder, you should have:
-\itemize{
-  \item \strong{the catalog files:} starting with \code{batch_} and ending with
-  \code{.alleles.tsv.gz, .snps.tsv.gz, .tags.tsv.gz};
-  \item \strong{4 files for each samples:} The sample name is the prefix for
-  the files ending with:
-\code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
-Those files are created in the
-\href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks},
-\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks} and
-\href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}
-modules.
-}}
+\item{P}{(path, character) Path to the directory containing all the STACKS files.
+Default: \code{P = "06_ustacks_cstacks_sstacks"}.}
 
 \item{V}{(character) Path to an input VCF file. When this module is used to
 filter an existing vcf file.
@@ -58,8 +46,11 @@ Default: \code{t = parallel::detectCores() - 1}}
 Advice: don't modify the default.
 Default: \code{b = "guess"}.}
 
-\item{s}{(logical) Output a file to import results into an SQL database.
-Default: \code{s = FALSE}.}
+\item{batch_size}{(integer) The number of loci (de novo mode) or
+chromosome (reference mode), to process in a batch.
+Increase to speed analysis, uses more memory, decrease to save memory).
+Default in de novo mode (loci/batch): \code{batch_size = 10000}.
+Default in reference mode (chromosome/batch): \code{batch_size = 1}.}
 
 \item{p}{(integer) Minimum number of populations a locus must be present in to process a locus.
 Default: \code{p = 1}.}
@@ -100,6 +91,11 @@ Default: \code{merge_sites = FALSE}.}
 \item{merge_prune_lim}{(integer) When merging adjacent loci, if at least X% samples posses both loci prune the remaining samples out of the analysis.
 Default: \code{merge_prune_lim = NULL}.}
 
+\item{hwe}{(logical) Calculate divergence from Hardy-Weinberg equilibrium
+using the exact test at the SNP level and Guo and Thompson MCMC algorithm at
+the haplotype level.
+Default: \code{hwe = FALSE}.}
+
 \item{fstats}{(logical) Enable SNP and haplotype-based F statistics.
 Default: \code{fstats = FALSE}.}
 
@@ -112,6 +108,12 @@ Default: \code{p_value_cutoff = 0.05}.}
 
 \item{k}{(logical) Enable kernel-smoothed Pi, Fis, Fst, Fst', and Phi_st calculations.
 Default: \code{k = FALSE}.}
+
+\item{smooth_fstats}{(logical) Enable kernel-smoothed Fst, Fst', and Phi_st calculations.
+Default: \code{smooth_fstats = FALSE}.}
+
+\item{smooth_popstats}{(logical) Enable kernel-smoothed Pi and Fis calculations.
+Default: \code{smooth_popstats = FALSE}.}
 
 \item{sigma}{(integer) Standard deviation of the kernel smoothing weight distribution.
 Default: \code{sigma = 150000} (150kb).}
@@ -143,23 +145,26 @@ Default: \code{ordered_export = FALSE}.}
 \item{genomic}{(logical) Output each nucleotide position (fixed or polymorphic) in all population members to a file (requires restriction enzyme name \code{e}).
 Default: \code{genomic = FALSE}.}
 
-\item{fasta}{(logical) Output full sequence for each unique haplotype, from each sample locus in FASTA format, regardless of plausibility.
-Default: \code{fasta = FALSE}.}
+\item{fasta_samples}{(logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
+Default: \code{fasta_samples = FALSE}.}
 
-\item{fasta_strict}{(logical) Output full sequence for each haplotype, from each sample locus in FASTA format, only for biologically plausible loci.
-Default: \code{fasta_strict = FALSE}.}
+\item{fasta_samples_raw}{(logical) Output all haplotypes observed in each sample, for each locus, in FASTA format.
+Default: \code{fasta_samples_raw = FALSE}.}
+
+\item{fasta_loci}{(logical) Output consensus sequences of all loci, in FASTA format.
+Default: \code{fasta_loci = FALSE}.}
 
 \item{vcf}{(logical) Output SNPs in Variant Call Format (VCF).
 Default: \code{vcf = TRUE}.}
-
-\item{vcf_haplotypes}{(logical) Output haplotypes in Variant Call Format (VCF).
-Default: \code{vcf_haplotypes = TRUE}.}
 
 \item{genepop}{(logical) Output results in GenePop format.
 Default: \code{genepop = FALSE}.}
 
 \item{structure}{(logical) Output results in Structure format.
 Default: \code{structure = FALSE}.}
+
+\item{finestructure}{(logical) Output results in FineStructure/FineRADStructure format.
+Default: \code{finestructure = FALSE}.}
 
 \item{phase}{(logical) Output genotypes in PHASE format.
 Default: \code{phase = FALSE}.}
@@ -214,7 +219,7 @@ module inside R!
 }
 \examples{
 \dontrun{
-to do
+pop <- stackr::run_populations(M = "population.map.tsv")
 }
 }
 \references{
@@ -225,7 +230,12 @@ G3, 1, 171-182.
 Catchen JM, Hohenlohe PA, Bassham S, Amores A, Cresko WA (2013)
 Stacks: an analysis tool set for population genomics.
 Molecular Ecology, 22, 3124-3140.
+
+Guo SW, Thompson EA (1992)
+Performing the exact test of Hardy-Weinberg proportion for multiple alleles.
+Biometrics, 48, 361-372.
 }
 \seealso{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/populations.php}{populations}
+\href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{STACKS Version 2.0Beta8}
 }

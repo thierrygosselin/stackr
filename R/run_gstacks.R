@@ -41,11 +41,11 @@
 
 
 #' @param B (character, path) Reference-based mode. Path to input BAM files.
-#' The input BAM file should be sorted by coordinate.
+#' The input BAM file(s) must be sorted by coordinate.
 #' With \code{B}, records must be assigned to samples using BAM "reads groups"
-#' (gstacks uses the ID "identifier" and SM "sample name" fields). Read groups,
-#' if repeated in several files, must be consistent. With \code{I}, read groups
-#' are ignored.
+#' (gstacks uses the ID/identifier and SM/sample name fields). Read groups
+#' must be consistent if repeated different files. With \code{I},
+#' read groups are unneeded and ignored.
 #' Please refer to the gstacks manual page for information about how to
 #' generate such a BAM file with Samtools or Sambamba, and examples.
 #' Default: \code{B = NULL}.
@@ -53,9 +53,9 @@
 #' @param O (character, path) Path to output directory.
 #' Default: \code{O = NULL} (same as input)
 
-#' @param paired (logical) Reference-based mode. True if reads are paired.
-#' Note that the RAD loci will be defined by READ1 alignments.
-#' Default: \code{paired = FALSE}.
+#' @param unpaired (logical) Reference-based mode.
+#' Ignore read pairing (for ddRAD; treat READ2's as if they were READ1's)
+#' Default: \code{unpaired = TRUE}.
 
 
 #' @param t (integer) Enable parallel execution with the number of threads.
@@ -132,7 +132,8 @@
 #' @examples
 #' \dontrun{
 #' # The simplest form of the function with De novo data:
-#' bam.sum <- stackr::run_gstacks(M = "population.map.tsv") # that's it !
+#' bam.sum <- stackr::run_gstacks() # that's it !
+#' # This will use, by default, the same population map used in run_tsv2bam
 #' }
 
 #' @seealso
@@ -152,13 +153,13 @@
 
 run_gstacks <- function(
   P = "06_ustacks_cstacks_sstacks",
-  M,
+  M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
   # b = "guess",
   I = NULL,
   s = FALSE,
   B = NULL,
   O = NULL,
-  paired = FALSE,
+  unpaired = TRUE,
   t = parallel::detectCores() - 1,
   details = TRUE,
   ignore.pe.reads = TRUE,
@@ -187,24 +188,14 @@ run_gstacks <- function(
   if (!dir.exists("08_stacks_results")) dir.create("08_stacks_results")
 
   # file data and time ---------------------------------------------------------
-  file.date.time <- stringi::stri_replace_all_fixed(
-    str = Sys.time(),
-    pattern = " EDT", replacement = "") %>%
-    stringi::stri_replace_all_fixed(
-      str = .,
-      pattern = c("-", " ", ":"),
-      replacement = c("", "@", ""),
-      vectorize_all = FALSE
-    ) %>%
-    stringi::stri_sub(str = ., from = 1, to = 13)
+  file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
 
   # logs file ------------------------------------------------------------------
   gstacks.log.file <- stringi::stri_join("09_log_files/gstacks_", file.date.time,".log")
   message("For progress, look in the log file:\n", gstacks.log.file)
 
   # gstacks arguments ----------------------------------------------------------
-
-  if (missing(M)) stop("Population map required")
+  # Population map path
   M <- stringi::stri_join("-M ", M)
 
   # De novo approach -----------------------------------------------------------
@@ -237,8 +228,8 @@ run_gstacks <- function(
     } else {
       O <- B.bk
     }
-    if (paired) {
-      paired <- "--paired"
+    if (!unpaired) {
+      unpaired <- ""
 
       if (rm.unpaired.reads) {
         rm.unpaired.reads <- "--rm-unpaired-reads"
@@ -252,14 +243,14 @@ run_gstacks <- function(
         rm.pcr.duplicates <- ""
       }
     } else {
-      paired <- ""
+      unpaired <- "--unpaired"
       rm.unpaired.reads <- ""
       rm.pcr.duplicates <- ""
     }
   } else {
     B <- ""
     O <- ""
-    paired <- ""
+    unpaired <- "--unpaired"
     rm.unpaired.reads <- ""
     rm.pcr.duplicates <- ""
   }
@@ -322,7 +313,7 @@ run_gstacks <- function(
   command.arguments <- paste(
     P, M,
     # b,
-    I, s, B, O, paired, t, details, ignore.pe.reads, model, var.alpha, gt.alpha,
+    I, s, B, O, unpaired, t, details, ignore.pe.reads, model, var.alpha, gt.alpha,
     kmer.length, min.kmer.cov, rm.unpaired.reads, rm.pcr.duplicates, min.mapq,
     max.clipped, max.insert.len, h)
 

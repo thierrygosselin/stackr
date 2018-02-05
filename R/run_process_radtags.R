@@ -80,15 +80,17 @@
 #' If double-digest use: \code{enzyme = NULL}.
 #' Currently supported enzymes include:
 #' \code{"aciI"}, \code{"ageI"}, \code{"aluI"}, \code{"apaLI"}, \code{"apeKI"},
-#' \code{"apoI"}, \code{"aseI"}, \code{"bamHI"}, \code{"bfaI"}, \code{"bgIII"},
+#' \code{"apoI"}, \code{"aseI"}, \code{"bamHI"}, \code{"bbvCI"}, \code{"bfaI"},
+#' \code{"bfuCI"}, \code{"bgIII"},
 #' \code{"bsaHI"}, \code{"bspDI"}, \code{"bstYI"}, \code{"claI"}, \code{"csp6I"},
 #' \code{"ddeI"}, \code{"dpnII"}, \code{"eaeI"}, \code{"ecoRI"}, \code{"ecoRV"},
-#' \code{"ecoT22I"}, \code{"haeIII"}, \code{"hindIII"}, \code{"hpaII"},
+#' \code{"ecoT22I"}, \code{"haeIII"}, \code{"hinP1I"}, \code{"hindIII"}, \code{"hpaII"},
 #' \code{"kpnI"}, \code{"mluCI"}, \code{"mseI"}, \code{"mspI"}, \code{"ncoI"},
-#' \code{"ndeI"}, \code{"nheI"}, \code{"nlaIII"}, \code{"notI"}, \code{"nsiI"},
+#' \code{"ndeI"}, \code{"nheI"}, \code{"nlaIII"}, \code{"nspI"}, \code{"notI"},
+#' \code{"nsiI"},
 #' \code{"pstI"}, \code{"rsaI"}, \code{"sacI"}, \code{"sau3AI"}, \code{"sbfI"},
-#' \code{"sexAI"}, , \code{"sgrAI"}, \code{"speI"}, \code{"sphI"}, \code{"taqI"},
-#' \code{"xbaI"}, or \code{"xhoI"}.
+#' \code{"sexAI"}, \code{"sgrAI"}, \code{"speI"}, \code{"sphI"}, \code{"taqI"},
+#' \code{"xbaI"} or \code{"xhoI"}.
 #' @param renz_1 (character) When a double digest was used,
 #' provide the first restriction enzyme used.
 #' @param renz_2 (character) When a double digest was used,
