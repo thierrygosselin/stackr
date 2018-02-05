@@ -13,7 +13,7 @@
 
 #' @param O (character) Path to a directory where to write the output files.
 #' With default: \code{O = "07_populations"}, the function creates a folder inside
-#' \code{07_populations}, with date and time appended to \code{stackr_stacks_populations_}.
+#' \code{07_populations}, with date and time appended to \code{populations_}.
 
 #' @param M path to a population map file. The format is a tab-separated file,
 #' with first column containing sample name and second column population id.
@@ -261,6 +261,7 @@ run_populations <- function(
   # Check directory ------------------------------------------------------------
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
   if (!dir.exists("07_populations")) dir.create("07_populations")
+  if (missing(M)) stop("Population map required")
 
   # file data and time ---------------------------------------------------------
   file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
@@ -277,19 +278,17 @@ run_populations <- function(
   output.folder <- stringi::stri_join("populations_", file.date.time)
   output.folder <- file.path(O, output.folder)
   dir.create(output.folder)
-  O <- stringi::stri_join("-O ", shQuote(output.folder))
   message("\nOutput files written in:\n", output.folder)
+  O <- stringi::stri_join("-O ", shQuote(output.folder))
 
-  V = NULL
   if (is.null(V)) {
     V <- ""
   } else {
     V <- stringi::stri_join("-V ", V)
   }
 
-  if (missing(M)) stop("Population map required")
+  # pop map
   M <- stringi::stri_join("-M ", M)
-
 
   # parallel.core <- t
   t <- stringi::stri_join("-t ", t)
@@ -396,10 +395,6 @@ run_populations <- function(
     fst_correction <- ""
     p_value_cutoff <- ""
   }
-
-
-
-
 
   # Kernel-smoothing algorithm -------------------------------------------------
   if (k) {
