@@ -12,13 +12,13 @@
 #' Default: \code{V = NULL}.
 
 #' @param O (character) Path to a directory where to write the output files.
-#' With default: \code{O = NULL}, the function creates a folder inside
-#' \code{P} with date and time appended to \code{stackr_stacks_populations_}.
+#' With default: \code{O = "07_populations"}, the function creates a folder inside
+#' \code{07_populations}, with date and time appended to \code{stackr_stacks_populations_}.
 
 #' @param M path to a population map file. The format is a tab-separated file,
 #' with first column containing sample name and second column population id.
 #' No heather (column name).
-#' e.g. \code{M = "07_rxstacks_cstacks_sstacks_populations/population.map.catalog.tsv"}
+#' e.g. \code{M = "02_project_info/population.map.catalog.tsv"}
 
 #' @param t (integer) enable parallel execution with num_threads threads.
 #' Default: \code{t = parallel::detectCores() - 1}
@@ -194,7 +194,7 @@
 run_populations <- function(
   P = "06_ustacks_cstacks_sstacks",
   V = NULL,
-  O = NULL,
+  O = "07_populations",
   M,
   t = parallel::detectCores() - 1,
   b = "guess",
@@ -260,6 +260,7 @@ run_populations <- function(
 
   # Check directory ------------------------------------------------------------
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
+  if (!dir.exists("07_populations")) dir.create("07_populations")
 
   # file data and time ---------------------------------------------------------
   file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
@@ -273,18 +274,11 @@ run_populations <- function(
   P <- stringi::stri_join("-P ", shQuote(P))
 
   # output.folder <- O
-  if (is.null(O)) {
-    output.folder <- stringi::stri_join(input.folder, "/stackr_stacks_populations_", file.date.time)
-    output.folder <- stringi::stri_replace_all_fixed(str = output.folder, pattern = "//", replacement = "/", vectorize_all = FALSE)
-    dir.create(output.folder)
-    O <- stringi::stri_join("-O ", shQuote(output.folder))
-    message("\nOutput files written in:\n", output.folder)
-  } else {
-    message("\nOutput files written in:\n", O)
-    O <- stringi::stri_join("-O ", shQuote(O))
-  }
-
-
+  output.folder <- stringi::stri_join("populations_", file.date.time)
+  output.folder <- file.path(O, output.folder)
+  dir.create(output.folder)
+  O <- stringi::stri_join("-O ", shQuote(output.folder))
+  message("\nOutput files written in:\n", output.folder)
 
   V = NULL
   if (is.null(V)) {

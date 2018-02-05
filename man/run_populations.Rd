@@ -4,23 +4,24 @@
 \alias{run_populations}
 \title{Run STACKS Version 2.0Beta8 populations module}
 \usage{
-run_populations(P = "06_ustacks_cstacks_sstacks", V = NULL, O = NULL, M,
-  t = parallel::detectCores() - 1, b = "guess", batch_size = 10000,
-  p = 1, r = 0.3, min_maf = NULL, max_obs_het = NULL, m = NULL,
-  lnl_lim = NULL, write_single_snp = FALSE, write_random_snp = FALSE,
-  B = NULL, W = NULL, e = NULL, merge_sites = FALSE,
-  merge_prune_lim = NULL, hwe = FALSE, fstats = FALSE,
-  fst_correction = NULL, p_value_cutoff = 0.05, k = FALSE,
-  smooth_fstats = FALSE, smooth_popstats = FALSE, sigma = 150000,
-  bootstrap = FALSE, N = 100, bootstrap_pifis = FALSE,
-  bootstrap_fst = FALSE, bootstrap_div = FALSE, bootstrap_phist = FALSE,
-  bootstrap_wl = NULL, ordered_export = FALSE, genomic = FALSE,
-  fasta_samples = FALSE, fasta_samples_raw = FALSE, fasta_loci = FALSE,
-  vcf = TRUE, genepop = FALSE, structure = FALSE, finestructure = FALSE,
-  phase = FALSE, fastphase = FALSE, beagle = FALSE,
-  beagle_phased = FALSE, plink = FALSE, hzar = FALSE, phylip = FALSE,
-  phylip_var = FALSE, phylip_var_all = FALSE, treemix = FALSE,
-  h = FALSE, verbose = FALSE, v = FALSE, log_fst_comp = FALSE)
+run_populations(P = "06_ustacks_cstacks_sstacks", V = NULL,
+  O = "07_populations", M, t = parallel::detectCores() - 1, b = "guess",
+  batch_size = 10000, p = 1, r = 0.3, min_maf = NULL,
+  max_obs_het = NULL, m = NULL, lnl_lim = NULL,
+  write_single_snp = FALSE, write_random_snp = FALSE, B = NULL,
+  W = NULL, e = NULL, merge_sites = FALSE, merge_prune_lim = NULL,
+  hwe = FALSE, fstats = FALSE, fst_correction = NULL,
+  p_value_cutoff = 0.05, k = FALSE, smooth_fstats = FALSE,
+  smooth_popstats = FALSE, sigma = 150000, bootstrap = FALSE, N = 100,
+  bootstrap_pifis = FALSE, bootstrap_fst = FALSE, bootstrap_div = FALSE,
+  bootstrap_phist = FALSE, bootstrap_wl = NULL, ordered_export = FALSE,
+  genomic = FALSE, fasta_samples = FALSE, fasta_samples_raw = FALSE,
+  fasta_loci = FALSE, vcf = TRUE, genepop = FALSE, structure = FALSE,
+  finestructure = FALSE, phase = FALSE, fastphase = FALSE,
+  beagle = FALSE, beagle_phased = FALSE, plink = FALSE, hzar = FALSE,
+  phylip = FALSE, phylip_var = FALSE, phylip_var_all = FALSE,
+  treemix = FALSE, h = FALSE, verbose = FALSE, v = FALSE,
+  log_fst_comp = FALSE)
 }
 \arguments{
 \item{P}{(path, character) Path to the directory containing all the STACKS files.
@@ -31,13 +32,13 @@ filter an existing vcf file.
 Default: \code{V = NULL}.}
 
 \item{O}{(character) Path to a directory where to write the output files.
-With default: \code{O = NULL}, the function creates a folder inside
-\code{P} with date and time appended to \code{stackr_stacks_populations_}.}
+With default: \code{O = "07_populations"}, the function creates a folder inside
+\code{07_populations}, with date and time appended to \code{stackr_stacks_populations_}.}
 
 \item{M}{path to a population map file. The format is a tab-separated file,
 with first column containing sample name and second column population id.
 No heather (column name).
-e.g. \code{M = "07_rxstacks_cstacks_sstacks_populations/population.map.catalog.tsv"}}
+e.g. \code{M = "02_project_info/population.map.catalog.tsv"}}
 
 \item{t}{(integer) enable parallel execution with num_threads threads.
 Default: \code{t = parallel::detectCores() - 1}}

@@ -250,7 +250,7 @@ run_gstacks <- function(
   } else {
     B <- ""
     O <- ""
-    unpaired <- "--unpaired"
+    unpaired <- ""
     rm.unpaired.reads <- ""
     rm.pcr.duplicates <- ""
   }
