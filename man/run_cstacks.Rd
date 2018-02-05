@@ -114,7 +114,8 @@ ungroup \%>\%
 arrange(desc(RETAINED)) \%>\%
 distinct(INDIVIDUALS_REP, POP_ID)
 # Write file to disk
-readr::write_tsv(x = individuals.catalog, path = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv")
+readr::write_tsv(x = individuals.catalog,
+path = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv")
 # The next line will give you the list of individuals to include
 individuals.catalog <- individuals.catalog$INDIVIDUALS_REP
 

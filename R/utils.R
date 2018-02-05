@@ -19,7 +19,7 @@ NULL
 "stackr v.", stackr.version, "\n",
 "stackr was modified heavily and now focuses exclusively on running stacks
 software in R and reading particular files it produces.\n
-For filters and other functions that was in stackr,
+For filters and other functions that were in stackr,
 please see my new package called radiator.
 https://github.com/thierrygosselin/radiator
 
