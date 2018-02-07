@@ -33,7 +33,7 @@ Default: \code{V = NULL}.}
 
 \item{O}{(character) Path to a directory where to write the output files.
 With default: \code{O = "07_populations"}, the function creates a folder inside
-\code{07_populations}, with date and time appended to \code{stackr_stacks_populations_}.}
+\code{07_populations}, with date and time appended to \code{populations_}.}
 
 \item{M}{path to a population map file. The format is a tab-separated file,
 with first column containing sample name and second column population id.

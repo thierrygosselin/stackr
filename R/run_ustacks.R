@@ -530,10 +530,10 @@ run_ustacks <- function(
     )
 
     # summaries the info
-mismatches.summary.list <- mismatch_fig(res$mismatches)
-res$mismatches.summary <- mismatches.summary.list$mismatches.summary
-res$mismatches.plot <- mismatches.summary.list$mismatches.plot
-mismatches.summary.list <- NULL
+    mismatches.summary.list <- mismatch_fig(res$mismatches)
+    res$mismatches.summary <- mismatches.summary.list$mismatches.summary
+    res$mismatches.plot <- mismatches.summary.list$mismatches.plot
+    mismatches.summary.list <- NULL
   } else {
     if (is.null(sample.list)) {
       # sample.list <- list.files(
@@ -625,101 +625,296 @@ read_stacks_ustacks_log <- function(
   parallel.core = parallel::detectCores() - 1
 ) {
 
-  # ustacks.log <- NULL
   ustacks.log <- suppressMessages(readr::read_lines(file = log.file))
 
+  parsing.present <- which(stringi::stri_detect_fixed(str = ustacks.log,
+                                                      pattern = "Parsing"))
+  if (length(parsing.present) == 0) {
+    n.max <- which(
+      stringi::stri_detect_fixed(str = ustacks.log,
+                                 pattern = "Loading RAD-Tags")) - 4
+  } else {
+    n.max <- which(
+      stringi::stri_detect_fixed(str = ustacks.log,
+                                 pattern = "Parsing")) - 3
+  }
+
+  # mismatch -------------------------------------------------------------------
   mismatch <- suppressWarnings(suppressMessages(
     readr::read_delim(
       log.file,
       delim = ":",
       skip = 2,
-      n_max = 9,
+      n_max = n.max,
       col_names = c("PARAMETER", "VALUE")) %>%
       dplyr::mutate(VALUE = as.character(VALUE))))
 
+  # n.radtags.start ------------------------------------------------------------
   n.radtags.start <- tibble::data_frame(
     PARAMETER = "Number of RAD-Tags loaded",
     VALUE = stringi::stri_extract_all_charclass(
-      str = readr::read_lines(log.file, skip = 13, n_max = 1), pattern = "[0-9]"
-    )[1]
-  ) %>% dplyr::mutate(VALUE = as.character(VALUE))
+      str = readr::read_lines(
+        log.file,
+        skip = which(
+          stringi::stri_detect_fixed(str = ustacks.log,
+                                     pattern = "Loaded")) - 1,
+        n_max = 1),
+      pattern = "[0-9]")[1]) %>%
+    dplyr::mutate(VALUE = as.character(VALUE))
 
-  coverage <- tibble::data_frame(
-    PARAMETER = c("Coverage_start_mean", "Coverage_start_sd", "Coverage_start_max"),
-    VALUE = stringi::stri_match_all_regex(
-      str = readr::read_lines(log.file, skip = 17, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
-    )[1] %>% unlist
-  )
+  # coverage.info --------------------------------------------------------------
+  coverage.info <- which(
+    stringi::stri_detect_fixed(str = ustacks.log,
+                               pattern = "Initial coverage mean"))
+  if (length(coverage.info) == 0) {
+    coverage <- tibble::data_frame(
+      PARAMETER = c(
+        "Coverage_start_mean",
+        "Coverage_start_sd",
+        "Coverage_start_max",
+        "Coverage_n_reads",
+        "Coverage_primary_reads_percent"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = which(
+            stringi::stri_detect_fixed(str = ustacks.log,
+                                       pattern = "Stack coverage")) - 1,
+          n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+"
+      )[1] %>% unlist
+    )
+  } else {
+    coverage <- tibble::data_frame(
+      PARAMETER = c("Coverage_start_mean", "Coverage_start_sd", "Coverage_start_max"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+"
+      )[1] %>% unlist
+    )
+  }
 
-  # Removing repetitive stacks
-  rep.stacks <- tibble::data_frame(
-    PARAMETER = "Repetitive stacks",
-    VALUE = stringi::stri_match_all_regex(
-      str = readr::read_lines(log.file, skip = 22, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
-    )[1] %>% unlist
-  )
+  # Removing repetitive stacks--------------------------------------------------
+  rep.stacks.info <- which(stringi::stri_detect_fixed(str = ustacks.log,
+                                                      pattern = "Removed"))
+  if (length(rep.stacks.info) == 0) {
+    rep.stacks <- tibble::data_frame(
+      PARAMETER = "Repetitive stacks blacklisted",
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = which(stringi::stri_detect_regex(
+            str = ustacks.log,
+            pattern = "^Blacklisted")) - 1,
+          n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+  } else {
+    rep.stacks <- tibble::data_frame(
+      PARAMETER = "Repetitive stacks blacklisted",
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = rep.stacks.info - 1,
+          n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+  }
+
+  # post repeat removal coverage------------------------------------------------
+
+  coverage.info <- which(stringi::stri_detect_fixed(str = ustacks.log,
+                                                    pattern = "Post-Repeat Removal"))
+  if (length(coverage.info) == 0) {
+    coverage.post.repeat <- tibble::data_frame(
+      PARAMETER = c("Coverage_post_repeat_mean", "Coverage_post_repeat_sd", "Coverage_post_repeat_max", "Coverage_post_repeat_n_reads", "Coverage_post_repeat_primary_reads_percent"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = which(
+            stringi::stri_detect_fixed(
+              str = ustacks.log,
+              pattern = "Coverage after repeat removal")) - 1,
+          n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+"
+      )[1] %>% unlist
+    )
+  } else {
+    coverage.post.repeat <- tibble::data_frame(
+      PARAMETER = c("Coverage_post_repeat_mean", "Coverage_post_repeat_sd", "Coverage_post_repeat_max"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+"
+      )[1] %>% unlist
+    )
+  }
+
+  # merged stacks --------------------------------------------------------------
+  merge.stacks.info <- which(stringi::stri_detect_fixed(str = ustacks.log,
+                                                        pattern = "Merging stacks"))
+  if (length(merge.stacks.info) == 0) {
+    stacks.merge1 <- tibble::data_frame(
+      PARAMETER = c("Stacks_number_merged", "Loci", "Blacklisted_loci"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = which(
+            stringi::stri_detect_fixed(
+              str = ustacks.log,
+              pattern = "Assembled"))[[1]] - 1,
+          n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+"
+      )[1] %>% unlist)
+  } else {
+    stacks.merge1 <- tibble::data_frame(
+      PARAMETER = c("Stacks_number_merged", "Loci", "Deleveraged_loci", "Blacklisted_loci"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(log.file, skip = merge.stacks.info, n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+"
+      )[1] %>% unlist)
+  }
 
 
-  # post repeat removal coverage
-  coverage.post.repeat <- tibble::data_frame(
-    PARAMETER = c("Coverage_post_repeat_mean", "Coverage_post_repeat_sd", "Coverage_post_repeat_max"),
-    VALUE = stringi::stri_match_all_regex(
-      str = readr::read_lines(log.file, skip = 24, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
-    )[1] %>% unlist
-  )
+  # coverage after merging------------------------------------------------------
+  coverage.info <- which(stringi::stri_detect_fixed(
+    str = ustacks.log,
+    pattern = "After merging, coverage depth"))
+  if (length(coverage.info) == 0) {
+    coverage.post.merging <- tibble::data_frame(
+      PARAMETER = c("Coverage_post_merging_mean", "Coverage_post_merging_sd", "Coverage_post_merging_max", "Coverage_post_merging_n_reads", "Coverage_post_merging_primary_reads_percent"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = which(stringi::stri_detect_fixed(
+            str = ustacks.log,
+            pattern = "Coverage after assembling stacks")) - 1,
+          n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+  } else {
+    coverage.post.merging <- tibble::data_frame(
+      PARAMETER = c("Coverage_post_merging_mean", "Coverage_post_merging_sd", "Coverage_post_merging_max"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
+      )[1] %>% unlist)
+}
+  # merging secondary reads-----------------------------------------------------
+  coverage.info <- which(stringi::stri_detect_fixed(
+    str = ustacks.log,
+    pattern = "After remainders merged, coverage depth"))
+  if (length(coverage.info) == 0) {
+    coverage.post.merging.sec <- tibble::data_frame(
+      PARAMETER = c("Coverage_post_merging_sec_mean", "Coverage_post_merging_sec_sd", "Coverage_post_merging_sec_max", "Coverage_post_merging_sec_n_reads", "Coverage_post_merging_sec_primary_reads_percent"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = which(stringi::stri_detect_fixed(
+            str = ustacks.log,
+            pattern = "Coverage after merging secondary stacks")) - 1,
+          n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+  } else {
+    coverage.post.merging.sec <- tibble::data_frame(
+      PARAMETER = c("Coverage_post_merging_sec_mean", "Coverage_post_merging_sec_sd", "Coverage_post_merging_sec_max"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(log.file, skip = coverage.info -1, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
+      )[1] %>% unlist)
+  }
 
-  stacks.merge1 <- tibble::data_frame(
-    PARAMETER = c("Stacks_number_merged", "Loci", "Deleveraged_loci", "Blacklisted_loci"),
-    VALUE = stringi::stri_match_all_regex(
-      str = readr::read_lines(log.file, skip = 28, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
-    )[1] %>% unlist
-  )
+  # GAP info--------------------------------------------------------------------
+  gap.info <- which(stringi::stri_detect_fixed(
+    str = ustacks.log,
+    pattern = "Searching for gaps between merged stacks"))
+  if (length(coverage.info) == 0) {
+    gap <- tibble::data_frame(
+      PARAMETER = c("Stacks_assembled_before_gap", "Stacks_assembled_after_gap"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = which(
+            stringi::stri_detect_fixed(
+              str = ustacks.log,
+              pattern = "Assembled"))[[2]] - 1,
+          n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+"
+      )[1] %>% unlist)
+  } else {
+    gap  <- tibble::data_frame(
+      PARAMETER = c("Stacks_before_merged_gap", "Stacks_after_merged_gap", "Gapped_alignments"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(log.file,
+                                skip = gap.info + 1,
+                                n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+  }
 
+  # coverage.post.gap ----------------------------------------------------------
+  coverage.info <- which(stringi::stri_detect_fixed(
+    str = ustacks.log,
+    pattern = "After gapped alignments, coverage depth"))
 
-  # coverage after merging
-  coverage.post.merging <- tibble::data_frame(
-    PARAMETER = c("Coverage_post_merging_mean", "Coverage_post_merging_sd", "Coverage_post_merging_max"),
-    VALUE = stringi::stri_match_all_regex(
-      str = readr::read_lines(log.file, skip = 29, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
-    )[1] %>% unlist
-  )
+  if (length(coverage.info) == 0) {
+    coverage.post.gap <- tibble::data_frame(
+      PARAMETER = c("Coverage_post_gapped_alignments_mean",
+                    "Coverage_post_gapped_alignments_sd",
+                    "Coverage_post_gapped_alignments_max",
+                    "Coverage_post_gapped_alignments_n_reads",
+                    "Coverage_post_gapped_alignments_primary_reads_percent"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = which(stringi::stri_detect_fixed(
+            str = ustacks.log,
+            pattern = "Coverage after gapped assembly")) - 1,
+          n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+  } else {
+    coverage.post.gap <- tibble::data_frame(
+      PARAMETER = c("Coverage_post_gapped_alignments_mean",
+                    "Coverage_post_gapped_alignments_sd",
+                    "Coverage_post_gapped_alignments_max"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+  }
 
-  # merging secondary reads
-  coverage.post.merging.sec <- tibble::data_frame(
-    PARAMETER = c("Coverage_post_merging_sec_mean", "Coverage_post_merging_sec_sd", "Coverage_post_merging_sec_max"),
-    VALUE = stringi::stri_match_all_regex(
-      str = readr::read_lines(log.file, skip = 34, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
-    )[1] %>% unlist
-  )
+  # Final coverage -------------------------------------------------------------
+  coverage.info <- which(stringi::stri_detect_fixed(
+    str = ustacks.log,
+    pattern = "Final coverage"))
 
-  gap  <- tibble::data_frame(
-    PARAMETER = c("Stacks_before_merged_gap", "Stacks_after_merged_gap", "Gapped_alignments"),
-    VALUE = stringi::stri_match_all_regex(
-      str = readr::read_lines(log.file, skip = 37, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
-    )[1] %>% unlist
-  )
+  if (length(coverage.info) == 0) {
+    coverage.final <- NULL
+  } else {
+    coverage.final <- tibble::data_frame(
+      PARAMETER = c("Coverage_final_mean",
+                    "Coverage_final_sd",
+                    "Coverage_final_max",
+                    "Coverage_final_n_reads",
+                    "Coverage_final_primary_reads_percent"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = which(stringi::stri_detect_fixed(
+            str = ustacks.log,
+            pattern = "Coverage after gapped assembly")) - 1,
+          n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+  }
 
-  coverage.post.gap <- tibble::data_frame(
-    PARAMETER = c("Coverage_post_gapped_alignments_mean", "Coverage_post_gapped_alignments_sd", "Coverage_post_gapped_alignments_max"),
-    VALUE = stringi::stri_match_all_regex(
-      str = readr::read_lines(log.file, skip = 38, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
-    )[1] %>% unlist
-  )
+  # reads.used.info ------------------------------------------------------------
+  reads.used.info <- which(stringi::stri_detect_fixed(
+    str = ustacks.log,
+    pattern = "Number of utilized reads"))
 
-  reads.used <- tibble::data_frame(
-    PARAMETER = "Reads_used",
-    VALUE = stringi::stri_match_all_regex(
-      str = readr::read_lines(log.file, skip = 40, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
-    )[1] %>% unlist
-  )
-
-  # # Read Allele.tsv file
-  # allele.summary <- suppressMessages(readr::read_tsv(
-  #   file = list.files(path = ustacks.folder, pattern = ".alleles", full.names = TRUE),
-  #   col_names = c("SQL_ID", "ID", "LOCUS", "HAPLOTYPE", "PERCENT", "COUNT"),
-  #   comment = "#"))
-  # n.locus <- dplyr::n_distinct(allele.summary$LOCUS)
-  # message("Number of locus:  ", n.locus)
+  if (length(reads.used.info) == 0) {
+    reads.used <- NULL
+  } else {
+    reads.used <- tibble::data_frame(
+      PARAMETER = "Reads_used",
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(
+          log.file,
+          skip = reads.used.info - 1,
+          n_max = 1), pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+    }
 
   polymorphism <- stackr::summary_ustacks(
     ustacks.folder = ustacks.folder,
@@ -727,7 +922,6 @@ read_stacks_ustacks_log <- function(
     dplyr::select(-INDIVIDUALS) %>%
     tidyr::gather(data = ., key = PARAMETER, value = VALUE) %>%
     dplyr::mutate(VALUE = as.character(VALUE))
-
 
   res <- dplyr::bind_rows(mismatch,
                           n.radtags.start,
@@ -738,9 +932,18 @@ read_stacks_ustacks_log <- function(
                           coverage.post.merging,
                           coverage.post.merging.sec,
                           gap,
-                          coverage.post.gap,
-                          reads.used,
-                          polymorphism)
+                          coverage.post.gap)
+
+  if (!is.null(coverage.final)) {
+    res <- dplyr::bind_rows(res, coverage.final)
+  }
+
+  if (!is.null(reads.used)) {
+    res <- dplyr::bind_rows(res, reads.used, polymorphism)
+  } else {
+    res <- dplyr::bind_rows(res, polymorphism)
+  }
+
   return(res)
 
 }#End read_stacks_ustacks_log
@@ -861,5 +1064,5 @@ mismatch_fig <- function(mismatch.run) {
     filename = "mismatches.plot.pdf",
     plot = res$mismatches.plot,
     height = 15, width = 30, dpi = 600, units = "cm", useDingbats = FALSE)
-return(res)
+  return(res)
 }#End mismatch_fig
