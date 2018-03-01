@@ -32,7 +32,8 @@ Imports:
     cowplot
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    ShortRead
 Remotes:
   github::kvnkuang/pbmcapply,
 License: GPL (>=2)
