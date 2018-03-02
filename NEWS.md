@@ -1,4 +1,10 @@
-# stackr v.2.0.3 2018-02-05**
+# stackr v.2.0.4 2018-03-02
+
+* `normalize_samples`: new function to check the impact of biased read numbers per 
+individual. The function normalize the number of reads and generate replicate samples.
+
+
+# stackr v.2.0.3 2018-02-05
 
 * `stackr` is working nice with beta8 and waiting for final and stable version
 
