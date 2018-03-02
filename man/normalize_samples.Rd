@@ -69,6 +69,6 @@ stackr::normalize_samples(
    parallel.core = 5)
 
 # You then need to run stackr: run_ustacks, run_sstacks, run_tsv2bam, run_gstacks, run_populations
-# or equivalent if a reference genome is present.
+# or equivalent if a reference genome.
 }
 }

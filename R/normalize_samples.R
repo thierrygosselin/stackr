@@ -68,7 +68,7 @@
 #'    parallel.core = 5)
 #'
 #' # You then need to run stackr: run_ustacks, run_sstacks, run_tsv2bam, run_gstacks, run_populations
-#' # or equivalent if a reference genome is present.
+#' # or equivalent if a reference genome.
 #' }
 
 
@@ -136,6 +136,10 @@ normalize_samples <- function(
       parallel.core = parallel.core))
 
 
+  if (!is.null(project.info)) {
+
+  }
+
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
   cat("############################## completed ##############################\n")
@@ -172,6 +176,8 @@ stackr_normalize <- function(fastq.files, project.info, number.replicates, sampl
       message("        Could not access the the number of reads info")
       message("        Counting the number of reads in fastq file")
       n.reads <- length(ShortRead::readFastq(fastq.files))
+      # update project.info
+      project.info <- NULL
     }
   }
   message("    Number of reads: ", n.reads)
