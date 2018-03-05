@@ -106,7 +106,9 @@ Default: \code{bc_err_freq = NULL}.}
 \value{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 returns 4 files per samples: \code{.snps.tsv.gz}, \code{.tags.tsv.gz},
-\code{.alleles.tsv.gz},  \code{.models.tsv.gz}.
+\code{.alleles.tsv.gz},  \code{.models.tsv.gz}. In the global environment,
+the function returns a project info file (updated if one was provided) and
+a summary of ustacks for each samples.
 }
 \description{
 Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}

@@ -95,7 +95,9 @@
 
 #' @return \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 #' returns 4 files per samples: \code{.snps.tsv.gz}, \code{.tags.tsv.gz},
-#' \code{.alleles.tsv.gz},  \code{.models.tsv.gz}.
+#' \code{.alleles.tsv.gz},  \code{.models.tsv.gz}. In the global environment,
+#' the function returns a project info file (updated if one was provided) and
+#' a summary of ustacks for each samples.
 
 #' @details \code{-i} the unique integer ID to identify the sample (SQL ID),
 #' is taken from the project info file. If no project info file is provided,
@@ -603,8 +605,13 @@ run_ustacks <- function(
       bound_high = bound_high,
       bc_err_freq = bc_err_freq
     )
-    res <- project.info
-  }
+    res$project.info <- project.info
+
+    res$summary.ustacks <- stackr::summary_ustacks(
+      ustacks.folder = o,
+      parallel.core = parallel.core,
+      verbose = FALSE)
+  }#no mismatch test
 
 
   timing <- proc.time() - timing

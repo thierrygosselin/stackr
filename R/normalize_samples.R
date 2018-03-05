@@ -223,7 +223,7 @@ stackr_normalize <- function(x, fastq.files, fastq.files.short, project.info, nu
   message("    Number of reads: ", n.reads)
 
   if (n.reads < sample.reads) {
-    message("    Number of reads the sample is lower than ", sample.reads)
+    message("\n    Number of reads the sample is lower than ", sample.reads)
     message("        skipping normalization for this sample ")
     skip.normalization <- TRUE
   } else {
@@ -240,7 +240,8 @@ stackr_normalize <- function(x, fastq.files, fastq.files.short, project.info, nu
         FUN = write_normalize,
         mc.cores = parallel.core,
         subsample.random = subsample.random,
-        fastq.files = fastq.files))
+        fastq.files = fastq.files,
+        sample.reads = sample.reads))
   }
   }#End stackr_normalize
 
@@ -250,14 +251,14 @@ stackr_normalize <- function(x, fastq.files, fastq.files.short, project.info, nu
 #' @rdname write_normalize
 #' @export
 #' @keywords internal
-write_normalize <- function(number.replicates, subsample.random, fastq.files) {
+write_normalize <- function(number.replicates, subsample.random, fastq.files, sample.reads) {
   message("Writing normalized samples: ", number.replicates)
   new.sample <- ShortRead::yield(subsample.random)
   fq.file.type <- unique(fq_file_type(fastq.files))
   new.name <- stringi::stri_replace_all_fixed(
     str = fastq.files,
     pattern = fq.file.type,
-    replacement = stringi::stri_join("-", number.replicates, fq.file.type),
+    replacement = stringi::stri_join("-", sample.reads, "-", number.replicates, fq.file.type),
     vectorize_all = FALSE)
   suppressWarnings(ShortRead::writeFastq(new.sample, new.name))
   return(new.name)
