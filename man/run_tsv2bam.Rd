@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_tsv2bam.R
 \name{run_tsv2bam}
 \alias{run_tsv2bam}
-\title{Run STACKS new module called tsv2bam and merge BAM}
+\title{Run STACKS tsv2bam and merges BAM files}
 \usage{
 run_tsv2bam(P = "06_ustacks_cstacks_sstacks",
   M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv", R = NULL,
@@ -66,11 +66,15 @@ by merging all the individual BAM files in parallel.
 }
 }
 \description{
-Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
+Runs \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{tsv2bam}
-module inside R! Additionnally, this function will also generate a summary of
+module and additionnally, this function will also generate a summary of
 stacks tsv2bam and will merge in parallel BAM sample files into a unique
 BAM catalog file using SAMtools or Sambamba.
+\href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{tsv2bam}
+converts the data (single-end or paired-end) from being organized by sample
+into being organized by locus. This allows downstream improvements
+(e.g. Bayesian SNP calling).
 }
 \examples{
 \dontrun{

@@ -1,10 +1,14 @@
 #' @name run_tsv2bam
-#' @title Run STACKS new module called tsv2bam and merge BAM
-#' @description Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
+#' @title Run STACKS tsv2bam and merges BAM files
+#' @description Runs \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 #' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{tsv2bam}
-#' module inside R! Additionnally, this function will also generate a summary of
+#' module and additionnally, this function will also generate a summary of
 #' stacks tsv2bam and will merge in parallel BAM sample files into a unique
 #' BAM catalog file using SAMtools or Sambamba.
+#' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{tsv2bam}
+#' converts the data (single-end or paired-end) from being organized by sample
+#' into being organized by locus. This allows downstream improvements
+#' (e.g. Bayesian SNP calling).
 
 #' @param P (path, character) Path to the directory containing STACKS files.
 #' Default: \code{P = "06_ustacks_cstacks_sstacks"}.

@@ -1,7 +1,10 @@
-#normalize_samples
-#' @name normalize_samples
-#' @title Normalize samples
-#' @description Normalize samples fastq files before de novo assembly or alignment.
+#normalize_reads
+#' @name normalize_reads
+#' @title Rarefaction of reads samples
+#' @description Rarefaction of fasq files by sub-sampling the reads
+#' before de novo assembly or alignment.
+#' The normalization/standardization/sample size correction step allows to check
+#' if some statistics are increasing with read numbers (e.g. heterozygous markers).
 
 #' @param project.info (character, path, optional) When using the stackr pipeline,
 #' a project info file is created. This file provides all the info and stats
@@ -35,7 +38,7 @@
 #' If not, the default is \code{parallel.core = parallel::detectCores() - 1}.
 
 
-#' @rdname normalize_samples
+#' @rdname normalize_reads
 #' @export
 #' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
 #' @importFrom dplyr mutate filter distinct
@@ -58,10 +61,10 @@
 #' nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
 #' on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
 #' # using defaults:
-#' stackr::normalize_samples(path.samples = "~/corals")
+#' stackr::normalize_reads(path.samples = "~/corals")
 #'
 #' # customizing the function:
-#' stackr::normalize_samples(
+#' stackr::normalize_reads(
 #'    project.info = "project.info.corals.tsv",
 #'    path.samples = "~/corals",
 #'    sample.reads = 2000000,
@@ -79,7 +82,7 @@
 
 # @references todo
 
-normalize_samples <- function(
+normalize_reads <- function(
   project.info = NULL,
   path.samples,
   sample.reads = 1000000,
@@ -90,7 +93,7 @@ normalize_samples <- function(
   opt.change <- getOption("width")
   options(width = 70)
   cat("#######################################################################\n")
-  cat("##################### stackr::normalize_samples #######################\n")
+  cat("##################### stackr::normalize_reads #######################\n")
   cat("#######################################################################\n")
   timing <- proc.time()
 
@@ -179,7 +182,7 @@ normalize_samples <- function(
   cat("############################## completed ##############################\n")
   options(width = opt.change)
   return(project.info.normalize)
-}#normalize_samples
+}#normalize_reads
 
 
 # Internal function ------------------------------------------------------------
