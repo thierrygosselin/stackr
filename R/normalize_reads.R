@@ -93,7 +93,7 @@ normalize_reads <- function(
   opt.change <- getOption("width")
   options(width = 70)
   cat("#######################################################################\n")
-  cat("##################### stackr::normalize_reads #######################\n")
+  cat("###################### stackr::normalize_reads ########################\n")
   cat("#######################################################################\n")
   timing <- proc.time()
 
@@ -131,10 +131,15 @@ normalize_reads <- function(
   }
   set.seed(random.seed)
 
+  # Change UPPER CASE file ending ----------------------------------------------
+  check_fq(list_sample_file(f = path.samples, full.path = TRUE))
+
+  # FQ FILES  ------------------------------------------------------------------
   fastq.files <- list_sample_file(f = path.samples, full.path = TRUE)
   fastq.files.short <- list_sample_file(f = path.samples, full.path = FALSE)
   todo <- length(fastq.files)
   message("Number of samples to normalize: ", todo)
+
   # fastq.files <- fastq.files[1]#test
 
   suppressWarnings(
@@ -196,10 +201,11 @@ stackr_normalize <- function(x, fastq.files, fastq.files.short, project.info, nu
   fastq.files <- fastq.files[x]
   fastq.files.short <- fastq.files.short[x]
 
+  fq.type <- unique(fq_file_type(fastq.files))
+
   sample.id <- stringi::stri_replace_all_fixed(
     str = fastq.files.short,
-    pattern = unique(fq_file_type(fastq.files)),
-    replacement = "", vectorize_all = FALSE)
+    pattern = fq.type, replacement = "", vectorize_all = FALSE)
   message("\nNormalizing sample: ", sample.id)
 
   # check number of reads
@@ -266,3 +272,36 @@ write_normalize <- function(number.replicates, subsample.random, fastq.files, sa
   suppressWarnings(ShortRead::writeFastq(new.sample, new.name))
   return(new.name)
 }#End write_normalize
+
+
+#' @title check_fq
+#' @description Check if weird fq UPPER CASE ending is used
+#' @rdname check_fq
+#' @export
+#' @keywords internal
+
+check_fq <- function(fastq.files, parallel.core = parallel::detectCores() - 1) {
+  change.fq <- tibble::as_tibble(list(OLD_FQ = c(fastq.files))) %>%
+    dplyr::mutate(NEW_FQ = TRUE %in% stringi::stri_detect_fixed(str = OLD_FQ, pattern = c(".FASTQ.GZ", ".FASTQ.gz"))) %>%
+    dplyr::filter(NEW_FQ)
+  fq.check <- nrow(change.fq)
+  if (fq.check > 0) {
+    message(fq.check," UPPER CASE fq file(s) ending found in the folder")
+    message("    Renaming to lower case...")
+    change.fq <- change.fq %>%
+      dplyr::mutate(
+        NEW_FQ = stringi::stri_replace_all_regex(
+          str = OLD_FQ,
+          pattern = fq_file_type(OLD_FQ),
+          replacement = stringi::stri_trans_tolower(fq_file_type(OLD_FQ)),
+          vectorize_all = FALSE))
+
+
+    if (fq.check < parallel.core) parallel.core <- fq.check
+
+    # purrr::walk(.x = list(change.fq$OLD_FQ), .f = rename_fq, change.fq = change.fq)
+    rename_fq(change.fq, parallel.core = parallel.core)
+  }
+  change.fq <- fq.check <- NULL
+}
+

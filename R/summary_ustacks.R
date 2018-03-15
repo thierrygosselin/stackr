@@ -143,20 +143,9 @@ summary_ustacks <- function(
   alleles.files <- list.files(
     path = ustacks.folder, pattern = "alleles", full.names = FALSE)
 
-  # models
-  models.files <- list.files(
-    path = ustacks.folder, pattern = "models", full.names = FALSE)
-
-  n.models <- length(models.files)
-  # switch to tags if no models files (same thing, only more info to parse)
-  use.tags <- FALSE
+  # tags
   tags.files <- list.files(
     path = ustacks.folder, pattern = "tags", full.names = FALSE)
-
-  if (n.models == 0) {
-    models.files <- tags.files
-    use.tags <- TRUE
-  }
 
   # snps
   snps.files <- list.files(
@@ -172,9 +161,6 @@ summary_ustacks <- function(
     snps.files <- purrr::keep(.x = snps.files,
                               .p = !snps.files %in% catalog.file)
 
-    models.files <- purrr::keep(.x = models.files,
-                                .p = !models.files %in% catalog.file)
-
     tags.files <- purrr::keep(.x = tags.files,
                               .p = !tags.files %in% catalog.file)
 
@@ -184,21 +170,19 @@ summary_ustacks <- function(
   n.alleles <- length(alleles.files)
   n.snps <- length(snps.files)
   n.tags <- length(tags.files)
-  tags.files <- NULL
 
-  if (n.alleles == n.snps && n.alleles == n.models && n.alleles == n.tags) {
-    message("Summarizing ", n.snps, " ustacks (models, snps, tags, alleles) files...")
+  if (n.alleles == n.snps && n.alleles == n.tags) {
+    message("Summarizing ", n.snps, " ustacks (snps, tags, alleles) files...")
     sample.name <- stringi::stri_replace_all_fixed(
       str = snps.files,
       pattern = ".snps.tsv.gz",
       replacement = "",
       vectorize_all = FALSE)
   } else {
-    message("Unequal numbers of ustacks files: models, snps, tags, alleles")
+    message("Unequal numbers of ustacks files: snps, tags, alleles")
     message("  alleles: ", n.alleles)
     message("  snps: ", n.snps)
     message("  tags: ", n.tags)
-    message("  models: ", n.models)
     message("  These samples will be removed (based on .snps files): ")
 
     alleles.names <- stringi::stri_replace_all_fixed(
@@ -226,31 +210,52 @@ summary_ustacks <- function(
   opt.change <- getOption("width")
   options(width = 70)
 
-  summarise_ustacks <- function(sample.name, ustacks.folder, use.tags) {
+  summarise_ustacks <- function(sample.name, ustacks.folder) {
     # sample.name <- stringi::stri_replace_all_fixed(
     #   str = snps.files,
     #   pattern = ".snps.tsv.gz",
     #   replacement = "",
     #   vectorize_all = FALSE)
 
-    # sample.name <- "TOB_70"
+    # sample.name <- "1324061.FASTQ"
 
     # summary
-    if (use.tags) {
+    tags.file <- stringi::stri_join(ustacks.folder, "/", sample.name, ".tags.tsv.gz")
+    stacks.version <- stringi::stri_detect_fixed(str = readr::read_lines(tags.file, n_max = 1), pattern = "version 2")
+    if (stacks.version) {
+      message("stacks >= v2.0 was used")
       models.summary <- readr::read_tsv(
-        file = stringi::stri_join(ustacks.folder, "/", sample.name, ".tags.tsv.gz"),
-        col_names = c("SQL_ID", "ID", "LOCUS", "CHROMOSOME", "BASEPAIR", "STRAND", "SEQ_TYPE", "STACK_COMPONENT", "SEQ_ID", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG", "LOG_LIKELIHOOD"),
-        col_types = "iiiciccicciiid", na = "-",
-        comment = "#")
+        file = tags.file, comment = "#", na = "-",
+        col_names = c("SQL_ID", "LOCUS", "SEQ_TYPE", "STACK_COMPONENT", "SEQ_ID", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG"),
+        col_types = "iicicciii")
+      alleles.imp <- readr::read_tsv(
+        file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
+        col_names = c("SQL_ID", "LOCUS", "HAPLOTYPE", "PERCENT", "COUNT"),
+        col_types = "iicdi", na = "-",
+        comment = "#") %>%
+        dplyr::group_by(LOCUS) %>%
+        dplyr::tally(.) %>%
+        dplyr::ungroup(.) %>%
+        dplyr::mutate(INDIVIDUALS = rep(sample.name, n())) %>%
+        dplyr::select(INDIVIDUALS, LOCUS, HAPLOTYPE_NUMBER = n)
     } else {
+      message("stacks < v2.0 was used")
       models.summary <- readr::read_tsv(
-        file = stringi::stri_join(ustacks.folder, "/", sample.name, ".models.tsv.gz"),
+        file = tags.file,
         col_names = c("SQL_ID", "ID", "LOCUS", "CHROMOSOME", "BASEPAIR", "STRAND", "SEQ_TYPE", "STACK_COMPONENT", "SEQ_ID", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG", "LOG_LIKELIHOOD"),
         col_types = "iiiciccicciiid", na = "-",
         comment = "#")
+      alleles.imp <- readr::read_tsv(
+        file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
+        col_names = c("SQL_ID", "ID", "LOCUS", "HAPLOTYPE", "PERCENT", "COUNT"),
+        col_types = "iiicdi", na = "-",
+        comment = "#") %>%
+        dplyr::group_by(LOCUS) %>%
+        dplyr::tally(.) %>%
+        dplyr::ungroup(.) %>%
+        dplyr::mutate(INDIVIDUALS = rep(sample.name, n())) %>%
+        dplyr::select(INDIVIDUALS, LOCUS, HAPLOTYPE_NUMBER = n)
     }
-
-
     summarise.ustacks <- dplyr::filter(models.summary, SEQ_TYPE == "model") %>%
       dplyr::select(LOCUS, SEQUENCE) %>%
       dplyr::mutate(
@@ -265,30 +270,17 @@ summary_ustacks <- function(
             INDIVIDUALS = rep(sample.name, n())) %>%
           dplyr::select(INDIVIDUALS, LOCUS, BLACKLIST_USTACKS)
         , by = c("INDIVIDUALS", "LOCUS"))
-
     models.summary <- NULL
 
-
     summarise.ustacks <- dplyr::full_join(
-      summarise.ustacks,
-        # ALLELES
-        readr::read_tsv(
-          file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
-          col_names = c("SQL_ID", "ID", "LOCUS", "HAPLOTYPE", "PERCENT", "COUNT"),
-          col_types = "iiicdi", na = "-",
-          comment = "#") %>%
-          dplyr::group_by(LOCUS) %>%
-          dplyr::tally(.) %>%
-          dplyr::ungroup(.) %>%
-          dplyr::mutate(INDIVIDUALS = rep(sample.name, n())) %>%
-          dplyr::select(INDIVIDUALS, LOCUS, HAPLOTYPE_NUMBER = n)
-      , by = c("INDIVIDUALS", "LOCUS")) %>%
+      summarise.ustacks, alleles.imp, by = c("INDIVIDUALS", "LOCUS")) %>%
       dplyr::mutate(
         HAPLOTYPE_NUMBER = replace(
           HAPLOTYPE_NUMBER, which(is.na(HAPLOTYPE_NUMBER)), 0),
         BLACKLIST_ARTIFACT = dplyr::if_else(HAPLOTYPE_NUMBER > 2,
                                             "artifact", "not_artifact")) %>%
       dplyr::ungroup(.)
+    alleles.imp <- NULL
 
     summary.ind <- dplyr::bind_cols(
       summarise.ustacks %>%
@@ -319,16 +311,13 @@ summary_ustacks <- function(
       X = sample.name,
       FUN = summarise_ustacks,
       mc.cores = parallel.core,
-      ustacks.folder = ustacks.folder,
-      use.tags = use.tags
+      ustacks.folder = ustacks.folder
     ) %>%
       dplyr::bind_rows(.)
   } else {
     res <- summarise_ustacks(
       sample.name = sample.name,
-      ustacks.folder = ustacks.folder,
-      use.tags = use.tags
-    )
+      ustacks.folder = ustacks.folder)
   }
 
   options(width = opt.change)

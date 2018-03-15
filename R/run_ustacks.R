@@ -48,21 +48,30 @@
 #' Default: \code{p = parallel::detectCores() - 1}.
 #' @param h Display this help messsage. Default: \code{h = FALSE}.
 
-
+# Stack assembly options:
 #' @param d Enable the Deleveraging algorithm, used for resolving over merged tags.
 #' Default: \code{d = TRUE}.
 #' @param keep_high_cov Disable the algorithm that removes highly-repetitive stacks and nearby errors.
 #' Default: \code{keep_high_cov = FALSE}.
+
+#' @param high_cov_thres (double) Highly-repetitive stacks threshold,
+#' in standard deviation units.
+#' Default: \code{high_cov_thres = 2.0}.
+
+
 #' @param max_locus_stacks Maximum number of stacks at a single de novo locus.
 #' Default: \code{max_locus_stacks = 3}.
 #' @param k_len Specify k-mer size for matching between alleles and loci.
 #' Default: \code{k_len = NULL}.
-#' @param gapped Perform gapped alignments between stacks.
-#' Default: \code{gapped = TRUE}.
+
+
+# Gapped assembly options:
 #' @param max_gaps Number of gaps allowed between stacks before merging.
 #' Default: \code{max_gaps = 2}.
 #' @param min_aln_len Minimum length of aligned sequence in a gapped alignment.
 #' Default: \code{min_aln_len = 0.8}.
+
+# Model options:
 #' @param model_type Either 'snp' (default), 'bounded', or 'fixed'.
 #' Default: \code{model_type = "snp"}.
 #' @param alpha For the SNP or Bounded SNP model,
@@ -157,9 +166,9 @@ run_ustacks <- function(
   h = FALSE,
   d = TRUE,
   keep_high_cov = FALSE,
+  high_cov_thres = 2.0,
   max_locus_stacks = 3,
   k_len = NULL,
-  gapped = TRUE,
   max_gaps = 2,
   min_aln_len = 0.8,
   model_type = "snp",
@@ -203,9 +212,9 @@ run_ustacks <- function(
     h = FALSE,
     d = TRUE,
     keep_high_cov = FALSE,
+    high_cov_thres = 2.0,
     max_locus_stacks = 3,
     k_len = NULL,
-    gapped = TRUE,
     max_gaps = 2,
     min_aln_len = 0.8,
     model_type = "snp",
@@ -333,6 +342,8 @@ run_ustacks <- function(
       keep_high_cov <- ""
     }
 
+    high_cov_thres <- stringi::stri_join("--high_cov_thres ", high_cov_thres)
+
 
     max_locus_stacks <- stringi::stri_join("--max_locus_stacks ", max_locus_stacks)
 
@@ -346,11 +357,6 @@ run_ustacks <- function(
     # preform gapped alignments between stacks
     # implements the Needleman–Wunsch algorithm to obtain gapped alignments
     # between putative alleles.
-    if (gapped) {
-      gapped <- stringi::stri_join("--gapped ")
-    } else {
-      gapped <- ""
-    }
 
     # number of gaps allowed between stacks before merging (stacks default: 2)
     max_gaps <- stringi::stri_join("--max_gaps ", max_gaps)
@@ -380,8 +386,8 @@ run_ustacks <- function(
     # command args
     command.arguments <- paste(
       f, i, o, M, m, N, p, t, R, H, h,
-      d, keep_high_cov, max_locus_stacks, k_len,
-      gapped, max_gaps, min_aln_len,
+      d, keep_high_cov, high_cov_thres, max_locus_stacks, k_len,
+      max_gaps, min_aln_len,
       model_type, alpha, bound_low, bound_high, bc_err_freq
     )
 
@@ -483,6 +489,7 @@ run_ustacks <- function(
   }
 
   # Mismatch ---------------------------
+  res <- list()
   if (mismatch.testing) {
     mismatch.to.do <- length(dir(path = o, full.names = TRUE, recursive = FALSE))
     if (mismatch.to.do > 0) {
@@ -496,7 +503,6 @@ run_ustacks <- function(
     }
 
     # Map samples to ustacks --------------
-    res <- list()
     res$mismatches <- purrr::pmap(
       .l = list(
         M = M,
@@ -522,7 +528,6 @@ run_ustacks <- function(
       keep_high_cov = keep_high_cov,
       max_locus_stacks = max_locus_stacks,
       k_len = k_len,
-      gapped = gapped,
       min_aln_len = min_aln_len,
       model_type = model_type,
       alpha = alpha,
@@ -552,6 +557,8 @@ run_ustacks <- function(
     if (unique(stringi::stri_detect_fixed(str = subsample.sample.list, pattern = "gzfastq"))) encoding <- ".gzfastq"
     if (unique(stringi::stri_detect_fixed(str = subsample.sample.list, pattern = "fq"))) encoding <- ".fq"
     if (unique(stringi::stri_detect_fixed(str = subsample.sample.list, pattern = "fq.gz"))) encoding <- ".fq.gz"
+    if (unique(stringi::stri_detect_fixed(str = subsample.sample.list, pattern = "FASTQ.gz"))) encoding <- ".gzfastq"
+    if (unique(stringi::stri_detect_fixed(str = subsample.sample.list, pattern = "FASTQ.GZ"))) encoding <- ".gzfastq"
 
     #Check if ustacks as already done some files
     sample.assembled <- stringi::stri_replace_all_fixed(
@@ -594,9 +601,9 @@ run_ustacks <- function(
       h = h,
       d = d,
       keep_high_cov = keep_high_cov,
+      high_cov_thres =high_cov_thres,
       max_locus_stacks = max_locus_stacks,
       k_len = k_len,
-      gapped = gapped,
       max_gaps = max_gaps,
       min_aln_len = min_aln_len,
       model_type = model_type,
@@ -634,25 +641,13 @@ read_stacks_ustacks_log <- function(
 
   ustacks.log <- suppressMessages(readr::read_lines(file = log.file))
 
-  parsing.present <- which(stringi::stri_detect_fixed(str = ustacks.log,
-                                                      pattern = "Parsing"))
-  if (length(parsing.present) == 0) {
-    n.max <- which(
-      stringi::stri_detect_fixed(str = ustacks.log,
-                                 pattern = "Loading RAD-Tags")) - 4
-  } else {
-    n.max <- which(
-      stringi::stri_detect_fixed(str = ustacks.log,
-                                 pattern = "Parsing")) - 3
-  }
-
-  # mismatch -------------------------------------------------------------------
+  # Parameters
   mismatch <- suppressWarnings(suppressMessages(
     readr::read_delim(
       log.file,
       delim = ":",
       skip = 2,
-      n_max = n.max,
+      n_max = 11,
       col_names = c("PARAMETER", "VALUE")) %>%
       dplyr::mutate(VALUE = as.character(VALUE))))
 
@@ -712,7 +707,7 @@ read_stacks_ustacks_log <- function(
           log.file,
           skip = which(stringi::stri_detect_regex(
             str = ustacks.log,
-            pattern = "^Blacklisted")) - 1,
+            pattern = "^Removing repetitive stacks")),
           n_max = 1),
         pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
   } else {
@@ -803,6 +798,21 @@ read_stacks_ustacks_log <- function(
       )[1] %>% unlist)
 }
   # merging secondary reads-----------------------------------------------------
+  merge.sec.stacks.info <- which(stringi::stri_detect_fixed(str = ustacks.log,
+                                                        pattern = "Merging secondary stacks"))
+  if (length(merge.stacks.info) == 0) {
+    stacks.sec.merge <- tibble::data_frame(
+      PARAMETER = c("Secondary_reads_merged", "Secondary_reads_total", "Secondary_reads_percent", "Reads_merged_gap_align"),
+      VALUE = c(NA, NA, NA, NA))
+  } else {
+    stacks.sec.merge <- tibble::data_frame(
+      PARAMETER = c("Secondary_reads_merged", "Secondary_reads_total", "Secondary_reads_percent", "Reads_merged_gap_align"),
+      VALUE = stringi::stri_match_all_regex(
+        str = readr::read_lines(log.file, skip = merge.sec.stacks.info, n_max = 1),
+        pattern = "[0-9]*[.]*[0-9]+"
+      )[1] %>% unlist)
+  }
+
   coverage.info <- which(stringi::stri_detect_fixed(
     str = ustacks.log,
     pattern = "After remainders merged, coverage depth"))
@@ -937,6 +947,7 @@ read_stacks_ustacks_log <- function(
                           coverage.post.repeat,
                           stacks.merge1,
                           coverage.post.merging,
+                          stacks.sec.merge,
                           coverage.post.merging.sec,
                           gap,
                           coverage.post.gap)
@@ -974,7 +985,7 @@ list_sample_file <- function(f, full.path = FALSE) {
     }
   }
   sample.list <- purrr::map(
-    .x = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
+    .x = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz", "FASTQ.gz", "FASTQ.GZ"),
     .f = sample_file, f = f) %>%
     purrr::flatten_chr(.) %>% unique
 }#End list_sample_file
@@ -985,12 +996,15 @@ list_sample_file <- function(f, full.path = FALSE) {
 #' @export
 #' @keywords internal
 fq_file_type <- function(x) {
-  fq.file.type <-  stringi::stri_match_all_regex(
+  fq.file.type <-  suppressWarnings(stringi::stri_match_all_regex(
     str = x,
     omit_no_match = TRUE,
-    pattern = c( ".fq", ".fq.gz", ".fasta", ".gzfasta", ".gzfastq", ".fastq", ".fastq.gz")
-  ) %>% purrr::flatten_chr(.)
+    pattern = c( ".fq", ".fq.gz", ".fasta", ".gzfasta", ".gzfastq", ".fastq", ".fastq.gz", ".FASTQ.gz", ".FASTQ.GZ")
+  ) %>% purrr::flatten_chr(.))
 
+  # if (identical(x = c(".fastq", ".fastq.gz", ".FASTQ.gz", ".FASTQ.GZ"), y = fq.file.type)) fq.file.type <- ".fastq.gz"
+  # if (identical(x = c(".FASTQ.GZ"), y = fq.file.type)) fq.file.type <- ".fastq.gz"
+  # if (identical(x = c(".FASTQ.gz"), y = fq.file.type)) fq.file.type <- ".fastq.gz"
   if (identical(x = c(".fastq", ".fastq.gz"), y = fq.file.type)) fq.file.type <- ".fastq.gz"
   if (identical(x = c(".fq", ".fq.gz"), y = fq.file.type)) fq.file.type <- ".fq.gz"
   if (identical(x = c(".fasta", ".gzfasta"), y = fq.file.type)) fq.file.type <- ".gzfasta"

@@ -8,8 +8,8 @@ run_ustacks(mismatch.testing = FALSE, sample.list = NULL,
   project.info = NULL, f = "04_process_radtags",
   o = "06_ustacks_cstacks_sstacks", m = 3, M = 2, N = M + 2,
   t = "guess", R = FALSE, H = TRUE, p = parallel::detectCores() - 1,
-  h = FALSE, d = TRUE, keep_high_cov = FALSE, max_locus_stacks = 3,
-  k_len = NULL, gapped = TRUE, max_gaps = 2, min_aln_len = 0.8,
+  h = FALSE, d = TRUE, keep_high_cov = FALSE, high_cov_thres = 2,
+  max_locus_stacks = 3, k_len = NULL, max_gaps = 2, min_aln_len = 0.8,
   model_type = "snp", alpha = 0.05, bound_low = 0, bound_high = 0.2,
   bc_err_freq = NULL)
 }
@@ -69,14 +69,15 @@ Default: \code{d = TRUE}.}
 \item{keep_high_cov}{Disable the algorithm that removes highly-repetitive stacks and nearby errors.
 Default: \code{keep_high_cov = FALSE}.}
 
+\item{high_cov_thres}{(double) Highly-repetitive stacks threshold,
+in standard deviation units.
+Default: \code{high_cov_thres = 2.0}.}
+
 \item{max_locus_stacks}{Maximum number of stacks at a single de novo locus.
 Default: \code{max_locus_stacks = 3}.}
 
 \item{k_len}{Specify k-mer size for matching between alleles and loci.
 Default: \code{k_len = NULL}.}
-
-\item{gapped}{Perform gapped alignments between stacks.
-Default: \code{gapped = TRUE}.}
 
 \item{max_gaps}{Number of gaps allowed between stacks before merging.
 Default: \code{max_gaps = 2}.}
