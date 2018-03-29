@@ -217,21 +217,32 @@ summary_ustacks <- function(
     #   replacement = "",
     #   vectorize_all = FALSE)
 
-    # sample.name <- "1324061.FASTQ"
+    # sample.name <- "JE1545-Sp4S-SP-1e+06-1"
 
     # summary
     tags.file <- stringi::stri_join(ustacks.folder, "/", sample.name, ".tags.tsv.gz")
     stacks.version <- stringi::stri_detect_fixed(str = readr::read_lines(tags.file, n_max = 1), pattern = "version 2")
     if (stacks.version) {
-      message("stacks >= v2.0 was used")
+      beta <- stringi::stri_detect_fixed(str = readr::read_lines(tags.file, n_max = 1), pattern = "Beta")
+      if (beta) {
+        stacks.version <- (stringi::stri_extract_all_charclass(
+          str = readr::read_lines(tags.file, n_max = 1),
+          pattern = "[0-9]")[[1]])[3] >= 9
+      } else {
+        stacks.version <- FALSE
+      }
+    }
+    if (stacks.version) {
+      message("stacks >= v2.0 Beta 9 was used")
       models.summary <- readr::read_tsv(
         file = tags.file, comment = "#", na = "-",
-        col_names = c("SQL_ID", "LOCUS", "SEQ_TYPE", "STACK_COMPONENT", "SEQ_ID", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG"),
-        col_types = "iicicciii")
+        col_names = c("LOCUS", "SEQ_TYPE", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG"),
+        col_types = "_ic__ciii")
+
       alleles.imp <- readr::read_tsv(
         file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
-        col_names = c("SQL_ID", "LOCUS", "HAPLOTYPE", "PERCENT", "COUNT"),
-        col_types = "iicdi", na = "-",
+        col_names = c("LOCUS", "COUNT"),
+        col_types = "_i__i", na = "-",
         comment = "#") %>%
         dplyr::group_by(LOCUS) %>%
         dplyr::tally(.) %>%
@@ -239,16 +250,16 @@ summary_ustacks <- function(
         dplyr::mutate(INDIVIDUALS = rep(sample.name, n())) %>%
         dplyr::select(INDIVIDUALS, LOCUS, HAPLOTYPE_NUMBER = n)
     } else {
-      message("stacks < v2.0 was used")
+      message("stacks < v2.0 Beta9 was used")
       models.summary <- readr::read_tsv(
         file = tags.file,
-        col_names = c("SQL_ID", "ID", "LOCUS", "CHROMOSOME", "BASEPAIR", "STRAND", "SEQ_TYPE", "STACK_COMPONENT", "SEQ_ID", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG", "LOG_LIKELIHOOD"),
-        col_types = "iiiciccicciiid", na = "-",
+        col_names = c("LOCUS", "SEQ_TYPE", "SEQ_ID", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG", "LOG_LIKELIHOOD"),
+        col_types = "__i___c_cciiid", na = "-",
         comment = "#")
       alleles.imp <- readr::read_tsv(
         file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
-        col_names = c("SQL_ID", "ID", "LOCUS", "HAPLOTYPE", "PERCENT", "COUNT"),
-        col_types = "iiicdi", na = "-",
+        col_names = c("LOCUS", "COUNT"),
+        col_types = "__i__i", na = "-",
         comment = "#") %>%
         dplyr::group_by(LOCUS) %>%
         dplyr::tally(.) %>%
