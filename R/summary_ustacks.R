@@ -183,26 +183,31 @@ summary_ustacks <- function(
     message("  alleles: ", n.alleles)
     message("  snps: ", n.snps)
     message("  tags: ", n.tags)
-    message("  These samples will be removed (based on .snps files): ")
-
+    message("  Missing ustacks files for these samples : ")
     alleles.names <- stringi::stri_replace_all_fixed(
       str = alleles.files,
       pattern = ".alleles.tsv.gz",
       replacement = "",
       vectorize_all = FALSE)
-
-    sample.name <- stringi::stri_replace_all_fixed(
+    snps.names <- stringi::stri_replace_all_fixed(
       str = snps.files,
       pattern = ".snps.tsv.gz",
       replacement = "",
       vectorize_all = FALSE)
-
-    missing.samples <- setdiff(alleles.names, sample.name)
-
+    tags.names <- stringi::stri_replace_all_fixed(
+      str = tags.files,
+      pattern = ".tags.tsv.gz",
+      replacement = "",
+      vectorize_all = FALSE)
+    sample.name <- dplyr::intersect(alleles.names, snps.names)
+    sample.name <- dplyr::intersect(alleles.names, tags.names)
+    all.samples <- unique(c(alleles.names, snps.names, tags.names))
+    missing.samples <- purrr::discard(.x = all.samples, .p = all.samples %in% sample.name)
+    all.samples <- NULL
     if (length(missing.samples) > 1) {
-      missing.samples <- stringi::stri_join(missing.samples, collapse = ", ")
+      missing.samples <- stringi::stri_join(missing.samples, collapse = "\n    ")
     }
-    alleles.names <- NULL
+    alleles.names <- snps.names <- tags.names <- NULL
     message("    ", missing.samples)
   }
 
@@ -217,7 +222,7 @@ summary_ustacks <- function(
     #   replacement = "",
     #   vectorize_all = FALSE)
 
-    # sample.name <- "JE1545-Sp4S-SP-1e+06-1"
+    # sample.name <- "Cam03"
 
     # summary
     tags.file <- stringi::stri_join(ustacks.folder, "/", sample.name, ".tags.tsv.gz")
@@ -227,7 +232,7 @@ summary_ustacks <- function(
       if (beta) {
         stacks.version <- (stringi::stri_extract_all_charclass(
           str = readr::read_lines(tags.file, n_max = 1),
-          pattern = "[0-9]")[[1]])[3] >= 9
+          pattern = "[0-9]")[[1]])[3] >= "9"
       } else {
         stacks.version <- FALSE
       }
@@ -316,6 +321,7 @@ summary_ustacks <- function(
     return(summary.ind)
   }#End summarise_ustacks
 
+  message("\nSummarizing information...")
   if (length(sample.name) > 1) {
     res <- list()
     res <- .stackr_parallel(

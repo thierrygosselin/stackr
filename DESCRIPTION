@@ -18,15 +18,12 @@ Imports:
     tidyr,
     ggplot2,
     stringi,
-    ape,
     parallel,
     methods,
     magrittr,
     stats,
     utils,
     pbmcapply,
-    pegas,
-    purrrlyr,
     rlang,
     stringdist,
     cowplot
@@ -34,8 +31,6 @@ Suggests:
     knitr,
     rmarkdown,
     ShortRead
-Remotes:
-  github::kvnkuang/pbmcapply,
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr
