@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,9 +12,9 @@
 
 <meta name="author" content="Thierry Gosselin" />
 
-<meta name="date" content="2016-06-06" />
+<meta name="date" content="2018-04-20" />
 
-<title>Imputations in Parallel</title>
+<title>Problems</title>
 
 
 
@@ -68,20 +68,38 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 
-<h1 class="title toc-ignore">Imputations in Parallel</h1>
+<h1 class="title toc-ignore">Problems</h1>
 <h4 class="author"><em>Thierry Gosselin</em></h4>
-<h4 class="date"><em>2016-06-06</em></h4>
+<h4 class="date"><em>2018-04-20</em></h4>
 
 
 
 <div id="problems-during-installation" class="section level2">
 <h2>Problems during installation</h2>
 <p>Sometimes you’ll get warnings while installing dependencies required for <strong>stackr</strong> or other R packages.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Warning:<span class="st"> </span>cannot remove prior installation of package ‘stringi’</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Warning<span class="op">:</span><span class="st"> </span>cannot remove prior installation of package ‘stringi’</code></pre></div>
 <p>To solve this problem, delete manually the problematic package in the installation folder (on mac: <code>/Library/Frameworks/R.framework/Resources/library</code>) or in the <code>Terminal</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sudo rm -R /Library/Frameworks/R.framework/Resources/library/package_name
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sudo rm <span class="op">-</span>R <span class="op">/</span>Library<span class="op">/</span>Frameworks<span class="op">/</span>R.framework<span class="op">/</span>Resources<span class="op">/</span>library<span class="op">/</span>package_name
 <span class="co"># Changing 'package_name' to the problematic package.</span>
 <span class="co"># Reinstall the package.</span></code></pre></div>
+</div>
+<div id="problem-running-functions" class="section level2">
+<h2>Problem running functions</h2>
+<p>My packages are still in developpement, so it’s very likely you’ll find bugs, before contacting me, try these tricks:</p>
+<ul>
+<li>try to reproduce the problem after turning off/on your computer</li>
+<li>a clean R/RStudio session works best</li>
+<li>re-install the problematic package</li>
+<li>update <a href="https://cran.r-project.org">R CRAN</a></li>
+<li>update <a href="https://www.rstudio.com/products/rstudio/download/">RStudio</a></li>
+<li>raise an issue on the package github page
+<ul>
+<li>give the output of <code>devtools::session_info()</code></li>
+<li>my help will be limited if I can’t reproduce your problem</li>
+<li>output the full command and highlight problem with a small dataset</li>
+<li>if you prefer sharing your data directly with me, know that it will remain anonymous</li>
+</ul></li>
+</ul>
 </div>
 
 
@@ -91,7 +109,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>
