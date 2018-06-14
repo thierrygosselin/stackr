@@ -65,12 +65,14 @@
 summary_catalog_log_lik <- function(
   matches.folder,
   parallel.core = parallel::detectCores() - 1,
-  verbose = FALSE) {
+  verbose = FALSE
+  ) {
   if (verbose) cat("#######################################################################\n")
   if (verbose) cat("################# stackr::summary_catalog_log_lik #####################\n")
   if (verbose) cat("#######################################################################\n")
   timing <- proc.time()
-
+  opt.change <- getOption("width")
+  options(width = 70)
   res <- list() # return results in this list
 
   if (missing(matches.folder)) stop("matches.folder argument required")
@@ -79,29 +81,45 @@ summary_catalog_log_lik <- function(
   # message("    1. select the best threshold")
   # message("    2. use function run_rxstacks with the appropriate filter thresholds.")
 
-  # Import matches
+  # Import matches--------------------------------------------------------------
   matches.files <- list.files(
     path = matches.folder, pattern = "matches", full.names = TRUE)
+
+  # Check stacks version--------------------------------------------------------
+
+  stacks.version <- stringi::stri_detect_fixed(str = readr::read_lines(matches.files[1], n_max = 1), pattern = "version 2")
+  if (stacks.version) {
+    stop("This function is not usefull with stacks version >= 2.0")
+  }
 
   n.matches <- length(matches.files)
 
   if (n.matches == 0) stop("Missing matches files: generate the files for each samples with run_sstacks or sstacks in command line mode")
   message("Reading ", n.matches, " matches files\n    for the distribution of mean log likelihoods of catalog loci...")
 
-  opt.change <- getOption("width")
-  options(width = 70)
 
   # functions
   n.col <- ncol(suppressWarnings(suppressMessages(readr::read_tsv(file = matches.files[[1]], n_max = 1, comment = "#"))))
 
   read_matches <- function(matches.files, n.col) {
+    if (n.col == 6) {
+      matches <- readr::read_tsv(
+        file = matches.files,
+        col_names = c("CATALOG_ID", "SAMPLE_ID", "LOCUS_ID", "HAPLOTYPE", "STACK_DEPTH", "CIGAR_STRING"),
+        col_types = "iiicic",
+        comment = "#") %>%
+        dplyr::select(CATALOG_ID, SAMPLE_ID, LOG_LIKELIHOOD)
+    }
+
     if (n.col == 8) {
       matches <- readr::read_tsv(
         file = matches.files,
         col_names = c("SQL_ID", "BATCH_ID", "CATALOG_ID", "SAMPLE_ID", "LOCUS_ID", "HAPLOTYPE", "STACK_DEPTH", "LOG_LIKELIHOOD"),
         col_types = "iiiiicid", na = "-",
         comment = "#")
-    } else {
+    }
+
+    if (n.col == 9) {
       matches <- readr::read_tsv(
         file = matches.files,
         col_names = c("SQL_ID", "BATCH_ID", "CATALOG_ID", "SAMPLE_ID", "LOCUS_ID", "HAPLOTYPE", "STACK_DEPTH", "LOG_LIKELIHOOD", "NEW_COL"),
