@@ -131,7 +131,14 @@
 summary_ustacks <- function(
   ustacks.folder,
   parallel.core = parallel::detectCores() - 1,
-  verbose = FALSE) {
+  verbose = FALSE
+  ) {
+
+  # Test
+  # ustacks.folder <- "06_ustacks_cstacks_sstacks/"
+  # parallel.core <-  parallel::detectCores() - 1
+  # verbose <-  TRUE
+
   if (verbose) cat("#######################################################################\n")
   if (verbose) cat("##################### stackr::summary_ustacks #########################\n")
   if (verbose) cat("#######################################################################\n")
@@ -216,6 +223,7 @@ summary_ustacks <- function(
   options(width = 70)
 
   summarise_ustacks <- function(sample.name, ustacks.folder) {
+    # sample.name <- "STU-COD-ADU-001"
     # sample.name <- stringi::stri_replace_all_fixed(
     #   str = snps.files,
     #   pattern = ".snps.tsv.gz",
@@ -234,17 +242,17 @@ summary_ustacks <- function(
           str = readr::read_lines(tags.file, n_max = 1),
           pattern = "[0-9]")[[1]])[3] >= "9"
       } else {
-        stacks.version <- FALSE
+        stacks.version <- TRUE
       }
     }
     if (stacks.version) {
       message("stacks >= v2.0 Beta 9 was used")
-      models.summary <- readr::read_tsv(
+      models.summary <- suppressWarnings(readr::read_tsv(
         file = tags.file, comment = "#", na = "-",
         col_names = c("LOCUS", "SEQ_TYPE", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG"),
-        col_types = "_ic__ciii")
+        col_types = "_ic__ciii"))
 
-      alleles.imp <- readr::read_tsv(
+      alleles.imp <- suppressWarnings(readr::read_tsv(
         file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
         col_names = c("LOCUS", "COUNT"),
         col_types = "_i__i", na = "-",
@@ -253,15 +261,15 @@ summary_ustacks <- function(
         dplyr::tally(.) %>%
         dplyr::ungroup(.) %>%
         dplyr::mutate(INDIVIDUALS = rep(sample.name, n())) %>%
-        dplyr::select(INDIVIDUALS, LOCUS, HAPLOTYPE_NUMBER = n)
+        dplyr::select(INDIVIDUALS, LOCUS, HAPLOTYPE_NUMBER = n))
     } else {
       message("stacks < v2.0 Beta9 was used")
-      models.summary <- readr::read_tsv(
+      models.summary <- suppressWarnings(readr::read_tsv(
         file = tags.file,
         col_names = c("LOCUS", "SEQ_TYPE", "SEQ_ID", "SEQUENCE", "DELEVERAGED_FLAG","BLACKLISTED_FLAG", "LUMBERJACKSTACK_FLAG", "LOG_LIKELIHOOD"),
         col_types = "__i___c_cciiid", na = "-",
-        comment = "#")
-      alleles.imp <- readr::read_tsv(
+        comment = "#"))
+      alleles.imp <- suppressWarnings(readr::read_tsv(
         file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
         col_names = c("LOCUS", "COUNT"),
         col_types = "__i__i", na = "-",
@@ -270,7 +278,7 @@ summary_ustacks <- function(
         dplyr::tally(.) %>%
         dplyr::ungroup(.) %>%
         dplyr::mutate(INDIVIDUALS = rep(sample.name, n())) %>%
-        dplyr::select(INDIVIDUALS, LOCUS, HAPLOTYPE_NUMBER = n)
+        dplyr::select(INDIVIDUALS, LOCUS, HAPLOTYPE_NUMBER = n))
     }
     summarise.ustacks <- dplyr::filter(models.summary, SEQ_TYPE == "model") %>%
       dplyr::select(LOCUS, SEQUENCE) %>%

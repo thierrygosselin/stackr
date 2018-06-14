@@ -12,28 +12,21 @@
 #' \code{batch_1.catalog.alleles.tsv.gz,
 #' batch_1.catalog.snps.tsv.gz,
 #' batch_1.catalog.tags.tsv.gz}
-#'   \item \strong{4 files for each samples:} The sample name is the prefix of
+#'   \item \strong{3 files for each samples:} The sample name is the prefix of
 #'   the files ending with:
-#' \code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
+#' \code{.alleles.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
 #' Those files are created in the
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 #' module.
 #' }
-#'
-#' The same files should be present if this function is ran after
-#' \href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}, note
-#' that you still need to generate a new catalog after \href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}
-#' before running \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}.
-
-#' @param b (Integer) Database/batch ID of the input catalog to consider.
-#' Advice: don't modify the default.
-#' Default: \code{b = "guess"}.
 
 #' @param P (character) Path to the directory containing STACKS files.
 #' Contrary to \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks},
 #' this argument can be use with \code{sample.list} (the \code{s} in \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks})
 #' Default: \code{P = "06_ustacks_cstacks_sstacks"}.
-#' @param M (character) Path to a population map file from which to take sample names (this argument won't work if \code{sample.list}).
+
+#' @param M (character) Path to a population map file from which to take sample
+#' names (this argument won't work if \code{sample.list}).
 #' Advice: don't modify the default (please see details).
 #' Default: \code{M = NULL}.
 
@@ -47,15 +40,8 @@
 #' project info file, e.g. \code{sample.list = project.info$INDIVIDUALS_REP}.
 #' (Please see details).
 
-#' @param catalog.prefix This is for the \code{c} option in
-#' \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}.
-#' \code{c: TSV file from which to load the catalog loci.}
-#' With the default, the function will guess the catalog prefix.
-#' Using \code{catalog.prefix = NULL} tells the function you want to use \code{P/M} mode (see details).
-#' Default: \code{catalog.prefix = "guess"}.
-
-#' @param g Base matching on genomic location, not sequence identity.
-#' Default: \code{g = FALSE}
+#' @param c (character, path) Path to the catalog.
+#' Default: \code{c = "06_ustacks_cstacks_sstacks"}
 
 #' @param p (Integer) Enable parallel execution with num_threads threads.
 #' Default: \code{p = parallel::detectCores() - 1}
@@ -72,20 +58,8 @@
 #' @param h Display this help messsage.
 #' Default: \code{h = FALSE}
 
-#' @param gapped Gapped assembly options: do you want to preform
-#' gapped alignments between stacks.
-#' Default: \code{gapped = TRUE}
-
-#' @param lnl_dist (Logical) Print distribution of mean log likelihoods for catalog loci.
-#' This argument is different from \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks},
-#' but will save you time and help you for the next step,
-#' \href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}.
-#' Use the log-likelihood distribution to choose the appropriate filter thresholds for
-#' \href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}.
-#' If this is the second time you run the function (after rxstacks), you get the
-#' the distribution AFTER the rxstacks corrections.
-#' Default: \code{lnl_dist = TRUE}.
-
+#' @param disable_gapped Disable gapped alignments between stacks.
+#' Default: \code{disable_gapped = FALSE} (use gapped alignments).
 
 #' @rdname run_sstacks
 #' @export
@@ -104,26 +78,25 @@
 #' Just launch again the same command, the function will start again, but only
 #' with the unmatched samples!
 #'
-#'
-#'
 #' \strong{Some argument can't be use together:}
 #'
-#' Don't use these arguments together: \code{M} and \code{sample.list/catalog.prefix}.
+#' Don't use these arguments together: \code{M} and \code{sample.list/c}.
 #' You can't add samples to an existing catalog using a population map.
 #' If you want to match new samples to an existing catalog, very easy,
-#' just add the samples in the folder and let \code{run_sstacks} function find the samples that were not matched to the catalog.
+#' just add the samples in the folder and let \code{run_sstacks} function find
+#' the samples that were not matched to the catalog.
 
 #' @examples
 #' \dontrun{
 #' # The simplest form of the function when using the stackr workflow:
 #' run_sstacks()
-#' # that's it ! Now if you have your own workflow folders, etc. Enter them like this:
-#' sstacks <- run_sstacks (P = "/my/input/path", p = 32, b = 2, catalog.prefix = "batch_2",
-#' sample.list = c("ind1", "ind2", "..."), o = "/my/output/path", g = FALSE,
-#' x = FALSE, gapped = FALSE)
-#' # Get the fig of log-likelihood of catalog loci to help decide for the best
-#' # rxstacks thresholds:
-#' sstacks$log.likelihood.fig
+#' # that's it !
+#'
+#'
+#' Now if you have your own workflow folders, etc. Enter them like this:
+#' sstacks <- run_sstacks (P = "/my/input/path", p = 32, b = 2,
+#' sample.list = c("ind1", "ind2", "..."), o = "/my/output/path",
+#' x = FALSE)
 #' }
 
 
@@ -139,17 +112,15 @@
 
 # sstacks ----------------------------------------------------------------------
 run_sstacks <- function(
-  b = "guess",
   P = "06_ustacks_cstacks_sstacks",
   M = NULL,
   sample.list = NULL,
-  catalog.prefix = "guess",
-  g = FALSE,
+  c = "06_ustacks_cstacks_sstacks",
   p = parallel::detectCores() - 1,
   o = "06_ustacks_cstacks_sstacks",
   x = FALSE,
-  gapped = TRUE,
-  lnl_dist = TRUE,
+  disable_gapped = FALSE,
+  # lnl_dist = TRUE,
   v = FALSE,
   h = FALSE
 ) {
@@ -164,16 +135,14 @@ run_sstacks <- function(
   if (!dir.exists(P)) dir.create(P)
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
 
-  if (!is.null(M) && is.null(catalog.prefix)) stop("Specify M or catalog.prefix arguments")
-
   # sstacks options ------------------------------------------------------------
 
   # b: MySQL ID of this batch.
-  if (b == "guess") {
-    b <- ""
-  } else {
-    b <- stringi::stri_join("-b ", b)
-  }
+  # if (b == "guess") {
+  #   b <- ""
+  # } else {
+  #   b <- stringi::stri_join("-b ", b)
+  # }
 
   # p: enable parallel execution with num_threads threads.
   parallel.core <- p # backup to use later
@@ -184,11 +153,11 @@ run_sstacks <- function(
   o <- stringi::stri_join("-o ", shQuote(o))
 
   # g: base matching on genomic location, not sequence identity.
-  if (g) {
-    g <- stringi::stri_join("-g ")
-  } else {
-    g <- ""
-  }
+  # if (g) {
+  #   g <- stringi::stri_join("-g ")
+  # } else {
+  #   g <- ""
+  # }
 
   # x: don't verify haplotype of matching locus.
   if (x) {
@@ -212,42 +181,32 @@ run_sstacks <- function(
   }
 
   # Gapped assembly options ---------------------------------------------------
-  # --gapped: preform gapped alignments between stacks.
-  if (gapped) {
-    gapped <- stringi::stri_join("--gapped ")
+  if (disable_gapped) {
+    disable_gapped <- stringi::stri_join("--disable_gapped ")
   } else {
-    gapped <- ""
+    disable_gapped <- ""
   }
 
 
 
   # Pop map --------------------------------------------------------------------
   if (is.null(M)) {
-    if (!is.null(catalog.prefix)) {
-      if (catalog.prefix == "guess") {
-        list.catalog.files <- list.files(path = P, pattern = "catalog")
-        if (length(list.catalog.files) > 0) {
-          message("Reading the catalog files...")
-        } else {
-          stop("Catalog files are required, check the P (path containing the stacks files) or catalog prefix
-               arguments, usually it starts with batch_1")
-        }
-        catalog.prefix <- stringi::stri_extract_first_regex(
-          str = list.catalog.files[[1]], pattern = "[a-zA-Z0-9]+_[0-9]*")
-      } else {
-        list.catalog.files <- list.files(path = P, pattern = catalog.prefix)
-        if (length(list.catalog.files) > 0) {
-          message("Reading the catalog files...")
-        } else {
-          stop("Catalog files are required, check the P (path containing the stacks files) or catalog prefix
-               arguments, usually it starts with batch_1")
-        }
+    # c <- list.files(path = P, pattern = "catalog.alleles", full.names = TRUE)
+    # if (length(c) > 0) {
+    #   message("Reading the catalog files...")
+    # } else {
+    #   stop("Catalog files are required, check the P (path containing the stacks files) or catalog prefix
+    #            arguments, usually it starts with batch_1")
+    # }
 
-      }
-      c <- stringi::stri_replace_all_fixed(
-        str = stringi::stri_join("-c ", P, "/", catalog.prefix),
-        pattern = "//", replacement = "/", vectorize_all = FALSE)
-    }
+    c <- stringi::stri_join("-c ", c)
+
+    # catalog.prefix <- stringi::stri_extract_first_regex(
+    #   str = list.catalog.files[[1]], pattern = "[a-zA-Z0-9]+_[0-9]*")
+
+    # c <- stringi::stri_replace_all_fixed(
+    #   str = stringi::stri_join("-c ", P, "/", catalog.prefix),
+    #   pattern = "//", replacement = "/", vectorize_all = FALSE)
 
     # s: filename prefix from which to load sample loci---------------------------
 
@@ -306,7 +265,6 @@ run_sstacks <- function(
     P <- ""
   } else {
     M <- stringi::stri_join("-M ", M)
-    P <- stringi::stri_join("-P ", P)
     s <- ""
     c <- ""
     o <- ""
@@ -314,15 +272,12 @@ run_sstacks <- function(
   }
 
   # logs files -----------------------------------------------------------------
-  file.date.time <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
-  file.date.time <- stringi::stri_replace_all_fixed(file.date.time, pattern = c("-", " ", ":"), replacement = c("", "@", ""), vectorize_all = FALSE)
-  file.date.time <- stringi::stri_sub(file.date.time, from = 1, to = 13)
-
+  file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
   log.file <- stringi::stri_join("09_log_files/sstacks_", file.date.time,".log")
   message(stringi::stri_join("For progress, look in the log file: ", log.file))
 
   # command --------------------------------------------------------------------
-  command.arguments <- c(b, P, M, s, c, g, p, o, gapped, v, h)
+  command.arguments <- c(P, M, s, c, p, o, x, disable_gapped, v, h)
 
   # command
   system2(
@@ -333,18 +288,18 @@ run_sstacks <- function(
   )
 
   # log-likelihood distribution of catalog loci --------------------------------
-  if (lnl_dist) {
-    log.lik <- stackr::summary_catalog_log_lik(
-      matches.folder = ustacks.folder,
-      parallel.core = parallel.core,
-      verbose = FALSE)
-    res$log.likelihood.summary <- log.lik$log.likelihood.summary
-    res$log.likelihood.fig <- log.lik$log.likelihood.fig
-    log.lik <- NULL
-    res$output <- "look in output folder for output files"
-  } else {
-    res$output <- "look in output folder for output files"
-  }
+  # if (lnl_dist) {
+  #   log.lik <- stackr::summary_catalog_log_lik(
+  #     matches.folder = ustacks.folder,
+  #     parallel.core = parallel.core,
+  #     verbose = FALSE)
+  #   res$log.likelihood.summary <- log.lik$log.likelihood.summary
+  #   res$log.likelihood.fig <- log.lik$log.likelihood.fig
+  #   log.lik <- NULL
+  #   res$output <- "look in output folder for output files"
+  # } else {
+  #   res$output <- "look in output folder for output files"
+  # }
   # # transfer back to s3
   # if (transfer.s3) {
   #   cstacks.files.to.s3 <- list.files(path = sample.list.path, pattern = individual, full.names = FALSE)

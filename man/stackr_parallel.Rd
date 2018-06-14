@@ -12,11 +12,12 @@ mclapply_win(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
 
 .stackr_parallel_mc(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
   mc.silent = FALSE, mc.cores = getOption("mc.cores", 2L),
-  mc.cleanup = TRUE, mc.allow.recursive = TRUE)
+  mc.cleanup = TRUE, mc.allow.recursive = TRUE, affinity.list = NULL)
 
 .stackr_parallel(X, FUN, ..., mc.style = "ETA", mc.substyle = NA,
   mc.cores = getOption("mc.cores", 2L),
-  ignore.interactive = getOption("ignore.interactive", F))
+  ignore.interactive = getOption("ignore.interactive", F),
+  max.vector.size = getOption("max.vector.size", 1024L))
 }
 \arguments{
 \item{X}{see \pkg{parallel} \code{\link{mclapply}}}

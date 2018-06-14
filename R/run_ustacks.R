@@ -148,6 +148,10 @@
 #' Stacks: an analysis tool set for population genomics.
 #' Molecular Ecology, 22, 3124-3140.
 
+#' @author Thierry Gosselin \email{thierrygosselin@@icloud.com}
+
+
+
 # ustacks ----------------------------------------------------------------------
 
 run_ustacks <- function(
@@ -238,7 +242,7 @@ run_ustacks <- function(
     }
 
     if (mismatch.testing && length(sample.list.path) > 1) {
-      stop("When testing mismatch threshold, 1 sample is required")
+      stop("When testing mismatch threshold, 1 sample in a folder is required")
     }
 
     f <- stringi::stri_join("-f ", shQuote(sample.list.path))
@@ -543,10 +547,6 @@ run_ustacks <- function(
     mismatches.summary.list <- NULL
   } else {
     if (is.null(sample.list)) {
-      # sample.list <- list.files(
-      #   path = f,
-      #   pattern = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
-      #   full.names = FALSE)
       sample.list <- list_sample_file(f = f, full.path = FALSE)
     }
 
@@ -565,6 +565,7 @@ run_ustacks <- function(
       str = list.files(path = o, pattern = c("alleles.tsv", "alleles.tsv.gz"), full.names = FALSE),
       pattern = ".alleles.tsv.gz", replacement = encoding, vectorize_all = FALSE)
     n.sample.assembled <- length(sample.assembled)
+    sample.assembled <- sample.assembled[-n.sample.assembled]
 
     sample.before <- length(sample.list)
 
@@ -573,7 +574,7 @@ run_ustacks <- function(
       sample.list <- purrr::discard(.x = sample.list, .p = sample.list %in% sample.assembled)
       message("ustacks restarted, oups...")
       message("  Number of samples in the directory: ", sample.before)
-      message("  Number of samples already assembled: ", n.sample.assembled)
+      message("  Number of samples already assembled, minus last sample for safe recovery: ", n.sample.assembled)
       message("  Number of samples to perform de novo assembly: ", sample.after, "\n")
     } else {
       message("Number of samples in the directory: ", sample.before)

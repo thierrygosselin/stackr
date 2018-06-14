@@ -4,9 +4,6 @@
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks}
 #' module inside R!
 
-#' @param b database/batch ID for this catalog. Advice: don't modify.
-#' Default: \code{b = 1}.
-
 #' @param P path to the directory containing STACKS files.
 #' Default: \code{P = "06_ustacks_cstacks_sstacks"}.
 #' Inside the folder \code{06_ustacks_cstacks_sstacks}, you should have:
@@ -21,10 +18,6 @@
 
 #' @param M path to a population map file (Required when P is used).
 #' Default: \code{M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv"}.
-
-#' @param g base catalog construction on alignment position, not sequence identity.
-#' Advice: don't modify.
-#' Default: \code{g = FALSE}.
 
 #' @param n number of mismatches allowed between sample loci when build the catalog.
 #' Default: \code{n = 1}
@@ -48,10 +41,6 @@
 #' batch_1.catalog.snps.tsv.gz,
 #' batch_1.catalog.tags.tsv.gz}
 
-#' @param gapped Gapped assembly options: do you want to preform
-#' gapped alignments between stacks.
-#' Default: \code{gapped = TRUE}
-
 #' @param max_gaps The number of gaps allowed between stacks before merging.
 #' Default: \code{max_gaps = 2}
 
@@ -59,9 +48,8 @@
 #' alignment.
 #' Default: \code{min_aln_len = 0.8}
 
-#' @param m Include tags in the catalog that match to more than one entry.
-#' Advice: don't modify.
-#' Default: \code{m = FALSE}
+#' @param disable_gapped Disable gapped alignments between stacks.
+#' Default: \code{disable_gapped = FALSE} (use gapped alignments).
 
 #' @param k_len Specify k-mer size for matching between between catalog loci
 #' (automatically calculated by default).
@@ -120,13 +108,10 @@
 #' run_cstacks (
 #' P = "06_ustacks_cstacks_sstacks",
 #' catalog.path = NULL,
-#' b = 1,
-#' g = FALSE,
-#' m = FALSE,
 #' n = 1,
 #' p = 32,
 #' h = FALSE,
-#' gapped = TRUE, max_gaps = 2, min_aln_len = 0.8,
+#' max_gaps = 2, min_aln_len = 0.8,
 #' k_len = NULL, report_mmatches = FALSE
 #' )
 #' }
@@ -142,15 +127,13 @@
 #' Molecular Ecology, 22, 3124-3140.
 
 run_cstacks <- function(
-  b = 1,
   P = "06_ustacks_cstacks_sstacks",
   M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv",
-  g = FALSE,
   n = 1,
   p = parallel::detectCores() - 1,
   catalog.path = NULL,
-  gapped = TRUE, max_gaps = 2, min_aln_len = 0.8,
-  m = FALSE, k_len = NULL, report_mmatches = FALSE,
+  max_gaps = 2, min_aln_len = 0.8, disable_gapped = FALSE,
+  k_len = NULL, report_mmatches = FALSE,
   h = FALSE
   # , transfer.s3 = FALSE,
   # from.folder = NULL, destination.folder = NULL,
@@ -221,37 +204,41 @@ run_cstacks <- function(
 
 
   # cstacks options ------------------------------------------------------------
-  b <- stringi::stri_join("-b ", b)
   P <- stringi::stri_join("-P ", P)
   M <- stringi::stri_join("-M ", M)
 
-  if (g) {
-    g <- stringi::stri_join("-g ")
-  } else {
-    g <- ""
-  }
+  # if (g) {
+  #   g <- stringi::stri_join("-g ")
+  # } else {
+  #   g <- ""
+  # }
 
   n <- stringi::stri_join("-n ", n)
   p <- stringi::stri_join("-p ", p)
 
   # gapped assembly options ---------------------------------------------------
-  if (gapped) {
-    gapped <- stringi::stri_join("--gapped ")
-  } else {
-    gapped <- ""
-  }
+  # if (gapped) {
+  #   gapped <- stringi::stri_join("--gapped ")
+  # } else {
+  #   gapped <- ""
+  # }
 
   max_gaps <- stringi::stri_join("--max_gaps ", max_gaps)
   min_aln_len <- stringi::stri_join("--min_aln_len ", min_aln_len)
 
+  if (disable_gapped) {
+    disable_gapped <- stringi::stri_join("--disable_gapped ")
+  } else {
+    disable_gapped <- ""
+  }
 
   # Advanced options -----------------------------------------------------------
 
-  if (m) {
-    m <- stringi::stri_join("-m ")
-  } else {
-    m <- ""
-  }
+  # if (m) {
+  #   m <- stringi::stri_join("-m ")
+  # } else {
+  #   m <- ""
+  # }
 
   if (is.null(k_len)) {
     k_len <- ""
@@ -274,14 +261,7 @@ run_cstacks <- function(
 
 
   # logs files -----------------------------------------------------------------
-  file.date.time <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
-  file.date.time <- stringi::stri_replace_all_fixed(
-    file.date.time,
-    pattern = c("-", " ", ":"),
-    replacement = c("", "@", ""),
-    vectorize_all = FALSE
-  )
-  file.date.time <- stringi::stri_sub(file.date.time, from = 1, to = 13)
+  file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
 
   cstacks.log.file <- stringi::stri_join("09_log_files/cstacks_", file.date.time,".log")
   message(stringi::stri_join("For progress, look in the log file: ", cstacks.log.file))
@@ -289,10 +269,9 @@ run_cstacks <- function(
 
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
-    b, P, M, g, n, p, catalog.path,
-    gapped, max_gaps, min_aln_len,
-    m, k_len, report_mmatches,
-    h
+    P, M, n, p, catalog.path,
+    max_gaps, disable_gapped, min_aln_len,
+    k_len, report_mmatches, h
   )
 
   # command

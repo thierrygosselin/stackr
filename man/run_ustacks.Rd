@@ -160,3 +160,6 @@ Molecular Ecology, 22, 3124-3140.
 \seealso{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 }
+\author{
+Thierry Gosselin \email{thierrygosselin@icloud.com}
+}
