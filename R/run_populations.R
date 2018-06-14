@@ -23,35 +23,30 @@
 #' @param t (integer) enable parallel execution with num_threads threads.
 #' Default: \code{t = parallel::detectCores() - 1}
 
-#' @param b (integer) Database/batch ID of the input catalog to consider.
-#' Advice: don't modify the default.
-#' Default: \code{b = "guess"}.
-
 #' @param batch_size (integer) The number of loci (de novo mode) or
 #' chromosome (reference mode), to process in a batch.
 #' Increase to speed analysis, uses more memory, decrease to save memory).
 #' Default in de novo mode (loci/batch): \code{batch_size = 10000}.
 #' Default in reference mode (chromosome/batch): \code{batch_size = 1}.
 
-# @param s (logical) Output a file to import results into an SQL database.
-# Default: \code{s = FALSE}.
-
-
 #' @param p (integer) Minimum number of populations a locus must be present in to process a locus.
 #' Default: \code{p = 1}.
 #' @param r (double) Minimum percentage of individuals in a population required to process a locus for that population.
 #' Default: \code{r = 0.3}.
+
 #' @param min_maf (double) Specify a minimum minor allele frequency required to process a nucleotide site at a locus (0 < min_maf < 0.5).
 #' Default: \code{min_maf = NULL}. Recommendation: use my other R package RADIATOR to filter data based on MAF.
+#' @param min_mac (integer) Specify a minimum minor allele count required to process a nucleotide site at a locus.
+#' Default: \code{min_mac = NULL}.
+
 #' @param max_obs_het (double) Specify a maximum observed heterozygosity required to process a nucleotide site at a locus.
 #' Default: \code{max_obs_het = NULL}.  Recommendation: use my other R package RADIATOR to filter data based on heterozygosity.
-#' @param m (integer) Specify a minimum stack depth required for individuals at a locus.
-#' Default: \code{m = NULL}.
+
 #' @param lnl_lim (integer) Filter loci with log likelihood values below this threshold.
 #' Default: \code{lnl_lim = NULL}.
-#' @param write_single_snp (logical) Restrict data analysis to only the first SNP per locus.
+#' @param write_single_snp (logical) Restrict data analysis to only the first SNP per locus (implies --no-haps).
 #' Default: \code{write_single_snp = FALSE}.
-#' @param write_random_snp (logical) Restrict data analysis to one random SNP per locus.
+#' @param write_random_snp (logical) Restrict data analysis to one random SNP per locus (implies --no-haps).
 #' Default: \code{write_random_snp = FALSE}.
 #' @param B (character) Path to a file containing Blacklisted markers to be excluded from the export.
 #' Default: \code{B = NULL}.
@@ -105,30 +100,28 @@
 
 #' @param ordered_export (logical) If data is reference aligned, exports will be ordered; only a single representative of each overlapping site.
 #' Default: \code{ordered_export = FALSE}.
-#' @param genomic (logical) Output each nucleotide position (fixed or polymorphic) in all population members to a file (requires restriction enzyme name \code{e}).
-#' Default: \code{genomic = FALSE}.
+#' @param fasta_loci (logical) Output consensus sequences of all loci, in FASTA format.
+#' Default: \code{fasta_loci = FALSE}.
 #' @param fasta_samples (logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
 #' Default: \code{fasta_samples = FALSE}.
 #' @param fasta_samples_raw (logical) Output all haplotypes observed in each sample, for each locus, in FASTA format.
 #' Default: \code{fasta_samples_raw = FALSE}.
-#' @param fasta_loci (logical) Output consensus sequences of all loci, in FASTA format.
-#' Default: \code{fasta_loci = FALSE}.
 #' @param vcf  (logical) Output SNPs in Variant Call Format (VCF).
 #' Default: \code{vcf = TRUE}.
 #' @param genepop (logical) Output results in GenePop format.
 #' Default: \code{genepop = FALSE}.
 #' @param structure (logical) Output results in Structure format.
 #' Default: \code{structure = FALSE}.
-#' @param finestructure (logical) Output results in FineStructure/FineRADStructure format.
-#' Default: \code{finestructure = FALSE}.
+#' @param radpainter (logical) Output results results in fineRADstructure/RADpainter format.
+#' Default: \code{radpainter = FALSE}.
 #' @param phase (logical) Output genotypes in PHASE format.
 #' Default: \code{phase = FALSE}.
 #' @param fastphase (logical) Output genotypes in fastPHASE format.
 #' Default: \code{fastphase = FALSE}.
-#' @param beagle (logical) Output genotypes in Beagle format.
-#' Default: \code{beagle = FALSE}.
-#' @param beagle_phased (logical) Output haplotypes in Beagle format.
-#' Default: \code{beagle_phased = FALSE}.
+# @param beagle (logical) Output genotypes in Beagle format.
+# Default: \code{beagle = FALSE}.
+# @param beagle_phased (logical) Output haplotypes in Beagle format.
+# Default: \code{beagle_phased = FALSE}.
 #' @param plink (logical) Output genotypes in PLINK format.
 #' Default: \code{plink = FALSE}.
 #' @param hzar (logical) Output genotypes in Hybrid Zone Analysis using R (HZAR) format.
@@ -141,6 +134,8 @@
 #' Default: \code{phylip_var_all = FALSE}.
 #' @param treemix (logical) Output SNPs in a format useable for the TreeMix program (Pickrell and Pritchard).
 #' Default: \code{treemix = FALSE}.
+#' @param no_hap_exports (logical) Omit haplotype outputs.
+#' Default: \code{no_hap_exports = FALSE}.
 
 
 
@@ -197,14 +192,13 @@ run_populations <- function(
   O = "07_populations",
   M,
   t = parallel::detectCores() - 1,
-  b = "guess",
   batch_size = 10000,
   # s = FALSE,
   p = 1,
   r = 0.3,
   min_maf = NULL,
+  min_mac = NULL,
   max_obs_het = NULL,
-  m = NULL,
   lnl_lim = NULL,
   write_single_snp = FALSE,
   write_random_snp = FALSE,
@@ -229,24 +223,24 @@ run_populations <- function(
   bootstrap_phist = FALSE,
   bootstrap_wl = NULL,
   ordered_export = FALSE,
-  genomic = FALSE,
   fasta_samples = FALSE,
   fasta_samples_raw = FALSE,
   fasta_loci = FALSE,
   vcf = TRUE,
   genepop = FALSE,
   structure = FALSE,
-  finestructure = FALSE,
+  radpainter = FALSE,
   phase = FALSE,
   fastphase = FALSE,
-  beagle = FALSE,
-  beagle_phased = FALSE,
+  #beagle = FALSE,
+  #beagle_phased = FALSE,
   plink = FALSE,
   hzar = FALSE,
   phylip = FALSE,
   phylip_var = FALSE,
   phylip_var_all = FALSE,
   treemix = FALSE,
+  no_hap_exports = FALSE,
   h = FALSE,
   verbose = FALSE,
   v = FALSE,
@@ -294,11 +288,11 @@ run_populations <- function(
   t <- stringi::stri_join("-t ", t)
 
 
-  if (b == "guess") {
-    b <- ""
-  } else {
-    b <- stringi::stri_join("-b ", b)
-  }
+  # if (b == "guess") {
+  #   b <- ""
+  # } else {
+  #   b <- stringi::stri_join("-b ", b)
+  # }
 
   batch_size <- stringi::stri_join("--batch_size ", batch_size)
 
@@ -312,17 +306,23 @@ run_populations <- function(
     min_maf <- stringi::stri_join("--min_maf ", min_maf)
   }
 
+  if (is.null(min_mac)) {
+    min_mac <- ""
+  } else {
+    min_mac <- stringi::stri_join("--min_mac ", min_mac)
+  }
+
   if (is.null(max_obs_het)) {
     max_obs_het <- ""
   } else {
     max_obs_het <- stringi::stri_join("--max_obs_het ", max_obs_het)
   }
 
-  if (is.null(m)) {
-    m <- ""
-  } else {
-    m <- stringi::stri_join("-m ", m)
-  }
+  # if (is.null(m)) {
+  #   m <- ""
+  # } else {
+  #   m <- stringi::stri_join("-m ", m)
+  # }
 
   if (is.null(lnl_lim)) {
     lnl_lim <- ""
@@ -477,11 +477,11 @@ run_populations <- function(
     ordered_export <- ""
   }
 
-  if (genomic) {
-    genomic <- "--genomic "
-  } else {
-    genomic <- ""
-  }
+  # if (genomic) {
+  #   genomic <- "--genomic "
+  # } else {
+  #   genomic <- ""
+  # }
 
   if (fasta_samples) {
     fasta_samples <- "--fasta_samples "
@@ -519,10 +519,10 @@ run_populations <- function(
     structure <- ""
   }
 
-  if (finestructure) {
-    finestructure <- "--finestructure "
+  if (radpainter) {
+    radpainter <- "--radpainter "
   } else {
-    finestructure <- ""
+    radpainter <- ""
   }
 
   if (phase) {
@@ -538,17 +538,17 @@ run_populations <- function(
     fastphase <- ""
   }
 
-  if (beagle) {
-    beagle <- "--beagle "
-  } else {
-    beagle <- ""
-  }
-
-  if (beagle_phased) {
-    beagle_phased <- "--beagle_phased "
-  } else {
-    beagle_phased <- ""
-  }
+  # if (beagle) {
+  #   beagle <- "--beagle "
+  # } else {
+  #   beagle <- ""
+  # }
+  #
+  # if (beagle_phased) {
+  #   beagle_phased <- "--beagle_phased "
+  # } else {
+  #   beagle_phased <- ""
+  # }
 
   if (plink) {
     plink <- "--plink "
@@ -588,6 +588,12 @@ run_populations <- function(
     treemix <- ""
   }
 
+  if (no_hap_exports) {
+    no_hap_exports <- "--no_hap_exports "
+  } else {
+    no_hap_exports <- ""
+  }
+
   # Additional options  --------------------------------------------------------
   if (h) {
     h <- "-h "
@@ -616,14 +622,18 @@ run_populations <- function(
 
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
-    P, V, O, M, t, b, batch_size, p, r, min_maf, max_obs_het, m, lnl_lim, write_single_snp,
+    P, V, O, M, t, batch_size, p, r, min_maf, min_mac, max_obs_het, lnl_lim, write_single_snp,
     write_random_snp, B, W, e, merge_sites, merge_prune_lim, hwe, fstats, fst_correction,
     p_value_cutoff, k, smooth_fstats, smooth_popstats, sigma, bootstrap, N, bootstrap_pifis, bootstrap_fst,
-    bootstrap_div, bootstrap_phist, bootstrap_wl, ordered_export, genomic,
+    bootstrap_div, bootstrap_phist, bootstrap_wl, ordered_export,
     fasta_samples, fasta_samples_raw, fasta_loci, vcf, genepop, structure,
-    finestructure, phase,
-    fastphase, beagle, beagle_phased, plink, hzar, phylip, phylip_var,
-    phylip_var_all, treemix, h, verbose, v, log_fst_comp
+    radpainter, phase,
+    fastphase,
+    # beagle, beagle_phased,
+    plink, hzar, phylip, phylip_var,
+    phylip_var_all, treemix,
+    no_hap_exports,
+    h, verbose, v, log_fst_comp
   )
 
 

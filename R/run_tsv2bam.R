@@ -16,9 +16,9 @@
 #' \itemize{
 #'   \item \strong{the catalog files:} starting with \code{batch_} and ending with
 #'   \code{.alleles.tsv.gz, .snps.tsv.gz, .tags.tsv.gz};
-#'   \item \strong{4 files for each samples:} The sample name is the prefix for
+#'   \item \strong{3 files for each samples:} The sample name is the prefix for
 #'   the files ending with:
-#' \code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
+#' \code{.alleles.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
 #' Those files are created in the
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks},
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks} and
@@ -32,11 +32,6 @@
 
 #' @param R (path, character) Directory where to find the paired-end reads files
 #' (in fastq/fasta/bam (gz) format).
-
-
-#' @param b (integer) Database/batch ID of the input catalog to consider.
-#' Advice: don't modify the default.
-#' Default: \code{b = "guess"}.
 
 #' @param t (integer) Enable parallel execution with the number of threads.
 #' Default: \code{t = parallel::detectCores() - 1}
@@ -69,7 +64,11 @@
 #' by merging all the individual BAM files in parallel.
 #' }
 
-
+#' @details \strong{Install SAMtools}
+#' \href{link to detailed instructions on how to install SAMtools}{http://gbs-cloud-tutorial.readthedocs.io/en/latest/07_start_from_new_image.html#install-gbs-radseq-software-time-required-30min}
+#'
+#'
+#'
 
 #' @examples
 #' \dontrun{
@@ -112,7 +111,6 @@ run_tsv2bam <- function(
   P = "06_ustacks_cstacks_sstacks",
   M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
   R = NULL,
-  b = "guess",
   t = parallel::detectCores() - 1,
   cmd.path = "/usr/local/bin/samtools",
   h = FALSE
@@ -163,11 +161,11 @@ run_tsv2bam <- function(
 
 
   # Catalog batch ID
-  if (b == "guess") {
-    b <- ""
-  } else {
-    b <- stringi::stri_join("-b ", b)
-  }
+  # if (b == "guess") {
+  #   b <- ""
+  # } else {
+  #   b <- stringi::stri_join("-b ", b)
+  # }
 
   # paired-end path
   if (is.null(R)) {
@@ -184,14 +182,15 @@ run_tsv2bam <- function(
   }
 
   # command args ---------------------------------------------------------------
-  command.arguments <- paste(P, M, R, b, t, h)
+  command.arguments <- paste(P, M, R, t, h)
 
   # run command ----------------------------------------------------------------
   system2(command = "tsv2bam", args = command.arguments, stdout = tsv2bam.log.file)
 
   # summarize the log file -----------------------------------------------------
-  message("tsv2bam completed, summarizing the output...")
-  res <- stackr::summary_tsv2bam(tsv2bam.output = output.folder, verbose = FALSE)
+  message("tsv2bam completed")
+  # message("tsv2bam completed, summarizing the output...")
+  # res <- stackr::summary_tsv2bam(tsv2bam.output = output.folder, verbose = FALSE)
   log.file <- list.files(
     path = output.folder, pattern = "tsv2bam.log", full.names = FALSE)
   new.log.file <- stringi::stri_join(
@@ -207,19 +206,19 @@ run_tsv2bam <- function(
 
   message("\nMoving/Renaming stacks tsv2bam log file:\n", new.log.file)
 
-  plots.file <- list.files(
-    path = output.folder, pattern = "distribution.tsv2bam.plots.pdf", full.names = FALSE)
-  new.plots.file <- stringi::stri_join(
-    "08_stacks_results/",
-    stringi::stri_replace_all_fixed(
-      str = plots.file,
-      pattern = ".pdf",
-      replacement = stringi::stri_join("_", file.date.time, ".pdf"),
-      vectorize_all = FALSE))
-  plots.file <- list.files(
-    path = output.folder, pattern = "distribution.tsv2bam.plots.pdf", full.names = TRUE)
-  suppressMessages(transfer <- file.rename(from = plots.file, to = new.plots.file))
-  message("\nMoving/Renaming summary plots file:\n", new.plots.file)
+  # plots.file <- list.files(
+  #   path = output.folder, pattern = "distribution.tsv2bam.plots.pdf", full.names = FALSE)
+  # new.plots.file <- stringi::stri_join(
+  #   "08_stacks_results/",
+  #   stringi::stri_replace_all_fixed(
+  #     str = plots.file,
+  #     pattern = ".pdf",
+  #     replacement = stringi::stri_join("_", file.date.time, ".pdf"),
+  #     vectorize_all = FALSE))
+  # plots.file <- list.files(
+  #   path = output.folder, pattern = "distribution.tsv2bam.plots.pdf", full.names = TRUE)
+  # suppressMessages(transfer <- file.rename(from = plots.file, to = new.plots.file))
+  # message("\nMoving/Renaming summary plots file:\n", new.plots.file)
 
   # Merging BAM files ----------------------------------------------------------
   if (use.samtools) {
@@ -231,8 +230,7 @@ run_tsv2bam <- function(
   merge.res <- merge_parallel(
     cmd.path = cmd.path,
     output.folder = output.folder,
-    parallel.core = parallel.core,
-    batch.id = res$batch.id)
+    parallel.core = parallel.core)
 
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
@@ -294,7 +292,7 @@ merge_bam <- function(x, new.folder, cmd.path, output.folder, parallel.core) {
 #' @rdname merge_parallel
 #' @keywords internal
 #' @export
-merge_parallel <- function(cmd.path, output.folder, parallel.core, batch.id) {
+merge_parallel <- function(cmd.path, output.folder, parallel.core) {
   timing <- proc.time()
   bam.list <- list.files(path = output.folder, pattern = ".matches.bam", full.names = FALSE)
   n.bam <- length(bam.list)

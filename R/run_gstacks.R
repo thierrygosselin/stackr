@@ -29,16 +29,8 @@
 # Default: \code{b = "guess"}.
 
 #' @param I (character, path) Reference-based mode.
-#' Input directory containing BAM files. With \code{I}, read groups
-#' are ignored.
+#' Input directory containing BAM files.
 #' Default: \code{I = NULL}.
-
-#' @param s (logical) With \code{I} and \code{M}, spacer for file names:
-#' by default this is empty and the program looks for files named
-#' 'SAMPLE_NAME.bam'; if this option is given the program looks for
-#' 'SAMPLE_NAME.SPACER.bam'
-#' Default: \code{s = FALSE}.
-
 
 #' @param B (character, path) Reference-based mode. Path to input BAM files.
 #' The input BAM file(s) must be sorted by coordinate.
@@ -46,7 +38,8 @@
 #' (gstacks uses the ID/identifier and SM/sample name fields). Read groups
 #' must be consistent if repeated different files. With \code{I},
 #' read groups are unneeded and ignored.
-#' Please refer to the gstacks manual page for information about how to
+#' Please refer to the gstacks manual page for information. stacks also provide
+#' information about how to
 #' generate such a BAM file with Samtools or Sambamba, and examples.
 #' Default: \code{B = NULL}.
 #
@@ -56,14 +49,16 @@
 #' @param unpaired (logical) Reference-based mode.
 #' Ignore read pairing (for ddRAD; treat READ2's as if they were READ1's)
 #' Default: \code{unpaired = TRUE}.
+#' @param rm.unpaired.reads (logical) Discard unpaired reads
+#' (in reference-based mode, implies \code{paired = TRUE})
+#' Default: \code{rm.unpaired.reads = TRUE}.
+#' @param rm.pcr.duplicates (logical) Remove read pairs of the same insert
+#' length (implies \code{rm.unpaired.reads = TRUE})
 
 
 #' @param t (integer) Enable parallel execution with the number of threads.
 #' Default: \code{t = parallel::detectCores() - 1}.
 
-#' @param details (logical) With default the function will write a more detailed
-#' output.
-#' Default: \code{details = TRUE}.
 
 #' @param ignore.pe.reads (logical) With default the function will
 #' ignore paired-end reads even if present in the input.
@@ -84,12 +79,10 @@
 #' Default: \code{kmer.length = 31}.
 #' @param min.kmer.cov (integer) De novo mode.
 #' Minimum coverage to consider a kmer. For expert.
-#' Default: \code{min.kmer.cov =2}.
-#' @param rm.unpaired.reads (logical) Discard unpaired reads
-#' (in reference-based mode, implies \code{paired = TRUE})
-#' Default: \code{rm.unpaired.reads = TRUE}.
-#' @param rm.pcr.duplicates (logical) Remove read pairs of the same insert
-#' length (implies \code{rm.unpaired.reads = TRUE})
+#' Default: \code{min.kmer.cov = 2}.
+#' @param min.kmer.freq (double) Minimum frequency (in %reads) to consider a
+#' kmer. For expert.
+#' Default: \code{min.kmer.freq = 0.05}.
 
 
 #' @param min.mapq (double) Reference-based mode.
@@ -102,6 +95,20 @@
 #' Maximum allowed sequencing insert length
 #' Default: \code{max.insert.len = 1000}.
 
+#' @param details (logical) With default the function will write a more detailed
+#' output.
+#' Default: \code{details = TRUE}.
+
+
+#' @param phasing.cooccurrences.thr.range (integer) range of edge coverage thresholds to
+#' iterate over when building the graph of allele cooccurrences for
+#' SNP phasing.
+#' Default: \code{phasing.cooccurrences.thr.range = c(1,2)}.
+
+
+#' @param phasing.dont.prune.hets (logical) Don't try to ignore dubious heterozygote
+#' genotypes during phasing. By default, during phasing, dubious het are ignored.
+#' Default: \code{phasing.dont.prune.hets = FALSE}.
 
 #' @param h Display this help messsage.
 #' Default: \code{h = FALSE}
@@ -156,23 +163,25 @@ run_gstacks <- function(
   M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
   # b = "guess",
   I = NULL,
-  s = FALSE,
   B = NULL,
   O = NULL,
   unpaired = TRUE,
+  rm.unpaired.reads = FALSE,
+  rm.pcr.duplicates = FALSE,
   t = parallel::detectCores() - 1,
-  details = TRUE,
   ignore.pe.reads = TRUE,
   model = "marukilow",
   var.alpha = 0.05,
   gt.alpha = 0.05,
   kmer.length = 31,
   min.kmer.cov = 2,
-  rm.unpaired.reads = FALSE,
-  rm.pcr.duplicates = FALSE,
+  min.kmer.freq = 0.05,
   min.mapq = 10,
   max.clipped = 0.20,
   max.insert.len = 1000,
+  details = TRUE,
+  phasing.cooccurrences.thr.range = c(1,2),
+  phasing.dont.prune.hets = FALSE,
   h = FALSE
   ) {
 
@@ -261,11 +270,11 @@ run_gstacks <- function(
     I <- ""
   }
 
-  if (s) {
-    s <- "-s "
-  } else {
-    s <- ""
-  }
+  # if (s) {
+  #   s <- "-s "
+  # } else {
+  #   s <- ""
+  # }
 
   # Shared options -------------------------------------------------------------
 
@@ -281,7 +290,7 @@ run_gstacks <- function(
   }
 
   # paired-end
-  ignore.pe.reads = TRUE
+  # ignore.pe.reads = TRUE
   if (ignore.pe.reads) {
     ignore.pe.reads <- "--ignore-pe-reads"
   } else {
@@ -297,10 +306,19 @@ run_gstacks <- function(
   # Expert options -------------------------------------------------------------
   kmer.length <- stringi::stri_join("--kmer-length ", kmer.length)
   min.kmer.cov <- stringi::stri_join("--min-kmer-cov ", min.kmer.cov)
+  min.kmer.freq <- stringi::stri_join("--min-kmer-freq ", min.kmer.freq)
 
   min.mapq <- stringi::stri_join("--min-mapq ", min.mapq)
   max.clipped <- stringi::stri_join("--max-clipped ", max.clipped)
   max.insert.len <- stringi::stri_join("--max-insert-len ", max.insert.len)
+
+  phasing.cooccurrences.thr.range <- stringi::stri_join("--phasing-cooccurrences-thr-range ", stringi::stri_join(phasing.cooccurrences.thr.range, collapse = ","))
+
+  if (!phasing.dont.prune.hets) {
+    phasing.dont.prune.hets <- "--phasing-dont-prune-hets "
+  } else {
+    phasing.dont.prune.hets <- ""
+  }
 
   # Help
   if (h) {
@@ -313,18 +331,19 @@ run_gstacks <- function(
   command.arguments <- paste(
     P, M,
     # b,
-    I, s, B, O, unpaired, t, details, ignore.pe.reads, model, var.alpha, gt.alpha,
-    kmer.length, min.kmer.cov, rm.unpaired.reads, rm.pcr.duplicates, min.mapq,
-    max.clipped, max.insert.len, h)
+    I, B, O, unpaired, t, details, ignore.pe.reads, model, var.alpha, gt.alpha,
+    kmer.length, min.kmer.cov, min.kmer.freq, rm.unpaired.reads, rm.pcr.duplicates, min.mapq,
+    max.clipped, max.insert.len, phasing.cooccurrences.thr.range, phasing.dont.prune.hets, h)
 
   # run command ----------------------------------------------------------------
-  system2(command = "gstacks", args = command.arguments, stderr = gstacks.log.file,
+  system2(command = "gstacks", args = command.arguments,
+          stderr = gstacks.log.file,
           stdout = gstacks.log.file)
 
   # summarize the log file -----------------------------------------------------
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
-  cat("########################## tsv2bam completed ##########################\n")
+  cat("########################## gstacks completed ##########################\n")
   res <- "gstacks finished"
   return(res)
 }# end run_gstacks

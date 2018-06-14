@@ -4,7 +4,7 @@
 \alias{merge_parallel}
 \title{merge_parallel}
 \usage{
-merge_parallel(cmd.path, output.folder, parallel.core, batch.id)
+merge_parallel(cmd.path, output.folder, parallel.core)
 }
 \description{
 Merge bam in parallel. This is the complete function to merge

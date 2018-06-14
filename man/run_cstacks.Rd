@@ -4,16 +4,13 @@
 \alias{run_cstacks}
 \title{Run STACKS cstacks module}
 \usage{
-run_cstacks(b = 1, P = "06_ustacks_cstacks_sstacks",
-  M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv", g = FALSE,
-  n = 1, p = parallel::detectCores() - 1, catalog.path = NULL,
-  gapped = TRUE, max_gaps = 2, min_aln_len = 0.8, m = FALSE,
-  k_len = NULL, report_mmatches = FALSE, h = FALSE)
+run_cstacks(P = "06_ustacks_cstacks_sstacks",
+  M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv", n = 1,
+  p = parallel::detectCores() - 1, catalog.path = NULL, max_gaps = 2,
+  min_aln_len = 0.8, disable_gapped = FALSE, k_len = NULL,
+  report_mmatches = FALSE, h = FALSE)
 }
 \arguments{
-\item{b}{database/batch ID for this catalog. Advice: don't modify.
-Default: \code{b = 1}.}
-
 \item{P}{path to the directory containing STACKS files.
 Default: \code{P = "06_ustacks_cstacks_sstacks"}.
 Inside the folder \code{06_ustacks_cstacks_sstacks}, you should have:
@@ -28,10 +25,6 @@ module.
 
 \item{M}{path to a population map file (Required when P is used).
 Default: \code{M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv"}.}
-
-\item{g}{base catalog construction on alignment position, not sequence identity.
-Advice: don't modify.
-Default: \code{g = FALSE}.}
 
 \item{n}{number of mismatches allowed between sample loci when build the catalog.
 Default: \code{n = 1}}
@@ -55,10 +48,6 @@ will be added in this catalog. The catalog is made of 3 files:
 batch_1.catalog.snps.tsv.gz,
 batch_1.catalog.tags.tsv.gz}}
 
-\item{gapped}{Gapped assembly options: do you want to preform
-gapped alignments between stacks.
-Default: \code{gapped = TRUE}}
-
 \item{max_gaps}{The number of gaps allowed between stacks before merging.
 Default: \code{max_gaps = 2}}
 
@@ -66,9 +55,8 @@ Default: \code{max_gaps = 2}}
 alignment.
 Default: \code{min_aln_len = 0.8}}
 
-\item{m}{Include tags in the catalog that match to more than one entry.
-Advice: don't modify.
-Default: \code{m = FALSE}}
+\item{disable_gapped}{Disable gapped alignments between stacks.
+Default: \code{disable_gapped = FALSE} (use gapped alignments).}
 
 \item{k_len}{Specify k-mer size for matching between between catalog loci
 (automatically calculated by default).
@@ -130,13 +118,10 @@ write_tsv(project.info.file, "project.info.catalog.tsv")
 run_cstacks (
 P = "06_ustacks_cstacks_sstacks",
 catalog.path = NULL,
-b = 1,
-g = FALSE,
-m = FALSE,
 n = 1,
 p = 32,
 h = FALSE,
-gapped = TRUE, max_gaps = 2, min_aln_len = 0.8,
+max_gaps = 2, min_aln_len = 0.8,
 k_len = NULL, report_mmatches = FALSE
 )
 }

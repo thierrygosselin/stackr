@@ -4,22 +4,19 @@
 \alias{run_sstacks}
 \title{Run STACKS sstacks module}
 \usage{
-run_sstacks(b = "guess", P = "06_ustacks_cstacks_sstacks", M = NULL,
-  sample.list = NULL, catalog.prefix = "guess", g = FALSE,
+run_sstacks(P = "06_ustacks_cstacks_sstacks", M = NULL,
+  sample.list = NULL, c = "06_ustacks_cstacks_sstacks",
   p = parallel::detectCores() - 1, o = "06_ustacks_cstacks_sstacks",
-  x = FALSE, gapped = TRUE, lnl_dist = TRUE, v = FALSE, h = FALSE)
+  x = FALSE, disable_gapped = FALSE, v = FALSE, h = FALSE)
 }
 \arguments{
-\item{b}{(Integer) Database/batch ID of the input catalog to consider.
-Advice: don't modify the default.
-Default: \code{b = "guess"}.}
-
 \item{P}{(character) Path to the directory containing STACKS files.
 Contrary to \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks},
 this argument can be use with \code{sample.list} (the \code{s} in \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks})
 Default: \code{P = "06_ustacks_cstacks_sstacks"}.}
 
-\item{M}{(character) Path to a population map file from which to take sample names (this argument won't work if \code{sample.list}).
+\item{M}{(character) Path to a population map file from which to take sample
+names (this argument won't work if \code{sample.list}).
 Advice: don't modify the default (please see details).
 Default: \code{M = NULL}.}
 
@@ -33,15 +30,8 @@ samples. This could come from the \code{INDIVIDUALS_REP} column of the
 project info file, e.g. \code{sample.list = project.info$INDIVIDUALS_REP}.
 (Please see details).}
 
-\item{catalog.prefix}{This is for the \code{c} option in
-\href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}.
-\code{c: TSV file from which to load the catalog loci.}
-With the default, the function will guess the catalog prefix.
-Using \code{catalog.prefix = NULL} tells the function you want to use \code{P/M} mode (see details).
-Default: \code{catalog.prefix = "guess"}.}
-
-\item{g}{Base matching on genomic location, not sequence identity.
-Default: \code{g = FALSE}}
+\item{c}{(character, path) Path to the catalog.
+Default: \code{c = "06_ustacks_cstacks_sstacks"}}
 
 \item{p}{(Integer) Enable parallel execution with num_threads threads.
 Default: \code{p = parallel::detectCores() - 1}}
@@ -52,19 +42,8 @@ Default: \code{o = "06_ustacks_cstacks_sstacks"}}
 \item{x}{Don't verify haplotype of matching locus.
 Default: \code{x = FALSE}}
 
-\item{gapped}{Gapped assembly options: do you want to preform
-gapped alignments between stacks.
-Default: \code{gapped = TRUE}}
-
-\item{lnl_dist}{(Logical) Print distribution of mean log likelihoods for catalog loci.
-This argument is different from \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks},
-but will save you time and help you for the next step,
-\href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}.
-Use the log-likelihood distribution to choose the appropriate filter thresholds for
-\href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}.
-If this is the second time you run the function (after rxstacks), you get the
-the distribution AFTER the rxstacks corrections.
-Default: \code{lnl_dist = TRUE}.}
+\item{disable_gapped}{Disable gapped alignments between stacks.
+Default: \code{disable_gapped = FALSE} (use gapped alignments).}
 
 \item{v}{Print program version.
 Default: \code{v = FALSE}}
@@ -91,44 +70,38 @@ and usually looking like this:
 \code{batch_1.catalog.alleles.tsv.gz,
 batch_1.catalog.snps.tsv.gz,
 batch_1.catalog.tags.tsv.gz}
-  \item \strong{4 files for each samples:} The sample name is the prefix of
+  \item \strong{3 files for each samples:} The sample name is the prefix of
   the files ending with:
-\code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
+\code{.alleles.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
 Those files are created in the
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 module.
 }
-
-The same files should be present if this function is ran after
-\href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}, note
-that you still need to generate a new catalog after \href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}
-before running \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}.
 }
 \details{
 \strong{Computer or server problem during the sstacks ?}
 Just launch again the same command, the function will start again, but only
 with the unmatched samples!
 
-
-
 \strong{Some argument can't be use together:}
 
-Don't use these arguments together: \code{M} and \code{sample.list/catalog.prefix}.
+Don't use these arguments together: \code{M} and \code{sample.list/c}.
 You can't add samples to an existing catalog using a population map.
 If you want to match new samples to an existing catalog, very easy,
-just add the samples in the folder and let \code{run_sstacks} function find the samples that were not matched to the catalog.
+just add the samples in the folder and let \code{run_sstacks} function find
+the samples that were not matched to the catalog.
 }
 \examples{
 \dontrun{
 # The simplest form of the function when using the stackr workflow:
 run_sstacks()
-# that's it ! Now if you have your own workflow folders, etc. Enter them like this:
-sstacks <- run_sstacks (P = "/my/input/path", p = 32, b = 2, catalog.prefix = "batch_2",
-sample.list = c("ind1", "ind2", "..."), o = "/my/output/path", g = FALSE,
-x = FALSE, gapped = FALSE)
-# Get the fig of log-likelihood of catalog loci to help decide for the best
-# rxstacks thresholds:
-sstacks$log.likelihood.fig
+# that's it !
+
+
+Now if you have your own workflow folders, etc. Enter them like this:
+sstacks <- run_sstacks (P = "/my/input/path", p = 32, b = 2,
+sample.list = c("ind1", "ind2", "..."), o = "/my/output/path",
+x = FALSE)
 }
 }
 \references{

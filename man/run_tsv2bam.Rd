@@ -6,8 +6,8 @@
 \usage{
 run_tsv2bam(P = "06_ustacks_cstacks_sstacks",
   M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv", R = NULL,
-  b = "guess", t = parallel::detectCores() - 1,
-  cmd.path = "/usr/local/bin/samtools", h = FALSE)
+  t = parallel::detectCores() - 1, cmd.path = "/usr/local/bin/samtools",
+  h = FALSE)
 }
 \arguments{
 \item{P}{(path, character) Path to the directory containing STACKS files.
@@ -16,9 +16,9 @@ Inside the folder, you should have:
 \itemize{
   \item \strong{the catalog files:} starting with \code{batch_} and ending with
   \code{.alleles.tsv.gz, .snps.tsv.gz, .tags.tsv.gz};
-  \item \strong{4 files for each samples:} The sample name is the prefix for
+  \item \strong{3 files for each samples:} The sample name is the prefix for
   the files ending with:
-\code{.alleles.tsv.gz, .models.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
+\code{.alleles.tsv.gz, .snps.tsv.gz, .tags.tsv.gz}.
 Those files are created in the
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks},
 \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks} and
@@ -32,10 +32,6 @@ Default: \code{M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv"}.}
 
 \item{R}{(path, character) Directory where to find the paired-end reads files
 (in fastq/fasta/bam (gz) format).}
-
-\item{b}{(integer) Database/batch ID of the input catalog to consider.
-Advice: don't modify the default.
-Default: \code{b = "guess"}.}
 
 \item{t}{(integer) Enable parallel execution with the number of threads.
 Default: \code{t = parallel::detectCores() - 1}}
@@ -75,6 +71,10 @@ BAM catalog file using SAMtools or Sambamba.
 converts the data (single-end or paired-end) from being organized by sample
 into being organized by locus. This allows downstream improvements
 (e.g. Bayesian SNP calling).
+}
+\details{
+\strong{Install SAMtools}
+\href{link to detailed instructions on how to install SAMtools}{http://gbs-cloud-tutorial.readthedocs.io/en/latest/07_start_from_new_image.html#install-gbs-radseq-software-time-required-30min}
 }
 \examples{
 \dontrun{
