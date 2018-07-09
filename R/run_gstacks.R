@@ -144,8 +144,6 @@
 #' }
 
 #' @seealso
-#' \code{\link[stackr]{summary_tsv2bam}}
-#'
 #'\href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 
 

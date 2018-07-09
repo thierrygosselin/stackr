@@ -2,25 +2,24 @@
 % Please edit documentation in R/run_populations.R
 \name{run_populations}
 \alias{run_populations}
-\title{Run STACKS Version 2.0Beta8 populations module}
+\title{Run STACKS Version >= 2.0 populations module}
 \usage{
 run_populations(P = "06_ustacks_cstacks_sstacks", V = NULL,
-  O = "07_populations", M, t = parallel::detectCores() - 1, b = "guess",
-  batch_size = 10000, p = 1, r = 0.3, min_maf = NULL,
-  max_obs_het = NULL, m = NULL, lnl_lim = NULL,
-  write_single_snp = FALSE, write_random_snp = FALSE, B = NULL,
-  W = NULL, e = NULL, merge_sites = FALSE, merge_prune_lim = NULL,
-  hwe = FALSE, fstats = FALSE, fst_correction = NULL,
-  p_value_cutoff = 0.05, k = FALSE, smooth_fstats = FALSE,
-  smooth_popstats = FALSE, sigma = 150000, bootstrap = FALSE, N = 100,
-  bootstrap_pifis = FALSE, bootstrap_fst = FALSE, bootstrap_div = FALSE,
-  bootstrap_phist = FALSE, bootstrap_wl = NULL, ordered_export = FALSE,
-  genomic = FALSE, fasta_samples = FALSE, fasta_samples_raw = FALSE,
-  fasta_loci = FALSE, vcf = TRUE, genepop = FALSE, structure = FALSE,
-  finestructure = FALSE, phase = FALSE, fastphase = FALSE,
-  beagle = FALSE, beagle_phased = FALSE, plink = FALSE, hzar = FALSE,
-  phylip = FALSE, phylip_var = FALSE, phylip_var_all = FALSE,
-  treemix = FALSE, h = FALSE, verbose = FALSE, v = FALSE,
+  O = "07_populations", M, t = parallel::detectCores() - 1,
+  batch_size = 10000, p = 1, r = 0.3, min_maf = NULL, min_mac = NULL,
+  max_obs_het = NULL, lnl_lim = NULL, write_single_snp = FALSE,
+  write_random_snp = FALSE, B = NULL, W = NULL, e = NULL,
+  merge_sites = FALSE, merge_prune_lim = NULL, hwe = FALSE,
+  fstats = FALSE, fst_correction = NULL, p_value_cutoff = 0.05,
+  k = FALSE, smooth_fstats = FALSE, smooth_popstats = FALSE,
+  sigma = 150000, bootstrap = FALSE, N = 100, bootstrap_pifis = FALSE,
+  bootstrap_fst = FALSE, bootstrap_div = FALSE, bootstrap_phist = FALSE,
+  bootstrap_wl = NULL, ordered_export = FALSE, fasta_samples = FALSE,
+  fasta_samples_raw = FALSE, fasta_loci = FALSE, vcf = TRUE,
+  genepop = FALSE, structure = FALSE, radpainter = FALSE, phase = FALSE,
+  fastphase = FALSE, plink = FALSE, hzar = FALSE, phylip = FALSE,
+  phylip_var = FALSE, phylip_var_all = FALSE, treemix = FALSE,
+  no_hap_exports = FALSE, h = FALSE, verbose = FALSE, v = FALSE,
   log_fst_comp = FALSE)
 }
 \arguments{
@@ -43,10 +42,6 @@ e.g. \code{M = "02_project_info/population.map.catalog.tsv"}}
 \item{t}{(integer) enable parallel execution with num_threads threads.
 Default: \code{t = parallel::detectCores() - 1}}
 
-\item{b}{(integer) Database/batch ID of the input catalog to consider.
-Advice: don't modify the default.
-Default: \code{b = "guess"}.}
-
 \item{batch_size}{(integer) The number of loci (de novo mode) or
 chromosome (reference mode), to process in a batch.
 Increase to speed analysis, uses more memory, decrease to save memory).
@@ -62,19 +57,19 @@ Default: \code{r = 0.3}.}
 \item{min_maf}{(double) Specify a minimum minor allele frequency required to process a nucleotide site at a locus (0 < min_maf < 0.5).
 Default: \code{min_maf = NULL}. Recommendation: use my other R package RADIATOR to filter data based on MAF.}
 
+\item{min_mac}{(integer) Specify a minimum minor allele count required to process a nucleotide site at a locus.
+Default: \code{min_mac = NULL}.}
+
 \item{max_obs_het}{(double) Specify a maximum observed heterozygosity required to process a nucleotide site at a locus.
 Default: \code{max_obs_het = NULL}.  Recommendation: use my other R package RADIATOR to filter data based on heterozygosity.}
-
-\item{m}{(integer) Specify a minimum stack depth required for individuals at a locus.
-Default: \code{m = NULL}.}
 
 \item{lnl_lim}{(integer) Filter loci with log likelihood values below this threshold.
 Default: \code{lnl_lim = NULL}.}
 
-\item{write_single_snp}{(logical) Restrict data analysis to only the first SNP per locus.
+\item{write_single_snp}{(logical) Restrict data analysis to only the first SNP per locus (implies --no-haps).
 Default: \code{write_single_snp = FALSE}.}
 
-\item{write_random_snp}{(logical) Restrict data analysis to one random SNP per locus.
+\item{write_random_snp}{(logical) Restrict data analysis to one random SNP per locus (implies --no-haps).
 Default: \code{write_random_snp = FALSE}.}
 
 \item{B}{(character) Path to a file containing Blacklisted markers to be excluded from the export.
@@ -143,9 +138,6 @@ Default: \code{bootstrap_wl = NULL}.}
 \item{ordered_export}{(logical) If data is reference aligned, exports will be ordered; only a single representative of each overlapping site.
 Default: \code{ordered_export = FALSE}.}
 
-\item{genomic}{(logical) Output each nucleotide position (fixed or polymorphic) in all population members to a file (requires restriction enzyme name \code{e}).
-Default: \code{genomic = FALSE}.}
-
 \item{fasta_samples}{(logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
 Default: \code{fasta_samples = FALSE}.}
 
@@ -164,20 +156,14 @@ Default: \code{genepop = FALSE}.}
 \item{structure}{(logical) Output results in Structure format.
 Default: \code{structure = FALSE}.}
 
-\item{finestructure}{(logical) Output results in FineStructure/FineRADStructure format.
-Default: \code{finestructure = FALSE}.}
+\item{radpainter}{(logical) Output results results in fineRADstructure/RADpainter format.
+Default: \code{radpainter = FALSE}.}
 
 \item{phase}{(logical) Output genotypes in PHASE format.
 Default: \code{phase = FALSE}.}
 
 \item{fastphase}{(logical) Output genotypes in fastPHASE format.
 Default: \code{fastphase = FALSE}.}
-
-\item{beagle}{(logical) Output genotypes in Beagle format.
-Default: \code{beagle = FALSE}.}
-
-\item{beagle_phased}{(logical) Output haplotypes in Beagle format.
-Default: \code{beagle_phased = FALSE}.}
 
 \item{plink}{(logical) Output genotypes in PLINK format.
 Default: \code{plink = FALSE}.}
@@ -196,6 +182,9 @@ Default: \code{phylip_var_all = FALSE}.}
 
 \item{treemix}{(logical) Output SNPs in a format useable for the TreeMix program (Pickrell and Pritchard).
 Default: \code{treemix = FALSE}.}
+
+\item{no_hap_exports}{(logical) Omit haplotype outputs.
+Default: \code{no_hap_exports = FALSE}.}
 
 \item{h}{Display this help messsage.
 Default: \code{h = FALSE}}
@@ -238,5 +227,5 @@ Biometrics, 48, 361-372.
 }
 \seealso{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/populations.php}{populations}
-\href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{STACKS Version 2.0Beta8}
+\href{http://catchenlab.life.illinois.edu/stacks/}{STACKS Version 2.0b}
 }

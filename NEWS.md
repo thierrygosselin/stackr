@@ -1,3 +1,9 @@
+# stackr v.2.0.5 2018-07-09
+
+* stackr ready for R 3.5.1 "Feather Spray" released on 2018/07/05
+* stackr updated to work with ggplot2 v.3.0.0
+
+
 # stackr v.2.0.4 2018-03-02
 
 * `normalize_samples`: new function to check the impact of biased read numbers per 

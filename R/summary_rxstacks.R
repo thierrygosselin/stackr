@@ -94,6 +94,7 @@ summary_rxstacks <- function(
   parallel.core = parallel::detectCores() - 1,
   verbose = FALSE,
   ...) {
+  message("\n\n\nThis function will be deprecated in future version, please update your pipeline to stacks v.2.1\n\n\n")
   if (verbose) cat("#######################################################################\n")
   if (verbose) cat("##################### stackr::summary_rxstacks ########################\n")
   if (verbose) cat("#######################################################################\n")

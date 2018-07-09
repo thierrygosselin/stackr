@@ -90,6 +90,7 @@ summary_genotypes <- function(
   onemap = NULL,
   filename = NULL) {
 
+  message("\n\n\nThis function is no longer working with stacks >= v.2.0\n\n\n")
   opt.change <- getOption("width")
   options(width = 70)
   timing <- proc.time()

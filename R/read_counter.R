@@ -141,14 +141,15 @@ read_counter <- function(
         ggplot2::geom_histogram() +
         ggplot2::labs(x = "Number of reads") +
         ggplot2::labs(y = "Number of samples") +
-        ggplot2::theme_bw() +
         ggplot2::theme(
           legend.position = "none",
           axis.title.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
           axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
           axis.text.x = ggplot2::element_text(size = 10, family = "Helvetica"),
           strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
-        ))
+        ) +
+        ggplot2::theme_bw()
+    )
 
     # the boxplot
     if (n.pop > 1) {
@@ -178,8 +179,6 @@ read_counter <- function(
         ggplot2::geom_violin(trim = TRUE, fill = NA) +
         ggplot2::geom_boxplot(width = 0.1, fill = NA, outlier.colour = NA, outlier.fill = NA) +
         ggplot2::labs(y = "Number of reads") +
-        # ggplot2::labs(y = "Number of samples") +
-        ggplot2::theme_bw() +
         ggplot2::theme(
           legend.position = "none",
           panel.grid.minor.x = ggplot2::element_blank(),
@@ -188,7 +187,9 @@ read_counter <- function(
           axis.title.y = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold"),
           axis.text.x = ggplot2::element_text(size = 10, family = "Helvetica"),
           strip.text.x = ggplot2::element_text(size = 10, family = "Helvetica", face = "bold")
-        ))
+        ) +
+        ggplot2::theme_bw()
+    )
 
     # the boxplot
     if (n.pop > 1) {

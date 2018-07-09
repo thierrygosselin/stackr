@@ -80,10 +80,6 @@ into being organized by locus. This allows downstream improvements
 \dontrun{
 # The simplest form of the function:
 bam.sum <- stackr::run_tsv2bam() # that's it !
-
-# If you discovered this function after having run stacks tsv2bam by hand,
-# you can still get a summary of the function if you provide the log file to
-# stackr::summary_tsv2bam.
 }
 }
 \references{
@@ -108,8 +104,6 @@ A. Tarasov, A. J. Vilella, E. Cuppen, I. J. Nijman, and P. Prins.
 Sambamba: fast processing of NGS alignment formats. Bioinformatics, 2015.
 }
 \seealso{
-\code{\link[stackr]{summary_tsv2bam}}
-
 \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 
 \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{stacks Version 2.0Beta6}

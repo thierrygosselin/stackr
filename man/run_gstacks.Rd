@@ -6,12 +6,14 @@
 \usage{
 run_gstacks(P = "06_ustacks_cstacks_sstacks",
   M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv", I = NULL,
-  s = FALSE, B = NULL, O = NULL, unpaired = TRUE,
-  t = parallel::detectCores() - 1, details = TRUE, ignore.pe.reads = TRUE,
-  model = "marukilow", var.alpha = 0.05, gt.alpha = 0.05,
-  kmer.length = 31, min.kmer.cov = 2, rm.unpaired.reads = FALSE,
-  rm.pcr.duplicates = FALSE, min.mapq = 10, max.clipped = 0.2,
-  max.insert.len = 1000, h = FALSE)
+  B = NULL, O = NULL, unpaired = TRUE, rm.unpaired.reads = FALSE,
+  rm.pcr.duplicates = FALSE, t = parallel::detectCores() - 1,
+  ignore.pe.reads = TRUE, model = "marukilow", var.alpha = 0.05,
+  gt.alpha = 0.05, kmer.length = 31, min.kmer.cov = 2,
+  min.kmer.freq = 0.05, min.mapq = 10, max.clipped = 0.2,
+  max.insert.len = 1000, details = TRUE,
+  phasing.cooccurrences.thr.range = c(1, 2),
+  phasing.dont.prune.hets = FALSE, h = FALSE)
 }
 \arguments{
 \item{P}{(path, character) De novo mode.
@@ -35,15 +37,8 @@ modules
 \item{M}{(path, character) Path to a population map giving the list of samples.}
 
 \item{I}{(character, path) Reference-based mode.
-Input directory containing BAM files. With \code{I}, read groups
-are ignored.
+Input directory containing BAM files.
 Default: \code{I = NULL}.}
-
-\item{s}{(logical) With \code{I} and \code{M}, spacer for file names:
-by default this is empty and the program looks for files named
-'SAMPLE_NAME.bam'; if this option is given the program looks for
-'SAMPLE_NAME.SPACER.bam'
-Default: \code{s = FALSE}.}
 
 \item{B}{(character, path) Reference-based mode. Path to input BAM files.
 The input BAM file(s) must be sorted by coordinate.
@@ -51,7 +46,8 @@ With \code{B}, records must be assigned to samples using BAM "reads groups"
 (gstacks uses the ID/identifier and SM/sample name fields). Read groups
 must be consistent if repeated different files. With \code{I},
 read groups are unneeded and ignored.
-Please refer to the gstacks manual page for information about how to
+Please refer to the gstacks manual page for information. stacks also provide
+information about how to
 generate such a BAM file with Samtools or Sambamba, and examples.
 Default: \code{B = NULL}.}
 
@@ -62,12 +58,15 @@ Default: \code{O = NULL} (same as input)}
 Ignore read pairing (for ddRAD; treat READ2's as if they were READ1's)
 Default: \code{unpaired = TRUE}.}
 
+\item{rm.unpaired.reads}{(logical) Discard unpaired reads
+(in reference-based mode, implies \code{paired = TRUE})
+Default: \code{rm.unpaired.reads = TRUE}.}
+
+\item{rm.pcr.duplicates}{(logical) Remove read pairs of the same insert
+length (implies \code{rm.unpaired.reads = TRUE})}
+
 \item{t}{(integer) Enable parallel execution with the number of threads.
 Default: \code{t = parallel::detectCores() - 1}.}
-
-\item{details}{(logical) With default the function will write a more detailed
-output.
-Default: \code{details = TRUE}.}
 
 \item{ignore.pe.reads}{(logical) With default the function will
 ignore paired-end reads even if present in the input.
@@ -90,14 +89,11 @@ Default: \code{kmer.length = 31}.}
 
 \item{min.kmer.cov}{(integer) De novo mode.
 Minimum coverage to consider a kmer. For expert.
-Default: \code{min.kmer.cov =2}.}
+Default: \code{min.kmer.cov = 2}.}
 
-\item{rm.unpaired.reads}{(logical) Discard unpaired reads
-(in reference-based mode, implies \code{paired = TRUE})
-Default: \code{rm.unpaired.reads = TRUE}.}
-
-\item{rm.pcr.duplicates}{(logical) Remove read pairs of the same insert
-length (implies \code{rm.unpaired.reads = TRUE})}
+\item{min.kmer.freq}{(double) Minimum frequency (in %reads) to consider a
+kmer. For expert.
+Default: \code{min.kmer.freq = 0.05}.}
 
 \item{min.mapq}{(double) Reference-based mode.
 Minimum PHRED-scaled mapping quality to consider a read.
@@ -110,6 +106,19 @@ Default: \code{max.clipped = 0.20}.}
 \item{max.insert.len}{(integer) Reference-based mode.
 Maximum allowed sequencing insert length
 Default: \code{max.insert.len = 1000}.}
+
+\item{details}{(logical) With default the function will write a more detailed
+output.
+Default: \code{details = TRUE}.}
+
+\item{phasing.cooccurrences.thr.range}{(integer) range of edge coverage thresholds to
+iterate over when building the graph of allele cooccurrences for
+SNP phasing.
+Default: \code{phasing.cooccurrences.thr.range = c(1,2)}.}
+
+\item{phasing.dont.prune.hets}{(logical) Don't try to ignore dubious heterozygote
+genotypes during phasing. By default, during phasing, dubious het are ignored.
+Default: \code{phasing.dont.prune.hets = FALSE}.}
 
 \item{h}{Display this help messsage.
 Default: \code{h = FALSE}}
@@ -157,7 +166,5 @@ Maruki T, Lynch M (2017)
 Genotype Calling from Population-Genomic Sequencing Data. G3, 7, 1393-1404.
 }
 \seealso{
-\code{\link[stackr]{summary_tsv2bam}}
-
 \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 }

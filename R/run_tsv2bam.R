@@ -74,15 +74,9 @@
 #' \dontrun{
 #' # The simplest form of the function:
 #' bam.sum <- stackr::run_tsv2bam() # that's it !
-#'
-#' # If you discovered this function after having run stacks tsv2bam by hand,
-#' # you can still get a summary of the function if you provide the log file to
-#' # stackr::summary_tsv2bam.
 #' }
 
 #' @seealso
-#' \code{\link[stackr]{summary_tsv2bam}}
-#'
 #'\href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 #'
 #' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{stacks Version 2.0Beta6}
@@ -189,8 +183,6 @@ run_tsv2bam <- function(
 
   # summarize the log file -----------------------------------------------------
   message("tsv2bam completed")
-  # message("tsv2bam completed, summarizing the output...")
-  # res <- stackr::summary_tsv2bam(tsv2bam.output = output.folder, verbose = FALSE)
   log.file <- list.files(
     path = output.folder, pattern = "tsv2bam.log", full.names = FALSE)
   new.log.file <- stringi::stri_join(
@@ -235,7 +227,7 @@ run_tsv2bam <- function(
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
   cat("########################## tsv2bam completed ##########################\n")
-  return(res)
+  return(merge.res)
 }# end run_tsv2bam
 
 # Internal nested Function -----------------------------------------------------
