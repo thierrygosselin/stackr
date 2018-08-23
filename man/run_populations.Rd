@@ -6,21 +6,22 @@
 \usage{
 run_populations(P = "06_ustacks_cstacks_sstacks", V = NULL,
   O = "07_populations", M, t = parallel::detectCores() - 1,
-  batch_size = 10000, p = 1, r = 0.3, min_maf = NULL, min_mac = NULL,
-  max_obs_het = NULL, lnl_lim = NULL, write_single_snp = FALSE,
-  write_random_snp = FALSE, B = NULL, W = NULL, e = NULL,
-  merge_sites = FALSE, merge_prune_lim = NULL, hwe = FALSE,
-  fstats = FALSE, fst_correction = NULL, p_value_cutoff = 0.05,
-  k = FALSE, smooth_fstats = FALSE, smooth_popstats = FALSE,
-  sigma = 150000, bootstrap = FALSE, N = 100, bootstrap_pifis = FALSE,
-  bootstrap_fst = FALSE, bootstrap_div = FALSE, bootstrap_phist = FALSE,
+  batch_size = 10000, p = 1, r = 0.3, min_maf = NULL,
+  min_mac = NULL, max_obs_het = NULL, lnl_lim = NULL,
+  write_single_snp = FALSE, write_random_snp = FALSE, B = NULL,
+  W = NULL, e = NULL, merge_sites = FALSE, merge_prune_lim = NULL,
+  hwe = FALSE, fstats = FALSE, fst_correction = NULL,
+  p_value_cutoff = 0.05, k = FALSE, smooth_fstats = FALSE,
+  smooth_popstats = FALSE, sigma = 150000, bootstrap = FALSE,
+  N = 100, bootstrap_pifis = FALSE, bootstrap_fst = FALSE,
+  bootstrap_div = FALSE, bootstrap_phist = FALSE,
   bootstrap_wl = NULL, ordered_export = FALSE, fasta_samples = FALSE,
   fasta_samples_raw = FALSE, fasta_loci = FALSE, vcf = TRUE,
-  genepop = FALSE, structure = FALSE, radpainter = FALSE, phase = FALSE,
-  fastphase = FALSE, plink = FALSE, hzar = FALSE, phylip = FALSE,
-  phylip_var = FALSE, phylip_var_all = FALSE, treemix = FALSE,
-  no_hap_exports = FALSE, h = FALSE, verbose = FALSE, v = FALSE,
-  log_fst_comp = FALSE)
+  genepop = FALSE, structure = FALSE, radpainter = FALSE,
+  phase = FALSE, fastphase = FALSE, plink = FALSE, hzar = FALSE,
+  phylip = FALSE, phylip_var = FALSE, phylip_var_all = FALSE,
+  treemix = FALSE, no_hap_exports = FALSE, h = FALSE,
+  verbose = FALSE, v = FALSE, log_fst_comp = FALSE)
 }
 \arguments{
 \item{P}{(path, character) Path to the directory containing all the STACKS files.

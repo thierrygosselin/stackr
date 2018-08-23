@@ -4,8 +4,8 @@
 \alias{read_counter}
 \title{Counts the number of reads in samples}
 \usage{
-read_counter(path.samples, strata = NULL, plot.reads = TRUE, write = TRUE,
-  parallel.core = parallel::detectCores() - 1)
+read_counter(path.samples, strata = NULL, plot.reads = TRUE,
+  write = TRUE, parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{path.samples}{(character, path) Path of folder containing the

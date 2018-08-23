@@ -7,9 +7,10 @@
 run_rxstacks(P = "06_ustacks_cstacks_sstacks",
   o = "07_rxstacks_cstacks_sstacks_populations", strata = NULL,
   t = parallel::detectCores() - 1, b = "guess", lnl_filter = TRUE,
-  lnl_lim = NULL, lnl_dist = TRUE, conf_filter = TRUE, conf_lim = 0.75,
-  prune_haplo = TRUE, max_haplo = NULL, model_type = "snp", alpha = 0.1,
-  bound_low = 0, bound_high = 1, h = FALSE, verbose = FALSE)
+  lnl_lim = NULL, lnl_dist = TRUE, conf_filter = TRUE,
+  conf_lim = 0.75, prune_haplo = TRUE, max_haplo = NULL,
+  model_type = "snp", alpha = 0.1, bound_low = 0, bound_high = 1,
+  h = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{P}{(Character) Path to the directory containing STACKS files.

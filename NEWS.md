@@ -1,3 +1,8 @@
+# stackr v.2.0.6 2018-08-23
+
+* updated `summary_ustacks` to work with non-compressed files
+
+
 # stackr v.2.0.5 2018-07-09
 
 * stackr ready for R 3.5.1 "Feather Spray" released on 2018/07/05

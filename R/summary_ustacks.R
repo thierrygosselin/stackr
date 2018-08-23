@@ -182,8 +182,8 @@ summary_ustacks <- function(
     message("Summarizing ", n.snps, " ustacks (snps, tags, alleles) files...")
     sample.name <- stringi::stri_replace_all_fixed(
       str = snps.files,
-      pattern = ".snps.tsv.gz",
-      replacement = "",
+      pattern = c(".snps.tsv.gz", ".snps.tsv", ".gz"),
+      replacement = c("", "", ""),
       vectorize_all = FALSE)
   } else {
     message("Unequal numbers of ustacks files: snps, tags, alleles")
@@ -193,18 +193,18 @@ summary_ustacks <- function(
     message("  Missing ustacks files for these samples : ")
     alleles.names <- stringi::stri_replace_all_fixed(
       str = alleles.files,
-      pattern = ".alleles.tsv.gz",
-      replacement = "",
+      pattern = c(".alleles.tsv.gz", ".alleles.tsv", ".gz"),
+      replacement = c("", "", ""),
       vectorize_all = FALSE)
     snps.names <- stringi::stri_replace_all_fixed(
       str = snps.files,
-      pattern = ".snps.tsv.gz",
-      replacement = "",
+      pattern = c(".snps.tsv.gz", ".snps.tsv", ".gz"),
+      replacement = c("", "", ""),
       vectorize_all = FALSE)
     tags.names <- stringi::stri_replace_all_fixed(
       str = tags.files,
-      pattern = ".tags.tsv.gz",
-      replacement = "",
+      pattern = c(".tags.tsv.gz", ".tags.tsv", ".gz"),
+      replacement = c("", "", ""),
       vectorize_all = FALSE)
     sample.name <- dplyr::intersect(alleles.names, snps.names)
     sample.name <- dplyr::intersect(alleles.names, tags.names)
@@ -223,17 +223,13 @@ summary_ustacks <- function(
   options(width = 70)
 
   summarise_ustacks <- function(sample.name, ustacks.folder) {
-    # sample.name <- "STU-COD-ADU-001"
-    # sample.name <- stringi::stri_replace_all_fixed(
-    #   str = snps.files,
-    #   pattern = ".snps.tsv.gz",
-    #   replacement = "",
-    #   vectorize_all = FALSE)
-
-    # sample.name <- "Cam03"
+    # sample.name <- "Pc4_GTCACC"
 
     # summary
-    tags.file <- stringi::stri_join(ustacks.folder, "/", sample.name, ".tags.tsv.gz")
+    # tags.file <- stringi::stri_join(ustacks.folder, "/", sample.name, ".tags.tsv.gz")
+    tags.file <- list.files(
+      path = ustacks.folder, pattern = stringi::stri_join(sample.name, ".tags"), full.names = TRUE)
+
     stacks.version <- stringi::stri_detect_fixed(str = readr::read_lines(tags.file, n_max = 1), pattern = "version 2")
     if (stacks.version) {
       beta <- stringi::stri_detect_fixed(str = readr::read_lines(tags.file, n_max = 1), pattern = "Beta")
@@ -253,7 +249,11 @@ summary_ustacks <- function(
         col_types = "_ic__ciii"))
 
       alleles.imp <- suppressWarnings(readr::read_tsv(
-        file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
+        file = list.files(
+          path = ustacks.folder,
+          pattern = stringi::stri_join(sample.name, ".alleles"),
+          full.names = TRUE),
+        # file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
         col_names = c("LOCUS", "COUNT"),
         col_types = "_i__i", na = "-",
         comment = "#") %>%
@@ -270,7 +270,11 @@ summary_ustacks <- function(
         col_types = "__i___c_cciiid", na = "-",
         comment = "#"))
       alleles.imp <- suppressWarnings(readr::read_tsv(
-        file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
+        # file = stringi::stri_join(ustacks.folder, "/", sample.name, ".alleles.tsv.gz"),
+        file = list.files(
+          path = ustacks.folder,
+          pattern = stringi::stri_join(sample.name, ".alleles"),
+          full.names = TRUE),
         col_names = c("LOCUS", "COUNT"),
         col_types = "__i__i", na = "-",
         comment = "#") %>%

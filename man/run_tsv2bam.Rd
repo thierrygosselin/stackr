@@ -5,9 +5,9 @@
 \title{Run STACKS tsv2bam and merges BAM files}
 \usage{
 run_tsv2bam(P = "06_ustacks_cstacks_sstacks",
-  M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv", R = NULL,
-  t = parallel::detectCores() - 1, cmd.path = "/usr/local/bin/samtools",
-  h = FALSE)
+  M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
+  R = NULL, t = parallel::detectCores() - 1,
+  cmd.path = "/usr/local/bin/samtools", h = FALSE)
 }
 \arguments{
 \item{P}{(path, character) Path to the directory containing STACKS files.

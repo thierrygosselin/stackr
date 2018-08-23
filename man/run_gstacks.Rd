@@ -5,14 +5,14 @@
 \title{Run STACKS new module called gstacks}
 \usage{
 run_gstacks(P = "06_ustacks_cstacks_sstacks",
-  M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv", I = NULL,
-  B = NULL, O = NULL, unpaired = TRUE, rm.unpaired.reads = FALSE,
-  rm.pcr.duplicates = FALSE, t = parallel::detectCores() - 1,
-  ignore.pe.reads = TRUE, model = "marukilow", var.alpha = 0.05,
-  gt.alpha = 0.05, kmer.length = 31, min.kmer.cov = 2,
-  min.kmer.freq = 0.05, min.mapq = 10, max.clipped = 0.2,
-  max.insert.len = 1000, details = TRUE,
-  phasing.cooccurrences.thr.range = c(1, 2),
+  M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
+  I = NULL, B = NULL, O = NULL, unpaired = TRUE,
+  rm.unpaired.reads = FALSE, rm.pcr.duplicates = FALSE,
+  t = parallel::detectCores() - 1, ignore.pe.reads = TRUE,
+  model = "marukilow", var.alpha = 0.05, gt.alpha = 0.05,
+  kmer.length = 31, min.kmer.cov = 2, min.kmer.freq = 0.05,
+  min.mapq = 10, max.clipped = 0.2, max.insert.len = 1000,
+  details = TRUE, phasing.cooccurrences.thr.range = c(1, 2),
   phasing.dont.prune.hets = FALSE, h = FALSE)
 }
 \arguments{

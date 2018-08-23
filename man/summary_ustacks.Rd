@@ -4,8 +4,8 @@
 \alias{summary_ustacks}
 \title{Summarize STACKS ustacks files}
 \usage{
-summary_ustacks(ustacks.folder, parallel.core = parallel::detectCores() - 1,
-  verbose = FALSE)
+summary_ustacks(ustacks.folder, parallel.core = parallel::detectCores() -
+  1, verbose = FALSE)
 }
 \arguments{
 \item{ustacks.folder}{(character). The path to the ustacks output files.}

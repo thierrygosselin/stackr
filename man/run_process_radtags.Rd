@@ -6,16 +6,17 @@
 \usage{
 run_process_radtags(project.info, path.seq.lanes = "03_sequencing_lanes",
   i = "guess", o = "04_process_radtags", y = "guess",
-  first.pe.input = NULL, second.pe.input = NULL, c = TRUE, q = TRUE,
-  r = TRUE, t = 90, D = FALSE, E = "phred33", w = 0.15, s = 10,
-  barcode_inline_null = TRUE, barcode_index_null = FALSE,
-  barcode_null_index = FALSE, barcode_inline_inline = FALSE,
-  barcode_index_index = FALSE, barcode_inline_index = FALSE,
-  barcode_index_inline = FALSE, enzyme = NULL, renz_1 = NULL,
-  renz_2 = NULL, adapter_1 = NULL, adapter_2 = NULL, adapter_mm = NULL,
-  retain_header = FALSE, merge = FALSE, filter_illumina = TRUE,
-  disable_rad_check = FALSE, len_limit = NULL, barcode_dist_1 = 1,
-  barcode_dist_2 = NULL, parallel.core = parallel::detectCores() - 1)
+  first.pe.input = NULL, second.pe.input = NULL, c = TRUE,
+  q = TRUE, r = TRUE, t = 90, D = FALSE, E = "phred33",
+  w = 0.15, s = 10, barcode_inline_null = TRUE,
+  barcode_index_null = FALSE, barcode_null_index = FALSE,
+  barcode_inline_inline = FALSE, barcode_index_index = FALSE,
+  barcode_inline_index = FALSE, barcode_index_inline = FALSE,
+  enzyme = NULL, renz_1 = NULL, renz_2 = NULL, adapter_1 = NULL,
+  adapter_2 = NULL, adapter_mm = NULL, retain_header = FALSE,
+  merge = FALSE, filter_illumina = TRUE, disable_rad_check = FALSE,
+  len_limit = NULL, barcode_dist_1 = 1, barcode_dist_2 = NULL,
+  parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{project.info}{(character, path) Path to the project info file.

@@ -5,9 +5,9 @@
 \title{Haplotypes file summary}
 \usage{
 summary_haplotypes(data, strata = NULL, read.length,
-  whitelist.markers = NULL, blacklist.id = NULL, keep.consensus = TRUE,
-  pop.levels = NULL, pop.labels = NULL, artifact.only = TRUE,
-  parallel.core = parallel::detectCores() - 1)
+  whitelist.markers = NULL, blacklist.id = NULL,
+  keep.consensus = TRUE, pop.levels = NULL, pop.labels = NULL,
+  artifact.only = TRUE, parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{data}{The 'batch_x.haplotypes.tsv' created by STACKS.}

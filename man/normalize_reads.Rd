@@ -4,8 +4,8 @@
 \alias{normalize_reads}
 \title{Rarefaction of reads samples}
 \usage{
-normalize_reads(project.info = NULL, path.samples, sample.reads = 1e+06,
-  number.replicates = 3, random.seed = NULL,
+normalize_reads(project.info = NULL, path.samples,
+  sample.reads = 1e+06, number.replicates = 3, random.seed = NULL,
   parallel.core = number.replicates)
 }
 \arguments{

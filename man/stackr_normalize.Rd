@@ -5,8 +5,8 @@
 \title{stackr_normalize}
 \usage{
 stackr_normalize(x, fastq.files, fastq.files.short, project.info,
-  number.replicates, sample.reads, parallel.core = parallel::detectCores() -
-  1)
+  number.replicates, sample.reads,
+  parallel.core = parallel::detectCores() - 1)
 }
 \description{
 main normalize function

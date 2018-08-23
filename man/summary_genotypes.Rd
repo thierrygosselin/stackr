@@ -6,9 +6,10 @@
 \code{batch_x.markers.tsv} files.}
 \usage{
 summary_genotypes(genotypes, markers, filter.monomorphic = TRUE,
-  filter.missing.band = TRUE, filter.mean.log.likelihood = NULL, B = NULL,
-  filter.GOF = NULL, filter.GOF.p.value = NULL, ind.genotyped = 1,
-  joinmap = NULL, onemap = NULL, filename = NULL)
+  filter.missing.band = TRUE, filter.mean.log.likelihood = NULL,
+  B = NULL, filter.GOF = NULL, filter.GOF.p.value = NULL,
+  ind.genotyped = 1, joinmap = NULL, onemap = NULL,
+  filename = NULL)
 }
 \arguments{
 \item{genotypes}{The \code{genotypes = batch_x.genotypes.txt} created by STACKS genotypes

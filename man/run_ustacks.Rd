@@ -7,10 +7,11 @@
 run_ustacks(mismatch.testing = FALSE, sample.list = NULL,
   project.info = NULL, f = "04_process_radtags",
   o = "06_ustacks_cstacks_sstacks", m = 3, M = 2, N = M + 2,
-  t = "guess", R = FALSE, H = TRUE, p = parallel::detectCores() - 1,
-  h = FALSE, d = TRUE, keep_high_cov = FALSE, high_cov_thres = 2,
-  max_locus_stacks = 3, k_len = NULL, max_gaps = 2, min_aln_len = 0.8,
-  model_type = "snp", alpha = 0.05, bound_low = 0, bound_high = 0.2,
+  t = "guess", R = FALSE, H = TRUE, p = parallel::detectCores() -
+  1, h = FALSE, d = TRUE, keep_high_cov = FALSE,
+  high_cov_thres = 2, max_locus_stacks = 3, k_len = NULL,
+  max_gaps = 2, min_aln_len = 0.8, model_type = "snp",
+  alpha = 0.05, bound_low = 0, bound_high = 0.2,
   bc_err_freq = NULL)
 }
 \arguments{

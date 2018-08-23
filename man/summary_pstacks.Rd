@@ -4,8 +4,8 @@
 \alias{summary_pstacks}
 \title{Summarize STACKS pstacks files}
 \usage{
-summary_pstacks(pstacks.folder, parallel.core = parallel::detectCores() - 1,
-  verbose = FALSE)
+summary_pstacks(pstacks.folder, parallel.core = parallel::detectCores() -
+  1, verbose = FALSE)
 }
 \arguments{
 \item{pstacks.folder}{(character). The path to the pstacks output files.}
