@@ -5,7 +5,7 @@
 \title{Summarize STACKS ustacks files}
 \usage{
 summary_ustacks(ustacks.folder, parallel.core = parallel::detectCores() -
-  1, verbose = FALSE)
+  1, filename = NULL, verbose = FALSE)
 }
 \arguments{
 \item{ustacks.folder}{(character). The path to the ustacks output files.}
@@ -13,6 +13,10 @@ summary_ustacks(ustacks.folder, parallel.core = parallel::detectCores() -
 \item{parallel.core}{(integer, optional) The number of core used for parallel
 execution.
 Default: \code{parallel::detectCores() - 1}.}
+
+\item{filename}{(optional) The filename prefix for the file written
+in the working directory. Default: \code{filename = NULL}.
+A default name will be used.}
 
 \item{verbose}{(logical, optional) Make the function a little more chatty during
 execution.

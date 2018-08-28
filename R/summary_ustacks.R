@@ -19,6 +19,11 @@
 #' execution.
 #' Default: \code{parallel::detectCores() - 1}.
 
+#' @param filename (optional) The filename prefix for the file written
+#' in the working directory. Default: \code{filename = NULL}.
+#' A default name will be used.
+
+
 #' @param verbose (logical, optional) Make the function a little more chatty during
 #' execution.
 #' Default: \code{verbose = FALSE}.
@@ -131,6 +136,7 @@
 summary_ustacks <- function(
   ustacks.folder,
   parallel.core = parallel::detectCores() - 1,
+  filename = NULL,
   verbose = FALSE
   ) {
 
@@ -143,8 +149,19 @@ summary_ustacks <- function(
   if (verbose) cat("##################### stackr::summary_ustacks #########################\n")
   if (verbose) cat("#######################################################################\n")
   timing <- proc.time()
+  opt.change <- getOption("width")
+  options(width = 70)
 
   if (missing(ustacks.folder)) stop("ustacks.folder argument required")
+
+  # Filename -------------------------------------------------------------------
+  file.date <- format(Sys.time(), "%Y%m%d@%H%M")
+
+  if (is.null(filename)) {
+    filename <- stringi::stri_join("summary_ustacks_", file.date, ".tsv")
+  } else {
+    filename <- stringi::stri_join(filename, "summary_ustacks_", file.date, ".tsv")
+  }
 
   # alleles
   alleles.files <- list.files(
@@ -219,8 +236,6 @@ summary_ustacks <- function(
   }
 
   alleles.files <- tags.files <- NULL
-  opt.change <- getOption("width")
-  options(width = 70)
 
   summarise_ustacks <- function(sample.name, ustacks.folder) {
     # sample.name <- "Pc4_GTCACC"
@@ -349,10 +364,13 @@ summary_ustacks <- function(
       ustacks.folder = ustacks.folder)
   }
 
-  options(width = opt.change)
-
   mean.summary <- dplyr::summarise_if(.tbl = res, .predicate = is.numeric, .funs = mean)
   n.ind <- dplyr::n_distinct(res$INDIVIDUALS)
+
+  # Write to working directory
+  readr::write_tsv(x = res, path = filename)
+  message("File written: ", filename)
+
 
   if (n.ind > 1) {
     message("Number of individuals: ", n.ind)
@@ -378,6 +396,7 @@ summary_ustacks <- function(
     message("  locus with 4 or more SNPs (excluding artifactual locus): ", round(mean.summary$NUMBER_LOCUS_4SNP), "\n\n")
   }
   timing <- proc.time() - timing
+  options(width = opt.change)
   if (verbose) message("\nComputation time: ", round(timing[[3]]), " sec")
   if (verbose) cat("############################## completed ##############################\n")
   return(res)
