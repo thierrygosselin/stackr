@@ -10,7 +10,7 @@ run_gstacks(P = "06_ustacks_cstacks_sstacks",
   rm.unpaired.reads = FALSE, rm.pcr.duplicates = FALSE,
   t = parallel::detectCores() - 1, ignore.pe.reads = TRUE,
   model = "marukilow", var.alpha = 0.05, gt.alpha = 0.05,
-  kmer.length = 31, min.kmer.cov = 2, min.kmer.freq = 0.05,
+  kmer.length = 31, min.kmer.cov = 2, max.debruijn.reads = 1000,
   min.mapq = 10, max.clipped = 0.2, max.insert.len = 1000,
   details = TRUE, phasing.cooccurrences.thr.range = c(1, 2),
   phasing.dont.prune.hets = FALSE, h = FALSE)
@@ -91,9 +91,9 @@ Default: \code{kmer.length = 31}.}
 Minimum coverage to consider a kmer. For expert.
 Default: \code{min.kmer.cov = 2}.}
 
-\item{min.kmer.freq}{(double) Minimum frequency (in %reads) to consider a
-kmer. For expert.
-Default: \code{min.kmer.freq = 0.05}.}
+\item{max.debruijn.reads}{(integer) Maximum number of reads to use in the
+de Bruijn graph. For expert.
+Default: \code{max.debruijn.reads = 1000}.}
 
 \item{min.mapq}{(double) Reference-based mode.
 Minimum PHRED-scaled mapping quality to consider a read.

@@ -80,9 +80,9 @@
 #' @param min.kmer.cov (integer) De novo mode.
 #' Minimum coverage to consider a kmer. For expert.
 #' Default: \code{min.kmer.cov = 2}.
-#' @param min.kmer.freq (double) Minimum frequency (in %reads) to consider a
-#' kmer. For expert.
-#' Default: \code{min.kmer.freq = 0.05}.
+#' @param max.debruijn.reads (integer) Maximum number of reads to use in the
+#' de Bruijn graph. For expert.
+#' Default: \code{max.debruijn.reads = 1000}.
 
 
 #' @param min.mapq (double) Reference-based mode.
@@ -173,7 +173,7 @@ run_gstacks <- function(
   gt.alpha = 0.05,
   kmer.length = 31,
   min.kmer.cov = 2,
-  min.kmer.freq = 0.05,
+  max.debruijn.reads = 1000,
   min.mapq = 10,
   max.clipped = 0.20,
   max.insert.len = 1000,
@@ -304,7 +304,7 @@ run_gstacks <- function(
   # Expert options -------------------------------------------------------------
   kmer.length <- stringi::stri_join("--kmer-length ", kmer.length)
   min.kmer.cov <- stringi::stri_join("--min-kmer-cov ", min.kmer.cov)
-  min.kmer.freq <- stringi::stri_join("--min-kmer-freq ", min.kmer.freq)
+  max.debruijn.reads <- stringi::stri_join("--max-debruijn-reads ", max.debruijn.reads)
 
   min.mapq <- stringi::stri_join("--min-mapq ", min.mapq)
   max.clipped <- stringi::stri_join("--max-clipped ", max.clipped)
@@ -330,7 +330,7 @@ run_gstacks <- function(
     P, M,
     # b,
     I, B, O, unpaired, t, details, ignore.pe.reads, model, var.alpha, gt.alpha,
-    kmer.length, min.kmer.cov, min.kmer.freq, rm.unpaired.reads, rm.pcr.duplicates, min.mapq,
+    kmer.length, min.kmer.cov, max.debruijn.reads, rm.unpaired.reads, rm.pcr.duplicates, min.mapq,
     max.clipped, max.insert.len, phasing.cooccurrences.thr.range, phasing.dont.prune.hets, h)
 
   # run command ----------------------------------------------------------------

@@ -1,3 +1,7 @@
+# stackr v.2.0.7 2018-10-12
+
+* updated `run_gstacks` to work with stacks v.2.2
+
 # stackr v.2.0.6 2018-08-23
 
 * updated `summary_ustacks` to work with non-compressed files
