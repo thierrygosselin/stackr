@@ -56,7 +56,7 @@
 
 #' @param high_cov_thres (double) Highly-repetitive stacks threshold,
 #' in standard deviation units.
-#' Default: \code{high_cov_thres = 2.0}.
+#' Default: \code{high_cov_thres = 3.0}.
 
 
 #' @param max_locus_stacks Maximum number of stacks at a single de novo locus.
@@ -170,7 +170,7 @@ run_ustacks <- function(
   h = FALSE,
   d = TRUE,
   keep_high_cov = FALSE,
-  high_cov_thres = 2.0,
+  high_cov_thres = 3.0,
   max_locus_stacks = 3,
   k_len = NULL,
   max_gaps = 2,
@@ -216,7 +216,7 @@ run_ustacks <- function(
     h = FALSE,
     d = TRUE,
     keep_high_cov = FALSE,
-    high_cov_thres = 2.0,
+    high_cov_thres = 3.0,
     max_locus_stacks = 3,
     k_len = NULL,
     max_gaps = 2,
