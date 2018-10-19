@@ -9,7 +9,7 @@ Authors@R: c(
 Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: stackr: an R package to run stacks software pipeline.
 Depends:
-    R (>= 3.5.0)
+    R (>= 3.4.0)
 Imports:
     dplyr (>= 0.7.0),
     purrr,
