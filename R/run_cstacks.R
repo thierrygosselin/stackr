@@ -151,7 +151,7 @@ run_cstacks <- function(
   # Catalog editing ------------------------------------------------------------
 
   if (is.null(catalog.path)) { # no catalog path, searching in the input path...
-    old.catalog <- list.files(path = P, pattern = "batch_")
+    old.catalog <- list.files(path = P, pattern = "catalog")
     detect.rxstacks.lnls <- list.files(path = P, pattern = "rxstacks_lnls")
     if (length(detect.rxstacks.lnls) == 1) {
       old.catalog <- purrr::discard(.x = old.catalog, .p = old.catalog %in% detect.rxstacks.lnls)
@@ -178,18 +178,23 @@ run_cstacks <- function(
       catalog.path <- ""
     }
   } else {
-    old.catalog <- list.files(path = catalog.path, pattern = "batch_")
+    old.catalog <- list.files(path = catalog.path, pattern = "catalog")
     if (length(old.catalog) > 0 & length(old.catalog) == 3) {
       message("Found the catalog in the catalog path using files: ")
       message(stringi::stri_join(old.catalog, "\n"))
 
-      catalog.path <- stringi::stri_replace_all_fixed(
+
+      # catalog.path2 <- file.path(catalog.path, old.catalog[1])
+
+      catalog.path <- file.path(
+        catalog.path,
+        stringi::stri_replace_all_fixed(
         str = old.catalog[1],
-        pattern = ".catalog.alleles.tsv.gz",
+        pattern = ".alleles.tsv.gz",
         replacement = "",
         vectorize_all = FALSE
-      )
-      catalog.path <- stringi::stri_join(P, "/", catalog.path)
+      ))
+      # catalog.path <- stringi::stri_join(P, "/", catalog.path)
       catalog.path <- stringi::stri_join("--catalog ", shQuote(catalog.path))
     }
     if (length(old.catalog) > 0 & length(old.catalog) < 3) {
