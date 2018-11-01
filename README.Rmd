@@ -38,8 +38,8 @@ This is the development page of the **stackr**.
 
 **What's the difference with running stacks directly in the terminal?**
 
-Not much, tiny differences here and there
-that speed up my workflow in R, on my computer or on my cluster.
+Besides running stacks within R, not much, tiny differences here and there
+that speed up my RADseq workflow.
 
 **Who's it for?**
 It's currently developed with my own projects in mind and to 
