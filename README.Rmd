@@ -33,18 +33,20 @@ knitr::opts_chunk$set(
 
 # stackr: an R package to run stacks software pipeline
 
-This is the development page of the **stackr**, 
-if you want to help, see [contributions section](https://github.com/thierrygosselin/stackr#contributions)
-
-This new version of `stackr` refocus the package on running [stacks](http://catchenlab.life.illinois.edu/stacks/) sofware inside R. More on this very soon.
-
-The function for filtering, manipulating and visualizing RADseq data are now hosted in a new package:
-[radiator](https://github.com/thierrygosselin/radiator). Check it out!.
-
-This makes **stackr** and **radiator** simpler, and will make it easier to
-release fixes for bugs that only affect these packages.
+This is the development page of the **stackr**.
 
 
+**What's the difference with running stacks directly in the terminal?**
+
+Not much, tiny differences here and there (see function doc)
+that speed up my workflow in R on my computer or my cluster.
+
+**Who's it for?**
+It's currently developed with my own projects in mind and to 
+help collaborators to get the most out of stacks.
+
+It's not for R or stacks beginners. stacks related issues should be highlighted on [stacks google group](https://groups.google.com/forum/?fromgroups#!forum/stacks-users).
+If you want to help, see [contributions section](https://github.com/thierrygosselin/stackr#contributions)
 
 ## Installation
 To try out the dev version of **stackr**, copy/paste the code below:
