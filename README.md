@@ -11,11 +11,11 @@ This is the development page of the **stackr**.
 
 **What's the difference with running stacks directly in the terminal?**
 
-Not much, tiny differences here and there (see function doc) that speed up my workflow in R on my computer or my cluster.
+Not much, tiny differences here and there that speed up my workflow in R, on my computer or on my cluster.
 
 **Who's it for?** It's currently developed with my own projects in mind and to help collaborators to get the most out of stacks.
 
-It's not for R or stacks beginners. stacks related issues should be highlighted on [stacks google group](https://groups.google.com/forum/?fromgroups#!forum/stacks-users). If you want to help, see [contributions section](https://github.com/thierrygosselin/stackr#contributions)
+It's not for R or stacks beginners. stacks related issues should be highlighted on [stacks google group](https://groups.google.com/forum/?fromgroups#!forum/stacks-users). If you want to help, see [contributions section](https://github.com/thierrygosselin/stackr#contributions).
 
 Installation
 ------------
@@ -31,7 +31,6 @@ library(stackr)
 Prerequisite - Suggestions - Troubleshooting
 --------------------------------------------
 
--   **Parallel computing**: Follow the steps in this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_imputations_parallel.Rmd) to install [XGBoost](https://github.com/dmlc/xgboost) packages (e.g. to do imputations in parallel).
 -   **Installation problem:** see this [vignette](https://github.com/thierrygosselin/stackr/blob/master/vignettes/vignette_installation_problems.Rmd)
 -   **Windows users**: Install [Rtools](https://cran.r-project.org/bin/windows/Rtools/).
 -   For a better experience in **stackr** and in R in general, I recommend using [RStudio](https://www.rstudio.com/products/rstudio/download/). The R GUI is unstable with functions using parallel ([more info](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html)).
