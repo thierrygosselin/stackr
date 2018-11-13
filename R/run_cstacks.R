@@ -180,11 +180,8 @@ run_cstacks <- function(
   } else {
     old.catalog <- list.files(path = catalog.path, pattern = "catalog")
     if (length(old.catalog) > 0 & length(old.catalog) == 3) {
-      message("Found the catalog in the catalog path using files: ")
+      message("Existing catalog: yes")
       message(stringi::stri_join(old.catalog, "\n"))
-
-
-      # catalog.path2 <- file.path(catalog.path, old.catalog[1])
 
       catalog.path <- file.path(
         catalog.path,
@@ -194,7 +191,6 @@ run_cstacks <- function(
         replacement = "",
         vectorize_all = FALSE
       ))
-      # catalog.path <- stringi::stri_join(P, "/", catalog.path)
       catalog.path <- stringi::stri_join("--catalog ", shQuote(catalog.path))
     }
     if (length(old.catalog) > 0 & length(old.catalog) < 3) {
@@ -211,23 +207,10 @@ run_cstacks <- function(
   # cstacks options ------------------------------------------------------------
   P <- stringi::stri_join("-P ", P)
   M <- stringi::stri_join("-M ", M)
-
-  # if (g) {
-  #   g <- stringi::stri_join("-g ")
-  # } else {
-  #   g <- ""
-  # }
-
   n <- stringi::stri_join("-n ", n)
   p <- stringi::stri_join("-p ", p)
 
   # gapped assembly options ---------------------------------------------------
-  # if (gapped) {
-  #   gapped <- stringi::stri_join("--gapped ")
-  # } else {
-  #   gapped <- ""
-  # }
-
   max_gaps <- stringi::stri_join("--max_gaps ", max_gaps)
   min_aln_len <- stringi::stri_join("--min_aln_len ", min_aln_len)
 
@@ -238,13 +221,6 @@ run_cstacks <- function(
   }
 
   # Advanced options -----------------------------------------------------------
-
-  # if (m) {
-  #   m <- stringi::stri_join("-m ")
-  # } else {
-  #   m <- ""
-  # }
-
   if (is.null(k_len)) {
     k_len <- ""
   } else {
