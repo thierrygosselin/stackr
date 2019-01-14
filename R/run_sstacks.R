@@ -58,8 +58,8 @@
 #' @param h Display this help messsage.
 #' Default: \code{h = FALSE}
 
-#' @param disable_gapped Disable gapped alignments between stacks.
-#' Default: \code{disable_gapped = FALSE} (use gapped alignments).
+#' @param disable.gapped Disable gapped alignments between stacks.
+#' Default: \code{disable.gapped = FALSE} (use gapped alignments).
 
 #' @rdname run_sstacks
 #' @export
@@ -119,7 +119,7 @@ run_sstacks <- function(
   p = parallel::detectCores() - 1,
   o = "06_ustacks_cstacks_sstacks",
   x = FALSE,
-  disable_gapped = FALSE,
+  disable.gapped = FALSE,
   # lnl_dist = TRUE,
   v = FALSE,
   h = FALSE
@@ -181,10 +181,10 @@ run_sstacks <- function(
   }
 
   # Gapped assembly options ---------------------------------------------------
-  if (disable_gapped) {
-    disable_gapped <- stringi::stri_join("--disable_gapped ")
+  if (disable.gapped) {
+    disable.gapped <- stringi::stri_join("--disable-gapped ")
   } else {
-    disable_gapped <- ""
+    disable.gapped <- ""
   }
 
 
@@ -277,7 +277,7 @@ run_sstacks <- function(
   message(stringi::stri_join("For progress, look in the log file: ", log.file))
 
   # command --------------------------------------------------------------------
-  command.arguments <- c(P, M, s, c, p, o, x, disable_gapped, v, h)
+  command.arguments <- c(P, M, s, c, p, o, x, disable.gapped, v, h)
 
   # command
   system2(
