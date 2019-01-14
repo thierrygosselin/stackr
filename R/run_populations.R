@@ -33,21 +33,24 @@
 #' Default: \code{p = 1}.
 #' @param r (double) Minimum percentage of individuals in a population required to process a locus for that population.
 #' Default: \code{r = 0.3}.
+#' @param R (double) Minimum percentage of individuals across populations required to process a locus.
+#' Default: \code{r = 0.3}.
+#' @param H (logical) Apply the above filters haplotype wise
+#' (unshared SNPs will be pruned to reduce haplotype-wise missing data).
+#' Default: \code{H = TRUE}.
 
-#' @param min_maf (double) Specify a minimum minor allele frequency required to process a nucleotide site at a locus (0 < min_maf < 0.5).
-#' Default: \code{min_maf = NULL}. Recommendation: use my other R package RADIATOR to filter data based on MAF.
-#' @param min_mac (integer) Specify a minimum minor allele count required to process a nucleotide site at a locus.
-#' Default: \code{min_mac = NULL}.
+#' @param min.maf (double) Specify a minimum minor allele frequency required to process a nucleotide site at a locus (0 < min.maf < 0.5).
+#' Default: \code{min.maf = NULL}. Recommendation: use my other R package RADIATOR to filter data based on MAF.
+#' @param min.mac (integer) Specify a minimum minor allele count required to process a nucleotide site at a locus.
+#' Default: \code{min.mac = NULL}.
 
-#' @param max_obs_het (double) Specify a maximum observed heterozygosity required to process a nucleotide site at a locus.
-#' Default: \code{max_obs_het = NULL}.  Recommendation: use my other R package RADIATOR to filter data based on heterozygosity.
+#' @param max.obs.het (double) Specify a maximum observed heterozygosity required to process a nucleotide site at a locus.
+#' Default: \code{max.obs.het = NULL}.  Recommendation: use my other R package RADIATOR to filter data based on heterozygosity.
 
-#' @param lnl_lim (integer) Filter loci with log likelihood values below this threshold.
-#' Default: \code{lnl_lim = NULL}.
-#' @param write_single_snp (logical) Restrict data analysis to only the first SNP per locus (implies --no-haps).
-#' Default: \code{write_single_snp = FALSE}.
-#' @param write_random_snp (logical) Restrict data analysis to one random SNP per locus (implies --no-haps).
-#' Default: \code{write_random_snp = FALSE}.
+#' @param write.single.snp (logical) Restrict data analysis to only the first SNP per locus (implies --no-haps).
+#' Default: \code{write.single.snp = FALSE}.
+#' @param write.random.snp (logical) Restrict data analysis to one random SNP per locus (implies --no-haps).
+#' Default: \code{write.random.snp = FALSE}.
 #' @param B (character) Path to a file containing Blacklisted markers to be excluded from the export.
 #' Default: \code{B = NULL}.
 #' @param W (character) Path to a file containing Whitelisted markers to include in the export.
@@ -55,10 +58,10 @@
 
 #' @param e (character) Restriction enzyme name.
 #' Default: \code{e = NULL}.
-#' @param merge_sites (logical) Merge loci that were produced from the same restriction enzyme cutsite (requires reference-aligned data).
-#' Default: \code{merge_sites = FALSE}.
-#' @param merge_prune_lim (integer) When merging adjacent loci, if at least X% samples posses both loci prune the remaining samples out of the analysis.
-#' Default: \code{merge_prune_lim = NULL}.
+#' @param merge.sites (logical) Merge loci that were produced from the same restriction enzyme cutsite (requires reference-aligned data).
+#' Default: \code{merge.sites = FALSE}.
+#' @param merge.prune.lim (integer) When merging adjacent loci, if at least X% samples posses both loci prune the remaining samples out of the analysis.
+#' Default: \code{merge.prune.lim = NULL}.
 
 #' @param hwe (logical) Calculate divergence from Hardy-Weinberg equilibrium
 #' using the exact test at the SNP level and Guo and Thompson MCMC algorithm at
@@ -67,18 +70,18 @@
 
 #' @param fstats (logical) Enable SNP and haplotype-based F statistics.
 #' Default: \code{fstats = FALSE}.
-#' @param fst_correction (character) Specify a correction to be applied to Fst values: 'p_value', 'bonferroni_win', or 'bonferroni_gen'.
-#' Default: \code{fst_correction = NULL}.
-#' @param p_value_cutoff (double) maximum p-value to keep an Fst measurement.
+#' @param fst.correction (character) Specify a correction to be applied to Fst values: 'p_value', 'bonferroni_win', or 'bonferroni_gen'.
+#' Default: \code{fst.correction = NULL}.
+#' @param p.value.cutoff (double) maximum p-value to keep an Fst measurement.
 #' Also used as base for Bonferroni correction.
-#' Default: \code{p_value_cutoff = 0.05}.
+#' Default: \code{p.value.cutoff = 0.05}.
 
 #' @param k (logical) Enable kernel-smoothed Pi, Fis, Fst, Fst', and Phi_st calculations.
 #' Default: \code{k = FALSE}.
-#' @param smooth_fstats (logical) Enable kernel-smoothed Fst, Fst', and Phi_st calculations.
-#' Default: \code{smooth_fstats = FALSE}.
-#' @param smooth_popstats (logical) Enable kernel-smoothed Pi and Fis calculations.
-#' Default: \code{smooth_popstats = FALSE}.
+#' @param smooth.fstats (logical) Enable kernel-smoothed Fst, Fst', and Phi_st calculations.
+#' Default: \code{smooth.fstats = FALSE}.
+#' @param smooth.popstats (logical) Enable kernel-smoothed Pi and Fis calculations.
+#' Default: \code{smooth.popstats = FALSE}.
 
 #' @param sigma (integer) Standard deviation of the kernel smoothing weight distribution.
 #' Default: \code{sigma = 150000} (150kb).
@@ -86,26 +89,26 @@
 #' Default: \code{bootstrap = FALSE}.
 #' @param N (integer) Number of bootstrap resamplings to calculate.
 #' Default: \code{N = 100}.
-#' @param bootstrap_pifis (logical) Turn on boostrap resampling for smoothed SNP-based Pi and Fis calculations.
-#' Default: \code{bootstrap_pifis = FALSE}.
-#' @param bootstrap_fst (logical) Turn on boostrap resampling for smoothed Fst calculations based on pairwise population comparison of SNPs.
-#' Default: \code{bootstrap_fst = FALSE}.
-#' @param bootstrap_div (logical) Turn on boostrap resampling for smoothed haplotype diveristy and gene diversity calculations based on haplotypes.
-#' Default: \code{bootstrap_div = FALSE}.
-#' @param bootstrap_phist (logical) Turn on boostrap resampling for smoothed Phi_st calculations based on haplotypes.
-#' Default: \code{bootstrap_phist = FALSE}.
-#' @param bootstrap_wl (character) Path to a whitelist file. Only use bootstrap loci contained in this whitelist.
-#' Default: \code{bootstrap_wl = NULL}.
+#' @param bootstrap.pifis (logical) Turn on boostrap resampling for smoothed SNP-based Pi and Fis calculations.
+#' Default: \code{bootstrap.pifis = FALSE}.
+#' @param bootstrap.fst (logical) Turn on boostrap resampling for smoothed Fst calculations based on pairwise population comparison of SNPs.
+#' Default: \code{bootstrap.fst = FALSE}.
+#' @param bootstrap.div (logical) Turn on boostrap resampling for smoothed haplotype diveristy and gene diversity calculations based on haplotypes.
+#' Default: \code{bootstrap.div = FALSE}.
+#' @param bootstrap.phist (logical) Turn on boostrap resampling for smoothed Phi_st calculations based on haplotypes.
+#' Default: \code{bootstrap.phist = FALSE}.
+#' @param bootstrap.wl (character) Path to a whitelist file. Only use bootstrap loci contained in this whitelist.
+#' Default: \code{bootstrap.wl = NULL}.
 
 
-#' @param ordered_export (logical) If data is reference aligned, exports will be ordered; only a single representative of each overlapping site.
-#' Default: \code{ordered_export = FALSE}.
-#' @param fasta_loci (logical) Output consensus sequences of all loci, in FASTA format.
-#' Default: \code{fasta_loci = FALSE}.
-#' @param fasta_samples (logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
-#' Default: \code{fasta_samples = FALSE}.
-#' @param fasta_samples_raw (logical) Output all haplotypes observed in each sample, for each locus, in FASTA format.
-#' Default: \code{fasta_samples_raw = FALSE}.
+#' @param ordered.export (logical) If data is reference aligned, exports will be ordered; only a single representative of each overlapping site.
+#' Default: \code{ordered.export = FALSE}.
+#' @param fasta.loci (logical) Output consensus sequences of all loci, in FASTA format.
+#' Default: \code{fasta.loci = FALSE}.
+#' @param fasta.samples (logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
+#' Default: \code{fasta.samples = FALSE}.
+#' @param fasta.samples_raw (logical) Output all haplotypes observed in each sample, for each locus, in FASTA format.
+#' Default: \code{fasta.samples_raw = FALSE}.
 #' @param vcf  (logical) Output SNPs in Variant Call Format (VCF).
 #' Default: \code{vcf = TRUE}.
 #' @param genepop (logical) Output results in GenePop format.
@@ -120,22 +123,22 @@
 #' Default: \code{fastphase = FALSE}.
 # @param beagle (logical) Output genotypes in Beagle format.
 # Default: \code{beagle = FALSE}.
-# @param beagle_phased (logical) Output haplotypes in Beagle format.
-# Default: \code{beagle_phased = FALSE}.
+# @param beagle.phased (logical) Output haplotypes in Beagle format.
+# Default: \code{beagle.phased = FALSE}.
 #' @param plink (logical) Output genotypes in PLINK format.
 #' Default: \code{plink = FALSE}.
 #' @param hzar (logical) Output genotypes in Hybrid Zone Analysis using R (HZAR) format.
 #' Default: \code{hzar = FALSE}.
 #' @param phylip (logical) Output nucleotides that are fixed-within, and variant among populations in Phylip format for phylogenetic tree construction.
 #' Default: \code{phylip = FALSE}.
-#' @param phylip_var (logical) Include variable sites in the phylip output encoded using IUPAC notation.
-#' Default: \code{phylip_var = FALSE}.
-#' @param phylip_var_all (logical) Include all sequence as well as variable sites in the phylip output encoded using IUPAC notation.
-#' Default: \code{phylip_var_all = FALSE}.
+#' @param phylip.var (logical) Include variable sites in the phylip output encoded using IUPAC notation.
+#' Default: \code{phylip.var = FALSE}.
+#' @param phylip.var.all (logical) Include all sequence as well as variable sites in the phylip output encoded using IUPAC notation.
+#' Default: \code{phylip.var.all = FALSE}.
 #' @param treemix (logical) Output SNPs in a format useable for the TreeMix program (Pickrell and Pritchard).
 #' Default: \code{treemix = FALSE}.
-#' @param no_hap_exports (logical) Omit haplotype outputs.
-#' Default: \code{no_hap_exports = FALSE}.
+#' @param no.hap.exports (logical) Omit haplotype outputs.
+#' Default: \code{no.hap.exports = FALSE}.
 
 
 
@@ -147,8 +150,8 @@
 
 #' @param v print program version.
 #' Default: \code{v = FALSE}
-#' @param log_fst_comp (logical) Log components of Fst/Phi_st calculations to a file.
-#' Default: \code{log_fst_comp = FALSE}
+#' @param log.fst.comp (logical) Log components of Fst/Phi_st calculations to a file.
+#' Default: \code{log.fst.comp = FALSE}
 
 
 #' @rdname run_populations
@@ -196,36 +199,37 @@ run_populations <- function(
   # s = FALSE,
   p = 1,
   r = 0.3,
-  min_maf = NULL,
-  min_mac = NULL,
-  max_obs_het = NULL,
-  lnl_lim = NULL,
-  write_single_snp = FALSE,
-  write_random_snp = FALSE,
+  R = 0.3,
+  H = TRUE,
+  min.maf = NULL,
+  min.mac = NULL,
+  max.obs.het = NULL,
+  write.single.snp = FALSE,
+  write.random.snp = FALSE,
   B = NULL,
   W = NULL,
   e = NULL,
-  merge_sites = FALSE,
-  merge_prune_lim = NULL,
+  merge.sites = FALSE,
+  merge.prune.lim = NULL,
   hwe = FALSE,
   fstats = FALSE,
-  fst_correction = NULL,
-  p_value_cutoff = 0.05,
+  fst.correction = NULL,
+  p.value.cutoff = 0.05,
   k = FALSE,
-  smooth_fstats = FALSE,
-  smooth_popstats = FALSE,
+  smooth.fstats = FALSE,
+  smooth.popstats = FALSE,
   sigma = 150000,
   bootstrap = FALSE,
   N = 100,
-  bootstrap_pifis = FALSE,
-  bootstrap_fst = FALSE,
-  bootstrap_div = FALSE,
-  bootstrap_phist = FALSE,
-  bootstrap_wl = NULL,
-  ordered_export = FALSE,
-  fasta_samples = FALSE,
-  fasta_samples_raw = FALSE,
-  fasta_loci = FALSE,
+  bootstrap.pifis = FALSE,
+  bootstrap.fst = FALSE,
+  bootstrap.div = FALSE,
+  bootstrap.phist = FALSE,
+  bootstrap.wl = NULL,
+  ordered.export = FALSE,
+  fasta.samples = FALSE,
+  fasta.samples_raw = FALSE,
+  fasta.loci = FALSE,
   vcf = TRUE,
   genepop = FALSE,
   structure = FALSE,
@@ -233,18 +237,18 @@ run_populations <- function(
   phase = FALSE,
   fastphase = FALSE,
   #beagle = FALSE,
-  #beagle_phased = FALSE,
+  #beagle.phased = FALSE,
   plink = FALSE,
   hzar = FALSE,
   phylip = FALSE,
-  phylip_var = FALSE,
-  phylip_var_all = FALSE,
+  phylip.var = FALSE,
+  phylip.var.all = FALSE,
   treemix = FALSE,
-  no_hap_exports = FALSE,
+  no.hap.exports = FALSE,
   h = FALSE,
   verbose = FALSE,
   v = FALSE,
-  log_fst_comp = FALSE
+  log.fst.comp = FALSE
 ) {
 
   cat("#######################################################################\n")
@@ -299,23 +303,30 @@ run_populations <- function(
   # Data Filtering -------------------------------------------------------------
   p <- stringi::stri_join("-p ", p)
   r <- stringi::stri_join("-r ", r)
+  R <- stringi::stri_join("-R ", R)
 
-  if (is.null(min_maf)) {
-    min_maf <- ""
+  if (H) {
+    H <- "-H "
   } else {
-    min_maf <- stringi::stri_join("--min_maf ", min_maf)
+    H <- ""
   }
 
-  if (is.null(min_mac)) {
-    min_mac <- ""
+  if (is.null(min.maf)) {
+    min.maf <- ""
   } else {
-    min_mac <- stringi::stri_join("--min_mac ", min_mac)
+    min.maf <- stringi::stri_join("--min.maf ", min.maf)
   }
 
-  if (is.null(max_obs_het)) {
-    max_obs_het <- ""
+  if (is.null(min.mac)) {
+    min.mac <- ""
   } else {
-    max_obs_het <- stringi::stri_join("--max_obs_het ", max_obs_het)
+    min.mac <- stringi::stri_join("--min.mac ", min.mac)
+  }
+
+  if (is.null(max.obs.het)) {
+    max.obs.het <- ""
+  } else {
+    max.obs.het <- stringi::stri_join("--max.obs.het ", max.obs.het)
   }
 
   # if (is.null(m)) {
@@ -324,22 +335,17 @@ run_populations <- function(
   #   m <- stringi::stri_join("-m ", m)
   # }
 
-  if (is.null(lnl_lim)) {
-    lnl_lim <- ""
+
+  if (write.single.snp) {
+    write.single.snp <- "--write-single-snp "
   } else {
-    lnl_lim <- stringi::stri_join("--lnl_lim ", lnl_lim)
+    write.single.snp <- ""
   }
 
-  if (write_single_snp) {
-    write_single_snp <- "--write_single_snp "
+  if (write.random.snp) {
+    write.random.snp <- "--write-random-snp "
   } else {
-    write_single_snp <- ""
-  }
-
-  if (write_random_snp) {
-    write_random_snp <- "--write_random_snp "
-  } else {
-    write_random_snp <- ""
+    write.random.snp <- ""
   }
 
   if (is.null(B)) {
@@ -362,16 +368,16 @@ run_populations <- function(
     e <- stringi::stri_join("-e ", e)
   }
 
-  if (merge_sites) {
-    merge_sites <- "--merge_sites "
+  if (merge.sites) {
+    merge.sites <- "--merge-sites "
   } else {
-    merge_sites <- ""
+    merge.sites <- ""
   }
 
-  if (is.null(merge_prune_lim)) {
-    merge_prune_lim <- ""
+  if (is.null(merge.prune.lim)) {
+    merge.prune.lim <- ""
   } else {
-    merge_prune_lim <- stringi::stri_join("--merge_prune_lim ", merge_prune_lim)
+    merge.prune.lim <- stringi::stri_join("--merge-prune-lim ", merge.prune.lim)
   }
 
   # Locus stats ----------------------------------------------------------------
@@ -384,16 +390,16 @@ run_populations <- function(
   # Fstats ---------------------------------------------------------------------
   if (fstats) {
     fstats <- "--fstats "
-    if (is.null(fst_correction)) {
-      fst_correction <- ""
+    if (is.null(fst.correction)) {
+      fst.correction <- ""
     } else {
-      fst_correction <- stringi::stri_join("--fst_correction ", fst_correction)
+      fst.correction <- stringi::stri_join("--fst-correction ", fst.correction)
     }
-    p_value_cutoff <- stringi::stri_join("-p_value_cutoff ", p_value_cutoff)
+    p.value.cutoff <- stringi::stri_join("-p-value-cutoff ", p.value.cutoff)
   } else {
     fstats <- ""
-    fst_correction <- ""
-    p_value_cutoff <- ""
+    fst.correction <- ""
+    p.value.cutoff <- ""
   }
 
   # Kernel-smoothing algorithm -------------------------------------------------
@@ -405,20 +411,20 @@ run_populations <- function(
     k <- ""
   }
 
-  if (smooth_fstats) {
-    smooth_fstats <- TRUE
-    smooth_fstats <- "--smooth_fstats "
+  if (smooth.fstats) {
+    smooth.fstats <- TRUE
+    smooth.fstats <- "--smooth-fstats "
   } else {
-    smooth_fstats <- FALSE
-    smooth_fstats <- ""
+    smooth.fstats <- FALSE
+    smooth.fstats <- ""
   }
 
-  if (smooth_popstats) {
-    smooth_popstats <- TRUE
-    smooth_popstats <- "--smooth_popstats "
+  if (smooth.popstats) {
+    smooth.popstats <- TRUE
+    smooth.popstats <- "--smooth-popstats "
   } else {
-    smooth_popstats <- FALSE
-    smooth_popstats <- ""
+    smooth.popstats <- FALSE
+    smooth.popstats <- ""
   }
 
   if (kernel.smoothed) {
@@ -430,51 +436,51 @@ run_populations <- function(
     }
     N <- stringi::stri_join("-N ", N)
 
-    if (bootstrap_pifis) {
-      bootstrap_pifis <- "--bootstrap_pifis "
+    if (bootstrap.pifis) {
+      bootstrap.pifis <- "--bootstrap-pifis "
     } else {
-      bootstrap_pifis <- ""
+      bootstrap.pifis <- ""
     }
 
-    if (bootstrap_fst) {
-      bootstrap_fst <- "--bootstrap_fst "
+    if (bootstrap.fst) {
+      bootstrap.fst <- "--bootstrap-fst "
     } else {
-      bootstrap_fst <- ""
+      bootstrap.fst <- ""
     }
 
-    if (bootstrap_div) {
-      bootstrap_div <- "--bootstrap_div "
+    if (bootstrap.div) {
+      bootstrap.div <- "--bootstrap-div "
     } else {
-      bootstrap_div <- ""
+      bootstrap.div <- ""
     }
 
-    if (bootstrap_phist) {
-      bootstrap_phist <- "--bootstrap_phist "
+    if (bootstrap.phist) {
+      bootstrap.phist <- "--bootstrap-phist "
     } else {
-      bootstrap_phist <- ""
+      bootstrap.phist <- ""
     }
 
-    if (is.null(bootstrap_wl)) {
-      bootstrap_wl <- ""
+    if (is.null(bootstrap.wl)) {
+      bootstrap.wl <- ""
     } else {
-      bootstrap_wl <- stringi::stri_join("--bootstrap_wl ", bootstrap_wl)
+      bootstrap.wl <- stringi::stri_join("--bootstrap-wl ", bootstrap.wl)
     }
   } else {
     sigma <- ""
     bootstrap <- ""
     N <- ""
-    bootstrap_pifis <- ""
-    bootstrap_fst <- ""
-    bootstrap_div <- ""
-    bootstrap_phist <- ""
-    bootstrap_wl <- ""
+    bootstrap.pifis <- ""
+    bootstrap.fst <- ""
+    bootstrap.div <- ""
+    bootstrap.phist <- ""
+    bootstrap.wl <- ""
   }
 
   # File output options --------------------------------------------------------
-  if (ordered_export) {
-    ordered_export <- "--ordered_export "
+  if (ordered.export) {
+    ordered.export <- "--ordered-export "
   } else {
-    ordered_export <- ""
+    ordered.export <- ""
   }
 
   # if (genomic) {
@@ -483,22 +489,22 @@ run_populations <- function(
   #   genomic <- ""
   # }
 
-  if (fasta_samples) {
-    fasta_samples <- "--fasta_samples "
+  if (fasta.samples) {
+    fasta.samples <- "--fasta-samples "
   } else {
-    fasta_samples <- ""
+    fasta.samples <- ""
   }
 
-  if (fasta_samples_raw) {
-    fasta_samples_raw <- "--fasta_samples_raw "
+  if (fasta.samples_raw) {
+    fasta.samples_raw <- "--fasta-samples-raw "
   } else {
-    fasta_samples_raw <- ""
+    fasta.samples_raw <- ""
   }
 
-  if (fasta_loci) {
-    fasta_loci <- "--fasta_loci "
+  if (fasta.loci) {
+    fasta.loci <- "--fasta-loci "
   } else {
-    fasta_loci <- ""
+    fasta.loci <- ""
   }
 
   if (vcf) {
@@ -544,10 +550,10 @@ run_populations <- function(
   #   beagle <- ""
   # }
   #
-  # if (beagle_phased) {
-  #   beagle_phased <- "--beagle_phased "
+  # if (beagle.phased) {
+  #   beagle.phased <- "--beagle-phased "
   # } else {
-  #   beagle_phased <- ""
+  #   beagle.phased <- ""
   # }
 
   if (plink) {
@@ -570,16 +576,16 @@ run_populations <- function(
     phylip <- ""
   }
 
-  if (phylip_var) {
-    phylip_var <- "--phylip_var "
+  if (phylip.var) {
+    phylip.var <- "--phylip-var "
   } else {
-    phylip_var <- ""
+    phylip.var <- ""
   }
 
-  if (phylip_var_all) {
-    phylip_var_all <- "--phylip_var_all "
+  if (phylip.var.all) {
+    phylip.var.all <- "--phylip-var-all "
   } else {
-    phylip_var_all <- ""
+    phylip.var.all <- ""
   }
 
   if (treemix) {
@@ -588,10 +594,10 @@ run_populations <- function(
     treemix <- ""
   }
 
-  if (no_hap_exports) {
-    no_hap_exports <- "--no_hap_exports "
+  if (no.hap.exports) {
+    no.hap.exports <- "--no-hap-exports "
   } else {
-    no_hap_exports <- ""
+    no.hap.exports <- ""
   }
 
   # Additional options  --------------------------------------------------------
@@ -613,27 +619,27 @@ run_populations <- function(
     v <- ""
   }
 
-  if (log_fst_comp) {
-    log_fst_comp <- "--log_fst_comp "
+  if (log.fst.comp) {
+    log.fst.comp <- "--log-fst-comp "
   } else {
-    log_fst_comp <- ""
+    log.fst.comp <- ""
   }
 
 
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
-    P, V, O, M, t, batch_size, p, r, min_maf, min_mac, max_obs_het, lnl_lim, write_single_snp,
-    write_random_snp, B, W, e, merge_sites, merge_prune_lim, hwe, fstats, fst_correction,
-    p_value_cutoff, k, smooth_fstats, smooth_popstats, sigma, bootstrap, N, bootstrap_pifis, bootstrap_fst,
-    bootstrap_div, bootstrap_phist, bootstrap_wl, ordered_export,
-    fasta_samples, fasta_samples_raw, fasta_loci, vcf, genepop, structure,
+    P, V, O, M, t, batch_size, p, r, min.maf, min.mac, max.obs.het, write.single.snp,
+    write.random.snp, B, W, e, merge.sites, merge.prune.lim, hwe, fstats, fst.correction,
+    p.value.cutoff, k, smooth.fstats, smooth.popstats, sigma, bootstrap, N, bootstrap.pifis, bootstrap.fst,
+    bootstrap.div, bootstrap.phist, bootstrap.wl, ordered.export,
+    fasta.samples, fasta.samples_raw, fasta.loci, vcf, genepop, structure,
     radpainter, phase,
     fastphase,
-    # beagle, beagle_phased,
-    plink, hzar, phylip, phylip_var,
-    phylip_var_all, treemix,
-    no_hap_exports,
-    h, verbose, v, log_fst_comp
+    # beagle, beagle.phased,
+    plink, hzar, phylip, phylip.var,
+    phylip.var.all, treemix,
+    no.hap.exports,
+    h, verbose, v, log.fst.comp
   )
 
 
