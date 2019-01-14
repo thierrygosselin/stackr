@@ -51,41 +51,44 @@
 # Stack assembly options:
 #' @param d Enable the Deleveraging algorithm, used for resolving over merged tags.
 #' Default: \code{d = TRUE}.
-#' @param keep_high_cov Disable the algorithm that removes highly-repetitive stacks and nearby errors.
-#' Default: \code{keep_high_cov = FALSE}.
+#' @param keep.high.cov Disable the algorithm that removes highly-repetitive stacks and nearby errors.
+#' Default: \code{keep.high.cov = FALSE}.
 
-#' @param high_cov_thres (double) Highly-repetitive stacks threshold,
+#' @param high.cov.thres (double) Highly-repetitive stacks threshold,
 #' in standard deviation units.
-#' Default: \code{high_cov_thres = 3.0}.
+#' Default: \code{high.cov.thres = 3.0}.
 
 
-#' @param max_locus_stacks Maximum number of stacks at a single de novo locus.
-#' Default: \code{max_locus_stacks = 3}.
-#' @param k_len Specify k-mer size for matching between alleles and loci.
-#' Default: \code{k_len = NULL}.
+#' @param max.locus.stacks Maximum number of stacks at a single de novo locus.
+#' Default: \code{max.locus.stacks = 3}.
+#' @param k.len Specify k-mer size for matching between alleles and loci.
+#' Default: \code{k.len = NULL}.
 
 
 # Gapped assembly options:
-#' @param max_gaps Number of gaps allowed between stacks before merging.
-#' Default: \code{max_gaps = 2}.
-#' @param min_aln_len Minimum length of aligned sequence in a gapped alignment.
-#' Default: \code{min_aln_len = 0.8}.
+#' @param max.gaps Number of gaps allowed between stacks before merging.
+#' Default: \code{max.gaps = 2}.
+#' @param min.aln.len Minimum length of aligned sequence in a gapped alignment.
+#' Default: \code{min.aln.len = 0.8}.
+#' @param disable.gapped (logical) do not preform gapped alignments between stacks
+#' (default: gapped alignements enabled).
+#' Default: \code{disable.gapped = FALSE}.
 
 # Model options:
-#' @param model_type Either 'snp' (default), 'bounded', or 'fixed'.
-#' Default: \code{model_type = "snp"}.
+#' @param model.type Either 'snp' (default), 'bounded', or 'fixed'.
+#' Default: \code{model.type = "snp"}.
 #' @param alpha For the SNP or Bounded SNP model,
 #' Chi square significance level required to call
 #' a heterozygote or homozygote, either 0.1, 0.05.
 #' Default: \code{alpha = 0.05}.
-#' @param bound_low For the bounded SNP model, lower bound for epsilon,
+#' @param bound.low For the bounded SNP model, lower bound for epsilon,
 #' the error rate, between 0 and 1.0.
-#' Default: \code{bound_low = 0}.
-#' @param bound_high For the bounded SNP model, upper bound for epsilon,
+#' Default: \code{bound.low = 0}.
+#' @param bound.high For the bounded SNP model, upper bound for epsilon,
 #' the error rate, between 0 and 1.0.
-#' Default: \code{bound_high = 0.2}.
-#' @param bc_err_freq For the fixed model, specify the barcode error frequency, between 0 and 1.0.
-#' Default: \code{bc_err_freq = NULL}.
+#' Default: \code{bound.high = 0.2}.
+#' @param bc.err.freq For the fixed model, specify the barcode error frequency, between 0 and 1.0.
+#' Default: \code{bc.err.freq = NULL}.
 
 # @param transfer.s3 (todo) When working on Amazon CLOUD and S3.
 # Default: \code{transfer.s3 = FALSE}.
@@ -169,17 +172,18 @@ run_ustacks <- function(
   p = parallel::detectCores() - 1,
   h = FALSE,
   d = TRUE,
-  keep_high_cov = FALSE,
-  high_cov_thres = 3.0,
-  max_locus_stacks = 3,
-  k_len = NULL,
-  max_gaps = 2,
-  min_aln_len = 0.8,
-  model_type = "snp",
+  keep.high.cov = FALSE,
+  high.cov.thres = 3.0,
+  max.locus.stacks = 3,
+  k.len = NULL,
+  max.gaps = 2,
+  min.aln.len = 0.8,
+  disable.gapped = FALSE,
+  model.type = "snp",
   alpha = 0.05,
-  bound_low = 0,
-  bound_high = 0.2,
-  bc_err_freq = NULL
+  bound.low = 0,
+  bound.high = 0.2,
+  bc.err.freq = NULL
   # transfer.s3 = FALSE,
   # from.folder = NULL,
   # destination.folder = NULL
@@ -215,17 +219,18 @@ run_ustacks <- function(
     p = parallel::detectCores() - 1,
     h = FALSE,
     d = TRUE,
-    keep_high_cov = FALSE,
-    high_cov_thres = 3.0,
-    max_locus_stacks = 3,
-    k_len = NULL,
-    max_gaps = 2,
-    min_aln_len = 0.8,
-    model_type = "snp",
+    keep.high.cov = FALSE,
+    high.cov.thres = 3.0,
+    max.locus.stacks = 3,
+    k.len = NULL,
+    max.gaps = 2,
+    min.aln.len = 0.8,
+    disable.gapped = FALSE,
+    model.type = "snp",
     alpha = 0.05,
-    bound_low = 0,
-    bound_high = 0.2,
-    bc_err_freq = NULL
+    bound.low = 0,
+    bound.high = 0.2,
+    bc.err.freq = NULL
     # transfer.s3 = FALSE,
     # from.folder = NULL,
     # destination.folder = NULL
@@ -340,21 +345,21 @@ run_ustacks <- function(
       d <- ""
     }
 
-    if (keep_high_cov) {
-      keep_high_cov <- stringi::stri_join("--keep_high_cov ")
+    if (keep.high.cov) {
+      keep.high.cov <- stringi::stri_join("--keep-high-cov ")
     } else {
-      keep_high_cov <- ""
+      keep.high.cov <- ""
     }
 
-    high_cov_thres <- stringi::stri_join("--high_cov_thres ", high_cov_thres)
+    high.cov.thres <- stringi::stri_join("--high-cov-thres ", high.cov.thres)
 
 
-    max_locus_stacks <- stringi::stri_join("--max_locus_stacks ", max_locus_stacks)
+    max.locus.stacks <- stringi::stri_join("--max-locus-stacks ", max.locus.stacks)
 
-    if (is.null(k_len)) {
-      k_len <- ""
+    if (is.null(k.len)) {
+      k.len <- ""
     } else {
-      k_len <- stringi::stri_join("--k_len ", k_len)
+      k.len <- stringi::stri_join("--k-len ", k.len)
     }
 
     # gapped assembly options ---------------------------------------------------
@@ -363,36 +368,44 @@ run_ustacks <- function(
     # between putative alleles.
 
     # number of gaps allowed between stacks before merging (stacks default: 2)
-    max_gaps <- stringi::stri_join("--max_gaps ", max_gaps)
+    max.gaps <- stringi::stri_join("--max-gaps ", max.gaps)
     # minimum length of aligned sequence in a gapped alignment (default: 0.80)
-    min_aln_len <- stringi::stri_join("--min_aln_len ", min_aln_len)
+    min.aln.len <- stringi::stri_join("--min-aln-len ", min.aln.len)
+
+    if (disable.gapped) {
+      disable.gapped <- "--disable-gapped "
+    } else {
+      disable.gapped <- ""
+    }
+
+
 
     # Model options --------------------------------------------------------------
     alpha <- stringi::stri_join("--alpha ", alpha)
 
-    if (model_type == "bounded") {
-      bound_low <- stringi::stri_join("--bound_low ", bound_low)
-      bound_high <- stringi::stri_join("--bound_high ", bound_high)
+    if (model.type == "bounded") {
+      bound.low <- stringi::stri_join("--bound-low ", bound.low)
+      bound.high <- stringi::stri_join("--bound-high ", bound.high)
     } else {
-      bound_low <- ""
-      bound_high <- ""
+      bound.low <- ""
+      bound.high <- ""
     }
 
-    if (model_type == "fixed") {
-      bc_err_freq <- stringi::stri_join("--bc_err_freq ", bc_err_freq)
+    if (model.type == "fixed") {
+      bc.err.freq <- stringi::stri_join("--bc-err-freq ", bc.err.freq)
     } else {
-      bc_err_freq <- ""
+      bc.err.freq <- ""
     }
 
-    model_type <- stringi::stri_join("--model_type ", model_type)
+    model.type <- stringi::stri_join("--model-type ", model.type)
 
 
     # command args
     command.arguments <- paste(
       f, i, o, M, m, N, p, t, R, H, h,
-      d, keep_high_cov, high_cov_thres, max_locus_stacks, k_len,
-      max_gaps, min_aln_len,
-      model_type, alpha, bound_low, bound_high, bc_err_freq
+      d, keep.high.cov, high.cov.thres, max.locus.stacks, k.len,
+      max.gaps, min.aln.len, disable.gapped,
+      model.type, alpha, bound.low, bound.high, bc.err.freq
     )
 
 
@@ -511,7 +524,7 @@ run_ustacks <- function(
       .l = list(
         M = M,
         N = N,
-        max_gaps = max_gaps,
+        max.gaps = max.gaps,
         o = purrr::map(.x = M, mismatch_dir, o = o)
       ),
       .f = run_ustacks_one_sample,
@@ -529,15 +542,16 @@ run_ustacks <- function(
       p = p,
       h = h,
       d = d,
-      keep_high_cov = keep_high_cov,
-      max_locus_stacks = max_locus_stacks,
-      k_len = k_len,
-      min_aln_len = min_aln_len,
-      model_type = model_type,
+      keep.high.cov = keep.high.cov,
+      max.locus.stacks = max.locus.stacks,
+      k.len = k.len,
+      min.aln.len = min.aln.len,
+      disable.gapped = disable.gapped,
+      model.type = model.type,
       alpha = alpha,
-      bound_low = bound_low,
-      bound_high = bound_high,
-      bc_err_freq = bc_err_freq
+      bound.low = bound.low,
+      bound.high = bound.high,
+      bc.err.freq = bc.err.freq
     )
 
     # summaries the info
@@ -601,17 +615,18 @@ run_ustacks <- function(
       p = p,
       h = h,
       d = d,
-      keep_high_cov = keep_high_cov,
-      high_cov_thres =high_cov_thres,
-      max_locus_stacks = max_locus_stacks,
-      k_len = k_len,
-      max_gaps = max_gaps,
-      min_aln_len = min_aln_len,
-      model_type = model_type,
+      keep.high.cov = keep.high.cov,
+      high.cov.thres =high.cov.thres,
+      max.locus.stacks = max.locus.stacks,
+      k.len = k.len,
+      max.gaps = max.gaps,
+      min.aln.len = min.aln.len,
+      disable.gapped = disable.gapped,
+      model.type = model.type,
       alpha = alpha,
-      bound_low = bound_low,
-      bound_high = bound_high,
-      bc_err_freq = bc_err_freq
+      bound.low = bound.low,
+      bound.high = bound.high,
+      bc.err.freq = bc.err.freq
     )
     res$project.info <- project.info
 
