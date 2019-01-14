@@ -582,7 +582,7 @@ run_process_radtags <- function(
     }
 
     # Protocol-specific options:
-    --bestrad: library was generated using BestRAD, check for restriction enzyme on either read and potentially tranpose reads.
+    # --bestrad: library was generated using BestRAD, check for restriction enzyme on either read and potentially tranpose reads.
     if (bestrad) {
       bestrad <- "--bestrad "
     } else {
