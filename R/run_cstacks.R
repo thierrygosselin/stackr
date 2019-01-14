@@ -41,24 +41,24 @@
 #' batch_1.catalog.snps.tsv.gz,
 #' batch_1.catalog.tags.tsv.gz}
 
-#' @param max_gaps The number of gaps allowed between stacks before merging.
-#' Default: \code{max_gaps = 2}
+#' @param max.gaps The number of gaps allowed between stacks before merging.
+#' Default: \code{max.gaps = 2}
 
-#' @param min_aln_len The minimum length of aligned sequence in a gapped
+#' @param min.aln.len The minimum length of aligned sequence in a gapped
 #' alignment.
-#' Default: \code{min_aln_len = 0.8}
+#' Default: \code{min.aln.len = 0.8}
 
-#' @param disable_gapped Disable gapped alignments between stacks.
-#' Default: \code{disable_gapped = FALSE} (use gapped alignments).
+#' @param disable.gapped Disable gapped alignments between stacks.
+#' Default: \code{disable.gapped = FALSE} (use gapped alignments).
 
-#' @param k_len Specify k-mer size for matching between between catalog loci
+#' @param k.len Specify k-mer size for matching between between catalog loci
 #' (automatically calculated by default).
 #' Advice: don't modify.
-#' Default: \code{k_len = NULL}
+#' Default: \code{k.len = NULL}
 
-#' @param report_mmatches Report query loci that match more than one catalog locus.
+#' @param report.mmatches Report query loci that match more than one catalog locus.
 #' Advice: don't modify.
-#' Default: \code{report_mmatches = FALSE}
+#' Default: \code{report.mmatches = FALSE}
 
 #' @param h Display this help messsage.
 #' Default: \code{h = FALSE}
@@ -111,8 +111,8 @@
 #' n = 1,
 #' p = 32,
 #' h = FALSE,
-#' max_gaps = 2, min_aln_len = 0.8,
-#' k_len = NULL, report_mmatches = FALSE
+#' max.gaps = 2, min.aln.len = 0.8,
+#' k.len = NULL, report.mmatches = FALSE
 #' )
 #' }
 
@@ -132,8 +132,8 @@ run_cstacks <- function(
   n = 1,
   p = parallel::detectCores() - 1,
   catalog.path = NULL,
-  max_gaps = 2, min_aln_len = 0.8, disable_gapped = FALSE,
-  k_len = NULL, report_mmatches = FALSE,
+  max.gaps = 2, min.aln.len = 0.8, disable.gapped = FALSE,
+  k.len = NULL, report.mmatches = FALSE,
   h = FALSE
   # , transfer.s3 = FALSE,
   # from.folder = NULL, destination.folder = NULL,
@@ -211,26 +211,26 @@ run_cstacks <- function(
   p <- stringi::stri_join("-p ", p)
 
   # gapped assembly options ---------------------------------------------------
-  max_gaps <- stringi::stri_join("--max_gaps ", max_gaps)
-  min_aln_len <- stringi::stri_join("--min_aln_len ", min_aln_len)
+  max.gaps <- stringi::stri_join("--max-gaps ", max.gaps)
+  min.aln.len <- stringi::stri_join("--min-aln-len ", min.aln.len)
 
-  if (disable_gapped) {
-    disable_gapped <- stringi::stri_join("--disable_gapped ")
+  if (disable.gapped) {
+    disable.gapped <- stringi::stri_join("--disable-gapped ")
   } else {
-    disable_gapped <- ""
+    disable.gapped <- ""
   }
 
   # Advanced options -----------------------------------------------------------
-  if (is.null(k_len)) {
-    k_len <- ""
+  if (is.null(k.len)) {
+    k.len <- ""
   } else {
-    k_len <- stringi::stri_join("--k_len ", k_len)
+    k.len <- stringi::stri_join("--k-len ", k.len)
   }
 
-  if (report_mmatches) {
-    report_mmatches <- stringi::stri_join("--report_mmatches ")
+  if (report.mmatches) {
+    report.mmatches <- stringi::stri_join("--report-mmatches ")
   } else {
-    report_mmatches <- ""
+    report.mmatches <- ""
   }
 
   # Help  ------------------------------------------------------------------------
@@ -251,8 +251,8 @@ run_cstacks <- function(
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
     P, M, n, p, catalog.path,
-    max_gaps, disable_gapped, min_aln_len,
-    k_len, report_mmatches, h
+    max.gaps, disable.gapped, min.aln.len,
+    k.len, report.mmatches, h
   )
 
   # command
