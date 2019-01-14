@@ -69,7 +69,7 @@
 #' See ref for more details on algorithms.
 #' Default: \code{model = "marukilow"}.
 #' @param var.alpha (double) Alpha threshold for discovering SNPs.
-#' Default: \code{var.alpha = 0.05}.
+#' Default: \code{var.alpha = 0.01}.
 #' @param gt.alpha (double) Alpha threshold for calling genotypes.
 #' Default: \code{gt.alpha = 0.05}.
 
@@ -169,7 +169,7 @@ run_gstacks <- function(
   t = parallel::detectCores() - 1,
   ignore.pe.reads = TRUE,
   model = "marukilow",
-  var.alpha = 0.05,
+  var.alpha = 0.01,
   gt.alpha = 0.05,
   kmer.length = 31,
   min.kmer.cov = 2,
