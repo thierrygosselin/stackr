@@ -83,7 +83,8 @@
 #' @param max.debruijn.reads (integer) Maximum number of reads to use in the
 #' de Bruijn graph. For expert.
 #' Default: \code{max.debruijn.reads = 1000}.
-
+#' @param write.alignments (logical) Save read alignments (heavy BAM files).
+#' Default: \code{write.alignments = FALSE}.
 
 #' @param min.mapq (double) Reference-based mode.
 #' Minimum PHRED-scaled mapping quality to consider a read.
@@ -174,6 +175,7 @@ run_gstacks <- function(
   kmer.length = 31,
   min.kmer.cov = 2,
   max.debruijn.reads = 1000,
+  write.alignments = FALSE,
   min.mapq = 10,
   max.clipped = 0.20,
   max.insert.len = 1000,
@@ -306,6 +308,12 @@ run_gstacks <- function(
   min.kmer.cov <- stringi::stri_join("--min-kmer-cov ", min.kmer.cov)
   max.debruijn.reads <- stringi::stri_join("--max-debruijn-reads ", max.debruijn.reads)
 
+  if (write.alignments) {
+    write.alignments <- "--write-alignments "
+  } else {
+    write.alignments <- ""
+  }
+
   min.mapq <- stringi::stri_join("--min-mapq ", min.mapq)
   max.clipped <- stringi::stri_join("--max-clipped ", max.clipped)
   max.insert.len <- stringi::stri_join("--max-insert-len ", max.insert.len)
@@ -330,7 +338,7 @@ run_gstacks <- function(
     P, M,
     # b,
     I, B, O, unpaired, t, details, ignore.pe.reads, model, var.alpha, gt.alpha,
-    kmer.length, min.kmer.cov, max.debruijn.reads, rm.unpaired.reads, rm.pcr.duplicates, min.mapq,
+    kmer.length, min.kmer.cov, max.debruijn.reads, write.alignments, rm.unpaired.reads, rm.pcr.duplicates, min.mapq,
     max.clipped, max.insert.len, phasing.cooccurrences.thr.range, phasing.dont.prune.hets, h)
 
   # run command ----------------------------------------------------------------
