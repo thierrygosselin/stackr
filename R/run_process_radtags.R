@@ -13,18 +13,28 @@
 #' processing single-end sequences.
 #' Same as \code{f} in STACKS command line.
 #' Default: \code{path.seq.lanes = "03_sequencing_lanes"}.
+
+#' @param P (logical) files contained within the directory are paired.
+#' Default: \code{P = FALSE}.
+
+#' @param I (logical) specify that the paired-end reads are interleaved in
+#' single files.
+#' Default: \code{I = FALSE}.
+
 #' @param i (character) Input file type, either \code{"fastq"}, \code{"gzfastq"},
 #' \code{"bam"}, or \code{bustard}. Default: \code{i = "guess"}.
 #' @param o (character, path) Path to output the processed files.
 #' Default:\code{o = "04_process_radtags"}.
 #' @param y (character) Output file type: \code{"fastq"}, \code{"gzfastq"},
 #' \code{"fasta"}, or \code{gzfasta}. Default: \code{y = "guess"} (match input type).
-#' @param first.pe.input (character, path) First input file in a set of
-#' paired-end sequences. Default:\code{first.pe.input = NULL}.
-#' @param second.pe.input (character, path) Second input file in a set of
-#' paired-end sequences. Default:\code{second.pe.input = NULL}.
-
-
+#' @param pe.1 (character, path) First input file in a set of
+#' paired-end sequences.
+#' In stacks it's the argument \code{1}.
+#' Default:\code{pe.1 = NULL}.
+#' @param pe.2 (character, path) Second input file in a set of
+#' paired-end sequences.
+#' In stacks it's the argument \code{2}.
+#' Default:\code{pe.2 = NULL}.
 
 #' @param c (logical) Clean data, remove any read with an uncalled base.
 #' Default:\code{c = TRUE}.
@@ -38,6 +48,7 @@
 
 #' @param D (logical) Capture discarded reads to a file.
 #' Default:\code{D = FALSE}.
+
 #' @param E (character) Specify how quality scores are encoded,
 #' \code{"phred33"} for Illumina 1.8+/Sanger or \code{"phred64"} for Illumina 1.3-1.5.
 #' Default:\code{E = "phred33"}.
@@ -52,28 +63,28 @@
 #' Default:\code{s = 10}.
 
 
-#' @param barcode_inline_null (logical) Barcode is inline with sequence,
+#' @param barcode.inline.null (logical) Barcode is inline with sequence,
 #' occurs only on single-end read.
-#' Default:\code{barcode_inline_null = TRUE}.
-#' @param barcode_index_null Barcode is provided in FASTQ header
+#' Default:\code{barcode.inline.null = TRUE}.
+#' @param barcode.index.null Barcode is provided in FASTQ header
 #' (Illumina i5 or i7 read).
-#' Default:\code{barcode_index_null = FALSE}.
-#' @param barcode_null_index Barcode is provded in FASTQ header
+#' Default:\code{barcode.index.null = FALSE}.
+#' @param barcode.null.index Barcode is provded in FASTQ header
 #' (Illumina i7 read if both i5 and i7 read are provided).
-#' Default:\code{barcode_null_index = FALSE}.
-#' @param barcode_inline_inline Barcode is inline with sequence,
+#' Default:\code{barcode.null.index = FALSE}.
+#' @param barcode.inline.inline Barcode is inline with sequence,
 #' occurs on single and paired-end read.
-#' Default:\code{barcode_inline_inline = FALSE}.
-#' @param barcode_index_index Barcode is provded in FASTQ header
+#' Default:\code{barcode.inline.inline = FALSE}.
+#' @param barcode.index.index Barcode is provded in FASTQ header
 #' (Illumina i5 and i7 reads).
-#' Default:\code{barcode_index_index = FALSE}.
-#' @param barcode_inline_index Barcode is inline with sequence on single-end
+#' Default:\code{barcode.index.index = FALSE}.
+#' @param barcode.inline.index Barcode is inline with sequence on single-end
 #' read and occurs in FASTQ header (from either i5 or i7 read).
-#' Default:\code{barcode_inline_index = FALSE}.
-#' @param barcode_index_inline Barcode occurs in FASTQ header
+#' Default:\code{barcode.inline.index = FALSE}.
+#' @param barcode.index.inline Barcode occurs in FASTQ header
 #' (Illumina i5 or i7 read) and is inline with single-end sequence
 #' (for single-end data) on paired-end read (for paired-end data).
-#' Default:\code{barcode_index_inline = FALSE}.
+#' Default:\code{barcode.index.inline = FALSE}.
 
 #' @param enzyme (character) Provide the restriction enzyme used
 #' (cut site occurs on single-end read).
@@ -91,35 +102,40 @@
 #' \code{"pstI"}, \code{"rsaI"}, \code{"sacI"}, \code{"sau3AI"}, \code{"sbfI"},
 #' \code{"sexAI"}, \code{"sgrAI"}, \code{"speI"}, \code{"sphI"}, \code{"taqI"},
 #' \code{"xbaI"} or \code{"xhoI"}.
-#' @param renz_1 (character) When a double digest was used,
+#' @param renz.1 (character) When a double digest was used,
 #' provide the first restriction enzyme used.
-#' @param renz_2 (character) When a double digest was used,
+#' @param renz.2 (character) When a double digest was used,
 #' provide the second restriction enzyme used (cut site occurs on the paired-end read).
-#' @param adapter_1 (character) Provide adaptor sequence that may occur on the
+
+#' @param bestrad (logical) library was generated using BestRAD,
+#' check for restriction enzyme on either read and potentially tranpose reads.
+#' Default: \code{bestrad = FALSE}.
+
+#' @param adapter.1 (character) Provide adaptor sequence that may occur on the
 #' single-end read for filtering.
-#' @param adapter_2 (character) Provide adaptor sequence that may occur on the
+#' @param adapter.2 (character) Provide adaptor sequence that may occur on the
 #' paired-read for filtering.
-#' @param adapter_mm (integer) Number of mismatches allowed in the adapter sequence.
-#' @param retain_header (logical) Retain unmodified FASTQ headers in the output.
-#' Default: \code{retain_header = FALSE}.
+#' @param adapter.mm (integer) Number of mismatches allowed in the adapter sequence.
+#' @param retain.header (logical) Retain unmodified FASTQ headers in the output.
+#' Default: \code{retain.header = FALSE}.
 #' @param merge (logical) If no barcodes are specified,
 #' merge all input files into a single output file.
 #' Default: \code{merge = FALSE}.
-#' @param filter_illumina (logical) Discard reads that have been marked by
+#' @param filter.illumina (logical) Discard reads that have been marked by
 #' Illumina's chastity/purity filter as failing.
-#' Default: \code{filter_illumina = TRUE}.
-#' @param disable_rad_check (logical) Disable checking if the RAD site is intact.
-#' Default: \code{disable_rad_check = FALSE}.
+#' Default: \code{filter.illumina = TRUE}.
+#' @param disable.rad.check (logical) Disable checking if the RAD site is intact.
+#' Default: \code{disable.rad.check = FALSE}.
 
-#' @param len_limit (integer) Specify a minimum sequence length
+#' @param len.limit (integer) Specify a minimum sequence length
 #' (useful if your data has already been trimmed).
-#' Default: \code{len_limit = NULL}.
-#' @param barcode_dist_1 (integer) The number of allowed mismatches when
+#' Default: \code{len.limit = NULL}.
+#' @param barcode.dist.1 (integer) The number of allowed mismatches when
 #' rescuing single-end barcodes.
-#' Default: \code{barcode_dist_1 = 1}.
-#' @param barcode_dist_2 (integer) The number of allowed mismatches when
+#' Default: \code{barcode.dist.1 = 1}.
+#' @param barcode.dist.2 (integer) The number of allowed mismatches when
 #' rescuing paired-end barcodes.
-#' Default: \code{barcode_dist_2 = NULL} (will default to barcode_dist_1).
+#' Default: \code{barcode.dist.2 = NULL} (will default to barcode.dist.1).
 
 #' @param parallel.core (optional) The number of core for parallel
 #' programming.
@@ -197,8 +213,8 @@
 #' process.radtags.tuna <- stackr::run_process_radtags(
 #' project.info = "02_project_info/project.info.tuna.tsv",
 #' path.seq.lanes = "03_sequencing_lanes",
-#' renz_1 = "pstI", renz_2 = "mspI",
-#' adapter_1 = "CGAGATCGGAAGAGCGGG", adapter_mm = 2)
+#' renz.1 = "pstI", renz.2 = "mspI",
+#' adapter.1 = "CGAGATCGGAAGAGCGGG", adapter.mm = 2)
 #' # remaining arguments are defaults, so carefully look at them in the doc.
 #' }
 
@@ -217,11 +233,13 @@
 run_process_radtags <- function(
   project.info,
   path.seq.lanes = "03_sequencing_lanes",
+  P = FALSE,
+  I = FALSE,
   i = "guess",
   o = "04_process_radtags",
   y = "guess",
-  first.pe.input = NULL,
-  second.pe.input = NULL,
+  pe.1 = NULL,
+  pe.2 = NULL,
   c = TRUE,
   q = TRUE,
   r = TRUE,
@@ -230,26 +248,27 @@ run_process_radtags <- function(
   E = "phred33",
   w = 0.15,
   s = 10,
-  barcode_inline_null = TRUE,
-  barcode_index_null = FALSE,
-  barcode_null_index = FALSE,
-  barcode_inline_inline = FALSE,
-  barcode_index_index = FALSE,
-  barcode_inline_index = FALSE,
-  barcode_index_inline = FALSE,
+  barcode.inline.null = TRUE,
+  barcode.index.null = FALSE,
+  barcode.null.index = FALSE,
+  barcode.inline.inline = FALSE,
+  barcode.index.index = FALSE,
+  barcode.inline.index = FALSE,
+  barcode.index.inline = FALSE,
   enzyme = NULL,
-  renz_1 = NULL,
-  renz_2 = NULL,
-  adapter_1 = NULL,
-  adapter_2 = NULL,
-  adapter_mm = NULL,
-  retain_header = FALSE,
+  renz.1 = NULL,
+  renz.2 = NULL,
+  bestrad = FALSE,
+  adapter.1 = NULL,
+  adapter.2 = NULL,
+  adapter.mm = NULL,
+  retain.header = FALSE,
   merge = FALSE,
-  filter_illumina = TRUE,
-  disable_rad_check = FALSE,
-  len_limit = NULL,
-  barcode_dist_1 = 1,
-  barcode_dist_2 = NULL,
+  filter.illumina = TRUE,
+  disable.rad.check = FALSE,
+  len.limit = NULL,
+  barcode.dist.1 = 1,
+  barcode.dist.2 = NULL,
   parallel.core = parallel::detectCores() - 1
 ) {
   cat("#######################################################################\n")
@@ -344,11 +363,13 @@ run_process_radtags <- function(
     lane.list,
     project.info.file = project.info.file,
     path.seq.lanes = "03_sequencing_lanes",
+    P = FALSE,
+    I = FALSE,
     i = "guess",
     o = "04_process_radtags",
     y = "guess",
-    first.pe.input = NULL,
-    second.pe.input = NULL,
+    pe.1 = NULL,
+    pe.2 = NULL,
     c = TRUE,
     q = TRUE,
     r = TRUE,
@@ -357,26 +378,27 @@ run_process_radtags <- function(
     E = "phred33",
     w = 0.15,
     s = 10,
-    barcode_inline_null = TRUE,
-    barcode_index_null = FALSE,
-    barcode_null_index = FALSE,
-    barcode_inline_inline = FALSE,
-    barcode_index_index = FALSE,
-    barcode_inline_index = FALSE,
-    barcode_index_inline = FALSE,
+    barcode.inline.null = TRUE,
+    barcode.index.null = FALSE,
+    barcode.null.index = FALSE,
+    barcode.inline.inline = FALSE,
+    barcode.index.index = FALSE,
+    barcode.inline.index = FALSE,
+    barcode.index.inline = FALSE,
     enzyme = NULL,
-    renz_1 = NULL,
-    renz_2 = NULL,
-    adapter_1 = NULL,
-    adapter_2 = NULL,
-    adapter_mm = NULL,
-    retain_header = FALSE,
+    renz.1 = NULL,
+    renz.2 = NULL,
+    bestrad = FALSE,
+    adapter.1 = NULL,
+    adapter.2 = NULL,
+    adapter.mm = NULL,
+    retain.header = FALSE,
     merge = FALSE,
-    filter_illumina = TRUE,
-    disable_rad_check = FALSE,
-    len_limit = NULL,
-    barcode_dist_1 = 1,
-    barcode_dist_2 = NULL
+    filter.illumina = TRUE,
+    disable.rad.check = FALSE,
+    len.limit = NULL,
+    barcode.dist.1 = 1,
+    barcode.dist.2 = NULL
   ) {
     # lane.list <- "03_sequencing_lanes/HI.2385.001.GQ20141028-1_R1.fastq.gz" # test
     f <- lane.list
@@ -426,28 +448,28 @@ run_process_radtags <- function(
     #   p <- stringi::stri_join("-p ", shQuote(p))
     # }
 
-    # if (is.null(P)) {
-    #   P <- ""
-    # } else {
-    #   P <- stringi::stri_join("-P ", shQuote(P))
-    # }
-
-    # if (is.null(I)) {
-    #   I <- ""
-    # } else {
-    #   I <- stringi::stri_join("-I ", shQuote(I))
-    # }
-
-    if (is.null(first.pe.input)) {
-      first.pe.input <- ""
+    if (!P) {
+      P <- ""
     } else {
-      first.pe.input <- stringi::stri_join("-1 ", shQuote(first.pe.input))
+      P <- "-P "
     }
 
-    if (is.null(second.pe.input)) {
-      second.pe.input <- ""
+    if (!I) {
+      I <- ""
     } else {
-      second.pe.input <- stringi::stri_join("-2 ", shQuote(second.pe.input))
+      I <- "-I "
+    }
+
+    if (is.null(pe.1)) {
+      pe.1 <- ""
+    } else {
+      pe.1 <- stringi::stri_join("-1 ", shQuote(pe.1))
+    }
+
+    if (is.null(pe.2)) {
+      pe.2 <- ""
+    } else {
+      pe.2 <- stringi::stri_join("-2 ", shQuote(pe.2))
     }
 
     temp.dir <- stringi::stri_join(o, lane.short, sep = "/")
@@ -497,46 +519,46 @@ run_process_radtags <- function(
     # }
 
     # BARCODES OPTIONS -----------------------------------------------------------
-    if (barcode_inline_null) {
-      barcode_inline_null <- "--inline_null"
+    if (barcode.inline.null) {
+      barcode.inline.null <- "--inline-null"
     } else {
-      barcode_inline_null <- ""
+      barcode.inline.null <- ""
     }
 
-    if (barcode_index_null) {
-      barcode_index_null <- "--index_null"
+    if (barcode.index.null) {
+      barcode.index.null <- "--index-null"
     } else {
-      barcode_index_null <- ""
+      barcode.index.null <- ""
     }
 
-    if (barcode_null_index) {
-      barcode_null_index <- "--null_index"
+    if (barcode.null.index) {
+      barcode.null.index <- "--null-index"
     } else {
-      barcode_null_index <- ""
+      barcode.null.index <- ""
     }
 
-    if (barcode_inline_inline) {
-      barcode_inline_inline <- "--inline_inline"
+    if (barcode.inline.inline) {
+      barcode.inline.inline <- "--inline-inline"
     } else {
-      barcode_inline_inline <- ""
+      barcode.inline.inline <- ""
     }
 
-    if (barcode_index_index) {
-      barcode_index_index <- "--index_index"
+    if (barcode.index.index) {
+      barcode.index.index <- "--index-index"
     } else {
-      barcode_index_index <- ""
+      barcode.index.index <- ""
     }
 
-    if (barcode_inline_index) {
-      barcode_inline_index <- "--inline_index"
+    if (barcode.inline.index) {
+      barcode.inline.index <- "--inline-index"
     } else {
-      barcode_inline_index <- ""
+      barcode.inline.index <- ""
     }
 
-    if (barcode_index_inline) {
-      barcode_index_inline <- "--index_inline"
+    if (barcode.index.inline) {
+      barcode.index.inline <- "--index-inline"
     } else {
-      barcode_index_inline <- ""
+      barcode.index.inline <- ""
     }
 
     # Restriction enzyme options--------------------------------------------------
@@ -547,42 +569,50 @@ run_process_radtags <- function(
       enzyme <- stringi::stri_join("-e ", shQuote(enzyme))
     }
 
-    if (is.null(renz_1)) {
-      renz_1 <- ""
+    if (is.null(renz.1)) {
+      renz.1 <- ""
     } else {
-      renz_1 <- stringi::stri_join("--renz_1 ", shQuote(renz_1))
+      renz.1 <- stringi::stri_join("--renz-1 ", shQuote(renz.1))
     }
 
-    if (is.null(renz_2)) {
-      renz_2 <- ""
+    if (is.null(renz.2)) {
+      renz.2 <- ""
     } else {
-      renz_2 <- stringi::stri_join("--renz_2 ", shQuote(renz_2))
+      renz.2 <- stringi::stri_join("--renz-2 ", shQuote(renz.2))
+    }
+
+    # Protocol-specific options:
+    --bestrad: library was generated using BestRAD, check for restriction enzyme on either read and potentially tranpose reads.
+    if (bestrad) {
+      bestrad <- "--bestrad "
+    } else {
+      bestrad <- ""
     }
 
     #  Adapter options: ------------------------------------------------------------
-    if (is.null(adapter_1)) {
-      adapter_1 <- ""
+    if (is.null(adapter.1)) {
+      adapter.1 <- ""
     } else {
-      adapter_1 <- stringi::stri_join("--adapter_1 ", shQuote(adapter_1))
+      adapter.1 <- stringi::stri_join("--adapter-1 ", shQuote(adapter.1))
     }
 
-    if (is.null(adapter_2)) {
-      adapter_2 <- ""
+    if (is.null(adapter.2)) {
+      adapter.2 <- ""
     } else {
-      adapter_2 <- stringi::stri_join("--adapter_2 ", shQuote(adapter_2))
+      adapter.2 <- stringi::stri_join("--adapter-2 ", shQuote(adapter.2))
     }
 
-    if (is.null(adapter_mm)) {
-      adapter_mm <- ""
+    if (is.null(adapter.mm)) {
+      adapter.mm <- ""
     } else {
-      adapter_mm <- stringi::stri_join("--adapter_mm ", adapter_mm)
+      adapter.mm <- stringi::stri_join("--adapter-mm ", adapter.mm)
     }
 
     # Output options--------------------------------------------------------------
-    if (retain_header) {
-      retain_header <- stringi::stri_join("--retain_header")
+    if (retain.header) {
+      retain.header <- stringi::stri_join("--retain-header")
     } else {
-      retain_header <- ""
+      retain.header <- ""
     }
 
     if (merge) {
@@ -592,49 +622,51 @@ run_process_radtags <- function(
     }
     # Advanced options -----------------------------------------------------------
 
-    if (filter_illumina) {
-      filter_illumina <- stringi::stri_join("--filter_illumina")
+    if (filter.illumina) {
+      filter.illumina <- stringi::stri_join("--filter-illumina")
     } else {
-      filter_illumina <- ""
+      filter.illumina <- ""
     }
-    if (disable_rad_check) {
-      disable_rad_check <- disable_rad_check("--disable_rad_check")
+    if (disable.rad.check) {
+      disable.rad.check <- disable.rad.check("--disable-rad-check")
     } else {
-      disable_rad_check <- ""
+      disable.rad.check <- ""
     }
 
-    if (is.null(len_limit)) {
-      len_limit <- ""
+    if (is.null(len.limit)) {
+      len.limit <- ""
     } else {
-      len_limit <- stringi::stri_join("--len_limit ", len_limit)
+      len.limit <- stringi::stri_join("--len-limit ", len.limit)
     }
 
     if (rescue.barcodes) {
-      barcode.dist.1 <- barcode_dist_1
-      barcode_dist_1 <- stringi::stri_join("--barcode_dist_1 ", barcode_dist_1)
-      if (is.null(barcode_dist_2)) {
-        barcode_dist_2 <- barcode.dist.1
+      barcode.dist.1 <- barcode.dist.1
+      barcode.dist.1 <- stringi::stri_join("--barcode-dist-1 ", barcode.dist.1)
+      if (is.null(barcode.dist.2)) {
+        barcode.dist.2 <- barcode.dist.1
       }
-      barcode_dist_2 <- stringi::stri_join("--barcode_dist_2 ", barcode_dist_2)
+      barcode.dist.2 <- stringi::stri_join("--barcode-dist-2 ", barcode.dist.2)
     }
 
     command.arguments <- paste(
       f, i, y,
-      # p, P, I,
-      first.pe.input, second.pe.input,
+      # p,
+      P, I,
+      pe.1, pe.2,
       o, b, c, q, r, t, E, D, w, s,
-      barcode_inline_null,
-      barcode_index_null,
-      barcode_null_index,
-      barcode_inline_inline,
-      barcode_index_index,
-      barcode_inline_index,
-      barcode_index_inline,
-      enzyme, renz_1, renz_2,
-      adapter_1, adapter_2, adapter_mm,
-      retain_header, merge,
-      filter_illumina, disable_rad_check, len_limit,
-      barcode_dist_1, barcode_dist_2
+      barcode.inline.null,
+      barcode.index.null,
+      barcode.null.index,
+      barcode.inline.inline,
+      barcode.index.index,
+      barcode.inline.index,
+      barcode.index.inline,
+      enzyme, renz.1, renz.2,
+      bestrad,
+      adapter.1, adapter.2, adapter.mm,
+      retain.header, merge,
+      filter.illumina, disable.rad.check, len.limit,
+      barcode.dist.1, barcode.dist.2
     )
     # log file -----------------------------------------------------------------
     process.radtags.log.file <- stringi::stri_join("09_log_files/process_radtags_", lane.short, "_", file.date, ".log")
@@ -714,11 +746,13 @@ run_process_radtags <- function(
     mc.cores = parallel.core,
     path.seq.lanes = path.seq.lanes,
     project.info.file = project.info.file,
+    P = P,
+    I = I,
     i = i,
     o = o,
     y = y,
-    first.pe.input = first.pe.input,
-    second.pe.input = second.pe.input,
+    pe.1 = pe.1,
+    pe.2 = pe.2,
     c = c,
     q = q,
     r = r,
@@ -727,26 +761,27 @@ run_process_radtags <- function(
     E = E,
     w = w,
     s = s,
-    barcode_inline_null = barcode_inline_null,
-    barcode_index_null = barcode_index_null,
-    barcode_null_index = barcode_null_index,
-    barcode_inline_inline = barcode_inline_inline,
-    barcode_index_index = barcode_index_index,
-    barcode_inline_index = barcode_inline_index,
-    barcode_index_inline = barcode_index_inline,
+    barcode.inline.null = barcode.inline.null,
+    barcode.index.null = barcode.index.null,
+    barcode.null.index = barcode.null.index,
+    barcode.inline.inline = barcode.inline.inline,
+    barcode.index.index = barcode.index.index,
+    barcode.inline.index = barcode.inline.index,
+    barcode.index.inline = barcode.index.inline,
     enzyme = enzyme,
-    renz_1 = renz_1,
-    renz_2 = renz_2,
-    adapter_1 = adapter_1,
-    adapter_2 = adapter_2,
-    adapter_mm = adapter_mm,
-    retain_header = retain_header,
+    renz.1 = renz.1,
+    renz.2 = renz.2,
+    bestrad = bestrad,
+    adapter.1 = adapter.1,
+    adapter.2 = adapter.2,
+    adapter.mm = adapter.mm,
+    retain.header = retain.header,
     merge = merge,
-    filter_illumina = filter_illumina,
-    disable_rad_check = disable_rad_check,
-    len_limit = len_limit,
-    barcode_dist_1 = barcode_dist_1,
-    barcode_dist_2 = barcode_dist_2
+    filter.illumina = filter.illumina,
+    disable.rad.check = disable.rad.check,
+    len.limit = len.limit,
+    barcode.dist.1 = barcode.dist.1,
+    barcode.dist.2 = barcode.dist.2
   ) %>%
     dplyr::bind_rows(.) %>%
     `colnames<-`(stringi::stri_trans_toupper(str = colnames(.))) %>%
@@ -877,7 +912,7 @@ run_process_radtags <- function(
   project.info.file.sqlid <- project.info.file %>%
     dplyr::arrange(INDIVIDUALS_REP) %>%
     dplyr::mutate(
-      SQL_ID = seq(1, n()),
+      SQL_ID = seq(1, n())
     )
   message("Updating info file with SQL ID")
 
