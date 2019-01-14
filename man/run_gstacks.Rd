@@ -9,10 +9,11 @@ run_gstacks(P = "06_ustacks_cstacks_sstacks",
   I = NULL, B = NULL, O = NULL, unpaired = TRUE,
   rm.unpaired.reads = FALSE, rm.pcr.duplicates = FALSE,
   t = parallel::detectCores() - 1, ignore.pe.reads = TRUE,
-  model = "marukilow", var.alpha = 0.05, gt.alpha = 0.05,
+  model = "marukilow", var.alpha = 0.01, gt.alpha = 0.05,
   kmer.length = 31, min.kmer.cov = 2, max.debruijn.reads = 1000,
-  min.mapq = 10, max.clipped = 0.2, max.insert.len = 1000,
-  details = TRUE, phasing.cooccurrences.thr.range = c(1, 2),
+  write.alignments = FALSE, min.mapq = 10, max.clipped = 0.2,
+  max.insert.len = 1000, details = TRUE,
+  phasing.cooccurrences.thr.range = c(1, 2),
   phasing.dont.prune.hets = FALSE, h = FALSE)
 }
 \arguments{
@@ -78,7 +79,7 @@ See ref for more details on algorithms.
 Default: \code{model = "marukilow"}.}
 
 \item{var.alpha}{(double) Alpha threshold for discovering SNPs.
-Default: \code{var.alpha = 0.05}.}
+Default: \code{var.alpha = 0.01}.}
 
 \item{gt.alpha}{(double) Alpha threshold for calling genotypes.
 Default: \code{gt.alpha = 0.05}.}
@@ -94,6 +95,9 @@ Default: \code{min.kmer.cov = 2}.}
 \item{max.debruijn.reads}{(integer) Maximum number of reads to use in the
 de Bruijn graph. For expert.
 Default: \code{max.debruijn.reads = 1000}.}
+
+\item{write.alignments}{(logical) Save read alignments (heavy BAM files).
+Default: \code{write.alignments = FALSE}.}
 
 \item{min.mapq}{(double) Reference-based mode.
 Minimum PHRED-scaled mapping quality to consider a read.

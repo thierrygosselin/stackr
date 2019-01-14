@@ -6,9 +6,9 @@
 \usage{
 run_cstacks(P = "06_ustacks_cstacks_sstacks",
   M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv", n = 1,
-  p = parallel::detectCores() - 1, catalog.path = NULL, max_gaps = 2,
-  min_aln_len = 0.8, disable_gapped = FALSE, k_len = NULL,
-  report_mmatches = FALSE, h = FALSE)
+  p = parallel::detectCores() - 1, catalog.path = NULL, max.gaps = 2,
+  min.aln.len = 0.8, disable.gapped = FALSE, k.len = NULL,
+  report.mmatches = FALSE, h = FALSE)
 }
 \arguments{
 \item{P}{path to the directory containing STACKS files.
@@ -48,24 +48,24 @@ will be added in this catalog. The catalog is made of 3 files:
 batch_1.catalog.snps.tsv.gz,
 batch_1.catalog.tags.tsv.gz}}
 
-\item{max_gaps}{The number of gaps allowed between stacks before merging.
-Default: \code{max_gaps = 2}}
+\item{max.gaps}{The number of gaps allowed between stacks before merging.
+Default: \code{max.gaps = 2}}
 
-\item{min_aln_len}{The minimum length of aligned sequence in a gapped
+\item{min.aln.len}{The minimum length of aligned sequence in a gapped
 alignment.
-Default: \code{min_aln_len = 0.8}}
+Default: \code{min.aln.len = 0.8}}
 
-\item{disable_gapped}{Disable gapped alignments between stacks.
-Default: \code{disable_gapped = FALSE} (use gapped alignments).}
+\item{disable.gapped}{Disable gapped alignments between stacks.
+Default: \code{disable.gapped = FALSE} (use gapped alignments).}
 
-\item{k_len}{Specify k-mer size for matching between between catalog loci
+\item{k.len}{Specify k-mer size for matching between between catalog loci
 (automatically calculated by default).
 Advice: don't modify.
-Default: \code{k_len = NULL}}
+Default: \code{k.len = NULL}}
 
-\item{report_mmatches}{Report query loci that match more than one catalog locus.
+\item{report.mmatches}{Report query loci that match more than one catalog locus.
 Advice: don't modify.
-Default: \code{report_mmatches = FALSE}}
+Default: \code{report.mmatches = FALSE}}
 
 \item{h}{Display this help messsage.
 Default: \code{h = FALSE}}
@@ -121,8 +121,8 @@ catalog.path = NULL,
 n = 1,
 p = 32,
 h = FALSE,
-max_gaps = 2, min_aln_len = 0.8,
-k_len = NULL, report_mmatches = FALSE
+max.gaps = 2, min.aln.len = 0.8,
+k.len = NULL, report.mmatches = FALSE
 )
 }
 }

@@ -6,22 +6,22 @@
 \usage{
 run_populations(P = "06_ustacks_cstacks_sstacks", V = NULL,
   O = "07_populations", M, t = parallel::detectCores() - 1,
-  batch_size = 10000, p = 1, r = 0.3, min_maf = NULL,
-  min_mac = NULL, max_obs_het = NULL, lnl_lim = NULL,
-  write_single_snp = FALSE, write_random_snp = FALSE, B = NULL,
-  W = NULL, e = NULL, merge_sites = FALSE, merge_prune_lim = NULL,
-  hwe = FALSE, fstats = FALSE, fst_correction = NULL,
-  p_value_cutoff = 0.05, k = FALSE, smooth_fstats = FALSE,
-  smooth_popstats = FALSE, sigma = 150000, bootstrap = FALSE,
-  N = 100, bootstrap_pifis = FALSE, bootstrap_fst = FALSE,
-  bootstrap_div = FALSE, bootstrap_phist = FALSE,
-  bootstrap_wl = NULL, ordered_export = FALSE, fasta_samples = FALSE,
-  fasta_samples_raw = FALSE, fasta_loci = FALSE, vcf = TRUE,
+  batch_size = 10000, p = 1, r = 0.3, R = 0.3, H = TRUE,
+  min.maf = NULL, min.mac = NULL, max.obs.het = NULL,
+  write.single.snp = FALSE, write.random.snp = FALSE, B = NULL,
+  W = NULL, e = NULL, merge.sites = FALSE, merge.prune.lim = NULL,
+  hwe = FALSE, fstats = FALSE, fst.correction = NULL,
+  p.value.cutoff = 0.05, k = FALSE, smooth.fstats = FALSE,
+  smooth.popstats = FALSE, sigma = 150000, bootstrap = FALSE,
+  N = 100, bootstrap.pifis = FALSE, bootstrap.fst = FALSE,
+  bootstrap.div = FALSE, bootstrap.phist = FALSE,
+  bootstrap.wl = NULL, ordered.export = FALSE, fasta.samples = FALSE,
+  fasta.samples_raw = FALSE, fasta.loci = FALSE, vcf = TRUE,
   genepop = FALSE, structure = FALSE, radpainter = FALSE,
   phase = FALSE, fastphase = FALSE, plink = FALSE, hzar = FALSE,
-  phylip = FALSE, phylip_var = FALSE, phylip_var_all = FALSE,
-  treemix = FALSE, no_hap_exports = FALSE, h = FALSE,
-  verbose = FALSE, v = FALSE, log_fst_comp = FALSE)
+  phylip = FALSE, phylip.var = FALSE, phylip.var.all = FALSE,
+  treemix = FALSE, no.hap.exports = FALSE, h = FALSE,
+  verbose = FALSE, v = FALSE, log.fst.comp = FALSE)
 }
 \arguments{
 \item{P}{(path, character) Path to the directory containing all the STACKS files.
@@ -55,23 +55,27 @@ Default: \code{p = 1}.}
 \item{r}{(double) Minimum percentage of individuals in a population required to process a locus for that population.
 Default: \code{r = 0.3}.}
 
-\item{min_maf}{(double) Specify a minimum minor allele frequency required to process a nucleotide site at a locus (0 < min_maf < 0.5).
-Default: \code{min_maf = NULL}. Recommendation: use my other R package RADIATOR to filter data based on MAF.}
+\item{R}{(double) Minimum percentage of individuals across populations required to process a locus.
+Default: \code{r = 0.3}.}
 
-\item{min_mac}{(integer) Specify a minimum minor allele count required to process a nucleotide site at a locus.
-Default: \code{min_mac = NULL}.}
+\item{H}{(logical) Apply the above filters haplotype wise
+(unshared SNPs will be pruned to reduce haplotype-wise missing data).
+Default: \code{H = TRUE}.}
 
-\item{max_obs_het}{(double) Specify a maximum observed heterozygosity required to process a nucleotide site at a locus.
-Default: \code{max_obs_het = NULL}.  Recommendation: use my other R package RADIATOR to filter data based on heterozygosity.}
+\item{min.maf}{(double) Specify a minimum minor allele frequency required to process a nucleotide site at a locus (0 < min.maf < 0.5).
+Default: \code{min.maf = NULL}. Recommendation: use my other R package RADIATOR to filter data based on MAF.}
 
-\item{lnl_lim}{(integer) Filter loci with log likelihood values below this threshold.
-Default: \code{lnl_lim = NULL}.}
+\item{min.mac}{(integer) Specify a minimum minor allele count required to process a nucleotide site at a locus.
+Default: \code{min.mac = NULL}.}
 
-\item{write_single_snp}{(logical) Restrict data analysis to only the first SNP per locus (implies --no-haps).
-Default: \code{write_single_snp = FALSE}.}
+\item{max.obs.het}{(double) Specify a maximum observed heterozygosity required to process a nucleotide site at a locus.
+Default: \code{max.obs.het = NULL}.  Recommendation: use my other R package RADIATOR to filter data based on heterozygosity.}
 
-\item{write_random_snp}{(logical) Restrict data analysis to one random SNP per locus (implies --no-haps).
-Default: \code{write_random_snp = FALSE}.}
+\item{write.single.snp}{(logical) Restrict data analysis to only the first SNP per locus (implies --no-haps).
+Default: \code{write.single.snp = FALSE}.}
+
+\item{write.random.snp}{(logical) Restrict data analysis to one random SNP per locus (implies --no-haps).
+Default: \code{write.random.snp = FALSE}.}
 
 \item{B}{(character) Path to a file containing Blacklisted markers to be excluded from the export.
 Default: \code{B = NULL}.}
@@ -82,11 +86,11 @@ Default: \code{W = NULL}.}
 \item{e}{(character) Restriction enzyme name.
 Default: \code{e = NULL}.}
 
-\item{merge_sites}{(logical) Merge loci that were produced from the same restriction enzyme cutsite (requires reference-aligned data).
-Default: \code{merge_sites = FALSE}.}
+\item{merge.sites}{(logical) Merge loci that were produced from the same restriction enzyme cutsite (requires reference-aligned data).
+Default: \code{merge.sites = FALSE}.}
 
-\item{merge_prune_lim}{(integer) When merging adjacent loci, if at least X% samples posses both loci prune the remaining samples out of the analysis.
-Default: \code{merge_prune_lim = NULL}.}
+\item{merge.prune.lim}{(integer) When merging adjacent loci, if at least X% samples posses both loci prune the remaining samples out of the analysis.
+Default: \code{merge.prune.lim = NULL}.}
 
 \item{hwe}{(logical) Calculate divergence from Hardy-Weinberg equilibrium
 using the exact test at the SNP level and Guo and Thompson MCMC algorithm at
@@ -96,21 +100,21 @@ Default: \code{hwe = FALSE}.}
 \item{fstats}{(logical) Enable SNP and haplotype-based F statistics.
 Default: \code{fstats = FALSE}.}
 
-\item{fst_correction}{(character) Specify a correction to be applied to Fst values: 'p_value', 'bonferroni_win', or 'bonferroni_gen'.
-Default: \code{fst_correction = NULL}.}
+\item{fst.correction}{(character) Specify a correction to be applied to Fst values: 'p_value', 'bonferroni_win', or 'bonferroni_gen'.
+Default: \code{fst.correction = NULL}.}
 
-\item{p_value_cutoff}{(double) maximum p-value to keep an Fst measurement.
+\item{p.value.cutoff}{(double) maximum p-value to keep an Fst measurement.
 Also used as base for Bonferroni correction.
-Default: \code{p_value_cutoff = 0.05}.}
+Default: \code{p.value.cutoff = 0.05}.}
 
 \item{k}{(logical) Enable kernel-smoothed Pi, Fis, Fst, Fst', and Phi_st calculations.
 Default: \code{k = FALSE}.}
 
-\item{smooth_fstats}{(logical) Enable kernel-smoothed Fst, Fst', and Phi_st calculations.
-Default: \code{smooth_fstats = FALSE}.}
+\item{smooth.fstats}{(logical) Enable kernel-smoothed Fst, Fst', and Phi_st calculations.
+Default: \code{smooth.fstats = FALSE}.}
 
-\item{smooth_popstats}{(logical) Enable kernel-smoothed Pi and Fis calculations.
-Default: \code{smooth_popstats = FALSE}.}
+\item{smooth.popstats}{(logical) Enable kernel-smoothed Pi and Fis calculations.
+Default: \code{smooth.popstats = FALSE}.}
 
 \item{sigma}{(integer) Standard deviation of the kernel smoothing weight distribution.
 Default: \code{sigma = 150000} (150kb).}
@@ -121,32 +125,32 @@ Default: \code{bootstrap = FALSE}.}
 \item{N}{(integer) Number of bootstrap resamplings to calculate.
 Default: \code{N = 100}.}
 
-\item{bootstrap_pifis}{(logical) Turn on boostrap resampling for smoothed SNP-based Pi and Fis calculations.
-Default: \code{bootstrap_pifis = FALSE}.}
+\item{bootstrap.pifis}{(logical) Turn on boostrap resampling for smoothed SNP-based Pi and Fis calculations.
+Default: \code{bootstrap.pifis = FALSE}.}
 
-\item{bootstrap_fst}{(logical) Turn on boostrap resampling for smoothed Fst calculations based on pairwise population comparison of SNPs.
-Default: \code{bootstrap_fst = FALSE}.}
+\item{bootstrap.fst}{(logical) Turn on boostrap resampling for smoothed Fst calculations based on pairwise population comparison of SNPs.
+Default: \code{bootstrap.fst = FALSE}.}
 
-\item{bootstrap_div}{(logical) Turn on boostrap resampling for smoothed haplotype diveristy and gene diversity calculations based on haplotypes.
-Default: \code{bootstrap_div = FALSE}.}
+\item{bootstrap.div}{(logical) Turn on boostrap resampling for smoothed haplotype diveristy and gene diversity calculations based on haplotypes.
+Default: \code{bootstrap.div = FALSE}.}
 
-\item{bootstrap_phist}{(logical) Turn on boostrap resampling for smoothed Phi_st calculations based on haplotypes.
-Default: \code{bootstrap_phist = FALSE}.}
+\item{bootstrap.phist}{(logical) Turn on boostrap resampling for smoothed Phi_st calculations based on haplotypes.
+Default: \code{bootstrap.phist = FALSE}.}
 
-\item{bootstrap_wl}{(character) Path to a whitelist file. Only use bootstrap loci contained in this whitelist.
-Default: \code{bootstrap_wl = NULL}.}
+\item{bootstrap.wl}{(character) Path to a whitelist file. Only use bootstrap loci contained in this whitelist.
+Default: \code{bootstrap.wl = NULL}.}
 
-\item{ordered_export}{(logical) If data is reference aligned, exports will be ordered; only a single representative of each overlapping site.
-Default: \code{ordered_export = FALSE}.}
+\item{ordered.export}{(logical) If data is reference aligned, exports will be ordered; only a single representative of each overlapping site.
+Default: \code{ordered.export = FALSE}.}
 
-\item{fasta_samples}{(logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
-Default: \code{fasta_samples = FALSE}.}
+\item{fasta.samples}{(logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
+Default: \code{fasta.samples = FALSE}.}
 
-\item{fasta_samples_raw}{(logical) Output all haplotypes observed in each sample, for each locus, in FASTA format.
-Default: \code{fasta_samples_raw = FALSE}.}
+\item{fasta.samples_raw}{(logical) Output all haplotypes observed in each sample, for each locus, in FASTA format.
+Default: \code{fasta.samples_raw = FALSE}.}
 
-\item{fasta_loci}{(logical) Output consensus sequences of all loci, in FASTA format.
-Default: \code{fasta_loci = FALSE}.}
+\item{fasta.loci}{(logical) Output consensus sequences of all loci, in FASTA format.
+Default: \code{fasta.loci = FALSE}.}
 
 \item{vcf}{(logical) Output SNPs in Variant Call Format (VCF).
 Default: \code{vcf = TRUE}.}
@@ -175,17 +179,17 @@ Default: \code{hzar = FALSE}.}
 \item{phylip}{(logical) Output nucleotides that are fixed-within, and variant among populations in Phylip format for phylogenetic tree construction.
 Default: \code{phylip = FALSE}.}
 
-\item{phylip_var}{(logical) Include variable sites in the phylip output encoded using IUPAC notation.
-Default: \code{phylip_var = FALSE}.}
+\item{phylip.var}{(logical) Include variable sites in the phylip output encoded using IUPAC notation.
+Default: \code{phylip.var = FALSE}.}
 
-\item{phylip_var_all}{(logical) Include all sequence as well as variable sites in the phylip output encoded using IUPAC notation.
-Default: \code{phylip_var_all = FALSE}.}
+\item{phylip.var.all}{(logical) Include all sequence as well as variable sites in the phylip output encoded using IUPAC notation.
+Default: \code{phylip.var.all = FALSE}.}
 
 \item{treemix}{(logical) Output SNPs in a format useable for the TreeMix program (Pickrell and Pritchard).
 Default: \code{treemix = FALSE}.}
 
-\item{no_hap_exports}{(logical) Omit haplotype outputs.
-Default: \code{no_hap_exports = FALSE}.}
+\item{no.hap.exports}{(logical) Omit haplotype outputs.
+Default: \code{no.hap.exports = FALSE}.}
 
 \item{h}{Display this help messsage.
 Default: \code{h = FALSE}}
@@ -196,8 +200,8 @@ Default: \code{verbose = FALSE}}
 \item{v}{print program version.
 Default: \code{v = FALSE}}
 
-\item{log_fst_comp}{(logical) Log components of Fst/Phi_st calculations to a file.
-Default: \code{log_fst_comp = FALSE}}
+\item{log.fst.comp}{(logical) Log components of Fst/Phi_st calculations to a file.
+Default: \code{log.fst.comp = FALSE}}
 }
 \value{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/populations.php}{populations}

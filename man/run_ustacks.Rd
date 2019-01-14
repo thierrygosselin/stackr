@@ -8,11 +8,11 @@ run_ustacks(mismatch.testing = FALSE, sample.list = NULL,
   project.info = NULL, f = "04_process_radtags",
   o = "06_ustacks_cstacks_sstacks", m = 3, M = 2, N = M + 2,
   t = "guess", R = FALSE, H = TRUE, p = parallel::detectCores() -
-  1, h = FALSE, d = TRUE, keep_high_cov = FALSE,
-  high_cov_thres = 3, max_locus_stacks = 3, k_len = NULL,
-  max_gaps = 2, min_aln_len = 0.8, model_type = "snp",
-  alpha = 0.05, bound_low = 0, bound_high = 0.2,
-  bc_err_freq = NULL)
+  1, h = FALSE, d = TRUE, keep.high.cov = FALSE,
+  high.cov.thres = 3, max.locus.stacks = 3, k.len = NULL,
+  max.gaps = 2, min.aln.len = 0.8, disable.gapped = FALSE,
+  model.type = "snp", alpha = 0.05, bound.low = 0,
+  bound.high = 0.2, bc.err.freq = NULL)
 }
 \arguments{
 \item{mismatch.testing}{(logical). Default: \code{mismatch.testing = FALSE}.}
@@ -67,43 +67,47 @@ Default: \code{p = parallel::detectCores() - 1}.}
 \item{d}{Enable the Deleveraging algorithm, used for resolving over merged tags.
 Default: \code{d = TRUE}.}
 
-\item{keep_high_cov}{Disable the algorithm that removes highly-repetitive stacks and nearby errors.
-Default: \code{keep_high_cov = FALSE}.}
+\item{keep.high.cov}{Disable the algorithm that removes highly-repetitive stacks and nearby errors.
+Default: \code{keep.high.cov = FALSE}.}
 
-\item{high_cov_thres}{(double) Highly-repetitive stacks threshold,
+\item{high.cov.thres}{(double) Highly-repetitive stacks threshold,
 in standard deviation units.
-Default: \code{high_cov_thres = 3.0}.}
+Default: \code{high.cov.thres = 3.0}.}
 
-\item{max_locus_stacks}{Maximum number of stacks at a single de novo locus.
-Default: \code{max_locus_stacks = 3}.}
+\item{max.locus.stacks}{Maximum number of stacks at a single de novo locus.
+Default: \code{max.locus.stacks = 3}.}
 
-\item{k_len}{Specify k-mer size for matching between alleles and loci.
-Default: \code{k_len = NULL}.}
+\item{k.len}{Specify k-mer size for matching between alleles and loci.
+Default: \code{k.len = NULL}.}
 
-\item{max_gaps}{Number of gaps allowed between stacks before merging.
-Default: \code{max_gaps = 2}.}
+\item{max.gaps}{Number of gaps allowed between stacks before merging.
+Default: \code{max.gaps = 2}.}
 
-\item{min_aln_len}{Minimum length of aligned sequence in a gapped alignment.
-Default: \code{min_aln_len = 0.8}.}
+\item{min.aln.len}{Minimum length of aligned sequence in a gapped alignment.
+Default: \code{min.aln.len = 0.8}.}
 
-\item{model_type}{Either 'snp' (default), 'bounded', or 'fixed'.
-Default: \code{model_type = "snp"}.}
+\item{disable.gapped}{(logical) do not preform gapped alignments between stacks
+(default: gapped alignements enabled).
+Default: \code{disable.gapped = FALSE}.}
+
+\item{model.type}{Either 'snp' (default), 'bounded', or 'fixed'.
+Default: \code{model.type = "snp"}.}
 
 \item{alpha}{For the SNP or Bounded SNP model,
 Chi square significance level required to call
 a heterozygote or homozygote, either 0.1, 0.05.
 Default: \code{alpha = 0.05}.}
 
-\item{bound_low}{For the bounded SNP model, lower bound for epsilon,
+\item{bound.low}{For the bounded SNP model, lower bound for epsilon,
 the error rate, between 0 and 1.0.
-Default: \code{bound_low = 0}.}
+Default: \code{bound.low = 0}.}
 
-\item{bound_high}{For the bounded SNP model, upper bound for epsilon,
+\item{bound.high}{For the bounded SNP model, upper bound for epsilon,
 the error rate, between 0 and 1.0.
-Default: \code{bound_high = 0.2}.}
+Default: \code{bound.high = 0.2}.}
 
-\item{bc_err_freq}{For the fixed model, specify the barcode error frequency, between 0 and 1.0.
-Default: \code{bc_err_freq = NULL}.}
+\item{bc.err.freq}{For the fixed model, specify the barcode error frequency, between 0 and 1.0.
+Default: \code{bc.err.freq = NULL}.}
 }
 \value{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}

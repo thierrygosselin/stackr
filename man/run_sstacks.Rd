@@ -7,7 +7,7 @@
 run_sstacks(P = "06_ustacks_cstacks_sstacks", M = NULL,
   sample.list = NULL, c = "06_ustacks_cstacks_sstacks",
   p = parallel::detectCores() - 1, o = "06_ustacks_cstacks_sstacks",
-  x = FALSE, disable_gapped = FALSE, v = FALSE, h = FALSE)
+  x = FALSE, disable.gapped = FALSE, v = FALSE, h = FALSE)
 }
 \arguments{
 \item{P}{(character) Path to the directory containing STACKS files.
@@ -42,8 +42,8 @@ Default: \code{o = "06_ustacks_cstacks_sstacks"}}
 \item{x}{Don't verify haplotype of matching locus.
 Default: \code{x = FALSE}}
 
-\item{disable_gapped}{Disable gapped alignments between stacks.
-Default: \code{disable_gapped = FALSE} (use gapped alignments).}
+\item{disable.gapped}{Disable gapped alignments between stacks.
+Default: \code{disable.gapped = FALSE} (use gapped alignments).}
 
 \item{v}{Print program version.
 Default: \code{v = FALSE}}

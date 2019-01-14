@@ -5,17 +5,17 @@
 \title{Run STACKS process_radtags module}
 \usage{
 run_process_radtags(project.info, path.seq.lanes = "03_sequencing_lanes",
-  i = "guess", o = "04_process_radtags", y = "guess",
-  first.pe.input = NULL, second.pe.input = NULL, c = TRUE,
-  q = TRUE, r = TRUE, t = 90, D = FALSE, E = "phred33",
-  w = 0.15, s = 10, barcode_inline_null = TRUE,
-  barcode_index_null = FALSE, barcode_null_index = FALSE,
-  barcode_inline_inline = FALSE, barcode_index_index = FALSE,
-  barcode_inline_index = FALSE, barcode_index_inline = FALSE,
-  enzyme = NULL, renz_1 = NULL, renz_2 = NULL, adapter_1 = NULL,
-  adapter_2 = NULL, adapter_mm = NULL, retain_header = FALSE,
-  merge = FALSE, filter_illumina = TRUE, disable_rad_check = FALSE,
-  len_limit = NULL, barcode_dist_1 = 1, barcode_dist_2 = NULL,
+  P = FALSE, I = FALSE, i = "guess", o = "04_process_radtags",
+  y = "guess", pe.1 = NULL, pe.2 = NULL, c = TRUE, q = TRUE,
+  r = TRUE, t = 90, D = FALSE, E = "phred33", w = 0.15, s = 10,
+  barcode.inline.null = TRUE, barcode.index.null = FALSE,
+  barcode.null.index = FALSE, barcode.inline.inline = FALSE,
+  barcode.index.index = FALSE, barcode.inline.index = FALSE,
+  barcode.index.inline = FALSE, enzyme = NULL, renz.1 = NULL,
+  renz.2 = NULL, bestrad = FALSE, adapter.1 = NULL,
+  adapter.2 = NULL, adapter.mm = NULL, retain.header = FALSE,
+  merge = FALSE, filter.illumina = TRUE, disable.rad.check = FALSE,
+  len.limit = NULL, barcode.dist.1 = 1, barcode.dist.2 = NULL,
   parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
@@ -28,6 +28,13 @@ processing single-end sequences.
 Same as \code{f} in STACKS command line.
 Default: \code{path.seq.lanes = "03_sequencing_lanes"}.}
 
+\item{P}{(logical) files contained within the directory are paired.
+Default: \code{P = FALSE}.}
+
+\item{I}{(logical) specify that the paired-end reads are interleaved in
+single files.
+Default: \code{I = FALSE}.}
+
 \item{i}{(character) Input file type, either \code{"fastq"}, \code{"gzfastq"},
 \code{"bam"}, or \code{bustard}. Default: \code{i = "guess"}.}
 
@@ -37,11 +44,15 @@ Default:\code{o = "04_process_radtags"}.}
 \item{y}{(character) Output file type: \code{"fastq"}, \code{"gzfastq"},
 \code{"fasta"}, or \code{gzfasta}. Default: \code{y = "guess"} (match input type).}
 
-\item{first.pe.input}{(character, path) First input file in a set of
-paired-end sequences. Default:\code{first.pe.input = NULL}.}
+\item{pe.1}{(character, path) First input file in a set of
+paired-end sequences.
+In stacks it's the argument \code{1}.
+Default:\code{pe.1 = NULL}.}
 
-\item{second.pe.input}{(character, path) Second input file in a set of
-paired-end sequences. Default:\code{second.pe.input = NULL}.}
+\item{pe.2}{(character, path) Second input file in a set of
+paired-end sequences.
+In stacks it's the argument \code{2}.
+Default:\code{pe.2 = NULL}.}
 
 \item{c}{(logical) Clean data, remove any read with an uncalled base.
 Default:\code{c = TRUE}.}
@@ -71,34 +82,34 @@ If the average score within the sliding window drops below this value,
 the read is discarded (default 10).
 Default:\code{s = 10}.}
 
-\item{barcode_inline_null}{(logical) Barcode is inline with sequence,
+\item{barcode.inline.null}{(logical) Barcode is inline with sequence,
 occurs only on single-end read.
-Default:\code{barcode_inline_null = TRUE}.}
+Default:\code{barcode.inline.null = TRUE}.}
 
-\item{barcode_index_null}{Barcode is provided in FASTQ header
+\item{barcode.index.null}{Barcode is provided in FASTQ header
 (Illumina i5 or i7 read).
-Default:\code{barcode_index_null = FALSE}.}
+Default:\code{barcode.index.null = FALSE}.}
 
-\item{barcode_null_index}{Barcode is provded in FASTQ header
+\item{barcode.null.index}{Barcode is provded in FASTQ header
 (Illumina i7 read if both i5 and i7 read are provided).
-Default:\code{barcode_null_index = FALSE}.}
+Default:\code{barcode.null.index = FALSE}.}
 
-\item{barcode_inline_inline}{Barcode is inline with sequence,
+\item{barcode.inline.inline}{Barcode is inline with sequence,
 occurs on single and paired-end read.
-Default:\code{barcode_inline_inline = FALSE}.}
+Default:\code{barcode.inline.inline = FALSE}.}
 
-\item{barcode_index_index}{Barcode is provded in FASTQ header
+\item{barcode.index.index}{Barcode is provded in FASTQ header
 (Illumina i5 and i7 reads).
-Default:\code{barcode_index_index = FALSE}.}
+Default:\code{barcode.index.index = FALSE}.}
 
-\item{barcode_inline_index}{Barcode is inline with sequence on single-end
+\item{barcode.inline.index}{Barcode is inline with sequence on single-end
 read and occurs in FASTQ header (from either i5 or i7 read).
-Default:\code{barcode_inline_index = FALSE}.}
+Default:\code{barcode.inline.index = FALSE}.}
 
-\item{barcode_index_inline}{Barcode occurs in FASTQ header
+\item{barcode.index.inline}{Barcode occurs in FASTQ header
 (Illumina i5 or i7 read) and is inline with single-end sequence
 (for single-end data) on paired-end read (for paired-end data).
-Default:\code{barcode_index_inline = FALSE}.}
+Default:\code{barcode.index.inline = FALSE}.}
 
 \item{enzyme}{(character) Provide the restriction enzyme used
 (cut site occurs on single-end read).
@@ -117,45 +128,49 @@ Currently supported enzymes include:
 \code{"sexAI"}, \code{"sgrAI"}, \code{"speI"}, \code{"sphI"}, \code{"taqI"},
 \code{"xbaI"} or \code{"xhoI"}.}
 
-\item{renz_1}{(character) When a double digest was used,
+\item{renz.1}{(character) When a double digest was used,
 provide the first restriction enzyme used.}
 
-\item{renz_2}{(character) When a double digest was used,
+\item{renz.2}{(character) When a double digest was used,
 provide the second restriction enzyme used (cut site occurs on the paired-end read).}
 
-\item{adapter_1}{(character) Provide adaptor sequence that may occur on the
+\item{bestrad}{(logical) library was generated using BestRAD,
+check for restriction enzyme on either read and potentially tranpose reads.
+Default: \code{bestrad = FALSE}.}
+
+\item{adapter.1}{(character) Provide adaptor sequence that may occur on the
 single-end read for filtering.}
 
-\item{adapter_2}{(character) Provide adaptor sequence that may occur on the
+\item{adapter.2}{(character) Provide adaptor sequence that may occur on the
 paired-read for filtering.}
 
-\item{adapter_mm}{(integer) Number of mismatches allowed in the adapter sequence.}
+\item{adapter.mm}{(integer) Number of mismatches allowed in the adapter sequence.}
 
-\item{retain_header}{(logical) Retain unmodified FASTQ headers in the output.
-Default: \code{retain_header = FALSE}.}
+\item{retain.header}{(logical) Retain unmodified FASTQ headers in the output.
+Default: \code{retain.header = FALSE}.}
 
 \item{merge}{(logical) If no barcodes are specified,
 merge all input files into a single output file.
 Default: \code{merge = FALSE}.}
 
-\item{filter_illumina}{(logical) Discard reads that have been marked by
+\item{filter.illumina}{(logical) Discard reads that have been marked by
 Illumina's chastity/purity filter as failing.
-Default: \code{filter_illumina = TRUE}.}
+Default: \code{filter.illumina = TRUE}.}
 
-\item{disable_rad_check}{(logical) Disable checking if the RAD site is intact.
-Default: \code{disable_rad_check = FALSE}.}
+\item{disable.rad.check}{(logical) Disable checking if the RAD site is intact.
+Default: \code{disable.rad.check = FALSE}.}
 
-\item{len_limit}{(integer) Specify a minimum sequence length
+\item{len.limit}{(integer) Specify a minimum sequence length
 (useful if your data has already been trimmed).
-Default: \code{len_limit = NULL}.}
+Default: \code{len.limit = NULL}.}
 
-\item{barcode_dist_1}{(integer) The number of allowed mismatches when
+\item{barcode.dist.1}{(integer) The number of allowed mismatches when
 rescuing single-end barcodes.
-Default: \code{barcode_dist_1 = 1}.}
+Default: \code{barcode.dist.1 = 1}.}
 
-\item{barcode_dist_2}{(integer) The number of allowed mismatches when
+\item{barcode.dist.2}{(integer) The number of allowed mismatches when
 rescuing paired-end barcodes.
-Default: \code{barcode_dist_2 = NULL} (will default to barcode_dist_1).}
+Default: \code{barcode.dist.2 = NULL} (will default to barcode.dist.1).}
 
 \item{parallel.core}{(optional) The number of core for parallel
 programming.
@@ -227,8 +242,8 @@ will have -R at the end (e.g STU-QUE-ADU-2017-0001-R for the combination of the 
 process.radtags.tuna <- stackr::run_process_radtags(
 project.info = "02_project_info/project.info.tuna.tsv",
 path.seq.lanes = "03_sequencing_lanes",
-renz_1 = "pstI", renz_2 = "mspI",
-adapter_1 = "CGAGATCGGAAGAGCGGG", adapter_mm = 2)
+renz.1 = "pstI", renz.2 = "mspI",
+adapter.1 = "CGAGATCGGAAGAGCGGG", adapter.mm = 2)
 # remaining arguments are defaults, so carefully look at them in the doc.
 }
 }

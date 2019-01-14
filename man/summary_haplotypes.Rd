@@ -124,8 +124,10 @@ that is identical by descent
 based on the excess in the observed number of homozygous
 genotypes within an individual relative to the mean number of homozygous
 genotypes expected under random mating (Keller et al., 2011; Kardos et al., 2015).
-\item \strong{Pi}: the nucleotide diversity measured here consider the
+\item \strong{Pi}: the nucleotide diversity (Nei & Li, 1979) measured here consider the
 consensus reads in the catalog (no variation between population sequences).
+The \code{read.length} argument is used directly in the calculations.
+To be correctly estimated, the reads obviously need to be of identical size...
 \item \strong{PRIVATE_HAPLOTYPES}: the number of private haplotypes.
 }
 }
