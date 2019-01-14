@@ -1,8 +1,8 @@
 Package: stackr
 Type: Package
 Title: Run stacks software pipeline for RADseq analysis inside R
-Version: 2.0.7
-Date: 2018-10-12
+Version: 2.0.8
+Date: 2019-01-14
 Encoding: UTF-8
 Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")))

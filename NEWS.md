@@ -1,3 +1,8 @@
+# stackr v.2.0.8 2019-01-14
+
+* updated to work with stacks v.2.3
+
+
 # stackr v.2.0.7 2018-10-12
 
 * updated `run_gstacks` to work with stacks v.2.2
