@@ -30,10 +30,6 @@
 
 #' @rdname summary_ustacks
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
-#' @importFrom dplyr group_by tally ungroup summarise summarise_if mutate filter distinct select bind_rows n_distinct arrange
-#' @importFrom readr read_tsv
-#' @importFrom stats cor sd
 
 #' @return The function returns a summary (data frame) containing:
 #' \enumerate{

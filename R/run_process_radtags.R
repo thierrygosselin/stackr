@@ -144,11 +144,6 @@
 
 #' @rdname run_process_radtags
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
-#' @importFrom dplyr mutate filter distinct
-#' @importFrom purrr keep walk pwalk pmap
-#' @importFrom tibble data_frame
-
 #' @return For stacks specific output see \href{http://catchenlab.life.illinois.edu/stacks/comp/process_radtags.php}{process_radtags}.
 #'
 #'

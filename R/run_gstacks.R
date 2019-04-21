@@ -116,7 +116,6 @@
 
 #' @rdname run_gstacks
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed
 
 #' @return \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{tsv2bam}
 #' returns a set of \code{.matches.bam} files.

@@ -100,10 +100,6 @@
 
 #' @rdname run_ustacks
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
-#' @importFrom dplyr mutate filter distinct
-#' @importFrom purrr keep walk pwalk pmap
-#' @importFrom tibble data_frame
 
 #' @return \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 #' returns 4 files per samples: \code{.snps.tsv.gz}, \code{.tags.tsv.gz},

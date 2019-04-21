@@ -97,19 +97,6 @@
 #' @param parallel.core (optional) The number of core for parallel
 #' programming during Pi calculations.
 #' Default: \code{parallel.core = parallel::detectCores() - 1}.
-
-#' @importFrom stringdist stringdist
-#' @importFrom utils combn count.fields
-#' @importFrom stats lm na.omit
-#' @importFrom stringi stri_replace_all_fixed stri_replace_na stri_join stri_count_fixed stri_detect_fixed
-#' @importFrom tibble as_data_frame data_frame add_column add_row
-#' @importFrom dplyr select rename n_distinct distinct mutate summarise group_by ungroup arrange left_join full_join semi_join anti_join bind_rows bind_cols if_else
-#' @importFrom readr write_tsv read_tsv
-#' @importFrom tidyr separate gather
-#' @importFrom parallel detectCores
-#' @importFrom ggplot2 ggplot aes geom_violin geom_boxplot stat_summary labs theme element_blank element_text geom_jitter scale_colour_manual scale_y_reverse theme_light geom_bar facet_grid stat_smooth ggsave
-#' @importFrom purrr flatten_chr map_df
-
 #' @return The function returns a list with:
 #' \enumerate{
 #' \item $consensus.pop # if consensus reads are found
@@ -1093,7 +1080,6 @@ strata_haplo <- function(strata = NULL, data = NULL, blacklist.id = NULL) {
 #' \code{_}.
 #' @param x (character string) Markers character string.
 #' @rdname clean_markers_names
-#' @importFrom stringi stri_replace_all_fixed
 #' @export
 #' @keywords internal
 
@@ -1111,7 +1097,6 @@ clean_markers_names <- function(x) {
 #' or codes. \code{_} and \code{:} are changed to a dash \code{-}.
 #' @param x (character string) Individuals character string.
 #' @rdname clean_ind_names
-#' @importFrom stringi stri_replace_all_fixed
 #' @export
 #' @keywords internal
 clean_ind_names <- function(x) {
@@ -1130,7 +1115,6 @@ clean_ind_names <- function(x) {
 #' @rdname clean_pop_names
 #' @export
 #' @keywords internal
-#' @importFrom stringi stri_replace_all_fixed
 clean_pop_names <- function(x) {
   x <- stringi::stri_replace_all_fixed(
     str = as.character(x),

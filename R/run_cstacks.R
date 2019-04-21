@@ -65,8 +65,6 @@
 
 #' @rdname run_cstacks
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed
-
 #' @return \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
 #' returns a \code{.matches.tsv.gz file for each sample}
 

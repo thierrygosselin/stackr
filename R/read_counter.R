@@ -35,11 +35,6 @@
 
 #' @rdname read_counter
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
-#' @importFrom dplyr mutate filter distinct
-#' @importFrom purrr keep walk pwalk pmap
-#' @importFrom tibble data_frame
-
 #' @return a list with a data frame with the sample id and the number of reads.
 #' If option to generate figures was selected, the list also returns 2 figures
 #' (see example below)

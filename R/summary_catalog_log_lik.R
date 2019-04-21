@@ -19,13 +19,6 @@
 
 #' @rdname summary_catalog_log_lik
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
-#' @importFrom dplyr group_by tally ungroup summarise summarise_if mutate filter distinct select bind_rows n_distinct arrange ntile
-#' @importFrom readr read_tsv
-#' @importFrom stats cor median
-#' @importFrom tidyr gather
-#' @importFrom ggplot2 ggplot geom_histogram labs facet_wrap theme element_text
-
 
 #' @return The function returns a summary (data frame) containing:
 #' \enumerate{

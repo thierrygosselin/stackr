@@ -102,15 +102,6 @@
 
 
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub
-#' @importFrom dplyr group_by summarise bind_rows distinct arrange mutate ntile
-#' @importFrom readr read_tsv
-#' @importFrom stats median
-#' @importFrom tidyr gather
-#' @importFrom ggplot2 ggplot geom_histogram labs facet_wrap theme element_text
-#' @importFrom tibble add_column
-
-
 #' @return \href{http://catchenlab.life.illinois.edu/stacks/comp/rxstacks.php}{rxstacks}
 #' returns a \code{.matches.tsv.gz file for each sample}
 

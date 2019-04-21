@@ -54,13 +54,10 @@ If you want to help, see [contributions section](https://github.com/thierrygosse
 To try out the dev version of **stackr**, copy/paste the code below:
 
 ```r
-if (!require("devtools")) install.packages("devtools") # to install
-devtools::install_github("thierrygosselin/stackr")
+if (!require("pak")) install.packages("pak")
+pak::pkg_install("thierrygosselin/stackr")
 library(stackr)
 ```
-
-
-
 
 
 ## Prerequisite - Suggestions - Troubleshooting

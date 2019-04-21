@@ -63,11 +63,6 @@
 
 #' @rdname run_sstacks
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub
-#' @importFrom dplyr mutate filter distinct
-#' @importFrom purrr keep
-#' @importFrom tibble data_frame
-
 #' @return \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
 #' returns a \code{.matches.tsv.gz file for each sample}.
 #' If \code{lnl_dist = TRUE}, the function will also return a

@@ -8,29 +8,30 @@ Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre")))
 Maintainer: Thierry Gosselin <thierrygosselin@icloud.com>
 Description: stackr: an R package to run stacks software pipeline.
+biocViews:
 Depends:
     R (>= 3.4.0)
 Imports:
     dplyr (>= 0.7.0),
+    magrittr,
+    pbmcapply,
+    ShortRead,
+    stringdist,
+    tidyverse
+Suggests:
+    ggplot2 (>= 3.0.0),
+    knitr,
+    parallel,
     purrr,
+    methods,
     readr,
+    rlang,
+    rmarkdown,
+    stats,
+    stringi,
     tibble,
     tidyr,
-    ggplot2 (>= 3.0.0),
-    stringi,
-    parallel,
-    methods,
-    magrittr,
-    stats,
-    utils,
-    pbmcapply,
-    rlang,
-    stringdist,
-    cowplot
-Suggests:
-    knitr,
-    rmarkdown,
-    ShortRead
+    utils
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr

@@ -50,8 +50,6 @@
 #' <= 0.01 & > 0.001 = **, <= 0.05 & > 0.01 = *.
 #' @rdname summary_genotypes
 #' @export
-#' @importFrom stats chisq.test
-#' @importFrom utils write.table
 #' @details work in progress...
 #' @examples
 #' \dontrun{

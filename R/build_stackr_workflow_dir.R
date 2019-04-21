@@ -11,15 +11,10 @@
 #' @param date (logical) Should the current date be appended on the main folder
 #' name? e.g. \code{stacks_lobster_20160630}
 #' Default: \code{date = TRUE}
-
-
 #' @rdname build_stackr_workflow_dir
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed
-
 #' @return A main folder containing different folders used during the stacks
 #' workflow proposed here.
-
 #' @examples
 #' \dontrun{
 #' # The simplest form of the function:

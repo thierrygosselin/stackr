@@ -40,11 +40,6 @@
 
 #' @rdname normalize_reads
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
-#' @importFrom dplyr mutate filter distinct
-#' @importFrom purrr keep walk pwalk pmap
-#' @importFrom tibble data_frame
-
 #' @return fastq files with "-1", "-2", "..." appended to the original name.
 #' If a project info file was provided, the new replicate samples info is integrated
 #' to the file. The modified project info file will have \code{_normalize} appended

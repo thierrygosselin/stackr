@@ -1,7 +1,7 @@
 <!-- badges: start -->
 [![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://tidyverse.org/lifecycle/#experimental) [![Travis-CI Build Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-2.0.8-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2019--03--25-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-2.0.8-orange.svg)](commits/master) [![Last-changedate](https://img.shields.io/badge/last%20change-2019--04--21-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 
@@ -24,8 +24,8 @@ Installation
 To try out the dev version of **stackr**, copy/paste the code below:
 
 ``` r
-if (!require("devtools")) install.packages("devtools") # to install
-devtools::install_github("thierrygosselin/stackr")
+if (!require("pak")) install.packages("pak")
+pak::pkg_install("thierrygosselin/stackr")
 library(stackr)
 ```
 

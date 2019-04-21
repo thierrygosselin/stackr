@@ -156,11 +156,6 @@
 
 #' @rdname run_populations
 #' @export
-#' @importFrom stringi stri_join stri_replace_all_fixed stri_sub stri_detect_fixed
-#' @importFrom dplyr mutate filter distinct
-#' @importFrom purrr keep walk pwalk pmap
-#' @importFrom tibble data_frame
-
 #' @return \href{http://catchenlab.life.illinois.edu/stacks/comp/populations.php}{populations}
 #' returns different output depending on arguments selected.
 
