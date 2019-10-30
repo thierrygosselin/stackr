@@ -200,8 +200,6 @@ run_ustacks <- function(
 
   parallel.core <- p
 
-
-
   # Samples ---------------------------
   if (is.null(sample.list)) {
     # sample.list <- list.files(
@@ -238,9 +236,6 @@ run_ustacks <- function(
       recursive = TRUE,
       include.dirs = FALSE
     )
-
-    # dir.exists(potential.project.file)
-
     if (length(potential.project.file) > 0) {
       mtime <- NULL # also in global_variables.R file...
       project.file.info <- file.info(potential.project.file) %>%
@@ -342,9 +337,15 @@ run_ustacks <- function(
     if (unique(stringi::stri_detect_fixed(str = subsample.sample.list, pattern = "FASTQ.GZ"))) encoding <- ".gzfastq"
 
     #Check if ustacks as already done some files
+    # sample.assembled <- stringi::stri_replace_all_fixed(
+    #   str = list.files(path = o, pattern = c("alleles.tsv", "alleles.tsv.gz"), full.names = FALSE),
+    #   pattern = ".alleles.tsv.gz", replacement = encoding, vectorize_all = FALSE)
+
+    # changing the encoding for the actual fq.file.type...
     sample.assembled <- stringi::stri_replace_all_fixed(
       str = list.files(path = o, pattern = c("alleles.tsv", "alleles.tsv.gz"), full.names = FALSE),
-      pattern = ".alleles.tsv.gz", replacement = encoding, vectorize_all = FALSE)
+      pattern = ".alleles.tsv.gz", replacement = fq.file.type, vectorize_all = FALSE)
+
     n.sample.assembled <- length(sample.assembled)
     sample.assembled <- sample.assembled[-n.sample.assembled]
 
