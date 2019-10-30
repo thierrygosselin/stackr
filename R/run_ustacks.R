@@ -200,247 +200,7 @@ run_ustacks <- function(
 
   parallel.core <- p
 
-  run_ustacks_one_sample <- function(
-    mismatch.testing = FALSE,
-    sample.list = NULL,
-    project.info = NULL,
-    f = "04_process_radtags",
-    o = "06_ustacks_cstacks_sstacks",
-    m = 3,
-    M = 2,
-    N = M + 2,
-    t = "guess",
-    R = FALSE,
-    H = TRUE,
-    p = parallel::detectCores() - 1,
-    h = FALSE,
-    d = TRUE,
-    keep.high.cov = FALSE,
-    high.cov.thres = 3.0,
-    max.locus.stacks = 3,
-    k.len = NULL,
-    max.gaps = 2,
-    min.aln.len = 0.8,
-    disable.gapped = FALSE,
-    model.type = "snp",
-    alpha = 0.05,
-    bound.low = 0,
-    bound.high = 0.2,
-    bc.err.freq = NULL
-    # transfer.s3 = FALSE,
-    # from.folder = NULL,
-    # destination.folder = NULL
-  ) {
-    # ustacks common options ---------------------------------------------------
-    if (mismatch.testing) {
-      message("\nMismatch threshold testing: M = ", M, "\n")
-    }
 
-    if (is.null(sample.list)) {
-      stop("No sample provided")
-    } else {
-      sample.list.path <- stringi::stri_join(f, "/", sample.list) %>% stringi::stri_replace_all_fixed(str = ., pattern = "//", replacement = "/", vectorize_all = TRUE)
-    }
-
-    if (mismatch.testing && length(sample.list.path) > 1) {
-      stop("When testing mismatch threshold, 1 sample in a folder is required")
-    }
-
-    f <- stringi::stri_join("-f ", shQuote(sample.list.path))
-
-    i <- dplyr::filter(.data = project.info, FQ_FILES %in% sample.list)
-
-    individual <- i$INDIVIDUALS_REP
-
-    message("\nGenerating de novo assembly of sample: ", individual)
-
-    # don't erase file already present...
-    if (stringi::stri_detect_fixed(str = o, pattern = getwd())) {
-      individual2 <- stringi::stri_join(o, "/", individual,".snps.tsv.gz")
-    } else {
-      individual2 <- stringi::stri_join(getwd(), "/", o, "/", individual,".snps.tsv.gz")
-    }
-
-    if (file.exists(individual2)) {
-      file.date <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
-      file.date <- stringi::stri_replace_all_fixed(
-        str = file.date,
-        pattern = c("-", " ", ":"),
-        replacement = c("", "_", ""),
-        vectorize_all = FALSE
-      )
-
-      individual <- stringi::stri_join(individual, "date", file.date, "param_MNm", M, N, m, sep = "_")
-      o <- stringi::stri_join(o, "/date", "_", file.date, "_", "param_MNm", "_", M, "_", N, "_", m)
-    }
-    if (!dir.exists(o)) {
-      dir.create(o)
-      message("New folder to store results:\n  ", o)
-    }
-
-    individual2 <- NULL
-    if (mismatch.testing) {
-      o.bk <- o
-      # o.bk <- stringi::stri_join(
-      #   o, "/", individual,"_mismatch_", M)
-    }
-    o <- stringi::stri_join("-o ", shQuote(o))
-
-    sql.id <- as.numeric(i$SQL_ID)
-    message("SQL ID: ", sql.id, "\n")
-
-    i <- stringi::stri_join("-i ", sql.id)
-
-    # if(missing(y)) stop("output type, either 'fastq', 'gzfastq', 'fasta',
-    # or 'gzfasta' (default is to match the input file type).")
-    if (t == "guess") {
-      t <- ""
-    } else {
-      t <- stringi::stri_join("-t ", shQuote(t))
-    }
-
-    if (R) {
-      R <- stringi::stri_join("-R ")
-    } else {
-      R <- ""
-    }
-
-    parallel.core <- p
-    p <- stringi::stri_join("-p ", p)
-
-    if (h) {
-      h <- stringi::stri_join("-h ")
-    } else {
-      h <- ""
-    }
-
-    # Stack assembly and genotyping options-------------------------------------
-
-    # ustacks.sample.log.file
-    if (mismatch.testing) {
-      ustacks.sample.log.file <- stringi::stri_join("09_log_files/ustacks_", individual, "_mismatch_", M, ".log")
-    } else {
-      ustacks.sample.log.file <- stringi::stri_join("09_log_files/ustacks_", individual, ".log")
-    }
-
-    m <- stringi::stri_join("-m ", m)
-    # Max distance allowed to align secondary reads
-    N <- stringi::stri_join("-N ", N)
-    M.bk <- M
-    M <- stringi::stri_join("-M ", M)
-
-    if (H) {
-      H <- stringi::stri_join("-H ")
-    } else {
-      H <- ""
-    }
-
-    if (d) {
-      d <- stringi::stri_join("-d ")
-    } else {
-      d <- ""
-    }
-
-    if (keep.high.cov) {
-      keep.high.cov <- stringi::stri_join("--keep-high-cov ")
-    } else {
-      keep.high.cov <- ""
-    }
-
-    high.cov.thres <- stringi::stri_join("--high-cov-thres ", high.cov.thres)
-
-
-    max.locus.stacks <- stringi::stri_join("--max-locus-stacks ", max.locus.stacks)
-
-    if (is.null(k.len)) {
-      k.len <- ""
-    } else {
-      k.len <- stringi::stri_join("--k-len ", k.len)
-    }
-
-    # gapped assembly options ---------------------------------------------------
-    # preform gapped alignments between stacks
-    # implements the Needleman–Wunsch algorithm to obtain gapped alignments
-    # between putative alleles.
-
-    # number of gaps allowed between stacks before merging (stacks default: 2)
-    max.gaps <- stringi::stri_join("--max-gaps ", max.gaps)
-    # minimum length of aligned sequence in a gapped alignment (default: 0.80)
-    min.aln.len <- stringi::stri_join("--min-aln-len ", min.aln.len)
-
-    if (disable.gapped) {
-      disable.gapped <- "--disable-gapped "
-    } else {
-      disable.gapped <- ""
-    }
-
-
-
-    # Model options --------------------------------------------------------------
-    alpha <- stringi::stri_join("--alpha ", alpha)
-
-    if (model.type == "bounded") {
-      bound.low <- stringi::stri_join("--bound-low ", bound.low)
-      bound.high <- stringi::stri_join("--bound-high ", bound.high)
-    } else {
-      bound.low <- ""
-      bound.high <- ""
-    }
-
-    if (model.type == "fixed") {
-      bc.err.freq <- stringi::stri_join("--bc-err-freq ", bc.err.freq)
-    } else {
-      bc.err.freq <- ""
-    }
-
-    model.type <- stringi::stri_join("--model-type ", model.type)
-
-
-    # command args
-    command.arguments <- paste(
-      f, i, o, M, m, N, p, t, R, H, h,
-      d, keep.high.cov, high.cov.thres, max.locus.stacks, k.len,
-      max.gaps, min.aln.len, disable.gapped,
-      model.type, alpha, bound.low, bound.high, bc.err.freq
-    )
-
-
-    # command
-    # stdout doesn't work need to use stderr instead to log the info
-    system2(command = "ustacks", args = command.arguments, stderr = ustacks.sample.log.file)
-
-    # transfer back to s3
-    # if (transfer.s3) {
-    #   message("in development")
-    #   # ustacks.files.to.s3 <- list.files(path = sample.list.path, pattern = individual, full.names = FALSE)
-    #   # purrr::walk(.x = ustacks.files.to.s3, .f = sunnier::copy_s3, from.folder = from.folder, destination.folder = destination.folder)
-    # }
-
-    # compile log when using mismatch testing
-    if (mismatch.testing) {
-      message("Reading and summarizing log file")
-
-      if (!stringi::stri_detect_fixed(str = ustacks.sample.log.file, pattern = getwd())) {
-        ustacks.sample.log.file <- stringi::stri_join(getwd(), "/", ustacks.sample.log.file)
-      }
-
-      if (!stringi::stri_detect_fixed(str = o.bk, pattern = getwd())) {
-        o.bk <- stringi::stri_join(getwd(), "/", o.bk)
-      }
-
-      message("directory use for test: ", o.bk)
-      res <- read_stacks_ustacks_log(
-        log.file = ustacks.sample.log.file,
-        ustacks.folder = o.bk,
-        parallel.core = parallel.core)
-
-      colnames(res) <- c("PARAMETER", stringi::stri_join("M_", M.bk))
-    } else {
-      res <- "ustacks files in output directory"
-    }
-    return(res)
-
-  } # end run_ustacks_one_sample
 
   # Samples ---------------------------
   if (is.null(sample.list)) {
@@ -470,16 +230,26 @@ run_ustacks <- function(
   # sql id of the sample
   # Add SQL_ID column for ustacks if missing in project.info df
   if (is.null(project.info)) {
-    potential.project.file <- list.files(path = getwd(), pattern = "project.info", ignore.case = TRUE)
+    potential.project.file <- list.files(
+      path = getwd(),
+      pattern = "project.info",
+      ignore.case = TRUE,
+      full.names = TRUE,
+      recursive = TRUE,
+      include.dirs = FALSE
+    )
+
+    # dir.exists(potential.project.file)
 
     if (length(potential.project.file) > 0) {
+      mtime <- NULL # also in global_variables.R file...
       project.file.info <- file.info(potential.project.file) %>%
-        tibble::rownames_to_column(df = ., var = "FILE") %>%
+        tibble::rownames_to_column(.data = ., var = "FILE") %>%
         dplyr::filter(mtime == max(mtime))
       project.info <- suppressMessages(readr::read_tsv(file = project.file.info$FILE))
       message("Using project info file found in the working directory: ", project.file.info$FILE)
     } else {
-      project.info <- tibble::data_frame(
+      project.info <- tibble::tibble(
         INDIVIDUALS_REP = stringi::stri_replace_all_fixed(
           str = sample.list,
           pattern = fq.file.type,
@@ -493,6 +263,7 @@ run_ustacks <- function(
   }
 
   if (!tibble::has_name(project.info, "SQL_ID")) {
+    INDIVIDUALS_REP <- NULL
     project.info <- project.info %>%
       dplyr::arrange(INDIVIDUALS_REP) %>%
       dplyr::mutate(SQL_ID = seq(1, n()))
@@ -501,7 +272,7 @@ run_ustacks <- function(
     message("Unique id info was generated: project.info.sqlid.tsv")
   }
 
-  # Mismatch ---------------------------
+  # Mismatch -------------------------------------------------------------------
   res <- list()
   if (mismatch.testing) {
     mismatch.to.do <- length(dir(path = o, full.names = TRUE, recursive = FALSE))
@@ -515,7 +286,7 @@ run_ustacks <- function(
       return(o)
     }
 
-    # Map samples to ustacks --------------
+    # Map samples to ustacks ---------------------------------------------------
     res$mismatches <- purrr::pmap(
       .l = list(
         M = M,
@@ -612,7 +383,7 @@ run_ustacks <- function(
       h = h,
       d = d,
       keep.high.cov = keep.high.cov,
-      high.cov.thres =high.cov.thres,
+      high.cov.thres = high.cov.thres,
       max.locus.stacks = max.locus.stacks,
       k.len = k.len,
       max.gaps = max.gaps,
@@ -654,6 +425,7 @@ read_stacks_ustacks_log <- function(
   ustacks.log <- suppressMessages(readr::read_lines(file = log.file))
 
   # Parameters
+  VALUE <- NULL
   mismatch <- suppressWarnings(suppressMessages(
     readr::read_delim(
       log.file,
@@ -664,7 +436,7 @@ read_stacks_ustacks_log <- function(
       dplyr::mutate(VALUE = as.character(VALUE))))
 
   # n.radtags.start ------------------------------------------------------------
-  n.radtags.start <- tibble::data_frame(
+  n.radtags.start <- tibble::tibble(
     PARAMETER = "Number of RAD-Tags loaded",
     VALUE = stringi::stri_extract_all_charclass(
       str = readr::read_lines(
@@ -681,7 +453,7 @@ read_stacks_ustacks_log <- function(
     stringi::stri_detect_fixed(str = ustacks.log,
                                pattern = "Initial coverage mean"))
   if (length(coverage.info) == 0) {
-    coverage <- tibble::data_frame(
+    coverage <- tibble::tibble(
       PARAMETER = c(
         "Coverage_start_mean",
         "Coverage_start_sd",
@@ -699,7 +471,7 @@ read_stacks_ustacks_log <- function(
       )[1] %>% unlist
     )
   } else {
-    coverage <- tibble::data_frame(
+    coverage <- tibble::tibble(
       PARAMETER = c("Coverage_start_mean", "Coverage_start_sd", "Coverage_start_max"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1),
@@ -712,7 +484,7 @@ read_stacks_ustacks_log <- function(
   rep.stacks.info <- which(stringi::stri_detect_fixed(str = ustacks.log,
                                                       pattern = "Removed"))
   if (length(rep.stacks.info) == 0) {
-    rep.stacks <- tibble::data_frame(
+    rep.stacks <- tibble::tibble(
       PARAMETER = "Repetitive stacks blacklisted",
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(
@@ -723,7 +495,7 @@ read_stacks_ustacks_log <- function(
           n_max = 1),
         pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
   } else {
-    rep.stacks <- tibble::data_frame(
+    rep.stacks <- tibble::tibble(
       PARAMETER = "Repetitive stacks blacklisted",
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(
@@ -738,7 +510,7 @@ read_stacks_ustacks_log <- function(
   coverage.info <- which(stringi::stri_detect_fixed(str = ustacks.log,
                                                     pattern = "Post-Repeat Removal"))
   if (length(coverage.info) == 0) {
-    coverage.post.repeat <- tibble::data_frame(
+    coverage.post.repeat <- tibble::tibble(
       PARAMETER = c("Coverage_post_repeat_mean", "Coverage_post_repeat_sd", "Coverage_post_repeat_max", "Coverage_post_repeat_n_reads", "Coverage_post_repeat_primary_reads_percent"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(
@@ -752,7 +524,7 @@ read_stacks_ustacks_log <- function(
       )[1] %>% unlist
     )
   } else {
-    coverage.post.repeat <- tibble::data_frame(
+    coverage.post.repeat <- tibble::tibble(
       PARAMETER = c("Coverage_post_repeat_mean", "Coverage_post_repeat_sd", "Coverage_post_repeat_max"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1),
@@ -765,7 +537,7 @@ read_stacks_ustacks_log <- function(
   merge.stacks.info <- which(stringi::stri_detect_fixed(str = ustacks.log,
                                                         pattern = "Merging stacks"))
   if (length(merge.stacks.info) == 0) {
-    stacks.merge1 <- tibble::data_frame(
+    stacks.merge1 <- tibble::tibble(
       PARAMETER = c("Stacks_number_merged", "Loci", "Blacklisted_loci"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(
@@ -778,7 +550,7 @@ read_stacks_ustacks_log <- function(
         pattern = "[0-9]*[.]*[0-9]+"
       )[1] %>% unlist)
   } else {
-    stacks.merge1 <- tibble::data_frame(
+    stacks.merge1 <- tibble::tibble(
       PARAMETER = c("Stacks_number_merged", "Loci", "Deleveraged_loci", "Blacklisted_loci"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(log.file, skip = merge.stacks.info, n_max = 1),
@@ -792,7 +564,7 @@ read_stacks_ustacks_log <- function(
     str = ustacks.log,
     pattern = "After merging, coverage depth"))
   if (length(coverage.info) == 0) {
-    coverage.post.merging <- tibble::data_frame(
+    coverage.post.merging <- tibble::tibble(
       PARAMETER = c("Coverage_post_merging_mean", "Coverage_post_merging_sd", "Coverage_post_merging_max", "Coverage_post_merging_n_reads", "Coverage_post_merging_primary_reads_percent"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(
@@ -803,7 +575,7 @@ read_stacks_ustacks_log <- function(
           n_max = 1),
         pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
   } else {
-    coverage.post.merging <- tibble::data_frame(
+    coverage.post.merging <- tibble::tibble(
       PARAMETER = c("Coverage_post_merging_mean", "Coverage_post_merging_sd", "Coverage_post_merging_max"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
@@ -813,11 +585,11 @@ read_stacks_ustacks_log <- function(
   merge.sec.stacks.info <- which(stringi::stri_detect_fixed(str = ustacks.log,
                                                         pattern = "Merging secondary stacks"))
   if (length(merge.stacks.info) == 0) {
-    stacks.sec.merge <- tibble::data_frame(
+    stacks.sec.merge <- tibble::tibble(
       PARAMETER = c("Secondary_reads_merged", "Secondary_reads_total", "Secondary_reads_percent", "Reads_merged_gap_align"),
       VALUE = c(NA, NA, NA, NA))
   } else {
-    stacks.sec.merge <- tibble::data_frame(
+    stacks.sec.merge <- tibble::tibble(
       PARAMETER = c("Secondary_reads_merged", "Secondary_reads_total", "Secondary_reads_percent", "Reads_merged_gap_align"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(log.file, skip = merge.sec.stacks.info, n_max = 1),
@@ -829,7 +601,7 @@ read_stacks_ustacks_log <- function(
     str = ustacks.log,
     pattern = "After remainders merged, coverage depth"))
   if (length(coverage.info) == 0) {
-    coverage.post.merging.sec <- tibble::data_frame(
+    coverage.post.merging.sec <- tibble::tibble(
       PARAMETER = c("Coverage_post_merging_sec_mean", "Coverage_post_merging_sec_sd", "Coverage_post_merging_sec_max", "Coverage_post_merging_sec_n_reads", "Coverage_post_merging_sec_primary_reads_percent"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(
@@ -840,10 +612,10 @@ read_stacks_ustacks_log <- function(
           n_max = 1),
         pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
   } else {
-    coverage.post.merging.sec <- tibble::data_frame(
+    coverage.post.merging.sec <- tibble::tibble(
       PARAMETER = c("Coverage_post_merging_sec_mean", "Coverage_post_merging_sec_sd", "Coverage_post_merging_sec_max"),
       VALUE = stringi::stri_match_all_regex(
-        str = readr::read_lines(log.file, skip = coverage.info -1, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
+        str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
       )[1] %>% unlist)
   }
 
@@ -852,7 +624,7 @@ read_stacks_ustacks_log <- function(
     str = ustacks.log,
     pattern = "Searching for gaps between merged stacks"))
   if (length(coverage.info) == 0) {
-    gap <- tibble::data_frame(
+    gap <- tibble::tibble(
       PARAMETER = c("Stacks_assembled_before_gap", "Stacks_assembled_after_gap"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(
@@ -865,7 +637,7 @@ read_stacks_ustacks_log <- function(
         pattern = "[0-9]*[.]*[0-9]+"
       )[1] %>% unlist)
   } else {
-    gap  <- tibble::data_frame(
+    gap  <- tibble::tibble(
       PARAMETER = c("Stacks_before_merged_gap", "Stacks_after_merged_gap", "Gapped_alignments"),
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(log.file,
@@ -880,7 +652,7 @@ read_stacks_ustacks_log <- function(
     pattern = "After gapped alignments, coverage depth"))
 
   if (length(coverage.info) == 0) {
-    coverage.post.gap <- tibble::data_frame(
+    coverage.post.gap <- tibble::tibble(
       PARAMETER = c("Coverage_post_gapped_alignments_mean",
                     "Coverage_post_gapped_alignments_sd",
                     "Coverage_post_gapped_alignments_max",
@@ -895,7 +667,7 @@ read_stacks_ustacks_log <- function(
           n_max = 1),
         pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
   } else {
-    coverage.post.gap <- tibble::data_frame(
+    coverage.post.gap <- tibble::tibble(
       PARAMETER = c("Coverage_post_gapped_alignments_mean",
                     "Coverage_post_gapped_alignments_sd",
                     "Coverage_post_gapped_alignments_max"),
@@ -912,7 +684,7 @@ read_stacks_ustacks_log <- function(
   if (length(coverage.info) == 0) {
     coverage.final <- NULL
   } else {
-    coverage.final <- tibble::data_frame(
+    coverage.final <- tibble::tibble(
       PARAMETER = c("Coverage_final_mean",
                     "Coverage_final_sd",
                     "Coverage_final_max",
@@ -936,7 +708,7 @@ read_stacks_ustacks_log <- function(
   if (length(reads.used.info) == 0) {
     reads.used <- NULL
   } else {
-    reads.used <- tibble::data_frame(
+    reads.used <- tibble::tibble(
       PARAMETER = "Reads_used",
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(
@@ -945,6 +717,7 @@ read_stacks_ustacks_log <- function(
           n_max = 1), pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
     }
 
+  INDIVIDUALS <- PARAMETER <- NULL
   polymorphism <- stackr::summary_ustacks(
     ustacks.folder = ustacks.folder,
     parallel.core = parallel.core) %>%
@@ -999,7 +772,9 @@ list_sample_file <- function(f, full.path = FALSE) {
   sample.list <- purrr::map(
     .x = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz", "FASTQ.gz", "FASTQ.GZ"),
     .f = sample_file, f = f) %>%
-    purrr::flatten_chr(.) %>% unique
+    purrr::flatten_chr(.) %>%
+    unique
+  return(sample.list)
 }#End list_sample_file
 
 #' @title fq_file_type
@@ -1043,6 +818,7 @@ mismatch_fig <- function(mismatch.run) {
 
 
   # lets check the impact of mismatch thresholds on polymorphism discovery
+  MISMATCH <- PARAMETER <- VALUE <- TOTAL <- PROP <- NULL
   mismatch.polymorphism <- res$mismatches.summary %>%
     tidyr::gather(data = ., key = MISMATCH, value = VALUE, -PARAMETER) %>%
     dplyr::filter(PARAMETER %in% c("HOMOZYGOSITY", "HETEROZYGOSITY", "BLACKLIST_ARTIFACT")) %>%
@@ -1052,7 +828,7 @@ mismatch_fig <- function(mismatch.run) {
       TOTAL = sum(VALUE)) %>%
     dplyr::ungroup(.) %>%
     dplyr::mutate(
-      PROP = VALUE/TOTAL,
+      PROP = VALUE / TOTAL,
       PERCENT = PROP * 100,
       MISMATCH = as.integer(
         stringi::stri_replace_all_fixed(
@@ -1074,6 +850,7 @@ mismatch_fig <- function(mismatch.run) {
                            ">= 3 alleles/cluster (artifacts)")
 
 
+  PERCENT <- NULL
   res$mismatches.plot <- ggplot2::ggplot(
     mismatch.polymorphism,
     ggplot2::aes(y = PERCENT, x = MISMATCH)) +
@@ -1099,3 +876,250 @@ mismatch_fig <- function(mismatch.run) {
     height = 15, width = 30, dpi = 600, units = "cm", useDingbats = FALSE)
   return(res)
 }#End mismatch_fig
+
+#' @title run_ustacks_one_sample
+#' @description run ustacks for 1 sample
+#' @rdname run_ustacks_one_sample
+#' @export
+#' @keywords internal
+run_ustacks_one_sample <- function(
+  mismatch.testing = FALSE,
+  sample.list = NULL,
+  project.info = NULL,
+  f = "04_process_radtags",
+  o = "06_ustacks_cstacks_sstacks",
+  m = 3,
+  M = 2,
+  N = M + 2,
+  t = "guess",
+  R = FALSE,
+  H = TRUE,
+  p = parallel::detectCores() - 1,
+  h = FALSE,
+  d = TRUE,
+  keep.high.cov = FALSE,
+  high.cov.thres = 3.0,
+  max.locus.stacks = 3,
+  k.len = NULL,
+  max.gaps = 2,
+  min.aln.len = 0.8,
+  disable.gapped = FALSE,
+  model.type = "snp",
+  alpha = 0.05,
+  bound.low = 0,
+  bound.high = 0.2,
+  bc.err.freq = NULL
+  # transfer.s3 = FALSE,
+  # from.folder = NULL,
+  # destination.folder = NULL
+) {
+  # ustacks common options ---------------------------------------------------
+  if (mismatch.testing) {
+    message("\nMismatch threshold testing: M = ", M, "\n")
+  }
+
+  if (is.null(sample.list)) {
+    stop("No sample provided")
+  } else {
+    sample.list.path <- stringi::stri_join(f, "/", sample.list) %>% stringi::stri_replace_all_fixed(str = ., pattern = "//", replacement = "/", vectorize_all = TRUE)
+  }
+
+  if (mismatch.testing && length(sample.list.path) > 1) {
+    stop("When testing mismatch threshold, 1 sample in a folder is required")
+  }
+
+  f <- stringi::stri_join("-f ", shQuote(sample.list.path))
+  FQ_FILES <- NULL
+  i <- dplyr::filter(.data = project.info, FQ_FILES %in% sample.list)
+
+  individual <- i$INDIVIDUALS_REP
+
+  message("\nGenerating de novo assembly of sample: ", individual)
+
+  # don't erase file already present...
+  if (stringi::stri_detect_fixed(str = o, pattern = getwd())) {
+    individual2 <- stringi::stri_join(o, "/", individual,".snps.tsv.gz")
+  } else {
+    individual2 <- stringi::stri_join(getwd(), "/", o, "/", individual,".snps.tsv.gz")
+  }
+
+  if (file.exists(individual2)) {
+    file.date <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
+    file.date <- stringi::stri_replace_all_fixed(
+      str = file.date,
+      pattern = c("-", " ", ":"),
+      replacement = c("", "_", ""),
+      vectorize_all = FALSE
+    )
+
+    individual <- stringi::stri_join(individual, "date", file.date, "param_MNm", M, N, m, sep = "_")
+    o <- stringi::stri_join(o, "/date", "_", file.date, "_", "param_MNm", "_", M, "_", N, "_", m)
+  }
+  if (!dir.exists(o)) {
+    dir.create(o)
+    message("New folder to store results:\n  ", o)
+  }
+
+  individual2 <- NULL
+  if (mismatch.testing) {
+    o.bk <- o
+    # o.bk <- stringi::stri_join(
+    #   o, "/", individual,"_mismatch_", M)
+  }
+  o <- stringi::stri_join("-o ", shQuote(o))
+
+  sql.id <- as.numeric(i$SQL_ID)
+  message("SQL ID: ", sql.id, "\n")
+
+  i <- stringi::stri_join("-i ", sql.id)
+
+  # if(missing(y)) stop("output type, either 'fastq', 'gzfastq', 'fasta',
+  # or 'gzfasta' (default is to match the input file type).")
+  if (t == "guess") {
+    t <- ""
+  } else {
+    t <- stringi::stri_join("-t ", shQuote(t))
+  }
+
+  if (R) {
+    R <- stringi::stri_join("-R ")
+  } else {
+    R <- ""
+  }
+
+  parallel.core <- p
+  p <- stringi::stri_join("-p ", p)
+
+  if (h) {
+    h <- stringi::stri_join("-h ")
+  } else {
+    h <- ""
+  }
+
+  # Stack assembly and genotyping options-------------------------------------
+
+  # ustacks.sample.log.file
+  if (mismatch.testing) {
+    ustacks.sample.log.file <- stringi::stri_join("09_log_files/ustacks_", individual, "_mismatch_", M, ".log")
+  } else {
+    ustacks.sample.log.file <- stringi::stri_join("09_log_files/ustacks_", individual, ".log")
+  }
+
+  m <- stringi::stri_join("-m ", m)
+  # Max distance allowed to align secondary reads
+  N <- stringi::stri_join("-N ", N)
+  M.bk <- M
+  M <- stringi::stri_join("-M ", M)
+
+  if (H) {
+    H <- stringi::stri_join("-H ")
+  } else {
+    H <- ""
+  }
+
+  if (d) {
+    d <- stringi::stri_join("-d ")
+  } else {
+    d <- ""
+  }
+
+  if (keep.high.cov) {
+    keep.high.cov <- stringi::stri_join("--keep-high-cov ")
+  } else {
+    keep.high.cov <- ""
+  }
+
+  high.cov.thres <- stringi::stri_join("--high-cov-thres ", high.cov.thres)
+
+
+  max.locus.stacks <- stringi::stri_join("--max-locus-stacks ", max.locus.stacks)
+
+  if (is.null(k.len)) {
+    k.len <- ""
+  } else {
+    k.len <- stringi::stri_join("--k-len ", k.len)
+  }
+
+  # gapped assembly options ---------------------------------------------------
+  # preform gapped alignments between stacks
+  # implements the Needleman–Wunsch algorithm to obtain gapped alignments
+  # between putative alleles.
+
+  # number of gaps allowed between stacks before merging (stacks default: 2)
+  max.gaps <- stringi::stri_join("--max-gaps ", max.gaps)
+  # minimum length of aligned sequence in a gapped alignment (default: 0.80)
+  min.aln.len <- stringi::stri_join("--min-aln-len ", min.aln.len)
+
+  if (disable.gapped) {
+    disable.gapped <- "--disable-gapped "
+  } else {
+    disable.gapped <- ""
+  }
+
+
+
+  # Model options --------------------------------------------------------------
+  alpha <- stringi::stri_join("--alpha ", alpha)
+
+  if (model.type == "bounded") {
+    bound.low <- stringi::stri_join("--bound-low ", bound.low)
+    bound.high <- stringi::stri_join("--bound-high ", bound.high)
+  } else {
+    bound.low <- ""
+    bound.high <- ""
+  }
+
+  if (model.type == "fixed") {
+    bc.err.freq <- stringi::stri_join("--bc-err-freq ", bc.err.freq)
+  } else {
+    bc.err.freq <- ""
+  }
+
+  model.type <- stringi::stri_join("--model-type ", model.type)
+
+
+  # command args
+  command.arguments <- paste(
+    f, i, o, M, m, N, p, t, R, H, h,
+    d, keep.high.cov, high.cov.thres, max.locus.stacks, k.len,
+    max.gaps, min.aln.len, disable.gapped,
+    model.type, alpha, bound.low, bound.high, bc.err.freq
+  )
+
+
+  # command
+  # stdout doesn't work need to use stderr instead to log the info
+  system2(command = "ustacks", args = command.arguments, stderr = ustacks.sample.log.file)
+
+  # transfer back to s3
+  # if (transfer.s3) {
+  #   message("in development")
+  #   # ustacks.files.to.s3 <- list.files(path = sample.list.path, pattern = individual, full.names = FALSE)
+  #   # purrr::walk(.x = ustacks.files.to.s3, .f = sunnier::copy_s3, from.folder = from.folder, destination.folder = destination.folder)
+  # }
+
+  # compile log when using mismatch testing
+  if (mismatch.testing) {
+    message("Reading and summarizing log file")
+
+    if (!stringi::stri_detect_fixed(str = ustacks.sample.log.file, pattern = getwd())) {
+      ustacks.sample.log.file <- stringi::stri_join(getwd(), "/", ustacks.sample.log.file)
+    }
+
+    if (!stringi::stri_detect_fixed(str = o.bk, pattern = getwd())) {
+      o.bk <- stringi::stri_join(getwd(), "/", o.bk)
+    }
+
+    message("directory use for test: ", o.bk)
+    res <- read_stacks_ustacks_log(
+      log.file = ustacks.sample.log.file,
+      ustacks.folder = o.bk,
+      parallel.core = parallel.core)
+
+    colnames(res) <- c("PARAMETER", stringi::stri_join("M_", M.bk))
+  } else {
+    res <- "ustacks files in output directory"
+  }
+  return(res)
+
+} # end run_ustacks_one_sample
