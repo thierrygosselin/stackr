@@ -77,7 +77,8 @@ returns a \code{.matches.tsv.gz file for each sample}
 \description{
 Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks}
-module inside R!
+module inside R! The function runs a summary of the log file automatically
+at the end (\code{\link{summary_cstacks}}).
 }
 \details{
 \strong{Computer or server problem during the cstacks ?} Look

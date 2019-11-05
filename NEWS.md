@@ -1,3 +1,10 @@
+# stackr v.2.0.9 2019-11-05
+
+* updated to work with stacks v.2.41
+* new `summary_cstacks` and `summary_sstacks` functions to help decide thresholds
+
+
+
 # stackr v.2.0.8 2019-01-14
 
 * updated to work with stacks v.2.3

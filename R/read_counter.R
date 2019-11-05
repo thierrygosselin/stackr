@@ -104,6 +104,12 @@ read_counter <- function(
          Please follow the example for install instructions", call. = FALSE)
   }
 
+
+  # Check for results folder
+  results.folder <- FALSE #defaults
+  if (file.exists("08_stacks_results")) results.folder <- TRUE
+
+  # get fq files
   fastq.files <- list_sample_file(f = path.samples, full.path = TRUE)
   fastq.files.short <- list_sample_file(f = path.samples, full.path = FALSE)
   todo <- length(fastq.files)
@@ -159,8 +165,14 @@ read_counter <- function(
           ggplot2::facet_grid(~STRATA, scales = "free", space = "free_x"))
     }
 
+    distribution.filename <- "reads.distribution.pdf" #default
+    if (results.folder) {
+      distribution.filename <- file.path("08_stacks_results", distribution.filename)
+    }
+
+
     suppressMessages(ggplot2::ggsave(
-      filename = "reads.distribution.pdf",
+      filename = distribution.filename,
       plot = reads.distribution,
       width = width.plot, height = 15,
       dpi = 600, units = "cm", useDingbats = FALSE, limitsize = FALSE))
@@ -193,8 +205,13 @@ read_counter <- function(
       width.plot <- 15
     }
 
+    bp.filename <- "reads.boxplot.pdf" #default
+    if (results.folder) {
+      bp.filename <- file.path("08_stacks_results", bp.filename)
+    }
+
     ggplot2::ggsave(
-      filename = "reads.boxplot.pdf",
+      filename = bp.filename,
       plot = reads.boxplot,
       width = width.plot, height = 15,
       dpi = 600, units = "cm", useDingbats = FALSE, limitsize = FALSE)
@@ -205,8 +222,12 @@ read_counter <- function(
   }
 
   if (write) {
+
     file.date <- format(Sys.time(), "%Y%m%d@%H%M")
     filename <- stringi::stri_join("stack_read_counts_", file.date, ".tsv")
+    if (results.folder) {
+      filename <- file.path("08_stacks_results", filename)
+    }
     readr::write_tsv(x = read.data, path = filename)
     message("\nRead count file written: ", filename)
   }

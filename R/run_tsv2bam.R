@@ -109,6 +109,15 @@ run_tsv2bam <- function(
   h = FALSE
 ) {
 
+  # testing
+  # P = "06_ustacks_cstacks_sstacks"
+  # M = "02_project_info/population.map.tsv2bam.testing.tsv"
+  # R = NULL
+  # t = parallel::detectCores() - 1
+  # cmd.path = "/usr/local/bin/samtools"
+  # h = FALSE
+
+
   cat("#######################################################################\n")
   cat("######################## stackr::run_tsv2bam ##########################\n")
   cat("#######################################################################\n")
@@ -151,14 +160,6 @@ run_tsv2bam <- function(
   # Threads
   parallel.core <- t # keep a distinct copy for other use
   t <- stringi::stri_join("-t ", t)
-
-
-  # Catalog batch ID
-  # if (b == "guess") {
-  #   b <- ""
-  # } else {
-  #   b <- stringi::stri_join("-b ", b)
-  # }
 
   # paired-end path
   if (is.null(R)) {
@@ -356,6 +357,6 @@ merge_parallel <- function(cmd.path, output.folder, parallel.core) {
 
   res <- stringi::stri_join("Finished merging, ", n.bam, " bam files")
   timing <- proc.time() - timing
-  message("\nComputation time: ", round(timing[[3]]), " sec")
+  message("\nbam merging computation time: ", round(timing[[3]]), " sec")
   return(res)
 }#End merge_parallel

@@ -281,7 +281,12 @@ run_sstacks <- function(
     # stdout = log.file,
     stderr = log.file
   )
-
+  # Summary sstacks ------------------------------------------------------------
+  sum <- stackr::summary_sstacks(
+    sstacks.log = log.file,
+    verbose = FALSE
+  )
+  sum <- NULL
   # log-likelihood distribution of catalog loci --------------------------------
   # if (lnl_dist) {
   #   log.lik <- stackr::summary_catalog_log_lik(

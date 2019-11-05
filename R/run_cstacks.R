@@ -2,7 +2,8 @@
 #' @title Run STACKS cstacks module
 #' @description Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks}
-#' module inside R!
+#' module inside R! The function runs a summary of the log file automatically
+#' at the end (\code{\link{summary_cstacks}}).
 
 #' @param P path to the directory containing STACKS files.
 #' Default: \code{P = "06_ustacks_cstacks_sstacks"}.
@@ -40,6 +41,10 @@
 #' \code{batch_1.catalog.alleles.tsv.gz,
 #' batch_1.catalog.snps.tsv.gz,
 #' batch_1.catalog.tags.tsv.gz}
+
+# @param outpath Output path to write results.
+# Default: \code{outpath = "06_ustacks_cstacks_sstacks"}.
+
 
 #' @param max.gaps The number of gaps allowed between stacks before merging.
 #' Default: \code{max.gaps = 2}
@@ -128,6 +133,7 @@ run_cstacks <- function(
   P = "06_ustacks_cstacks_sstacks",
   M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv",
   n = 1,
+  # outpath = "06_ustacks_cstacks_sstacks",
   p = parallel::detectCores() - 1,
   catalog.path = NULL,
   max.gaps = 2, min.aln.len = 0.8, disable.gapped = FALSE,
@@ -184,11 +190,11 @@ run_cstacks <- function(
       catalog.path <- file.path(
         catalog.path,
         stringi::stri_replace_all_fixed(
-        str = old.catalog[1],
-        pattern = ".alleles.tsv.gz",
-        replacement = "",
-        vectorize_all = FALSE
-      ))
+          str = old.catalog[1],
+          pattern = ".alleles.tsv.gz",
+          replacement = "",
+          vectorize_all = FALSE
+        ))
       catalog.path <- stringi::stri_join("--catalog ", shQuote(catalog.path))
     }
     if (length(old.catalog) > 0 & length(old.catalog) < 3) {
@@ -207,6 +213,7 @@ run_cstacks <- function(
   M <- stringi::stri_join("-M ", M)
   n <- stringi::stri_join("-n ", n)
   p <- stringi::stri_join("-p ", p)
+  # o <- stringi::stri_join("-o ", outpath)
 
   # gapped assembly options ---------------------------------------------------
   max.gaps <- stringi::stri_join("--max-gaps ", max.gaps)
@@ -249,7 +256,8 @@ run_cstacks <- function(
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
     P, M, n, p, catalog.path,
-    max.gaps, disable.gapped, min.aln.len,
+    # o,
+    max.gaps, min.aln.len, disable.gapped,
     k.len, report.mmatches, h
   )
 
@@ -263,7 +271,15 @@ run_cstacks <- function(
   # }
 
 
-timing <- proc.time() - timing
-message("\nComputation time: ", round(timing[[3]]), " sec")
-cat("############################## completed ##############################\n")
+  # Summary cstacks ------------------------------------------------------------
+  sum <- stackr::summary_cstacks(
+    cstacks.log = cstacks.log.file,
+    verbose = FALSE
+  )
+  sum <- NULL
+
+
+  timing <- proc.time() - timing
+  message("\nComputation time: ", round(timing[[3]]), " sec")
+  cat("############################## completed ##############################\n")
 }# end run_cstacks

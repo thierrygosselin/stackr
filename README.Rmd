@@ -82,47 +82,6 @@ citation("stackr")
 Change log, version, new features and bug history now lives in the [NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
 
 
-**v.2.0.4 2018-03-02**
-
-* `normalize_samples`: new function to check the impact of biased read numbers per 
-individual. The function normalize the number of reads and generate replicate samples.
-
-
-**v.2.0.3 2018-02-05**
-
-* `stackr` is working nice with beta8 and waiting for final and stable version
-
-
-
-**v.2.0.2 2018-01-16**
-
-* `stackr` is working nice with beta7c and waiting for final and stable version
-
-
-**v.2.0.1 2017-12-11**
-
-* `stackr` is working nice with beta6 and waiting for final and stable version
-
-
-**v.2.0.0 2017-10-11**
-
-* updated `stackr` to follow Stacks Version 2.0Beta1
-* `run_populations_v2` will replace `run_populations` in 2 updates
-* `run_tsv2bam`: new function that runs Stacks tsv2bam module.
-Additionnally, this function will also generate a summary of
-Stacks tsv2bam and will merge in parallel BAM sample files into a unique
-BAM catalog file using SAMtools or Sambamba.
-* `run_gstacks` runs Stacks gstacks module.
-
-
-**v.1.0.0 2017-08-18**
-
-* re-focusing `stackr` on running stacks pipeline within R.
-* moving all non-essential functions in a new package called `radiator`.
-
-For previous news:
-[NEWS.md file](https://github.com/thierrygosselin/stackr/blob/master/NEWS.md)
-
 ## Roadmap of future developments:
 
 * Vignettes to further explore some problems: *in progress*

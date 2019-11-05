@@ -159,6 +159,9 @@ summary_ustacks <- function(
     filename <- stringi::stri_join(filename, "summary_ustacks_", file.date, ".tsv")
   }
 
+  if (file.exists("08_stacks_results")) filename <- file.path("08_stacks_results", filename)
+
+
   # alleles
   alleles.files <- list.files(
     path = ustacks.folder, pattern = "alleles", full.names = FALSE)
