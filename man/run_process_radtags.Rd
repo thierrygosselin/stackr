@@ -13,7 +13,7 @@ run_process_radtags(project.info, path.seq.lanes = "03_sequencing_lanes",
   barcode.index.index = FALSE, barcode.inline.index = FALSE,
   barcode.index.inline = FALSE, enzyme = NULL, renz.1 = NULL,
   renz.2 = NULL, bestrad = FALSE, adapter.1 = NULL,
-  adapter.2 = NULL, adapter.mm = NULL, retain.header = FALSE,
+  adapter.2 = NULL, adapter.mm = NULL, retain.header = TRUE,
   merge = FALSE, filter.illumina = TRUE, disable.rad.check = FALSE,
   len.limit = NULL, barcode.dist.1 = 1, barcode.dist.2 = NULL,
   parallel.core = parallel::detectCores() - 1)
@@ -147,7 +147,7 @@ paired-read for filtering.}
 \item{adapter.mm}{(integer) Number of mismatches allowed in the adapter sequence.}
 
 \item{retain.header}{(logical) Retain unmodified FASTQ headers in the output.
-Default: \code{retain.header = FALSE}.}
+Default: \code{retain.header = TRUE}.}
 
 \item{merge}{(logical) If no barcodes are specified,
 merge all input files into a single output file.

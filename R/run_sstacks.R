@@ -186,27 +186,12 @@ run_sstacks <- function(
 
   # Pop map --------------------------------------------------------------------
   if (is.null(M)) {
-    # c <- list.files(path = P, pattern = "catalog.alleles", full.names = TRUE)
-    # if (length(c) > 0) {
-    #   message("Reading the catalog files...")
-    # } else {
-    #   stop("Catalog files are required, check the P (path containing the stacks files) or catalog prefix
-    #            arguments, usually it starts with batch_1")
-    # }
-
     c <- stringi::stri_join("-c ", c)
-
-    # catalog.prefix <- stringi::stri_extract_first_regex(
-    #   str = list.catalog.files[[1]], pattern = "[a-zA-Z0-9]+_[0-9]*")
-
-    # c <- stringi::stri_replace_all_fixed(
-    #   str = stringi::stri_join("-c ", P, "/", catalog.prefix),
-    #   pattern = "//", replacement = "/", vectorize_all = FALSE)
 
     # s: filename prefix from which to load sample loci---------------------------
 
     # Get the samples in the folder
-    samples.in.folder <- tibble::data_frame(INDIVIDUALS_REP = list.files(P)) %>%
+    samples.in.folder <- tibble::tibble(INDIVIDUALS_REP = list.files(P)) %>%
       dplyr::filter(!grepl("catalog", INDIVIDUALS_REP))
 
     # Search for those already matched
@@ -287,24 +272,6 @@ run_sstacks <- function(
     verbose = FALSE
   )
   sum <- NULL
-  # log-likelihood distribution of catalog loci --------------------------------
-  # if (lnl_dist) {
-  #   log.lik <- stackr::summary_catalog_log_lik(
-  #     matches.folder = ustacks.folder,
-  #     parallel.core = parallel.core,
-  #     verbose = FALSE)
-  #   res$log.likelihood.summary <- log.lik$log.likelihood.summary
-  #   res$log.likelihood.fig <- log.lik$log.likelihood.fig
-  #   log.lik <- NULL
-  #   res$output <- "look in output folder for output files"
-  # } else {
-  #   res$output <- "look in output folder for output files"
-  # }
-  # # transfer back to s3
-  # if (transfer.s3) {
-  #   cstacks.files.to.s3 <- list.files(path = sample.list.path, pattern = individual, full.names = FALSE)
-  #   purrr::walk(.x = cstacks.files.to.s3, .f = copy_s3, from.folder = from.folder, destination.folder = destination.folder)
-  # }
 
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")

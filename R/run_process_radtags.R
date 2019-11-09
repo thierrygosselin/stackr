@@ -117,7 +117,7 @@
 #' paired-read for filtering.
 #' @param adapter.mm (integer) Number of mismatches allowed in the adapter sequence.
 #' @param retain.header (logical) Retain unmodified FASTQ headers in the output.
-#' Default: \code{retain.header = FALSE}.
+#' Default: \code{retain.header = TRUE}.
 #' @param merge (logical) If no barcodes are specified,
 #' merge all input files into a single output file.
 #' Default: \code{merge = FALSE}.
@@ -257,7 +257,7 @@ run_process_radtags <- function(
   adapter.1 = NULL,
   adapter.2 = NULL,
   adapter.mm = NULL,
-  retain.header = FALSE,
+  retain.header = TRUE,
   merge = FALSE,
   filter.illumina = TRUE,
   disable.rad.check = FALSE,
@@ -387,7 +387,7 @@ run_process_radtags <- function(
     adapter.1 = NULL,
     adapter.2 = NULL,
     adapter.mm = NULL,
-    retain.header = FALSE,
+    retain.header = TRUE,
     merge = FALSE,
     filter.illumina = TRUE,
     disable.rad.check = FALSE,
@@ -395,7 +395,7 @@ run_process_radtags <- function(
     barcode.dist.1 = 1,
     barcode.dist.2 = NULL
   ) {
-    # lane.list <- "03_sequencing_lanes/HI.2385.001.GQ20141028-1_R1.fastq.gz" # test
+    # lane.list <- lane.list[1]
     f <- lane.list
 
     # generate a barcode file for the lane -------------------------------------
@@ -414,11 +414,6 @@ run_process_radtags <- function(
 
     b <- stringi::stri_join("02_project_info/barcodes_id", "_", lane.short, ".txt")
 
-    # if (is.null(problem.samples)) {
-    #   b <- stringi::stri_join("02_project_info/barcodes_id", "_", lane.short, ".txt")
-    # } else {
-    #   b <- stringi::stri_join("02_project_info/barcodes_id", "_", lane.short, "_problem_samples",".txt")
-    # }
     readr::write_tsv(barcode.file, b, col_names = FALSE)
 
     # process_radtags_options --------------------------------------------------
@@ -436,17 +431,12 @@ run_process_radtags <- function(
       y <- stringi::stri_join("-y ", shQuote(y))
     }
 
-
-    # if (is.null(p)) {
-    #   p <- ""
-    # } else {
-    #   p <- stringi::stri_join("-p ", shQuote(p))
-    # }
-
     if (!P) {
       P <- ""
+      paired.analysis <- FALSE
     } else {
       P <- "-P "
+      paired.analysis <- TRUE
     }
 
     if (!I) {
@@ -506,12 +496,6 @@ run_process_radtags <- function(
     w <- stringi::stri_join("-w ", w)
     s <- stringi::stri_join("-s ", s)
 
-
-    # if (h) {
-    #   h <- stringi::stri_join("-h ")
-    # } else {
-    #   h <- ""
-    # }
 
     # BARCODES OPTIONS -----------------------------------------------------------
     if (barcode.inline.null) {
@@ -635,20 +619,34 @@ run_process_radtags <- function(
     }
 
     if (rescue.barcodes) {
-      barcode.dist.1 <- barcode.dist.1
-      barcode.dist.1 <- stringi::stri_join("--barcode-dist-1 ", barcode.dist.1)
-      if (is.null(barcode.dist.2)) {
-        barcode.dist.2 <- barcode.dist.1
+      if (paired.analysis) {
+        if (is.null(barcode.dist.2)) {
+          barcode.dist.2 <- barcode.dist.1
+        }
+        barcode.dist.2 <- stringi::stri_join("--barcode-dist-2 ", barcode.dist.2)
+      } else {
+        barcode.dist.2 <- ""
       }
-      barcode.dist.2 <- stringi::stri_join("--barcode-dist-2 ", barcode.dist.2)
+      barcode.dist.1 <- stringi::stri_join("--barcode-dist-1 ", barcode.dist.1)
     }
 
     command.arguments <- paste(
-      f, i, y,
-      # p,
-      P, I,
+      P,
+      I,
+      i,
+      b,
+      o,
+      f,
       pe.1, pe.2,
-      o, b, c, q, r, t, E, D, w, s,
+      c,
+      q,
+      r,
+      t,
+      D,
+      E,
+      w,
+      s,
+      y,
       barcode.inline.null,
       barcode.index.null,
       barcode.null.index,
@@ -659,9 +657,13 @@ run_process_radtags <- function(
       enzyme, renz.1, renz.2,
       bestrad,
       adapter.1, adapter.2, adapter.mm,
-      retain.header, merge,
-      filter.illumina, disable.rad.check, len.limit,
-      barcode.dist.1, barcode.dist.2
+      retain.header,
+      merge,
+      filter.illumina,
+      disable.rad.check,
+      len.limit,
+      barcode.dist.1,
+      barcode.dist.2
     )
     # log file -----------------------------------------------------------------
     process.radtags.log.file <- stringi::stri_join("09_log_files/process_radtags_", lane.short, "_", file.date, ".log")
@@ -678,7 +680,12 @@ run_process_radtags <- function(
     lanes.stats <- readr::read_tsv(
       file = log.file,
       col_names = c("DESCRIPTION", "READS"),
-      col_types = "ci",trim_ws = TRUE, skip = 6, n_max = 7) %>%
+      col_types = "ci",
+      trim_ws = TRUE,
+      skip = 5, #stacks v.2.41
+      # skip = 6,
+      n_max = 7
+      ) %>%
       dplyr::mutate(
         DESCRIPTION = stringi::stri_replace_all_fixed(
           str = DESCRIPTION,
@@ -701,7 +708,7 @@ run_process_radtags <- function(
     temp.file <- suppressWarnings(suppressMessages(readr::read_table(file = log.file, col_names = FALSE)))
     skip.number <- which(stringi::stri_detect_fixed(
       str = temp.file$X1,
-      pattern = "Barcode\tFilename\tTotal\tNoRadTag\tLowQuality\tRetained")) - 1
+      pattern = "Barcode\tFilename\tTotal\tNoRadTag\tLowQuality\tRetained"))# - 1# no longer works
 
     barcodes.stats <- suppressMessages(
       suppressWarnings(
@@ -732,6 +739,7 @@ run_process_radtags <- function(
   # run in parallel ------------------------------------------------------------
   message("Running process_radtags in parallel")
   message("    for progress, look in the different log files generated")
+  names(lane.list) <- lane.list
   process.radtags.results <- .stackr_parallel_mc(
     X = lane.list,
     FUN = process_radtags_lane,
@@ -784,6 +792,7 @@ run_process_radtags <- function(
       str = colnames(.),
       pattern = " ",
       replacement = "_", vectorize_all = FALSE)) %>%
+    dplyr::mutate(FILENAME = as.character(FILENAME)) %>%
     dplyr::select(
       INDIVIDUALS_REP = FILENAME, TOTAL,
       NO_RADTAG = NORADTAG, LOW_QUALITY = LOWQUALITY, RETAINED)
@@ -911,12 +920,7 @@ run_process_radtags <- function(
     )
   message("Updating info file with SQL ID")
 
-  # With Amazon
-  # project.info.file.sqlid <- project.info.file.sqlid %>%
-  #   dplyr::mutate(
-  #     INSTANCE_NUMBER = factor(
-  #       cut(x = 1:n(), breaks = instance.number, labels = FALSE))
-  #   )
+
   new.info.file.name <- stringi::stri_join("02_project_info/project.info.", file.date, ".tsv")
   readr::write_tsv(project.info.file.sqlid, new.info.file.name)
   message("New project info, see: ", new.info.file.name)
