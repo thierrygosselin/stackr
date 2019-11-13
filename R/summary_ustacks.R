@@ -161,6 +161,15 @@ summary_ustacks <- function(
 
   if (file.exists("08_stacks_results")) filename <- file.path("08_stacks_results", filename)
 
+  if (file.exists(filename)) {
+    file.date.w.seconds <- format(Sys.time(), "%Y%m%d@%H%M%S")
+    filename <- stringi::stri_replace_all_fixed(
+      str = filename,
+      pattern = file.date,
+      replacement = file.date.w.seconds,
+      vectorize_all = FALSE
+    )
+  }
 
   # alleles
   alleles.files <- list.files(

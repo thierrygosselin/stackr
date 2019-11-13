@@ -43,7 +43,7 @@ build_stackr_workflow_dir <- function(
   dir.create(path = file.path(main.folder.name, "02_project_info"))
   dir.create(path = file.path(main.folder.name, "03_sequencing_lanes"))
   dir.create(path = file.path(main.folder.name, "04_process_radtags"))
-  dir.create(path = file.path(main.folder.name, "05_paralogy_clustering_mismatch"))
+  dir.create(path = file.path(main.folder.name, "05_clustering_mismatches"))
   dir.create(path = file.path(main.folder.name, "06_ustacks_cstacks_sstacks"))
   dir.create(path = file.path(main.folder.name, "07_populations"))
   dir.create(path = file.path(main.folder.name, "08_stacks_results"))

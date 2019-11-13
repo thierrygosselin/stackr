@@ -180,9 +180,6 @@ run_ustacks <- function(
   bound.low = 0,
   bound.high = 0.2,
   bc.err.freq = NULL
-  # transfer.s3 = FALSE,
-  # from.folder = NULL,
-  # destination.folder = NULL
 ) {
 
   cat("#######################################################################\n")
@@ -202,16 +199,6 @@ run_ustacks <- function(
 
   # Samples ---------------------------
   if (is.null(sample.list)) {
-    # sample.list <- list.files(
-    #   path = f,
-    #   pattern = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
-    #   full.names = FALSE)
-    #
-    # sample.list.path <- list.files(
-    #   path = f,
-    #   pattern = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz"),
-    #   full.names = TRUE)
-
     sample.list <- list_sample_file(f = f)
     sample.list.path <- list_sample_file(f = f, full.path = TRUE)
   } else {
@@ -270,16 +257,14 @@ run_ustacks <- function(
   # Mismatch -------------------------------------------------------------------
   res <- list()
   if (mismatch.testing) {
-    mismatch.to.do <- length(dir(path = o, full.names = TRUE, recursive = FALSE))
-    if (mismatch.to.do > 0) {
-      M <- (mismatch.to.do - 1):length(M)
-    }
-    mismatch.to.do <- NULL
+    if (f == "05_clustering_mismatches") if (!dir.exists(f)) dir.create(f)
+    o <- f
 
-    mismatch_dir <- function(M, o) {
-      o = stringi::stri_join(o, "/", stringi::stri_replace_all_fixed(str = sample.list, pattern = fq.file.type, replacement = "", vectorize_all = FALSE),"_mismatch_", M)
-      return(o)
-    }
+    # mismatch.to.do <- length(dir(path = o, full.names = TRUE, recursive = FALSE))
+    # if (mismatch.to.do > 0) {
+    #   M <- (mismatch.to.do - 1):length(M)
+    # }
+    # mismatch.to.do <- NULL
 
     # Map samples to ustacks ---------------------------------------------------
     res$mismatches <- purrr::pmap(
@@ -287,15 +272,12 @@ run_ustacks <- function(
         M = M,
         N = N,
         max.gaps = max.gaps,
-        o = purrr::map(.x = M, mismatch_dir, o = o)
+        o = purrr::map(.x = M, mismatch_dir, o = o, sample.list = sample.list, fq.file.type = fq.file.type)
       ),
       .f = run_ustacks_one_sample,
       mismatch.testing = TRUE,
       sample.list = sample.list,
       project.info = project.info,
-      # transfer.s3 = transfer.s3,
-      # from.folder = from.folder,
-      # destination.folder = destination.folder,
       f = f,
       m = m,
       t = t,
@@ -336,11 +318,6 @@ run_ustacks <- function(
     if (unique(stringi::stri_detect_fixed(str = subsample.sample.list, pattern = "FASTQ.gz"))) encoding <- ".gzfastq"
     if (unique(stringi::stri_detect_fixed(str = subsample.sample.list, pattern = "FASTQ.GZ"))) encoding <- ".gzfastq"
 
-    #Check if ustacks as already done some files
-    # sample.assembled <- stringi::stri_replace_all_fixed(
-    #   str = list.files(path = o, pattern = c("alleles.tsv", "alleles.tsv.gz"), full.names = FALSE),
-    #   pattern = ".alleles.tsv.gz", replacement = encoding, vectorize_all = FALSE)
-
     # changing the encoding for the actual fq.file.type...
     sample.assembled <- stringi::stri_replace_all_fixed(
       str = list.files(path = o, pattern = c("alleles.tsv", "alleles.tsv.gz"), full.names = FALSE),
@@ -369,9 +346,6 @@ run_ustacks <- function(
       run_ustacks_one_sample,
       mismatch.testing = FALSE,
       project.info = project.info,
-      # transfer.s3 = transfer.s3,
-      # from.folder = from.folder,
-      # destination.folder = destination.folder,
       f = f,
       o = o,
       m = m,
@@ -412,6 +386,18 @@ run_ustacks <- function(
 }# end run_ustacks
 
 # Internal function ------------------------------------------------------------
+#' @title Generate mismatch directory
+#' @description Generate mismatch directory
+#' @rdname mismatch_dir
+#' @export
+#' @keywords internal
+mismatch_dir <- function(M, o, sample.list, fq.file.type) {
+  o = stringi::stri_join(o, "/", stringi::stri_replace_all_fixed(str = sample.list, pattern = fq.file.type, replacement = "", vectorize_all = FALSE),"_mismatch_", M)
+  return(o)
+}
+
+
+
 #' @title Read stacks ustacks log
 #' @description Read stacks ustacks log
 #' @rdname read_stacks_ustacks_log
@@ -581,10 +567,10 @@ read_stacks_ustacks_log <- function(
       VALUE = stringi::stri_match_all_regex(
         str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1), pattern = "[0-9]*[.]*[0-9]+"
       )[1] %>% unlist)
-}
+  }
   # merging secondary reads-----------------------------------------------------
   merge.sec.stacks.info <- which(stringi::stri_detect_fixed(str = ustacks.log,
-                                                        pattern = "Merging secondary stacks"))
+                                                            pattern = "Merging secondary stacks"))
   if (length(merge.stacks.info) == 0) {
     stacks.sec.merge <- tibble::tibble(
       PARAMETER = c("Secondary_reads_merged", "Secondary_reads_total", "Secondary_reads_percent", "Reads_merged_gap_align"),
@@ -716,7 +702,7 @@ read_stacks_ustacks_log <- function(
           log.file,
           skip = reads.used.info - 1,
           n_max = 1), pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
-    }
+  }
 
   INDIVIDUALS <- PARAMETER <- NULL
   polymorphism <- stackr::summary_ustacks(
@@ -805,6 +791,9 @@ fq_file_type <- function(x) {
 #' @export
 #' @keywords internal
 mismatch_fig <- function(mismatch.run) {
+  if (!dir.exists("05_clustering_mismatches")) dir.create("05_clustering_mismatches")
+
+
   # mismatch.run <- res$mismatches#test
   res <- list() # store results
   remove_first_column <- function(x) {
@@ -814,7 +803,7 @@ mismatch_fig <- function(mismatch.run) {
     dplyr::bind_cols(purrr::map(.x = mismatch.run,.f = remove_first_column))
 
   # write in the working directory
-  readr::write_tsv(x = res$mismatches.summary, path = "mismatches.summary.tsv")
+  readr::write_tsv(x = res$mismatches.summary, path = file.path("05_clustering_mismatches", "mismatches.summary.tsv"))
   message("Summary of all mismatches written in folder: mismatches.summary.tsv")
 
 
@@ -872,7 +861,7 @@ mismatch_fig <- function(mismatch.run) {
       axis.text = ggplot2::element_text(size = 12, family = "Helvetica"))
 
   ggplot2::ggsave(
-    filename = "mismatches.plot.pdf",
+    filename = file.path("05_clustering_mismatches", "mismatches.plot.pdf"),
     plot = res$mismatches.plot,
     height = 15, width = 30, dpi = 600, units = "cm", useDingbats = FALSE)
   return(res)
@@ -910,9 +899,6 @@ run_ustacks_one_sample <- function(
   bound.low = 0,
   bound.high = 0.2,
   bc.err.freq = NULL
-  # transfer.s3 = FALSE,
-  # from.folder = NULL,
-  # destination.folder = NULL
 ) {
   # ustacks common options ---------------------------------------------------
   if (mismatch.testing) {
@@ -962,11 +948,7 @@ run_ustacks_one_sample <- function(
   }
 
   individual2 <- NULL
-  if (mismatch.testing) {
-    o.bk <- o
-    # o.bk <- stringi::stri_join(
-    #   o, "/", individual,"_mismatch_", M)
-  }
+  o.bk <- o
   o <- stringi::stri_join("-o ", shQuote(o))
 
   sql.id <- as.numeric(i$SQL_ID)
