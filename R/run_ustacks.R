@@ -770,11 +770,15 @@ list_sample_file <- function(f, full.path = FALSE) {
 #' @export
 #' @keywords internal
 fq_file_type <- function(x) {
-  fq.file.type <-  suppressWarnings(stringi::stri_match_all_regex(
-    str = x,
-    omit_no_match = TRUE,
-    pattern = c( ".fq", ".fq.gz", ".fasta", ".gzfasta", ".gzfastq", ".fastq", ".fastq.gz", ".FASTQ.gz", ".FASTQ.GZ")
-  ) %>% purrr::flatten_chr(.))
+  fq.file.type <-  suppressWarnings(
+    stringi::stri_match_all_regex(
+      str = x,
+      omit_no_match = TRUE,
+      pattern = c( ".fq", ".fq.gz", ".fasta", ".gzfasta", ".gzfastq", ".fastq", ".fastq.gz", ".FASTQ.gz", ".FASTQ.GZ")
+    ) %>%
+      purrr::flatten_chr(.)
+    ) %>%
+    unique
 
   # if (identical(x = c(".fastq", ".fastq.gz", ".FASTQ.gz", ".FASTQ.GZ"), y = fq.file.type)) fq.file.type <- ".fastq.gz"
   # if (identical(x = c(".FASTQ.GZ"), y = fq.file.type)) fq.file.type <- ".fastq.gz"

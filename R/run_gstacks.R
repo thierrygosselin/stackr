@@ -4,6 +4,8 @@
 #' \href{http://catchenlab.life.illinois.edu/stacks/stacks_v2.php}{gstacks}
 #' module inside R!
 
+#' @param denovo (logical) de novo vs reference-based mode.
+#' Default: \code{denovo = TRUE}.
 #' @param P (path, character) De novo mode.
 #' Path to the directory containing STACKS files.
 #' Default: \code{P = "06_ustacks_cstacks_sstacks"}.
@@ -43,26 +45,29 @@
 #' generate such a BAM file with Samtools or Sambamba, and examples.
 #' Default: \code{B = NULL}.
 #
-#' @param O (character, path) Path to output directory.
-#' Default: \code{O = NULL} (same as input)
-
-#' @param unpaired (logical) Reference-based mode.
-#' Ignore read pairing (for ddRAD; treat READ2's as if they were READ1's)
-#' Default: \code{unpaired = TRUE}.
-#' @param rm.unpaired.reads (logical) Discard unpaired reads
-#' (in reference-based mode, implies \code{paired = TRUE})
-#' Default: \code{rm.unpaired.reads = TRUE}.
-#' @param rm.pcr.duplicates (logical) Remove read pairs of the same insert
-#' length (implies \code{rm.unpaired.reads = TRUE})
+#' @param O (character, path) Path to output directory. \code{stackr} by default
+#' will output in the input directory.
+#' Default: \code{O = NULL} (same as input).
 
 
-#' @param t (integer) Enable parallel execution with the number of threads.
-#' Default: \code{t = parallel::detectCores() - 1}.
+#' @param rm.pcr.duplicates (logical) remove all but one set of read pairs of
+#' the same sample that have the same insert length
+#' (implies \code{rm.unpaired.reads = TRUE}.).
+#' Default: \code{rm.pcr.duplicates = FALSE}.
 
+#' @param rm.unpaired.reads (logical) Discard unpaired reads.
+#' Default: \code{rm.unpaired.reads = FALSE}.
 
 #' @param ignore.pe.reads (logical) With default the function will
 #' ignore paired-end reads even if present in the input.
 #' Default: \code{ignore.pe.reads = TRUE}.
+
+#' @param unpaired (logical) Ignore read pairing (only for paired-end GBS;
+#' treat READ2's as if they were READ1's).
+#' Default: \code{unpaired = TRUE}.
+
+#' @param t (integer) Enable parallel execution with the number of threads.
+#' Default: \code{t = parallel::detectCores() - 1}.
 
 #' @param model (character) The model to use to call variants and genotypes;
 #' one of \code{"marukilow"}, \code{"marukihigh"}, or \code{"snp"}.
@@ -77,12 +82,15 @@
 #' @param kmer.length (integer) De novo mode.
 #' kmer length for the de Bruijn graph. For expert.
 #' Default: \code{kmer.length = 31}.
-#' @param min.kmer.cov (integer) De novo mode.
-#' Minimum coverage to consider a kmer. For expert.
-#' Default: \code{min.kmer.cov = 2}.
+
 #' @param max.debruijn.reads (integer) Maximum number of reads to use in the
 #' de Bruijn graph. For expert.
 #' Default: \code{max.debruijn.reads = 1000}.
+
+#' @param min.kmer.cov (integer) De novo mode.
+#' Minimum coverage to consider a kmer. For expert.
+#' Default: \code{min.kmer.cov = 2}.
+
 #' @param write.alignments (logical) Save read alignments (heavy BAM files).
 #' Default: \code{write.alignments = FALSE}.
 
@@ -98,14 +106,12 @@
 
 #' @param details (logical) With default the function will write a more detailed
 #' output.
-#' Default: \code{details = TRUE}.
-
+#' Default: \code{details = FALSE}.
 
 #' @param phasing.cooccurrences.thr.range (integer) range of edge coverage thresholds to
 #' iterate over when building the graph of allele cooccurrences for
 #' SNP phasing.
 #' Default: \code{phasing.cooccurrences.thr.range = c(1,2)}.
-
 
 #' @param phasing.dont.prune.hets (logical) Don't try to ignore dubious heterozygote
 #' genotypes during phasing. By default, during phasing, dubious het are ignored.
@@ -157,32 +163,33 @@
 #' Genotype Calling from Population-Genomic Sequencing Data. G3, 7, 1393-1404.
 
 run_gstacks <- function(
+  denovo = TRUE,
   P = "06_ustacks_cstacks_sstacks",
   M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
   # b = "guess",
   I = NULL,
   B = NULL,
   O = NULL,
-  unpaired = TRUE,
-  rm.unpaired.reads = FALSE,
-  rm.pcr.duplicates = FALSE,
   t = parallel::detectCores() - 1,
-  ignore.pe.reads = TRUE,
   model = "marukilow",
   var.alpha = 0.01,
   gt.alpha = 0.05,
+  rm.pcr.duplicates = FALSE,
+  rm.unpaired.reads = FALSE,
+  ignore.pe.reads = TRUE,
+  unpaired = TRUE,
   kmer.length = 31,
-  min.kmer.cov = 2,
   max.debruijn.reads = 1000,
+  min.kmer.cov = 2,
   write.alignments = FALSE,
   min.mapq = 10,
   max.clipped = 0.20,
   max.insert.len = 1000,
-  details = TRUE,
+  details = FALSE,
   phasing.cooccurrences.thr.range = c(1,2),
   phasing.dont.prune.hets = FALSE,
   h = FALSE
-  ) {
+) {
 
   cat("#######################################################################\n")
   cat("######################## stackr::run_gstacks ##########################\n")
@@ -203,92 +210,88 @@ run_gstacks <- function(
   message("For progress, look in the log file:\n", gstacks.log.file)
 
   # gstacks arguments ----------------------------------------------------------
-  # Population map path
-  M <- stringi::stri_join("-M ", M)
+
 
   # De novo approach -----------------------------------------------------------
-  # Input filder path
-  output.folder <- P # keep a distinct copy for other use
-  P <- stringi::stri_join("-P ", shQuote(P))
-
-  # Catalog batch ID
-  # if (b == "guess") {
-  #   b <- ""
-  # } else {
-  #   b <- stringi::stri_join("-b ", b)
-  # }
-
-
-  # reference-based approach ---------------------------------------------------
-  if (!is.null(B) || !is.null(I)) {
-
-
-    if (!is.null(B)) {
-      B.bk <- B
-      B <- stringi::stri_join("-B ", B)
-    } else {
-      B <- ""
-    }
-
-
+  if (denovo) {
+    # Input filder path
     if (!is.null(O)) {
       O <- stringi::stri_join("-O ", O)
     } else {
-      O <- B.bk
+      O <- stringi::stri_join("-O ", P)
     }
-    if (!unpaired) {
-      unpaired <- ""
+    P <- stringi::stri_join("-P ", shQuote(P))
 
-      if (rm.unpaired.reads) {
-        rm.unpaired.reads <- "--rm-unpaired-reads"
-        if (rm.pcr.duplicates) {
-          rm.pcr.duplicates <- "--rm-pcr-duplicates"
-        } else {
-          rm.pcr.duplicates <- ""
-        }
-      } else {
-        rm.unpaired.reads <- ""
-        rm.pcr.duplicates <- ""
-      }
+    # Advanced options -------------------------------------------------------------
+    kmer.length <- stringi::stri_join("--kmer-length ", kmer.length)
+    max.debruijn.reads <- stringi::stri_join("--max-debruijn-reads ", max.debruijn.reads)
+    min.kmer.cov <- stringi::stri_join("--min-kmer-cov ", min.kmer.cov)
+
+    if (write.alignments) {
+      write.alignments <- "--write-alignments "
     } else {
-      unpaired <- "--unpaired"
-      rm.unpaired.reads <- ""
-      rm.pcr.duplicates <- ""
+      write.alignments <- ""
     }
-  } else {
+
+    # to counteract reference-based...
     B <- ""
-    O <- ""
-    unpaired <- ""
-    rm.unpaired.reads <- ""
-    rm.pcr.duplicates <- ""
-  }
-
-  if (!is.null(I)) {
-    I <- stringi::stri_join("-I ", I)
-  } else {
     I <- ""
-  }
+    min.mapq <- ""
+    max.clipped <- ""
+    max.insert.len <- ""
+    phasing.cooccurrences.thr.range <- ""
+    phasing.dont.prune.hets <- ""
+    details <- ""
 
-  # if (s) {
-  #   s <- "-s "
-  # } else {
-  #   s <- ""
-  # }
+
+  } else {# reference-based approach -------------------------------------------
+    B.bk <- B
+    B <- stringi::stri_join("-B ", B)
+    I <- stringi::stri_join("-I ", I)
+
+    # Advanced options -------------------------------------------------------
+    # Reference-based mode
+    min.mapq <- stringi::stri_join("--min-mapq ", min.mapq)
+    max.clipped <- stringi::stri_join("--max-clipped ", max.clipped)
+    max.insert.len <- stringi::stri_join("--max-insert-len ", max.insert.len)
+    phasing.cooccurrences.thr.range <- stringi::stri_join("--phasing-cooccurrences-thr-range ", stringi::stri_join(phasing.cooccurrences.thr.range, collapse = ","))
+
+    if (!phasing.dont.prune.hets) {
+      phasing.dont.prune.hets <- "--phasing-dont-prune-hets "
+    } else {
+      phasing.dont.prune.hets <- ""
+    }
+    # details
+    if (details) {
+      details <- "--details"
+    }
+
+    # counteract de novo
+    O <- ""
+    P <- ""
+    kmer.length <- ""
+    max.debruijn.reads <- ""
+    min.kmer.cov <- ""
+    write.alignments <- ""
+
+  }# End reference-based mode
+
 
   # Shared options -------------------------------------------------------------
+  # Population map path
+  M <- stringi::stri_join("-M ", M)
 
   # Threads
   parallel.core <- t # keep a distinct copy for other use
   t <- stringi::stri_join("-t ", t)
 
-  # details
-  if (details) {
-    details <- "--details"
-  } else {
-    details <- ""
-  }
+  # SNP Model options ----------------------------------------------------------
+  model <- stringi::stri_join("--model ", model)
+  var.alpha <- stringi::stri_join("--var-alpha ", var.alpha)
+  gt.alpha <- stringi::stri_join("--gt-alpha ", gt.alpha)
 
-  # paired-end
+
+  # paired-end -----------------------------------------------------------------
   # ignore.pe.reads = TRUE
   if (ignore.pe.reads) {
     ignore.pe.reads <- "--ignore-pe-reads"
@@ -296,34 +299,26 @@ run_gstacks <- function(
     ignore.pe.reads <- ""
   }
 
-  # Model options --------------------------------------------------------------
-  model <- stringi::stri_join("--model ", model)
-  var.alpha <- stringi::stri_join("--var-alpha ", var.alpha)
-  gt.alpha <- stringi::stri_join("--gt-alpha ", gt.alpha)
-
-
-  # Expert options -------------------------------------------------------------
-  kmer.length <- stringi::stri_join("--kmer-length ", kmer.length)
-  min.kmer.cov <- stringi::stri_join("--min-kmer-cov ", min.kmer.cov)
-  max.debruijn.reads <- stringi::stri_join("--max-debruijn-reads ", max.debruijn.reads)
-
-  if (write.alignments) {
-    write.alignments <- "--write-alignments "
+  if (!unpaired) {
+    unpaired <- ""
+    if (rm.unpaired.reads) {
+      rm.unpaired.reads <- "--rm-unpaired-reads"
+      if (rm.pcr.duplicates) {
+        rm.pcr.duplicates <- "--rm-pcr-duplicates"
+      } else {
+        rm.pcr.duplicates <- ""
+      }
+    } else {
+      rm.unpaired.reads <- ""
+      rm.pcr.duplicates <- ""
+    }
   } else {
-    write.alignments <- ""
+    unpaired <- "--unpaired"
+    rm.unpaired.reads <- ""
+    rm.pcr.duplicates <- ""
   }
 
-  min.mapq <- stringi::stri_join("--min-mapq ", min.mapq)
-  max.clipped <- stringi::stri_join("--max-clipped ", max.clipped)
-  max.insert.len <- stringi::stri_join("--max-insert-len ", max.insert.len)
 
-  phasing.cooccurrences.thr.range <- stringi::stri_join("--phasing-cooccurrences-thr-range ", stringi::stri_join(phasing.cooccurrences.thr.range, collapse = ","))
-
-  if (!phasing.dont.prune.hets) {
-    phasing.dont.prune.hets <- "--phasing-dont-prune-hets "
-  } else {
-    phasing.dont.prune.hets <- ""
-  }
 
   # Help
   if (h) {
@@ -334,11 +329,16 @@ run_gstacks <- function(
 
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
-    P, M,
-    # b,
-    I, B, O, unpaired, t, details, ignore.pe.reads, model, var.alpha, gt.alpha,
-    kmer.length, min.kmer.cov, max.debruijn.reads, write.alignments, rm.unpaired.reads, rm.pcr.duplicates, min.mapq,
-    max.clipped, max.insert.len, phasing.cooccurrences.thr.range, phasing.dont.prune.hets, h)
+    P,
+    I, B,
+    M, O, t,
+    model, var.alpha, gt.alpha,
+    rm.pcr.duplicates, rm.unpaired.reads, ignore.pe.reads, unpaired,
+    kmer.length, max.debruijn.reads, min.kmer.cov, write.alignments,
+    min.mapq, max.clipped, max.insert.len, details,
+    phasing.cooccurrences.thr.range, phasing.dont.prune.hets,
+    h
+  )
 
   # run command ----------------------------------------------------------------
   system2(command = "gstacks", args = command.arguments,

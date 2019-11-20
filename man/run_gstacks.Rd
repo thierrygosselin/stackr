@@ -4,19 +4,22 @@
 \alias{run_gstacks}
 \title{Run STACKS new module called gstacks}
 \usage{
-run_gstacks(P = "06_ustacks_cstacks_sstacks",
+run_gstacks(denovo = TRUE, P = "06_ustacks_cstacks_sstacks",
   M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
-  I = NULL, B = NULL, O = NULL, unpaired = TRUE,
-  rm.unpaired.reads = FALSE, rm.pcr.duplicates = FALSE,
-  t = parallel::detectCores() - 1, ignore.pe.reads = TRUE,
+  I = NULL, B = NULL, O = NULL, t = parallel::detectCores() - 1,
   model = "marukilow", var.alpha = 0.01, gt.alpha = 0.05,
-  kmer.length = 31, min.kmer.cov = 2, max.debruijn.reads = 1000,
+  rm.pcr.duplicates = FALSE, rm.unpaired.reads = FALSE,
+  ignore.pe.reads = TRUE, unpaired = TRUE, kmer.length = 31,
+  max.debruijn.reads = 1000, min.kmer.cov = 2,
   write.alignments = FALSE, min.mapq = 10, max.clipped = 0.2,
-  max.insert.len = 1000, details = TRUE,
+  max.insert.len = 1000, details = FALSE,
   phasing.cooccurrences.thr.range = c(1, 2),
   phasing.dont.prune.hets = FALSE, h = FALSE)
 }
 \arguments{
+\item{denovo}{(logical) de novo vs reference-based mode.
+Default: \code{denovo = TRUE}.}
+
 \item{P}{(path, character) De novo mode.
 Path to the directory containing STACKS files.
 Default: \code{P = "06_ustacks_cstacks_sstacks"}.
@@ -52,26 +55,12 @@ information about how to
 generate such a BAM file with Samtools or Sambamba, and examples.
 Default: \code{B = NULL}.}
 
-\item{O}{(character, path) Path to output directory.
-Default: \code{O = NULL} (same as input)}
-
-\item{unpaired}{(logical) Reference-based mode.
-Ignore read pairing (for ddRAD; treat READ2's as if they were READ1's)
-Default: \code{unpaired = TRUE}.}
-
-\item{rm.unpaired.reads}{(logical) Discard unpaired reads
-(in reference-based mode, implies \code{paired = TRUE})
-Default: \code{rm.unpaired.reads = TRUE}.}
-
-\item{rm.pcr.duplicates}{(logical) Remove read pairs of the same insert
-length (implies \code{rm.unpaired.reads = TRUE})}
+\item{O}{(character, path) Path to output directory. \code{stackr} by default
+will output in the input directory.
+Default: \code{O = NULL} (same as input).}
 
 \item{t}{(integer) Enable parallel execution with the number of threads.
 Default: \code{t = parallel::detectCores() - 1}.}
-
-\item{ignore.pe.reads}{(logical) With default the function will
-ignore paired-end reads even if present in the input.
-Default: \code{ignore.pe.reads = TRUE}.}
 
 \item{model}{(character) The model to use to call variants and genotypes;
 one of \code{"marukilow"}, \code{"marukihigh"}, or \code{"snp"}.
@@ -84,17 +73,33 @@ Default: \code{var.alpha = 0.01}.}
 \item{gt.alpha}{(double) Alpha threshold for calling genotypes.
 Default: \code{gt.alpha = 0.05}.}
 
+\item{rm.pcr.duplicates}{(logical) remove all but one set of read pairs of
+the same sample that have the same insert length
+(implies \code{rm.unpaired.reads = TRUE}.).
+Default: \code{rm.pcr.duplicates = FALSE}.}
+
+\item{rm.unpaired.reads}{(logical) Discard unpaired reads.
+Default: \code{rm.unpaired.reads = FALSE}.}
+
+\item{ignore.pe.reads}{(logical) With default the function will
+ignore paired-end reads even if present in the input.
+Default: \code{ignore.pe.reads = TRUE}.}
+
+\item{unpaired}{(logical) Ignore read pairing (only for paired-end GBS;
+treat READ2's as if they were READ1's).
+Default: \code{unpaired = TRUE}.}
+
 \item{kmer.length}{(integer) De novo mode.
 kmer length for the de Bruijn graph. For expert.
 Default: \code{kmer.length = 31}.}
 
-\item{min.kmer.cov}{(integer) De novo mode.
-Minimum coverage to consider a kmer. For expert.
-Default: \code{min.kmer.cov = 2}.}
-
 \item{max.debruijn.reads}{(integer) Maximum number of reads to use in the
 de Bruijn graph. For expert.
 Default: \code{max.debruijn.reads = 1000}.}
+
+\item{min.kmer.cov}{(integer) De novo mode.
+Minimum coverage to consider a kmer. For expert.
+Default: \code{min.kmer.cov = 2}.}
 
 \item{write.alignments}{(logical) Save read alignments (heavy BAM files).
 Default: \code{write.alignments = FALSE}.}
@@ -113,7 +118,7 @@ Default: \code{max.insert.len = 1000}.}
 
 \item{details}{(logical) With default the function will write a more detailed
 output.
-Default: \code{details = TRUE}.}
+Default: \code{details = FALSE}.}
 
 \item{phasing.cooccurrences.thr.range}{(integer) range of edge coverage thresholds to
 iterate over when building the graph of allele cooccurrences for

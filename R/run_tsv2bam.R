@@ -198,20 +198,6 @@ run_tsv2bam <- function(
 
   message("\nMoving/Renaming stacks tsv2bam log file:\n", new.log.file)
 
-  # plots.file <- list.files(
-  #   path = output.folder, pattern = "distribution.tsv2bam.plots.pdf", full.names = FALSE)
-  # new.plots.file <- stringi::stri_join(
-  #   "08_stacks_results/",
-  #   stringi::stri_replace_all_fixed(
-  #     str = plots.file,
-  #     pattern = ".pdf",
-  #     replacement = stringi::stri_join("_", file.date.time, ".pdf"),
-  #     vectorize_all = FALSE))
-  # plots.file <- list.files(
-  #   path = output.folder, pattern = "distribution.tsv2bam.plots.pdf", full.names = TRUE)
-  # suppressMessages(transfer <- file.rename(from = plots.file, to = new.plots.file))
-  # message("\nMoving/Renaming summary plots file:\n", new.plots.file)
-
   # Merging BAM files ----------------------------------------------------------
   if (use.samtools) {
     message("Merging BAM files with SAMtools to generate a catalog.bam file...")
