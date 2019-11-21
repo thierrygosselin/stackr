@@ -6,8 +6,8 @@
 #' at the end (\code{\link{summary_cstacks}}).
 
 #' @param P path to the directory containing STACKS files.
-#' Default: \code{P = "06_ustacks_cstacks_sstacks"}.
-#' Inside the folder \code{06_ustacks_cstacks_sstacks}, you should have:
+#' Default: \code{P = "06_ustacks_2_gstacks"}.
+#' Inside the folder \code{06_ustacks_2_gstacks}, you should have:
 #' \itemize{
 #'   \item \strong{4 files for each samples:} The sample name is the prefix of
 #'   the files ending with:
@@ -18,7 +18,7 @@
 #' }
 
 #' @param M path to a population map file (Required when P is used).
-#' Default: \code{M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv"}.
+#' Default: \code{M = "02_project_info/population.map.catalog.tsv"}.
 
 #' @param n number of mismatches allowed between sample loci when build the catalog.
 #' Default: \code{n = 1}
@@ -41,10 +41,6 @@
 #' \code{batch_1.catalog.alleles.tsv.gz,
 #' batch_1.catalog.snps.tsv.gz,
 #' batch_1.catalog.tags.tsv.gz}
-
-# @param outpath Output path to write results.
-# Default: \code{outpath = "06_ustacks_cstacks_sstacks"}.
-
 
 #' @param max.gaps The number of gaps allowed between stacks before merging.
 #' Default: \code{max.gaps = 2}
@@ -96,7 +92,7 @@
 #' distinct(INDIVIDUALS_REP, POP_ID)
 #' # Write file to disk
 #' readr::write_tsv(x = individuals.catalog,
-#' path = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv")
+#' path = "02_project_info/population.map.catalog.tsv")
 #' # The next line will give you the list of individuals to include
 #' individuals.catalog <- individuals.catalog$INDIVIDUALS_REP
 #'
@@ -109,7 +105,7 @@
 #'
 #' # Then run the command this way:
 #' run_cstacks (
-#' P = "06_ustacks_cstacks_sstacks",
+#' P = "06_ustacks_2_gstacks",
 #' catalog.path = NULL,
 #' n = 1,
 #' p = 32,
@@ -130,10 +126,9 @@
 #' Molecular Ecology, 22, 3124-3140.
 
 run_cstacks <- function(
-  P = "06_ustacks_cstacks_sstacks",
-  M = "06_ustacks_cstacks_sstacks/population.map.catalog.tsv",
+  P = "06_ustacks_2_gstacks",
+  M = "02_project_info/population.map.catalog.tsv",
   n = 1,
-  # outpath = "06_ustacks_cstacks_sstacks",
   p = parallel::detectCores() - 1,
   catalog.path = NULL,
   max.gaps = 2, min.aln.len = 0.8, disable.gapped = FALSE,

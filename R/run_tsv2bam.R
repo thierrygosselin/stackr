@@ -11,7 +11,7 @@
 #' (e.g. Bayesian SNP calling).
 
 #' @param P (path, character) Path to the directory containing STACKS files.
-#' Default: \code{P = "06_ustacks_cstacks_sstacks"}.
+#' Default: \code{P = "06_ustacks_2_gstacks"}.
 #' Inside the folder, you should have:
 #' \itemize{
 #'   \item \strong{the catalog files:} starting with \code{batch_} and ending with
@@ -28,7 +28,7 @@
 
 #' @param M (character, path) Path to a population map file.
 #' Note that the \code{-s} option is not used inside \strong{stackr}.
-#' Default: \code{M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv"}.
+#' Default: \code{M = "02_project_info/population.map.tsv2bam.tsv"}.
 
 #' @param R (path, character) Directory where to find the paired-end reads files
 #' (in fastq/fasta/bam (gz) format).
@@ -101,8 +101,8 @@
 #' Sambamba: fast processing of NGS alignment formats. Bioinformatics, 2015.
 
 run_tsv2bam <- function(
-  P = "06_ustacks_cstacks_sstacks",
-  M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
+  P = "06_ustacks_2_gstacks",
+  M = "02_project_info/population.map.tsv2bam.tsv",
   R = NULL,
   t = parallel::detectCores() - 1,
   cmd.path = "/usr/local/bin/samtools",
@@ -110,7 +110,7 @@ run_tsv2bam <- function(
 ) {
 
   # testing
-  # P = "06_ustacks_cstacks_sstacks"
+  # P = "06_ustacks_2_gstacks"
   # M = "02_project_info/population.map.tsv2bam.testing.tsv"
   # R = NULL
   # t = parallel::detectCores() - 1
@@ -125,10 +125,8 @@ run_tsv2bam <- function(
   timing <- proc.time()
 
   # Check directory ------------------------------------------------------------
-  if (!dir.exists("06_ustacks_cstacks_sstacks")) dir.create("06_ustacks_cstacks_sstacks")
+  if (!dir.exists(P)) dir.create(P)
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
-  if (!dir.exists("08_stacks_results")) dir.create("08_stacks_results")
-
 
   # check SAMtools or Sambamba are installed -----------------------------------
   use.samtools <- stringi::stri_detect_fixed(str = cmd.path, pattern = "samtools")
@@ -194,7 +192,9 @@ run_tsv2bam <- function(
       vectorize_all = FALSE))
   log.file <- list.files(
     path = output.folder, pattern = "tsv2bam.log", full.names = TRUE)
-  suppressMessages(transfer <- file.rename(from = log.file, to = new.log.file))
+  suppressMessages(
+    file.rename(from = log.file, to = new.log.file)
+    )
 
   message("\nMoving/Renaming stacks tsv2bam log file:\n", new.log.file)
 

@@ -4,16 +4,16 @@
 \alias{run_sstacks}
 \title{Run STACKS sstacks module}
 \usage{
-run_sstacks(P = "06_ustacks_cstacks_sstacks", M = NULL,
-  sample.list = NULL, c = "06_ustacks_cstacks_sstacks",
-  p = parallel::detectCores() - 1, o = "06_ustacks_cstacks_sstacks",
-  x = FALSE, disable.gapped = FALSE, v = FALSE, h = FALSE)
+run_sstacks(P = "06_ustacks_2_gstacks", M = NULL, sample.list = NULL,
+  c = "06_ustacks_2_gstacks", p = parallel::detectCores() - 1,
+  o = "06_ustacks_2_gstacks", x = FALSE, disable.gapped = FALSE,
+  v = FALSE, h = FALSE)
 }
 \arguments{
 \item{P}{(character) Path to the directory containing STACKS files.
 Contrary to \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks},
 this argument can be use with \code{sample.list} (the \code{s} in \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks})
-Default: \code{P = "06_ustacks_cstacks_sstacks"}.}
+Default: \code{P = "06_ustacks_2_gstacks"}.}
 
 \item{M}{(character) Path to a population map file from which to take sample
 names (this argument won't work if \code{sample.list}).
@@ -31,13 +31,13 @@ project info file, e.g. \code{sample.list = project.info$INDIVIDUALS_REP}.
 (Please see details).}
 
 \item{c}{(character, path) Path to the catalog.
-Default: \code{c = "06_ustacks_cstacks_sstacks"}}
+Default: \code{c = "06_ustacks_2_gstacks"}}
 
 \item{p}{(Integer) Enable parallel execution with num_threads threads.
 Default: \code{p = parallel::detectCores() - 1}}
 
 \item{o}{output path to write results.
-Default: \code{o = "06_ustacks_cstacks_sstacks"}}
+Default: \code{o = "06_ustacks_2_gstacks"}}
 
 \item{x}{Don't verify haplotype of matching locus.
 Default: \code{x = FALSE}}

@@ -5,7 +5,7 @@
 #' module inside R!
 
 #' @param P (path, character) Path to the directory containing all the STACKS files.
-#' Default: \code{P = "06_ustacks_cstacks_sstacks"}.
+#' Default: \code{P = "06_ustacks_2_gstacks"}.
 
 #' @param V (character) Path to an input VCF file. When this module is used to
 #' filter an existing vcf file.
@@ -185,13 +185,12 @@
 # populations ------------------------------------------------------------------
 
 run_populations <- function(
-  P = "06_ustacks_cstacks_sstacks",
+  P = "06_ustacks_2_gstacks",
   V = NULL,
   O = "07_populations",
   M,
   t = parallel::detectCores() - 1,
   batch_size = 10000,
-  # s = FALSE,
   p = 1,
   r = 0.3,
   R = 0.3,
@@ -253,7 +252,7 @@ run_populations <- function(
 
   # Check directory ------------------------------------------------------------
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
-  if (!dir.exists("07_populations")) dir.create("07_populations")
+  if (!dir.exists(O)) dir.create(O)
   if (missing(M)) stop("Population map required")
 
   # file data and time ---------------------------------------------------------
@@ -285,14 +284,6 @@ run_populations <- function(
 
   # parallel.core <- t
   t <- stringi::stri_join("-t ", t)
-
-
-  # if (b == "guess") {
-  #   b <- ""
-  # } else {
-  #   b <- stringi::stri_join("-b ", b)
-  # }
-
   batch_size <- stringi::stri_join("--batch_size ", batch_size)
 
   # Data Filtering -------------------------------------------------------------
@@ -323,13 +314,6 @@ run_populations <- function(
   } else {
     max.obs.het <- stringi::stri_join("--max.obs.het ", max.obs.het)
   }
-
-  # if (is.null(m)) {
-  #   m <- ""
-  # } else {
-  #   m <- stringi::stri_join("-m ", m)
-  # }
-
 
   if (write.single.snp) {
     write.single.snp <- "--write-single-snp "
@@ -477,12 +461,6 @@ run_populations <- function(
   } else {
     ordered.export <- ""
   }
-
-  # if (genomic) {
-  #   genomic <- "--genomic "
-  # } else {
-  #   genomic <- ""
-  # }
 
   if (fasta.samples) {
     fasta.samples <- "--fasta-samples "

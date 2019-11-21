@@ -31,7 +31,7 @@
 #' the stacks process_radtags output folder.
 #' Default: \code{f = "04_process_radtags"}.
 #' @param o Output path to write results.
-#' Default: \code{o = "06_ustacks_cstacks_sstacks"}.
+#' Default: \code{o = "06_ustacks_2_gstacks"}.
 #' @param m Minimum depth of coverage required to create a stack.
 #' Default: \code{m = 3}.
 #' @param M Maximum distance (in nucleotides) allowed between stacks.
@@ -158,7 +158,7 @@ run_ustacks <- function(
   sample.list = NULL,
   project.info = NULL,
   f = "04_process_radtags",
-  o = "06_ustacks_cstacks_sstacks",
+  o = "06_ustacks_2_gstacks",
   m = 3,
   M = 2,
   N = M + 2,
@@ -188,7 +188,7 @@ run_ustacks <- function(
   timing <- proc.time()
 
   # Check directory ------------------------------------------------------------
-  if (!dir.exists("06_ustacks_cstacks_sstacks")) dir.create("06_ustacks_cstacks_sstacks")
+  if (!dir.exists(o)) dir.create(o)
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
 
   if (mismatch.testing && length(M) < 2) {
@@ -881,7 +881,7 @@ run_ustacks_one_sample <- function(
   sample.list = NULL,
   project.info = NULL,
   f = "04_process_radtags",
-  o = "06_ustacks_cstacks_sstacks",
+  o = "06_ustacks_2_gstacks",
   m = 3,
   M = 2,
   N = M + 2,

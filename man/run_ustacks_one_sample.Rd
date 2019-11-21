@@ -6,7 +6,7 @@
 \usage{
 run_ustacks_one_sample(mismatch.testing = FALSE, sample.list = NULL,
   project.info = NULL, f = "04_process_radtags",
-  o = "06_ustacks_cstacks_sstacks", m = 3, M = 2, N = M + 2,
+  o = "06_ustacks_2_gstacks", m = 3, M = 2, N = M + 2,
   t = "guess", R = FALSE, H = TRUE, p = parallel::detectCores() -
   1, h = FALSE, d = TRUE, keep.high.cov = FALSE,
   high.cov.thres = 3, max.locus.stacks = 3, k.len = NULL,

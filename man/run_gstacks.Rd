@@ -4,9 +4,9 @@
 \alias{run_gstacks}
 \title{Run STACKS new module called gstacks}
 \usage{
-run_gstacks(denovo = TRUE, P = "06_ustacks_cstacks_sstacks",
-  M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
-  I = NULL, B = NULL, O = NULL, t = parallel::detectCores() - 1,
+run_gstacks(denovo = TRUE, P = "06_ustacks_2_gstacks",
+  M = "02_project_info/population.map.tsv2bam.tsv", I = NULL,
+  B = NULL, O = NULL, t = parallel::detectCores() - 1,
   model = "marukilow", var.alpha = 0.01, gt.alpha = 0.05,
   rm.pcr.duplicates = FALSE, rm.unpaired.reads = FALSE,
   ignore.pe.reads = TRUE, unpaired = TRUE, kmer.length = 31,
@@ -22,7 +22,7 @@ Default: \code{denovo = TRUE}.}
 
 \item{P}{(path, character) De novo mode.
 Path to the directory containing STACKS files.
-Default: \code{P = "06_ustacks_cstacks_sstacks"}.
+Default: \code{P = "06_ustacks_2_gstacks"}.
 Inside the folder, you should have:
 \itemize{
   \item \strong{the catalog files:} starting with \code{batch_} and ending with

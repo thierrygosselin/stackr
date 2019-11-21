@@ -4,7 +4,7 @@
 \alias{run_populations}
 \title{Run STACKS Version >= 2.0 populations module}
 \usage{
-run_populations(P = "06_ustacks_cstacks_sstacks", V = NULL,
+run_populations(P = "06_ustacks_2_gstacks", V = NULL,
   O = "07_populations", M, t = parallel::detectCores() - 1,
   batch_size = 10000, p = 1, r = 0.3, R = 0.3, H = TRUE,
   min.maf = NULL, min.mac = NULL, max.obs.het = NULL,
@@ -25,7 +25,7 @@ run_populations(P = "06_ustacks_cstacks_sstacks", V = NULL,
 }
 \arguments{
 \item{P}{(path, character) Path to the directory containing all the STACKS files.
-Default: \code{P = "06_ustacks_cstacks_sstacks"}.}
+Default: \code{P = "06_ustacks_2_gstacks"}.}
 
 \item{V}{(character) Path to an input VCF file. When this module is used to
 filter an existing vcf file.

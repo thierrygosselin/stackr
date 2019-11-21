@@ -8,7 +8,7 @@
 #' Default: \code{denovo = TRUE}.
 #' @param P (path, character) De novo mode.
 #' Path to the directory containing STACKS files.
-#' Default: \code{P = "06_ustacks_cstacks_sstacks"}.
+#' Default: \code{P = "06_ustacks_2_gstacks"}.
 #' Inside the folder, you should have:
 #' \itemize{
 #'   \item \strong{the catalog files:} starting with \code{batch_} and ending with
@@ -164,8 +164,8 @@
 
 run_gstacks <- function(
   denovo = TRUE,
-  P = "06_ustacks_cstacks_sstacks",
-  M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
+  P = "06_ustacks_2_gstacks",
+  M = "02_project_info/population.map.tsv2bam.tsv",
   # b = "guess",
   I = NULL,
   B = NULL,
@@ -198,9 +198,7 @@ run_gstacks <- function(
   timing <- proc.time()
 
   # Check directory ------------------------------------------------------------
-  if (!dir.exists("06_ustacks_cstacks_sstacks")) dir.create("06_ustacks_cstacks_sstacks")
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
-  if (!dir.exists("08_stacks_results")) dir.create("08_stacks_results")
 
   # file data and time ---------------------------------------------------------
   file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
@@ -210,11 +208,10 @@ run_gstacks <- function(
   message("For progress, look in the log file:\n", gstacks.log.file)
 
   # gstacks arguments ----------------------------------------------------------
-
-
   # De novo approach -----------------------------------------------------------
   if (denovo) {
-    # Input filder path
+    if (!dir.exists(P)) dir.create(P)
+    # Input folder path
     if (!is.null(O)) {
       O <- stringi::stri_join("-O ", O)
     } else {

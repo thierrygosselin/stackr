@@ -23,7 +23,7 @@
 #' @param P (character) Path to the directory containing STACKS files.
 #' Contrary to \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks},
 #' this argument can be use with \code{sample.list} (the \code{s} in \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks})
-#' Default: \code{P = "06_ustacks_cstacks_sstacks"}.
+#' Default: \code{P = "06_ustacks_2_gstacks"}.
 
 #' @param M (character) Path to a population map file from which to take sample
 #' names (this argument won't work if \code{sample.list}).
@@ -41,13 +41,13 @@
 #' (Please see details).
 
 #' @param c (character, path) Path to the catalog.
-#' Default: \code{c = "06_ustacks_cstacks_sstacks"}
+#' Default: \code{c = "06_ustacks_2_gstacks"}
 
 #' @param p (Integer) Enable parallel execution with num_threads threads.
 #' Default: \code{p = parallel::detectCores() - 1}
 
 #' @param o output path to write results.
-#' Default: \code{o = "06_ustacks_cstacks_sstacks"}
+#' Default: \code{o = "06_ustacks_2_gstacks"}
 
 #' @param x Don't verify haplotype of matching locus.
 #' Default: \code{x = FALSE}
@@ -107,12 +107,12 @@
 
 # sstacks ----------------------------------------------------------------------
 run_sstacks <- function(
-  P = "06_ustacks_cstacks_sstacks",
+  P = "06_ustacks_2_gstacks",
   M = NULL,
   sample.list = NULL,
-  c = "06_ustacks_cstacks_sstacks",
+  c = "06_ustacks_2_gstacks",
   p = parallel::detectCores() - 1,
-  o = "06_ustacks_cstacks_sstacks",
+  o = "06_ustacks_2_gstacks",
   x = FALSE,
   disable.gapped = FALSE,
   # lnl_dist = TRUE,
@@ -131,14 +131,6 @@ run_sstacks <- function(
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
 
   # sstacks options ------------------------------------------------------------
-
-  # b: MySQL ID of this batch.
-  # if (b == "guess") {
-  #   b <- ""
-  # } else {
-  #   b <- stringi::stri_join("-b ", b)
-  # }
-
   # p: enable parallel execution with num_threads threads.
   parallel.core <- p # backup to use later
   p <- stringi::stri_join("-p ", p)

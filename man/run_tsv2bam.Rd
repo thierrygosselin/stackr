@@ -4,14 +4,14 @@
 \alias{run_tsv2bam}
 \title{Run STACKS tsv2bam and merges BAM files}
 \usage{
-run_tsv2bam(P = "06_ustacks_cstacks_sstacks",
-  M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv",
-  R = NULL, t = parallel::detectCores() - 1,
+run_tsv2bam(P = "06_ustacks_2_gstacks",
+  M = "02_project_info/population.map.tsv2bam.tsv", R = NULL,
+  t = parallel::detectCores() - 1,
   cmd.path = "/usr/local/bin/samtools", h = FALSE)
 }
 \arguments{
 \item{P}{(path, character) Path to the directory containing STACKS files.
-Default: \code{P = "06_ustacks_cstacks_sstacks"}.
+Default: \code{P = "06_ustacks_2_gstacks"}.
 Inside the folder, you should have:
 \itemize{
   \item \strong{the catalog files:} starting with \code{batch_} and ending with
@@ -28,7 +28,7 @@ modules.
 
 \item{M}{(character, path) Path to a population map file.
 Note that the \code{-s} option is not used inside \strong{stackr}.
-Default: \code{M = "06_ustacks_cstacks_sstacks/population.map.tsv2bam.tsv"}.}
+Default: \code{M = "02_project_info/population.map.tsv2bam.tsv"}.}
 
 \item{R}{(path, character) Directory where to find the paired-end reads files
 (in fastq/fasta/bam (gz) format).}
