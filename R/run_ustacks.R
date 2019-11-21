@@ -935,14 +935,7 @@ run_ustacks_one_sample <- function(
   }
 
   if (file.exists(individual2)) {
-    file.date <- stringi::stri_replace_all_fixed(Sys.time(), pattern = " EDT", replacement = "")
-    file.date <- stringi::stri_replace_all_fixed(
-      str = file.date,
-      pattern = c("-", " ", ":"),
-      replacement = c("", "_", ""),
-      vectorize_all = FALSE
-    )
-
+    file.date <- format(Sys.time(), "%Y%m%d@%H%M")
     individual <- stringi::stri_join(individual, "date", file.date, "param_MNm", M, N, m, sep = "_")
     o <- stringi::stri_join(o, "/date", "_", file.date, "_", "param_MNm", "_", M, "_", N, "_", m)
   }

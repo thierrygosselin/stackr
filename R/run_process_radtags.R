@@ -30,11 +30,13 @@
 #' @param pe.1 (character, path) First input file in a set of
 #' paired-end sequences.
 #' In stacks it's the argument \code{1}.
-#' Default:\code{pe.1 = NULL}.
+#' Default:\code{pe.1 = "FORWARD"}. Corresponding to the \code{FORWARD} column in
+#' the project info file.
 #' @param pe.2 (character, path) Second input file in a set of
 #' paired-end sequences.
 #' In stacks it's the argument \code{2}.
-#' Default:\code{pe.2 = NULL}.
+#' Default:\code{pe.2 = "REVERSE"}. Corresponding to the \code{REVERSE} column in
+#' the project info file.
 
 #' @param c (logical) Clean data, remove any read with an uncalled base.
 #' Default:\code{c = TRUE}.
@@ -280,19 +282,15 @@ run_process_radtags <- function(
 
 
   # Date and time --------------------------------------------------------------
-  file.date <- stringi::stri_replace_all_fixed(
-    Sys.time(),
-    pattern = " EDT", replacement = "") %>%
-    stringi::stri_replace_all_fixed(
-      str = .,
-      pattern = c("-", " ", ":"), replacement = c("", "@", ""),
-      vectorize_all = FALSE) %>%
-    stringi::stri_sub(str = ., from = 1, to = 13)
-
+  file.date <- format(Sys.time(), "%Y%m%d@%H%M")
 
   # Import project info file ---------------------------------------------------
   message("Importing project info")
-  project.info.file <- readr::read_tsv(file = project.info, col_types = "ccc")
+  if (P) {
+    project.info.file <- readr::read_tsv(file = project.info, col_types = "cccc")
+  } else {
+    project.info.file <- readr::read_tsv(file = project.info, col_types = "ccc")
+  }
 
   # Manage duplicate ID
   message("Scanning for duplicate IDs...")
@@ -313,27 +311,54 @@ run_process_radtags <- function(
   }
 
   # Manage horrible sequencing lanes names
-  short.name.lanes <- project.info.file %>%
-    dplyr::ungroup(.) %>%
-    dplyr::distinct(LANES) %>%
-    dplyr::arrange(LANES) %>%
-    dplyr::mutate(
-      LANES_SHORT = stringi::stri_join(rep("LANE"), stringi::stri_pad_left(
-        str = seq(1, nrow(.)), width = 2, pad = "0"), sep = "_")
-    )
 
-  project.info.file <- project.info.file %>%
-    dplyr::left_join(duplicate.id, by = c("INDIVIDUALS", "BARCODES", "LANES")) %>%
-    dplyr::left_join(short.name.lanes, by = c("LANES")) %>%
-    dplyr::arrange(LANES_SHORT, INDIVIDUALS) %>%
-    dplyr::mutate(
-      INDIVIDUALS_REP = ifelse(!is.na(REPLICATES), stringi::stri_paste(INDIVIDUALS, REPLICATES, sep = "-"), INDIVIDUALS),
-      REPLICATES = stringi::stri_replace_na(str = REPLICATES, replacement = 0)
-    ) %>%
-    dplyr::select(LANES, LANES_SHORT, BARCODES, INDIVIDUALS, INDIVIDUALS_REP, REPLICATES) %>%
-    dplyr::filter(!is.na(INDIVIDUALS)) %>%
-    dplyr::filter(!is.na(BARCODES)) %>%
-    dplyr::arrange(LANES_SHORT, INDIVIDUALS)
+  # paired-end
+  if (P) {
+    # here we use LANE but it's really the group of paired-end files
+    short.name.lanes <- project.info.file %>%
+      dplyr::ungroup(.) %>%
+      dplyr::distinct(FORWARD, REVERSE) %>%
+      dplyr::mutate(
+        LANES_SHORT = stringi::stri_join(rep("LANE"), stringi::stri_pad_left(
+          str = seq(1, nrow(.)), width = 2, pad = "0"), sep = "_")
+      )
+    project.info.file <- project.info.file %>%
+      dplyr::left_join(duplicate.id, by = c("INDIVIDUALS", "BARCODES", "FORWARD", "REVERSE")) %>%
+      dplyr::left_join(short.name.lanes, by = c("FORWARD", "REVERSE")) %>%
+      dplyr::arrange(LANES_SHORT, INDIVIDUALS) %>%
+      dplyr::mutate(
+        INDIVIDUALS_REP = ifelse(!is.na(REPLICATES), stringi::stri_paste(INDIVIDUALS, REPLICATES, sep = "-"), INDIVIDUALS),
+        REPLICATES = stringi::stri_replace_na(str = REPLICATES, replacement = 0)
+      ) %>%
+      dplyr::select(LANES_SHORT, FORWARD, REVERSE, BARCODES, INDIVIDUALS, INDIVIDUALS_REP, REPLICATES) %>%
+      dplyr::filter(!is.na(INDIVIDUALS)) %>%
+      dplyr::filter(!is.na(BARCODES)) %>%
+      dplyr::arrange(LANES_SHORT, INDIVIDUALS)
+
+  } else {
+    short.name.lanes <- project.info.file %>%
+      dplyr::ungroup(.) %>%
+      dplyr::distinct(LANES) %>%
+      dplyr::arrange(LANES) %>%
+      dplyr::mutate(
+        LANES_SHORT = stringi::stri_join(rep("LANE"), stringi::stri_pad_left(
+          str = seq(1, nrow(.)), width = 2, pad = "0"), sep = "_")
+      )
+
+    project.info.file <- project.info.file %>%
+      dplyr::left_join(duplicate.id, by = c("INDIVIDUALS", "BARCODES", "LANES")) %>%
+      dplyr::left_join(short.name.lanes, by = c("LANES")) %>%
+      dplyr::arrange(LANES_SHORT, INDIVIDUALS) %>%
+      dplyr::mutate(
+        INDIVIDUALS_REP = ifelse(!is.na(REPLICATES), stringi::stri_paste(INDIVIDUALS, REPLICATES, sep = "-"), INDIVIDUALS),
+        REPLICATES = stringi::stri_replace_na(str = REPLICATES, replacement = 0)
+      ) %>%
+      dplyr::select(LANES, LANES_SHORT, BARCODES, INDIVIDUALS, INDIVIDUALS_REP, REPLICATES) %>%
+      dplyr::filter(!is.na(INDIVIDUALS)) %>%
+      dplyr::filter(!is.na(BARCODES)) %>%
+      dplyr::arrange(LANES_SHORT, INDIVIDUALS)
+  }
+
 
   readr::write_tsv(
     project.info.file,
@@ -349,10 +374,18 @@ run_process_radtags <- function(
   # lane.list <- list.files(path = path.seq.lanes, full.names = TRUE)
   # check lanes in project info file and directory
   lane.names <- list.files(path = path.seq.lanes, full.names = FALSE)
-  lanes.todo <- unique(project.info.file$LANES)
-  no.problem <- unique(lanes.todo %in% lane.names)
-  if (!no.problem || length(no.problem) > 1) stop("Lane names don't match between project info file and lanes in folder...")
-  lane.list <- stringi::stri_join(path.seq.lanes, "/", lanes.todo)
+  if (P) {
+    lanes.todo <- unique(project.info.file$LANES_SHORT)
+    if (FALSE %in% (unique(sort(unique(lane.names)) %in% sort(unique(c(project.info.file$FORWARD, project.info.file$REVERSE)))))) {
+      stop("Lane names don't match between project info file and lanes in folder...")
+    }
+    lane.list <- lanes.todo
+  } else {
+    lanes.todo <- unique(project.info.file$LANES)
+    no.problem <- unique(lanes.todo %in% lane.names)
+    if (!no.problem || length(no.problem) > 1) stop("Lane names don't match between project info file and lanes in folder...")
+    lane.list <- stringi::stri_join(path.seq.lanes, "/", lanes.todo)
+  }
 
   process_radtags_lane <- function(
     lane.list,
@@ -396,28 +429,45 @@ run_process_radtags <- function(
     barcode.dist.2 = NULL
   ) {
     # lane.list <- lane.list[1]
-    f <- lane.list
 
     # generate a barcode file for the lane -------------------------------------
-    lane.todo <- stringi::stri_replace_all_fixed(
-      str = lane.list,
-      pattern = stringi::stri_join(path.seq.lanes, "/"),
-      replacement = "", vectorized_all = FALSE)
+    if (P) {
+      info <- dplyr::ungroup(project.info.file) %>%
+        dplyr::filter(LANES_SHORT == lane.list)
 
-    info <- dplyr::ungroup(project.info.file) %>%
-      dplyr::filter(LANES == lane.todo)
+      lane.short <- unique(info$LANES_SHORT)
 
-    lane.short <- unique(info$LANES_SHORT)
+      barcode.file <- info %>%
+        dplyr::select(BARCODES, INDIVIDUALS_REP)
 
-    barcode.file <- info %>%
-      dplyr::select(BARCODES, INDIVIDUALS_REP)
+      b <- stringi::stri_join("02_project_info/barcodes_id", "_", lane.short, ".txt")
+      readr::write_tsv(barcode.file, b, col_names = FALSE)
 
-    b <- stringi::stri_join("02_project_info/barcodes_id", "_", lane.short, ".txt")
+    } else {
+      lane.todo <- stringi::stri_replace_all_fixed(
+        str = lane.list,
+        pattern = stringi::stri_join(path.seq.lanes, "/"),
+        replacement = "", vectorized_all = FALSE)
 
-    readr::write_tsv(barcode.file, b, col_names = FALSE)
+      info <- dplyr::ungroup(project.info.file) %>%
+        dplyr::filter(LANES == lane.todo)
+
+      lane.short <- unique(info$LANES_SHORT)
+
+      barcode.file <- info %>%
+        dplyr::select(BARCODES, INDIVIDUALS_REP)
+
+      b <- stringi::stri_join("02_project_info/barcodes_id", "_", lane.short, ".txt")
+
+      readr::write_tsv(barcode.file, b, col_names = FALSE)
+    }
 
     # process_radtags_options --------------------------------------------------
-    f <- stringi::stri_join("-f ", shQuote(f))
+    if (P) {
+      f <- ""
+    } else {
+      f <- stringi::stri_join("-f ", shQuote(lane.list))
+    }
 
     if (i == "guess") {
       i <- ""
@@ -445,22 +495,17 @@ run_process_radtags <- function(
       I <- "-I "
     }
 
-    if (is.null(pe.1)) {
+    if (paired.analysis) {
+      pe.1 <- stringi::stri_join("-1 ", shQuote(file.path(path.seq.lanes, unique(info$FORWARD))))
+      pe.2 <- stringi::stri_join("-2 ", shQuote(file.path(path.seq.lanes, unique(info$REVERSE))))
+    } else {
       pe.1 <- ""
-    } else {
-      pe.1 <- stringi::stri_join("-1 ", shQuote(pe.1))
-    }
-
-    if (is.null(pe.2)) {
       pe.2 <- ""
-    } else {
-      pe.2 <- stringi::stri_join("-2 ", shQuote(pe.2))
     }
 
     temp.dir <- stringi::stri_join(o, lane.short, sep = "/")
     dir.create(temp.dir)
     o <- stringi::stri_join("-o ", shQuote(temp.dir))
-
     b <- stringi::stri_join("-b ", shQuote(b))
 
     if (c) {
@@ -685,7 +730,7 @@ run_process_radtags <- function(
       skip = 5, #stacks v.2.41
       # skip = 6,
       n_max = 7
-      ) %>%
+    ) %>%
       dplyr::mutate(
         DESCRIPTION = stringi::stri_replace_all_fixed(
           str = DESCRIPTION,
@@ -844,22 +889,43 @@ run_process_radtags <- function(
   replicate.presence <- nrow(replicates)
 
   if (replicate.presence > 0) {
-    replicates.sum <- replicates %>%
-      dplyr::group_by(INDIVIDUALS) %>%
-      dplyr::summarise(
-        TOTAL = sum(TOTAL),
-        NO_RADTAG = sum(NO_RADTAG),
-        LOW_QUALITY = sum(LOW_QUALITY),
-        RETAINED = sum(RETAINED)
-      ) %>%
-      dplyr::mutate(
-        INDIVIDUALS_REP = stringi::stri_join(INDIVIDUALS, "-R"),
-        LANES = rep("multiple", n()),
-        LANES_SHORT = rep("multiple", n()),
-        BARCODES = rep("multiple", n()),
-        FQ_FILES = stringi::stri_join(INDIVIDUALS_REP, ".fq.gz"),
-        REPLICATES = rep("R", n())
-      )
+    if (P) {
+      replicates.sum <- replicates %>%
+        dplyr::group_by(INDIVIDUALS) %>%
+        dplyr::summarise(
+          TOTAL = sum(TOTAL),
+          NO_RADTAG = sum(NO_RADTAG),
+          LOW_QUALITY = sum(LOW_QUALITY),
+          RETAINED = sum(RETAINED)
+        ) %>%
+        dplyr::mutate(
+          INDIVIDUALS_REP = stringi::stri_join(INDIVIDUALS, "-R"),
+          LANES_SHORT = rep("multiple", n()),
+          BARCODES = rep("multiple", n()),
+          FORWARD = rep("multiple", n()),
+          REVERSE = rep("multiple", n()),
+          FQ_FILES = stringi::stri_join(INDIVIDUALS_REP, ".fq.gz"),
+          REPLICATES = rep("R", n())
+        )
+    } else {
+      replicates.sum <- replicates %>%
+        dplyr::group_by(INDIVIDUALS) %>%
+        dplyr::summarise(
+          TOTAL = sum(TOTAL),
+          NO_RADTAG = sum(NO_RADTAG),
+          LOW_QUALITY = sum(LOW_QUALITY),
+          RETAINED = sum(RETAINED)
+        ) %>%
+        dplyr::mutate(
+          INDIVIDUALS_REP = stringi::stri_join(INDIVIDUALS, "-R"),
+          LANES = rep("multiple", n()),
+          LANES_SHORT = rep("multiple", n()),
+          BARCODES = rep("multiple", n()),
+          FQ_FILES = stringi::stri_join(INDIVIDUALS_REP, ".fq.gz"),
+          REPLICATES = rep("R", n())
+        )
+    }
+
 
     replicate.individual <- unique(replicates$INDIVIDUALS)
 

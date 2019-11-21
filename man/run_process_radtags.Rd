@@ -47,12 +47,14 @@ Default:\code{o = "04_process_radtags"}.}
 \item{pe.1}{(character, path) First input file in a set of
 paired-end sequences.
 In stacks it's the argument \code{1}.
-Default:\code{pe.1 = NULL}.}
+Default:\code{pe.1 = "FORWARD"}. Corresponding to the \code{FORWARD} column in
+the project info file.}
 
 \item{pe.2}{(character, path) Second input file in a set of
 paired-end sequences.
 In stacks it's the argument \code{2}.
-Default:\code{pe.2 = NULL}.}
+Default:\code{pe.2 = "REVERSE"}. Corresponding to the \code{REVERSE} column in
+the project info file.}
 
 \item{c}{(logical) Clean data, remove any read with an uncalled base.
 Default:\code{c = TRUE}.}
