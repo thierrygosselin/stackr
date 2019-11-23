@@ -11,7 +11,7 @@ developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repo
 [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
 [![packageversion](https://img.shields.io/badge/Package%20version-2.0.9-orange.svg)](commits/master)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2019--11--20-brightgreen.svg)](/commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2019--11--23-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 

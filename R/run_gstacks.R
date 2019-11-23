@@ -315,6 +315,7 @@ run_gstacks <- function(
     rm.pcr.duplicates <- ""
   }
 
+  if (denovo) unpaired <- ""
 
 
   # Help

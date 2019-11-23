@@ -872,10 +872,18 @@ run_process_radtags <- function(
 
   # combine replicates in a new fq file-----------------------------------------
   # message("Scanning for replicates...")
-  project.info.file <- project.info.file %>%
-    dplyr::mutate(FQ_FILES = stringi::stri_join(INDIVIDUALS_REP, ".fq.gz")) %>%
-    dplyr::inner_join(process.radtags.results, by = "INDIVIDUALS_REP")
-
+  if (P) {
+    project.info.file <- project.info.file %>%
+      dplyr::mutate(
+        FQ_FILES_F = stringi::stri_join(INDIVIDUALS_REP, ".1.fq.gz"),
+        FQ_FILES_R = stringi::stri_join(INDIVIDUALS_REP, ".2.fq.gz")
+      ) %>%
+      dplyr::inner_join(process.radtags.results, by = "INDIVIDUALS_REP")
+  } else {
+    project.info.file <- project.info.file %>%
+      dplyr::mutate(FQ_FILES = stringi::stri_join(INDIVIDUALS_REP, ".fq.gz")) %>%
+      dplyr::inner_join(process.radtags.results, by = "INDIVIDUALS_REP")
+  }
   readr::write_tsv(
     project.info.file,
     stringi::stri_join("02_project_info/project.info.", file.date, ".tsv"))
@@ -904,7 +912,8 @@ run_process_radtags <- function(
           BARCODES = rep("multiple", n()),
           FORWARD = rep("multiple", n()),
           REVERSE = rep("multiple", n()),
-          FQ_FILES = stringi::stri_join(INDIVIDUALS_REP, ".fq.gz"),
+          FQ_FILES_F = stringi::stri_join(INDIVIDUALS_REP, ".1.fq.gz"),
+          FQ_FILES_R = stringi::stri_join(INDIVIDUALS_REP, ".2.fq.gz"),
           REPLICATES = rep("R", n())
         )
     } else {
@@ -934,32 +943,66 @@ run_process_radtags <- function(
     # combine fq files of replicates ---------------------------------------------
     message("Combining replicates...")
     combine_replicates_fq <- function(replicate.individual, replicates) {
-      # replicate.individual <- "TA-BAF-001"
+      paired <- FALSE # default
 
       # isolate the replicates
       rep.info <- dplyr::filter(replicates, INDIVIDUALS == replicate.individual)
 
       # isolate the first replicates
       rep1.fq <- dplyr::filter(rep.info, REPLICATES == 1)
-      rep1.fq.path <- stringi::stri_join(o, "/", rep1.fq$FQ_FILES)
 
-      # Create a new fq
-      new.fq.path <- stringi::stri_join(o, "/", rep1.fq$INDIVIDUALS, "-R", ".fq.gz")
-      file.create(new.fq.path)
+      if (tibble::has_name(rep.info, "FQ_FILES_F")) paired <- TRUE
+
+      # Create a new empty fq files
+      if (paired) {
+        # forward
+        forward.name <- stringi::stri_join(rep1.fq$INDIVIDUALS, "-R.1.fq.gz")
+        new.fq.f.path <- file.path(o, forward.name)
+        file.create(new.fq.f.path)
+        # reverse
+        reverse.name <- stringi::stri_join(rep1.fq$INDIVIDUALS, "-R.2.fq.gz")
+        new.fq.r.path <- file.path(o, reverse.name)
+        file.create(new.fq.r.path)
+      } else {
+        rep1.fq.path <- stringi::stri_join(o, "/", rep1.fq$FQ_FILES)
+        new.fq.path <- stringi::stri_join(o, "/", rep1.fq$INDIVIDUALS, "-R.fq.gz")
+        file.create(new.fq.path)
+      }
+
+
 
       # get the fq to combined in a vector
-      fq.files.to.combined <- rep.info$FQ_FILES
-      # fq.files.to.combined
-
-      combine_all_rep <- function(fq.files.to.combined, new.fq.path) {
-        # fq.files.to.combined <- "HOM-NORTH-BRA-14-1.fq.gz"
-        fq <- stringi::stri_join(o, "/", fq.files.to.combined)
-        # fq
+      combine_all_rep <- function(fq.files.to.combined, new.fq.path, o) {
+        fq <- file.path(o, fq.files.to.combined)
         file.append(file1 = new.fq.path, file2 = fq)
       }
 
-      purrr::walk(.x = fq.files.to.combined,
-                  .f = combine_all_rep, new.fq.path = new.fq.path)
+
+      if (paired) {
+        # forward
+        fq.files.forward.to.combined <- rep.info$FQ_FILES_F
+
+        purrr::walk(.x = fq.files.forward.to.combined,
+                    .f = combine_all_rep,
+                    new.fq.path = new.fq.f.path,
+                    o = o)
+
+        # Reverse
+        fq.files.reverse.to.combined <- rep.info$FQ_FILES_R
+        purrr::walk(.x = fq.files.reverse.to.combined,
+                    .f = combine_all_rep,
+                    new.fq.path = new.fq.r.path,
+                    o = o)
+
+      } else {
+        fq.files.to.combined <- rep.info$FQ_FILES
+
+        purrr::walk(.x = fq.files.to.combined,
+                    .f = combine_all_rep,
+                    new.fq.path = new.fq.path,
+                    o = o)
+      }
+
     }
 
     purrr::walk(.x = replicate.individual,

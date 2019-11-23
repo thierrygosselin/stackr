@@ -260,12 +260,6 @@ run_ustacks <- function(
     if (f == "05_clustering_mismatches") if (!dir.exists(f)) dir.create(f)
     o <- f
 
-    # mismatch.to.do <- length(dir(path = o, full.names = TRUE, recursive = FALSE))
-    # if (mismatch.to.do > 0) {
-    #   M <- (mismatch.to.do - 1):length(M)
-    # }
-    # mismatch.to.do <- NULL
-
     # Map samples to ustacks ---------------------------------------------------
     res$mismatches <- purrr::pmap(
       .l = list(
@@ -750,6 +744,22 @@ list_sample_file <- function(f, full.path = FALSE) {
       pattern = x,
       full.names = full.path)
 
+    # fq files with .rem.
+    not.wanted <- list.files(
+      path = f,
+      pattern = ".rem.",
+      full.names = full.path)
+
+    sample.file <- purrr::keep(.x = sample.file, .p = !sample.file %in% not.wanted)
+
+    # reverse paired-end files
+    not.wanted <- list.files(
+      path = f,
+      pattern = "\\.2\\.",
+      full.names = full.path)
+
+    sample.file <- purrr::keep(.x = sample.file, .p = !sample.file %in% not.wanted)
+
     if (length(sample.file) > 0) {
       return(sample.file)
     } else {
@@ -921,6 +931,11 @@ run_ustacks_one_sample <- function(
 
   f <- stringi::stri_join("-f ", shQuote(sample.list.path))
   FQ_FILES <- NULL
+
+  if (!tibble::has_name(project.info, "FQ_FILES")) {
+    project.info %<>%
+    dplyr::rename(FQ_FILES = FQ_FILES_F)
+  }
   i <- dplyr::filter(.data = project.info, FQ_FILES %in% sample.list)
 
   individual <- i$INDIVIDUALS_REP
