@@ -10,8 +10,8 @@ state and is being actively
 developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 
-[![packageversion](https://img.shields.io/badge/Package%20version-2.0.9-orange.svg)](commits/master)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2019--11--23-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-2.1.0-orange.svg)](commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2019--11--28-brightgreen.svg)](/commits/master)
 
 ------------------------------------------------------------------------
 

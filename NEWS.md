@@ -1,3 +1,10 @@
+# stackr v.2.1.0 2019-11-28
+
+* better `summary_cstacks` and `summary_sstacks` functions to help decide thresholds
+* work a lot better with paired-end rad and the functionalities will be describe
+in a vignette.
+
+
 # stackr v.2.0.9 2019-11-05
 
 * updated to work with stacks v.2.41
