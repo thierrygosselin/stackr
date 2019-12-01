@@ -233,7 +233,7 @@ split_bam_list <- function(x, parallel.core = parallel::detectCores() - 1) {
   split.vec <- as.integer(floor((parallel.core * cpu.rounds * (1:n.bam - 1) / n.bam) + 1))
   # bam.split <- split(x, split.vec)
   # we want a df to have the list of bam and the iteration
-  bam.split <- tibble::data_frame(BAM = x, SPLIT_VEC = split.vec) %>%
+  bam.split <- tibble::tibble(BAM = x, SPLIT_VEC = split.vec) %>%
     split(., .$SPLIT_VEC)
   return(bam.split)
 }#End split_bam_list

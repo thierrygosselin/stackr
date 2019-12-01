@@ -8,6 +8,9 @@
 #' @param x (character, path). The path to the \code{catalog.tags.tsv.gz} file.
 #' Default: \code{x = "catalog.tags.tsv.gz"}.
 
+#' @param parallel.core (integer) Enable parallel execution with the number of threads.
+#' Default: \code{parallel.core = parallel::detectCores() - 1}.
+
 #' @rdname extract_catalog_sql_ids
 #' @export
 
@@ -15,7 +18,7 @@
 
 #' @examples
 #' \dontrun{
-#' ids <- stackr::extract_catalog_sql_id(x = "catalog.tags.tsv.gz")
+#' ids <- stackr::extract_catalog_sql_id(x = "06_ustacks_2_gstacks/catalog.tags.tsv.gz")
 #' }
 
 
@@ -32,11 +35,14 @@
 #' Stacks: an analysis tool set for population genomics.
 #' Molecular Ecology, 22, 3124-3140.
 
-extract_catalog_sql_ids <- function(x = "catalog.tags.tsv.gz") {
+extract_catalog_sql_ids <- function(
+  x = "06_ustacks_2_gstacks/catalog.tags.tsv.gz",
+  parallel.core = parallel::detectCores() - 1
+  ) {
 
   # Test
-  # x = "catalog.tags.tsv.gz"
-
+  # x = "06_ustacks_2_gstacks/catalog.tags.tsv.gz"
+  # parallel.core=12
   cat("#######################################################################\n")
   cat("################# stackr::extract_catalog_sql_ids #####################\n")
   cat("#######################################################################\n")
@@ -44,11 +50,10 @@ extract_catalog_sql_ids <- function(x = "catalog.tags.tsv.gz") {
   opt.change <- getOption("width")
   options(width = 70)
 
-  if (missing(x)) stop("catalog tags file is required")
-
   # Filename -------------------------------------------------------------------
   file.date <- format(Sys.time(), "%Y%m%d@%H%M")
-  filename <- stringi::stri_join("catalog_sample_id_", file.date, ".tsv")
+  filename <- stringi::stri_join("catalog_sqlids_", file.date, ".tsv")
+  message("Reading catalog tags file...")
   tags.id <- readr::read_tsv(file = x, col_types = "____c____", skip = 1L, col_names = "ID")
 
   clean_tags <- function(x) {
@@ -59,22 +64,37 @@ extract_catalog_sql_ids <- function(x = "catalog.tags.tsv.gz") {
     return(clean.x)
   }
 
-  tags.id <- tibble::tibble(
-    SAMPLE_CATALOG =
-      tags.id %>%
-      dplyr::mutate(
-        ID = purrr::map(.x = ID, .f = clean_tags)
+
+  n.tags <- nrow(tags.id)
+  if (n.tags < 10) {
+    tags.core <- n.tags
+  } else {
+    tags.core <- 10
+  }
+  cpu.rounds <- n.tags/tags.core/parallel.core
+  tags.id <- tibble::add_column(
+    .data = tags.id, SPLIT_VEC = as.integer(floor((parallel.core * cpu.rounds * (1:n.tags - 1) / n.tags) + 1))
+  ) %>%
+    dplyr::group_by(SPLIT_VEC) %>%
+    dplyr::group_split(.tbl = ., keep = FALSE)
+
+  sql.ids <- .stackr_parallel(
+      X = tags.id,
+      FUN = clean_tags,
+      mc.cores = parallel.core
       ) %>%
-      # dplyr::select(SAMPLE_ID) %>%
-      unlist(x = .) %>%
-      unique %>%
-      sort
-  )
-  message("Number of sample used to build the catalog: ", nrow(tags.id))
+    unlist %>%
+    unique %>%
+    sort
+  tags.id <- cpu.rounds <- tags.core <- n.tags <- NULL
+
+
+  sql.ids <- tibble::tibble(CATALOG_SQL_IDS = sql.ids)
+  message("Number of sample used to build the catalog: ", nrow(sql.ids))
 
   if (file.exists("08_stacks_results")) {
     filename <- file.path("08_stacks_results", filename)
-    readr::write_tsv(x = tags.id, path = filename)
+    readr::write_tsv(x = sql.ids, path = filename)
     message("File written: ", filename)
   }
 
@@ -82,7 +102,7 @@ extract_catalog_sql_ids <- function(x = "catalog.tags.tsv.gz") {
   options(width = opt.change)
   message("\nComputation time: ", round(timing[[3]]), " sec")
   cat("############################## completed ##############################\n")
-  return(tags.id)
+  return(sql.ids)
 } #End extract_catalog_sql_ids
 
 

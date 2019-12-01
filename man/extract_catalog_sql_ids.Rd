@@ -4,11 +4,15 @@
 \alias{extract_catalog_sql_ids}
 \title{Extract sample SQL IDs from STACKS catalog file}
 \usage{
-extract_catalog_sql_ids(x = "catalog.tags.tsv.gz")
+extract_catalog_sql_ids(x = "06_ustacks_2_gstacks/catalog.tags.tsv.gz",
+  parallel.core = parallel::detectCores() - 1)
 }
 \arguments{
 \item{x}{(character, path). The path to the \code{catalog.tags.tsv.gz} file.
 Default: \code{x = "catalog.tags.tsv.gz"}.}
+
+\item{parallel.core}{(integer) Enable parallel execution with the number of threads.
+Default: \code{parallel.core = parallel::detectCores() - 1}.}
 }
 \value{
 The function returns a tibble with the SQL IDs.
@@ -21,7 +25,7 @@ file to generate a tibble of sample SQL ids that were used to generate the catal
 }
 \examples{
 \dontrun{
-ids <- stackr::extract_catalog_sql_id(x = "catalog.tags.tsv.gz")
+ids <- stackr::extract_catalog_sql_id(x = "06_ustacks_2_gstacks/catalog.tags.tsv.gz")
 }
 }
 \references{
