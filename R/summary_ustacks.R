@@ -118,8 +118,6 @@
 
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks}
 
-#' \code{\link{run_ustacks}}
-
 #' \code{\link{run_cstacks}}
 
 #' @references Catchen JM, Amores A, Hohenlohe PA et al. (2011)

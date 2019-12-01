@@ -129,6 +129,5 @@ Molecular Ecology, 22, 3124-3140.
 \seealso{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/ustacks.php}{ustacks}
 \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks}
-\code{\link{run_ustacks}}
 \code{\link{run_cstacks}}
 }
