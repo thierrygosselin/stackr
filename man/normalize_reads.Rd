@@ -4,9 +4,14 @@
 \alias{normalize_reads}
 \title{Rarefaction of reads samples}
 \usage{
-normalize_reads(project.info = NULL, path.samples,
-  sample.reads = 1e+06, number.replicates = 3, random.seed = NULL,
-  parallel.core = number.replicates)
+normalize_reads(
+  project.info = NULL,
+  path.samples,
+  sample.reads = 1e+06,
+  number.replicates = 3,
+  random.seed = NULL,
+  parallel.core = number.replicates
+)
 }
 \arguments{
 \item{project.info}{(character, path, optional) When using the stackr pipeline,
@@ -55,7 +60,7 @@ if some statistics are increasing with read numbers (e.g. heterozygous markers).
 \examples{
 \dontrun{
 library(stackr)
-# To run this function, bioconductor \\code{ShortRead} package is necessary:
+# To run this function, bioconductor \code{ShortRead} package is necessary:
 source("http://bioconductor.org/biocLite.R")
 biocLite("ShortRead")
 # Using OpenMP threads

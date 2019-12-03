@@ -94,7 +94,7 @@ inevitable. Argument names are very stable and follows stacks development closel
 
 * Philosophy, major changes and deprecated functions/arguments are documented in
 life cycle section of functions. 
-* The latest changes are documented in [changelog, versions, new features and bug history](https://thierrygosselin.github.io/radiator/news/index.html)
+* The latest changes are documented in [changelog, versions, new features and bug history](http://thierrygosselin.github.io/stackr/news/index.html)
 * [issues](https://github.com/thierrygosselin/stackr/issues/new/choose) and [contributions](https://github.com/thierrygosselin/stackr/issues/new/choose)
 
 

@@ -4,8 +4,11 @@
 \alias{summary_catalog_log_lik}
 \title{Summary of catalog log likelihood}
 \usage{
-summary_catalog_log_lik(matches.folder,
-  parallel.core = parallel::detectCores() - 1, verbose = FALSE)
+summary_catalog_log_lik(
+  matches.folder,
+  parallel.core = parallel::detectCores() - 1,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{matches.folder}{(logical). Folder where the \code{.matches.tsv.gz} files are stored.
@@ -46,7 +49,7 @@ the mean and median log likelihood of catalog loci.
 catalog.log.lik <- stackr::summary_catalog_log_lik(
 matches.folder = "06_ustacks_cstacks_sstacks", verbose = TRUE)
 # To get the summary after correction module STACKS rxstacks, use the built-in
-feature of \\code{run_rxstacks} or run this function with rxstacks outout folder selected.
+feature of \code{run_rxstacks} or run this function with rxstacks outout folder selected.
 }
 }
 \references{

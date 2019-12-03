@@ -4,10 +4,18 @@
 \alias{run_sstacks}
 \title{Run STACKS sstacks module}
 \usage{
-run_sstacks(P = "06_ustacks_2_gstacks", M = NULL, sample.list = NULL,
-  c = "06_ustacks_2_gstacks", parallel.core = parallel::detectCores() -
-  1, o = "06_ustacks_2_gstacks", x = FALSE, disable.gapped = FALSE,
-  v = FALSE, h = FALSE)
+run_sstacks(
+  P = "06_ustacks_2_gstacks",
+  M = NULL,
+  sample.list = NULL,
+  c = "06_ustacks_2_gstacks",
+  parallel.core = parallel::detectCores() - 1,
+  o = "06_ustacks_2_gstacks",
+  x = FALSE,
+  disable.gapped = FALSE,
+  v = FALSE,
+  h = FALSE
+)
 }
 \arguments{
 \item{P}{(character) Path to the directory containing STACKS files.

@@ -4,8 +4,13 @@
 \alias{read_counter}
 \title{Counts the number of reads in samples}
 \usage{
-read_counter(path.samples, strata = NULL, plot.reads = TRUE,
-  write = TRUE, parallel.core = parallel::detectCores() - 1)
+read_counter(
+  path.samples,
+  strata = NULL,
+  plot.reads = TRUE,
+  write = TRUE,
+  parallel.core = parallel::detectCores() - 1
+)
 }
 \arguments{
 \item{path.samples}{(character, path) Path of folder containing the
@@ -48,7 +53,7 @@ and you want to check the distribution in the number of reads between samples.
 \examples{
 \dontrun{
 library(stackr)
-# To run this function, bioconductor \\code{ShortRead} package is necessary:
+# To run this function, bioconductor \code{ShortRead} package is necessary:
 source("http://bioconductor.org/biocLite.R")
 biocLite("ShortRead")
 

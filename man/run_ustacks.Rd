@@ -4,15 +4,34 @@
 \alias{run_ustacks}
 \title{Run STACKS ustacks module}
 \usage{
-run_ustacks(mismatch.testing = FALSE, sample.list = NULL,
-  project.info = NULL, f = "04_process_radtags",
-  o = "06_ustacks_2_gstacks", m = 3, M = 2, N = M + 2,
-  t = "guess", R = FALSE, H = TRUE,
-  parallel.core = parallel::detectCores() - 1, h = FALSE, d = TRUE,
-  keep.high.cov = FALSE, high.cov.thres = 3, max.locus.stacks = 3,
-  k.len = NULL, max.gaps = 2, min.aln.len = 0.8,
-  disable.gapped = FALSE, model.type = "snp", alpha = 0.05,
-  bound.low = 0, bound.high = 0.2, bc.err.freq = NULL)
+run_ustacks(
+  mismatch.testing = FALSE,
+  sample.list = NULL,
+  project.info = NULL,
+  f = "04_process_radtags",
+  o = "06_ustacks_2_gstacks",
+  m = 3,
+  M = 2,
+  N = M + 2,
+  t = "guess",
+  R = FALSE,
+  H = TRUE,
+  parallel.core = parallel::detectCores() - 1,
+  h = FALSE,
+  d = TRUE,
+  keep.high.cov = FALSE,
+  high.cov.thres = 3,
+  max.locus.stacks = 3,
+  k.len = NULL,
+  max.gaps = 2,
+  min.aln.len = 0.8,
+  disable.gapped = FALSE,
+  model.type = "snp",
+  alpha = 0.05,
+  bound.low = 0,
+  bound.high = 0.2,
+  bc.err.freq = NULL
+)
 }
 \arguments{
 \item{mismatch.testing}{(logical). Default: \code{mismatch.testing = FALSE}.}

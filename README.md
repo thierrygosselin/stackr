@@ -91,7 +91,7 @@ development closely.
     documented in life cycle section of functions.
   - The latest changes are documented in [changelog, versions, new
     features and bug
-    history](https://thierrygosselin.github.io/radiator/news/index.html)
+    history](http://thierrygosselin.github.io/stackr/news/index.html)
   - [issues](https://github.com/thierrygosselin/stackr/issues/new/choose)
     and
     [contributions](https://github.com/thierrygosselin/stackr/issues/new/choose)

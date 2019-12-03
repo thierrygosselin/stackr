@@ -118,17 +118,33 @@ module inside R!" />
 module inside R!</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_gstacks</span>(<span class='kw'>denovo</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>P</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
-  <span class='kw'>M</span> <span class='kw'>=</span> <span class='st'>"02_project_info/population.map.tsv2bam.tsv"</span>, <span class='kw'>I</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>B</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>O</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>,
-  <span class='kw'>model</span> <span class='kw'>=</span> <span class='st'>"marukilow"</span>, <span class='kw'>var.alpha</span> <span class='kw'>=</span> <span class='fl'>0.01</span>, <span class='kw'>gt.alpha</span> <span class='kw'>=</span> <span class='fl'>0.05</span>,
-  <span class='kw'>rm.pcr.duplicates</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>rm.unpaired.reads</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>ignore.pe.reads</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>unpaired</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>kmer.length</span> <span class='kw'>=</span> <span class='fl'>31</span>,
-  <span class='kw'>max.debruijn.reads</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>min.kmer.cov</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>write.alignments</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>min.mapq</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>max.clipped</span> <span class='kw'>=</span> <span class='fl'>0.2</span>,
-  <span class='kw'>max.insert.len</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>details</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+    <pre class="usage"><span class='fu'>run_gstacks</span>(
+  <span class='kw'>denovo</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>P</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
+  <span class='kw'>M</span> <span class='kw'>=</span> <span class='st'>"02_project_info/population.map.tsv2bam.tsv"</span>,
+  <span class='kw'>I</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>B</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>O</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>,
+  <span class='kw'>model</span> <span class='kw'>=</span> <span class='st'>"marukilow"</span>,
+  <span class='kw'>var.alpha</span> <span class='kw'>=</span> <span class='fl'>0.01</span>,
+  <span class='kw'>gt.alpha</span> <span class='kw'>=</span> <span class='fl'>0.05</span>,
+  <span class='kw'>rm.pcr.duplicates</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>rm.unpaired.reads</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>ignore.pe.reads</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>unpaired</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>kmer.length</span> <span class='kw'>=</span> <span class='fl'>31</span>,
+  <span class='kw'>max.debruijn.reads</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
+  <span class='kw'>min.kmer.cov</span> <span class='kw'>=</span> <span class='fl'>2</span>,
+  <span class='kw'>write.alignments</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>min.mapq</span> <span class='kw'>=</span> <span class='fl'>10</span>,
+  <span class='kw'>max.clipped</span> <span class='kw'>=</span> <span class='fl'>0.2</span>,
+  <span class='kw'>max.insert.len</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
+  <span class='kw'>details</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>phasing.cooccurrences.thr.range</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='fl'>2</span>),
-  <span class='kw'>phasing.dont.prune.hets</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>h</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+  <span class='kw'>phasing.dont.prune.hets</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>h</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
