@@ -5,7 +5,7 @@
 \title{Run STACKS Version >= 2.0 populations module}
 \usage{
 run_populations(P = "06_ustacks_2_gstacks", V = NULL,
-  O = "07_populations", M, t = parallel::detectCores() - 1,
+  O = "07_populations", M, parallel.core = parallel::detectCores() - 1,
   batch_size = 10000, p = 1, r = 0.3, R = 0.3, H = TRUE,
   min.maf = NULL, min.mac = NULL, max.obs.het = NULL,
   write.single.snp = FALSE, write.random.snp = FALSE, B = NULL,
@@ -40,8 +40,8 @@ with first column containing sample name and second column population id.
 No heather (column name).
 e.g. \code{M = "02_project_info/population.map.catalog.tsv"}}
 
-\item{t}{(integer) enable parallel execution with num_threads threads.
-Default: \code{t = parallel::detectCores() - 1}}
+\item{parallel.core}{(integer) enable parallel execution with num_threads threads.
+Default: \code{parallel.core = parallel::detectCores() - 1}}
 
 \item{batch_size}{(integer) The number of loci (de novo mode) or
 chromosome (reference mode), to process in a batch.

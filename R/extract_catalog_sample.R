@@ -77,7 +77,7 @@ extract_catalog_sql_ids <- function(
   ) %>%
     dplyr::group_by(SPLIT_VEC) %>%
     dplyr::group_split(.tbl = ., keep = FALSE)
-
+  message("Extracting and summarizing SQL IDs information...")
   sql.ids <- .stackr_parallel(
       X = tags.id,
       FUN = clean_tags,

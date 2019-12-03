@@ -21,8 +21,8 @@ if not, the file is written in the working directory.
 The summary is a tibble:
 \enumerate{
 \item INDIVIDUALS: the sample id
-\item LOCUS_IN_CATALOG: the number of locus in the catalog after processing
-the sample.
+\item LOCUS_CATALOG_START: the number of locus in the catalog at the start when
+processing the sample.
 \item LOCI_MATCH_TO_CATALOG: the number of loci for the sample matching loci
 in the catalog.
 \item LOCI_MATCH_TO_CATALOG_GAPPED: the number of loci for the sample matching loci
@@ -31,6 +31,8 @@ in the catalog after allowing for gapped alignment.
 sample.
 \item LOCI_LINKED: the number of loci that matched more than one catalog
 locus (linked loci).
+\item LOCUS_CATALOG_END: the number of locus in the catalog at the end of
+processing the sample.
 \item MISMATHES: the number of mismatches allowed between loci of different samples.
 }
 }

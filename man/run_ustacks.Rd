@@ -7,12 +7,12 @@
 run_ustacks(mismatch.testing = FALSE, sample.list = NULL,
   project.info = NULL, f = "04_process_radtags",
   o = "06_ustacks_2_gstacks", m = 3, M = 2, N = M + 2,
-  t = "guess", R = FALSE, H = TRUE, p = parallel::detectCores() -
-  1, h = FALSE, d = TRUE, keep.high.cov = FALSE,
-  high.cov.thres = 3, max.locus.stacks = 3, k.len = NULL,
-  max.gaps = 2, min.aln.len = 0.8, disable.gapped = FALSE,
-  model.type = "snp", alpha = 0.05, bound.low = 0,
-  bound.high = 0.2, bc.err.freq = NULL)
+  t = "guess", R = FALSE, H = TRUE,
+  parallel.core = parallel::detectCores() - 1, h = FALSE, d = TRUE,
+  keep.high.cov = FALSE, high.cov.thres = 3, max.locus.stacks = 3,
+  k.len = NULL, max.gaps = 2, min.aln.len = 0.8,
+  disable.gapped = FALSE, model.type = "snp", alpha = 0.05,
+  bound.low = 0, bound.high = 0.2, bc.err.freq = NULL)
 }
 \arguments{
 \item{mismatch.testing}{(logical). Default: \code{mismatch.testing = FALSE}.}
@@ -59,8 +59,8 @@ Default: \code{t = "guess"}.}
 \item{H}{Disable calling haplotypes from secondary reads.
 Default: \code{H = TRUE}.}
 
-\item{p}{Enable parallel execution with num_threads threads.
-Default: \code{p = parallel::detectCores() - 1}.}
+\item{parallel.core}{Enable parallel execution with num_threads threads.
+Default: \code{parallel.core = parallel::detectCores() - 1}.}
 
 \item{h}{Display this help messsage. Default: \code{h = FALSE}.}
 

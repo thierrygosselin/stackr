@@ -6,7 +6,7 @@
 \usage{
 run_tsv2bam(P = "06_ustacks_2_gstacks",
   M = "02_project_info/population.map.tsv2bam.tsv", R = NULL,
-  t = parallel::detectCores() - 1,
+  parallel.core = parallel::detectCores() - 1,
   cmd.path = "/usr/local/bin/samtools", h = FALSE)
 }
 \arguments{
@@ -33,8 +33,8 @@ Default: \code{M = "02_project_info/population.map.tsv2bam.tsv"}.}
 \item{R}{(path, character) Directory where to find the paired-end reads files
 (in fastq/fasta/bam (gz) format).}
 
-\item{t}{(integer) Enable parallel execution with the number of threads.
-Default: \code{t = parallel::detectCores() - 1}}
+\item{parallel.core}{(integer) Enable parallel execution with the number of threads.
+Default: \code{parallel.core = parallel::detectCores() - 1}}
 
 \item{cmd.path}{(character, path) Provide the FULL path to SAMtools
 program. See details on how to install SAMtools.

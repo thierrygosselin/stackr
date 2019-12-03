@@ -43,8 +43,8 @@
 #' @param c (character, path) Path to the catalog.
 #' Default: \code{c = "06_ustacks_2_gstacks"}
 
-#' @param p (Integer) Enable parallel execution with num_threads threads.
-#' Default: \code{p = parallel::detectCores() - 1}
+#' @param parallel.core (Integer) Enable parallel execution with num_threads threads.
+#' Default: \code{parallel.core = parallel::detectCores() - 1}
 
 #' @param o output path to write results.
 #' Default: \code{o = "06_ustacks_2_gstacks"}
@@ -111,11 +111,10 @@ run_sstacks <- function(
   M = NULL,
   sample.list = NULL,
   c = "06_ustacks_2_gstacks",
-  p = parallel::detectCores() - 1,
+  parallel.core = parallel::detectCores() - 1,
   o = "06_ustacks_2_gstacks",
   x = FALSE,
   disable.gapped = FALSE,
-  # lnl_dist = TRUE,
   v = FALSE,
   h = FALSE
 ) {
@@ -132,19 +131,11 @@ run_sstacks <- function(
 
   # sstacks options ------------------------------------------------------------
   # p: enable parallel execution with num_threads threads.
-  parallel.core <- p # backup to use later
-  p <- stringi::stri_join("-p ", p)
+  p <- stringi::stri_join("-p ", parallel.core)
 
   # o: output path to write results.
   ustacks.folder <- o
   o <- stringi::stri_join("-o ", shQuote(o))
-
-  # g: base matching on genomic location, not sequence identity.
-  # if (g) {
-  #   g <- stringi::stri_join("-g ")
-  # } else {
-  #   g <- ""
-  # }
 
   # x: don't verify haplotype of matching locus.
   if (x) {

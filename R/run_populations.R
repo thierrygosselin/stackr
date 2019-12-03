@@ -20,8 +20,8 @@
 #' No heather (column name).
 #' e.g. \code{M = "02_project_info/population.map.catalog.tsv"}
 
-#' @param t (integer) enable parallel execution with num_threads threads.
-#' Default: \code{t = parallel::detectCores() - 1}
+#' @param parallel.core (integer) enable parallel execution with num_threads threads.
+#' Default: \code{parallel.core = parallel::detectCores() - 1}
 
 #' @param batch_size (integer) The number of loci (de novo mode) or
 #' chromosome (reference mode), to process in a batch.
@@ -189,7 +189,7 @@ run_populations <- function(
   V = NULL,
   O = "07_populations",
   M,
-  t = parallel::detectCores() - 1,
+  parallel.core = parallel::detectCores() - 1,
   batch_size = 10000,
   p = 1,
   r = 0.3,
@@ -283,7 +283,7 @@ run_populations <- function(
   M <- stringi::stri_join("-M ", M)
 
   # parallel.core <- t
-  t <- stringi::stri_join("-t ", t)
+  t <- stringi::stri_join("-t ", parallel.core)
   batch_size <- stringi::stri_join("--batch_size ", batch_size)
 
   # Data Filtering -------------------------------------------------------------

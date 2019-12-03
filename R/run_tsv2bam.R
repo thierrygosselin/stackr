@@ -33,8 +33,8 @@
 #' @param R (path, character) Directory where to find the paired-end reads files
 #' (in fastq/fasta/bam (gz) format).
 
-#' @param t (integer) Enable parallel execution with the number of threads.
-#' Default: \code{t = parallel::detectCores() - 1}
+#' @param parallel.core (integer) Enable parallel execution with the number of threads.
+#' Default: \code{parallel.core = parallel::detectCores() - 1}
 
 #' @param cmd.path (character, path) Provide the FULL path to SAMtools
 #' program. See details on how to install SAMtools.
@@ -104,7 +104,7 @@ run_tsv2bam <- function(
   P = "06_ustacks_2_gstacks",
   M = "02_project_info/population.map.tsv2bam.tsv",
   R = NULL,
-  t = parallel::detectCores() - 1,
+  parallel.core = parallel::detectCores() - 1,
   cmd.path = "/usr/local/bin/samtools",
   h = FALSE
 ) {
@@ -113,7 +113,7 @@ run_tsv2bam <- function(
   # P = "06_ustacks_2_gstacks"
   # M = "02_project_info/population.map.tsv2bam.testing.tsv"
   # R = NULL
-  # t = parallel::detectCores() - 1
+  # parallel.core = parallel::detectCores() - 1
   # cmd.path = "/usr/local/bin/samtools"
   # h = FALSE
 
@@ -156,8 +156,7 @@ run_tsv2bam <- function(
   M <- stringi::stri_join("-M ", M)
 
   # Threads
-  parallel.core <- t # keep a distinct copy for other use
-  t <- stringi::stri_join("-t ", t)
+  t <- stringi::stri_join("-t ", parallel.core)
 
   # paired-end path
   if (is.null(R)) {

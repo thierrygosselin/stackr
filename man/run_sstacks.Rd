@@ -5,8 +5,8 @@
 \title{Run STACKS sstacks module}
 \usage{
 run_sstacks(P = "06_ustacks_2_gstacks", M = NULL, sample.list = NULL,
-  c = "06_ustacks_2_gstacks", p = parallel::detectCores() - 1,
-  o = "06_ustacks_2_gstacks", x = FALSE, disable.gapped = FALSE,
+  c = "06_ustacks_2_gstacks", parallel.core = parallel::detectCores() -
+  1, o = "06_ustacks_2_gstacks", x = FALSE, disable.gapped = FALSE,
   v = FALSE, h = FALSE)
 }
 \arguments{
@@ -33,8 +33,8 @@ project info file, e.g. \code{sample.list = project.info$INDIVIDUALS_REP}.
 \item{c}{(character, path) Path to the catalog.
 Default: \code{c = "06_ustacks_2_gstacks"}}
 
-\item{p}{(Integer) Enable parallel execution with num_threads threads.
-Default: \code{p = parallel::detectCores() - 1}}
+\item{parallel.core}{(Integer) Enable parallel execution with num_threads threads.
+Default: \code{parallel.core = parallel::detectCores() - 1}}
 
 \item{o}{output path to write results.
 Default: \code{o = "06_ustacks_2_gstacks"}}

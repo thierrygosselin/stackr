@@ -66,8 +66,8 @@
 #' treat READ2's as if they were READ1's).
 #' Default: \code{unpaired = TRUE}.
 
-#' @param t (integer) Enable parallel execution with the number of threads.
-#' Default: \code{t = parallel::detectCores() - 1}.
+#' @param parallel.core (integer) Enable parallel execution with the number of threads.
+#' Default: \code{parallel.core = parallel::detectCores() - 1}.
 
 #' @param model (character) The model to use to call variants and genotypes;
 #' one of \code{"marukilow"}, \code{"marukihigh"}, or \code{"snp"}.
@@ -170,7 +170,7 @@ run_gstacks <- function(
   I = NULL,
   B = NULL,
   O = NULL,
-  t = parallel::detectCores() - 1,
+  parallel.core = parallel::detectCores() - 1,
   model = "marukilow",
   var.alpha = 0.01,
   gt.alpha = 0.05,
@@ -279,8 +279,7 @@ run_gstacks <- function(
   M <- stringi::stri_join("-M ", M)
 
   # Threads
-  parallel.core <- t # keep a distinct copy for other use
-  t <- stringi::stri_join("-t ", t)
+  t <- stringi::stri_join("-t ", parallel.core)
 
   # SNP Model options ----------------------------------------------------------
   model <- stringi::stri_join("--model ", model)

@@ -23,8 +23,8 @@
 #' The summary is a tibble:
 #' \enumerate{
 #' \item INDIVIDUALS: the sample id
-#' \item LOCUS_IN_CATALOG: the number of locus in the catalog after processing
-#' the sample.
+#' \item LOCUS_CATALOG_START: the number of locus in the catalog at the start when
+#' processing the sample.
 #' \item LOCI_MATCH_TO_CATALOG: the number of loci for the sample matching loci
 #' in the catalog.
 #' \item LOCI_MATCH_TO_CATALOG_GAPPED: the number of loci for the sample matching loci
@@ -33,6 +33,8 @@
 #' sample.
 #' \item LOCI_LINKED: the number of loci that matched more than one catalog
 #' locus (linked loci).
+#' \item LOCUS_CATALOG_END: the number of locus in the catalog at the end of
+#' processing the sample.
 #' \item MISMATHES: the number of mismatches allowed between loci of different samples.
 #' }
 
@@ -70,7 +72,7 @@ summary_cstacks <- function(cstacks.log, verbose = FALSE) {
   if (missing(cstacks.log)) stop("log file argument required")
   if (!file.exists(cstacks.log)) stop("log file does not exists, check path")
 
-  message("Summarizing stackr::run_cstacks log file:\n", cstacks.log, "\n")
+  message("\nSummarizing stackr::run_cstacks log file:\n", cstacks.log, "\n")
 
   # Filename
   file.date <- format(Sys.time(), "%Y%m%d@%H%M")
@@ -94,11 +96,13 @@ summary_cstacks <- function(cstacks.log, verbose = FALSE) {
     col_types = "c"
   )
 
+  # detect if existing catalog...
+  existing.catalog <- TRUE %in% stringi::stri_detect_fixed(str = cstacks.logfile$CSTACKS, pattern = "Initializing existing catalog")
+
   # sample list
-  sample.names <- dplyr::filter(
-    .data = cstacks.logfile,
-    stringi::stri_detect_fixed(str = CSTACKS, pattern = ".tags.")
-  ) %>%
+  sample.names <- cstacks.logfile %>%
+    dplyr::filter(stringi::stri_detect_fixed(str = CSTACKS, pattern = ".tags.")) %>%
+    dplyr::filter(!stringi::stri_detect_fixed(str = CSTACKS, pattern = "catalog.")) %>%
     dplyr::mutate(
       SAMPLES = stringi::stri_extract(CSTACKS, regex = '(?<=\\/).*(?=\\.tags)'),
       CSTACKS = NULL
@@ -130,25 +134,36 @@ summary_cstacks <- function(cstacks.log, verbose = FALSE) {
     stringi::stri_detect_fixed(str = CSTACKS, pattern = "loci in the catalog")
   ) %>%
     dplyr::mutate(
-      LOCUS_IN_CATALOG = stringi::stri_extract_all_charclass(
+      LOCUS_CATALOG_START = stringi::stri_extract_all_charclass(
         str = CSTACKS,
         pattern = "[0-9]") %>%
         purrr::map(1),
-      LOCUS_IN_CATALOG = as.integer(LOCUS_IN_CATALOG),
+      LOCUS_CATALOG_START = as.integer(LOCUS_CATALOG_START),
       CSTACKS = NULL
-    ) %>% dplyr::bind_rows(
+    )
+
+  if (!existing.catalog) {
+    extract1 %<>% tibble::add_row(.data = ., .before = 1, LOCUS_CATALOG_START = 0L)
+  }
+
+  extract.last <- extract1 %>%
+    dplyr::filter(dplyr::row_number() != 1L) %>%
+    dplyr::rename( LOCUS_CATALOG_END = LOCUS_CATALOG_START) %>%
+    dplyr::bind_rows(
       dplyr::filter(
         .data = cstacks.logfile,
         stringi::stri_detect_fixed(str = CSTACKS, pattern = "Final catalog contains")
       ) %>%
         dplyr::mutate(
-          LOCUS_IN_CATALOG = stringi::stri_extract_all_charclass(
+          LOCUS_CATALOG_END = stringi::stri_extract_all_charclass(
             str = CSTACKS,
             pattern = "[0-9]"),
-          LOCUS_IN_CATALOG = as.integer(LOCUS_IN_CATALOG),
+          LOCUS_CATALOG_END = as.integer(LOCUS_CATALOG_END),
           CSTACKS = NULL
         )
     )
+
+
 
   extract2 <- dplyr::filter(
     .data = cstacks.logfile,
@@ -162,8 +177,12 @@ summary_cstacks <- function(cstacks.log, verbose = FALSE) {
         pattern = "[0-9]"),
       LOCI_MATCH_TO_CATALOG = as.integer(LOCI_MATCH_TO_CATALOG),
       CSTACKS = NULL
-    ) %>%
-    tibble::add_row(.data = ., .before = 1, LOCI_MATCH_TO_CATALOG = NA_integer_)
+    )
+
+  if (!existing.catalog) {
+    extract2 %<>% tibble::add_row(.data = ., .before = 1, LOCI_MATCH_TO_CATALOG = NA_integer_)
+  }
+
 
   extract3 <- dplyr::filter(
     .data = cstacks.logfile,
@@ -177,8 +196,13 @@ summary_cstacks <- function(cstacks.log, verbose = FALSE) {
         pattern = "[0-9]"),
       LOCI_MATCH_TO_CATALOG_GAPPED = as.integer(LOCI_MATCH_TO_CATALOG_GAPPED),
       CSTACKS = NULL
-    ) %>%
-    tibble::add_row(.data = ., .before = 1, LOCI_MATCH_TO_CATALOG_GAPPED = NA_integer_)
+    )
+
+
+  if (!existing.catalog) {
+    extract3 %<>% tibble::add_row(.data = ., .before = 1, LOCI_MATCH_TO_CATALOG_GAPPED = NA_integer_)
+  }
+
 
   extract4 <- dplyr::filter(
     .data = cstacks.logfile,
@@ -207,11 +231,15 @@ summary_cstacks <- function(cstacks.log, verbose = FALSE) {
         pattern = "[0-9]"),
       LOCI_LINKED = as.integer(LOCI_LINKED),
       CSTACKS = NULL
-    ) %>%
-    tibble::add_row(.data = ., .before = 1, LOCI_LINKED = NA_integer_)
+    )
+
+  if (!existing.catalog) {
+    extract5 %<>% tibble::add_row(.data = ., .before = 1, LOCI_LINKED = NA_integer_)
+  }
+
 
   sum <- dplyr::bind_cols(
-    sample.names, extract1, extract2, extract3, extract4, extract5
+    sample.names, extract1, extract2, extract3, extract4, extract5, extract.last
   ) %>%
     dplyr::mutate(MISMATCHES = mis)
 

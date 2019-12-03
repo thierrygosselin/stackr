@@ -44,8 +44,8 @@
 #' @param R Retain unused reads. Default: \code{R = FALSE}.
 #' @param H Disable calling haplotypes from secondary reads.
 #' Default: \code{H = TRUE}.
-#' @param p Enable parallel execution with num_threads threads.
-#' Default: \code{p = parallel::detectCores() - 1}.
+#' @param parallel.core Enable parallel execution with num_threads threads.
+#' Default: \code{parallel.core = parallel::detectCores() - 1}.
 #' @param h Display this help messsage. Default: \code{h = FALSE}.
 
 # Stack assembly options:
@@ -165,7 +165,7 @@ run_ustacks <- function(
   t = "guess",
   R = FALSE,
   H = TRUE,
-  p = parallel::detectCores() - 1,
+  parallel.core = parallel::detectCores() - 1,
   h = FALSE,
   d = TRUE,
   keep.high.cov = FALSE,
@@ -982,8 +982,7 @@ run_ustacks_one_sample <- function(
     R <- ""
   }
 
-  parallel.core <- p
-  p <- stringi::stri_join("-p ", p)
+  p <- stringi::stri_join("-p ", parallel.core)
 
   if (h) {
     h <- stringi::stri_join("-h ")

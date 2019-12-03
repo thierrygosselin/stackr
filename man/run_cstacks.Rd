@@ -4,11 +4,11 @@
 \alias{run_cstacks}
 \title{Run STACKS cstacks module}
 \usage{
-run_cstacks(P = "06_ustacks_2_gstacks",
-  M = "02_project_info/population.map.catalog.tsv", n = 1,
-  p = parallel::detectCores() - 1, catalog.path = NULL, max.gaps = 2,
-  min.aln.len = 0.8, disable.gapped = FALSE, k.len = NULL,
-  report.mmatches = FALSE, h = FALSE)
+run_cstacks(P = "06_ustacks_2_gstacks", o = "06_ustacks_2_gstacks",
+  M = "02_project_info/population.map.catalog.tsv",
+  catalog.path = NULL, n = 1, parallel.core = parallel::detectCores()
+  - 1, max.gaps = 2, min.aln.len = 0.8, disable.gapped = FALSE,
+  k.len = NULL, report.mmatches = FALSE, split.catalog = 20)
 }
 \arguments{
 \item{P}{path to the directory containing STACKS files.
@@ -23,14 +23,11 @@ Those files are created in the
 module.
 }}
 
+\item{o}{Output path to write catalog.
+Default: \code{o = "06_ustacks_2_gstacks"}}
+
 \item{M}{path to a population map file (Required when P is used).
 Default: \code{M = "02_project_info/population.map.catalog.tsv"}.}
-
-\item{n}{number of mismatches allowed between sample loci when build the catalog.
-Default: \code{n = 1}}
-
-\item{p}{enable parallel execution with num_threads threads.
-Default: \code{p = parallel::detectCores() - 1}}
 
 \item{catalog.path}{This is for the "Catalog editing" part in cstacks where
 you can provide the path to an existing catalog.
@@ -47,6 +44,12 @@ will be added in this catalog. The catalog is made of 3 files:
 \code{batch_1.catalog.alleles.tsv.gz,
 batch_1.catalog.snps.tsv.gz,
 batch_1.catalog.tags.tsv.gz}}
+
+\item{n}{number of mismatches allowed between sample loci when build the catalog.
+Default: \code{n = 1}}
+
+\item{parallel.core}{Enable parallel execution with num_threads threads.
+Default: \code{parallel.core = parallel::detectCores() - 1}}
 
 \item{max.gaps}{The number of gaps allowed between stacks before merging.
 Default: \code{max.gaps = 2}}
@@ -67,8 +70,12 @@ Default: \code{k.len = NULL}}
 Advice: don't modify.
 Default: \code{report.mmatches = FALSE}}
 
-\item{h}{Display this help messsage.
-Default: \code{h = FALSE}}
+\item{split.catalog}{(integer) In how many samples you want to split the
+catalog population map. This allows to have backup catalog every
+\code{split.catalog} samples. Their is obviously a trade-off between the
+integer use here, the time to initialize an existing catalog to often
+and re-starting from zero if everything crash.
+Default: \code{split.catalog = 20}.}
 }
 \value{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
@@ -120,7 +127,7 @@ run_cstacks (
 P = "06_ustacks_2_gstacks",
 catalog.path = NULL,
 n = 1,
-p = 32,
+parallel.core = 32,
 h = FALSE,
 max.gaps = 2, min.aln.len = 0.8,
 k.len = NULL, report.mmatches = FALSE

@@ -6,7 +6,7 @@
 \usage{
 run_gstacks(denovo = TRUE, P = "06_ustacks_2_gstacks",
   M = "02_project_info/population.map.tsv2bam.tsv", I = NULL,
-  B = NULL, O = NULL, t = parallel::detectCores() - 1,
+  B = NULL, O = NULL, parallel.core = parallel::detectCores() - 1,
   model = "marukilow", var.alpha = 0.01, gt.alpha = 0.05,
   rm.pcr.duplicates = FALSE, rm.unpaired.reads = FALSE,
   ignore.pe.reads = TRUE, unpaired = TRUE, kmer.length = 31,
@@ -59,8 +59,8 @@ Default: \code{B = NULL}.}
 will output in the input directory.
 Default: \code{O = NULL} (same as input).}
 
-\item{t}{(integer) Enable parallel execution with the number of threads.
-Default: \code{t = parallel::detectCores() - 1}.}
+\item{parallel.core}{(integer) Enable parallel execution with the number of threads.
+Default: \code{parallel.core = parallel::detectCores() - 1}.}
 
 \item{model}{(character) The model to use to call variants and genotypes;
 one of \code{"marukilow"}, \code{"marukihigh"}, or \code{"snp"}.
