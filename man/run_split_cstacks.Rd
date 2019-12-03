@@ -4,20 +4,12 @@
 \alias{run_split_cstacks}
 \title{run_split_cstacks}
 \usage{
-run_split_cstacks(
-  catalog.id = NULL,
-  o = "06_ustacks_2_gstacks",
+run_split_cstacks(catalog.id = NULL, o = "06_ustacks_2_gstacks",
   M = "02_project_info/population.map.catalog.tsv",
-  catalog.path = NULL,
-  P = "06_ustacks_2_gstacks",
-  n = 1,
-  parallel.core = parallel::detectCores() - 1,
-  max.gaps = 2,
-  min.aln.len = 0.8,
-  disable.gapped = FALSE,
-  k.len = NULL,
-  report.mmatches = FALSE
-)
+  catalog.path = NULL, P = "06_ustacks_2_gstacks", n = 1,
+  parallel.core = parallel::detectCores() - 1, max.gaps = 2,
+  min.aln.len = 0.8, disable.gapped = FALSE, k.len = NULL,
+  report.mmatches = FALSE)
 }
 \description{
 The function that runs cstacks

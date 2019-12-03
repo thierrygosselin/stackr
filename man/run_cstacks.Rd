@@ -4,20 +4,11 @@
 \alias{run_cstacks}
 \title{Run STACKS cstacks module}
 \usage{
-run_cstacks(
-  P = "06_ustacks_2_gstacks",
-  o = "06_ustacks_2_gstacks",
+run_cstacks(P = "06_ustacks_2_gstacks", o = "06_ustacks_2_gstacks",
   M = "02_project_info/population.map.catalog.tsv",
-  catalog.path = NULL,
-  n = 1,
-  parallel.core = parallel::detectCores() - 1,
-  max.gaps = 2,
-  min.aln.len = 0.8,
-  disable.gapped = FALSE,
-  k.len = NULL,
-  report.mmatches = FALSE,
-  split.catalog = 20
-)
+  catalog.path = NULL, n = 1, parallel.core = parallel::detectCores()
+  - 1, max.gaps = 2, min.aln.len = 0.8, disable.gapped = FALSE,
+  k.len = NULL, report.mmatches = FALSE, split.catalog = 20)
 }
 \arguments{
 \item{P}{path to the directory containing STACKS files.

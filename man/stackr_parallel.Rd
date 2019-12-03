@@ -6,44 +6,20 @@
 \alias{.stackr_parallel}
 \title{hack to switch function for parallel computation based on OS}
 \usage{
-mclapply_win(
-  X,
-  FUN,
-  ...,
-  mc.preschedule = TRUE,
-  mc.set.seed = TRUE,
-  mc.silent = FALSE,
-  mc.cores = NULL,
-  mc.cleanup = TRUE,
-  mc.allow.recursive = TRUE
-)
+mclapply_win(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
+  mc.silent = FALSE, mc.cores = NULL, mc.cleanup = TRUE,
+  mc.allow.recursive = TRUE)
 
-.stackr_parallel_mc(
-  X,
-  FUN,
-  ...,
-  mc.preschedule = TRUE,
-  mc.set.seed = TRUE,
-  mc.silent = FALSE,
-  mc.cores = getOption("mc.cores", 2L),
-  mc.cleanup = TRUE,
-  mc.allow.recursive = TRUE,
-  affinity.list = NULL
-)
+.stackr_parallel_mc(X, FUN, ..., mc.preschedule = TRUE,
+  mc.set.seed = TRUE, mc.silent = FALSE,
+  mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
+  mc.allow.recursive = TRUE, affinity.list = NULL)
 
-.stackr_parallel(
-  X,
-  FUN,
-  ...,
-  mc.style = "ETA",
-  mc.substyle = NA,
+.stackr_parallel(X, FUN, ..., mc.style = "ETA", mc.substyle = NA,
   mc.cores = getOption("mc.cores", 2L),
   ignore.interactive = getOption("ignore.interactive", F),
-  mc.preschedule = TRUE,
-  mc.set.seed = TRUE,
-  mc.cleanup = TRUE,
-  mc.allow.recursive = TRUE
-)
+  mc.preschedule = TRUE, mc.set.seed = TRUE, mc.cleanup = TRUE,
+  mc.allow.recursive = TRUE)
 }
 \arguments{
 \item{X}{see \pkg{parallel} \code{\link{mclapply}}}

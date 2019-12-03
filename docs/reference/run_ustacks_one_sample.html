@@ -114,34 +114,15 @@
     <p>run ustacks for 1 sample</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_ustacks_one_sample</span>(
-  <span class='kw'>mismatch.testing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>sample.list</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>project.info</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>f</span> <span class='kw'>=</span> <span class='st'>"04_process_radtags"</span>,
-  <span class='kw'>o</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
-  <span class='kw'>m</span> <span class='kw'>=</span> <span class='fl'>3</span>,
-  <span class='kw'>M</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>N</span> <span class='kw'>=</span> <span class='no'>M</span> + <span class='fl'>2</span>,
-  <span class='kw'>t</span> <span class='kw'>=</span> <span class='st'>"guess"</span>,
-  <span class='kw'>R</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>H</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>p</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>,
-  <span class='kw'>h</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>d</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>keep.high.cov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>high.cov.thres</span> <span class='kw'>=</span> <span class='fl'>3</span>,
-  <span class='kw'>max.locus.stacks</span> <span class='kw'>=</span> <span class='fl'>3</span>,
-  <span class='kw'>k.len</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>max.gaps</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>min.aln.len</span> <span class='kw'>=</span> <span class='fl'>0.8</span>,
-  <span class='kw'>disable.gapped</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>model.type</span> <span class='kw'>=</span> <span class='st'>"snp"</span>,
-  <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>0.05</span>,
-  <span class='kw'>bound.low</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>bound.high</span> <span class='kw'>=</span> <span class='fl'>0.2</span>,
-  <span class='kw'>bc.err.freq</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
-)</pre>
+    <pre class="usage"><span class='fu'>run_ustacks_one_sample</span>(<span class='kw'>mismatch.testing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sample.list</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>project.info</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>f</span> <span class='kw'>=</span> <span class='st'>"04_process_radtags"</span>,
+  <span class='kw'>o</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>, <span class='kw'>m</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>M</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>N</span> <span class='kw'>=</span> <span class='no'>M</span> + <span class='fl'>2</span>,
+  <span class='kw'>t</span> <span class='kw'>=</span> <span class='st'>"guess"</span>, <span class='kw'>R</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>H</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>p</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() -
+  <span class='fl'>1</span>, <span class='kw'>h</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>d</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>keep.high.cov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>high.cov.thres</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>max.locus.stacks</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>k.len</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>max.gaps</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>min.aln.len</span> <span class='kw'>=</span> <span class='fl'>0.8</span>, <span class='kw'>disable.gapped</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>model.type</span> <span class='kw'>=</span> <span class='st'>"snp"</span>, <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>bound.low</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>bound.high</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>bc.err.freq</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
 
 
 

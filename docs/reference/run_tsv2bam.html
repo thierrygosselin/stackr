@@ -130,14 +130,10 @@ into being organized by locus. This allows downstream improvements
 (e.g. Bayesian SNP calling).</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_tsv2bam</span>(
-  <span class='kw'>P</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
-  <span class='kw'>M</span> <span class='kw'>=</span> <span class='st'>"02_project_info/population.map.tsv2bam.tsv"</span>,
-  <span class='kw'>R</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+    <pre class="usage"><span class='fu'>run_tsv2bam</span>(<span class='kw'>P</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
+  <span class='kw'>M</span> <span class='kw'>=</span> <span class='st'>"02_project_info/population.map.tsv2bam.tsv"</span>, <span class='kw'>R</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>,
-  <span class='kw'>cmd.path</span> <span class='kw'>=</span> <span class='st'>"/usr/local/bin/samtools"</span>,
-  <span class='kw'>h</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
-)</pre>
+  <span class='kw'>cmd.path</span> <span class='kw'>=</span> <span class='st'>"/usr/local/bin/samtools"</span>, <span class='kw'>h</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">

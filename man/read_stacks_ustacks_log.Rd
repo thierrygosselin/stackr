@@ -4,11 +4,8 @@
 \alias{read_stacks_ustacks_log}
 \title{Read stacks ustacks log}
 \usage{
-read_stacks_ustacks_log(
-  log.file = NULL,
-  ustacks.folder = NULL,
-  parallel.core = parallel::detectCores() - 1
-)
+read_stacks_ustacks_log(log.file = NULL, ustacks.folder = NULL,
+  parallel.core = parallel::detectCores() - 1)
 }
 \description{
 Read stacks ustacks log

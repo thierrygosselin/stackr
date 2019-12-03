@@ -120,20 +120,11 @@ module inside R! The function runs a summary of the log file automatically
 at the end (<code><a href='summary_cstacks.html'>summary_cstacks</a></code>).</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_cstacks</span>(
-  <span class='kw'>P</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
-  <span class='kw'>o</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
+    <pre class="usage"><span class='fu'>run_cstacks</span>(<span class='kw'>P</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>, <span class='kw'>o</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
   <span class='kw'>M</span> <span class='kw'>=</span> <span class='st'>"02_project_info/population.map.catalog.tsv"</span>,
-  <span class='kw'>catalog.path</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>,
-  <span class='kw'>max.gaps</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>min.aln.len</span> <span class='kw'>=</span> <span class='fl'>0.8</span>,
-  <span class='kw'>disable.gapped</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>k.len</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>report.mmatches</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>split.catalog</span> <span class='kw'>=</span> <span class='fl'>20</span>
-)</pre>
+  <span class='kw'>catalog.path</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>()
+  - <span class='fl'>1</span>, <span class='kw'>max.gaps</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>min.aln.len</span> <span class='kw'>=</span> <span class='fl'>0.8</span>, <span class='kw'>disable.gapped</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>k.len</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>report.mmatches</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>split.catalog</span> <span class='kw'>=</span> <span class='fl'>20</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
