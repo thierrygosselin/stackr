@@ -4,8 +4,13 @@
 \alias{read_counter}
 \title{Counts the number of reads in samples}
 \usage{
-read_counter(path.samples, strata = NULL, plot.reads = TRUE,
-  write = TRUE, parallel.core = parallel::detectCores() - 1)
+read_counter(
+  path.samples,
+  strata = NULL,
+  plot.reads = TRUE,
+  write = TRUE,
+  parallel.core = parallel::detectCores() - 1
+)
 }
 \arguments{
 \item{path.samples}{(character, path) Path of folder containing the
@@ -15,7 +20,7 @@ samples to count reads}
 The strata file is a tab delimited file with 2 columns headers:
 \code{INDIVIDUALS} and \code{STRATA}.
 The \code{STRATA} column can be any hierarchical grouping.
-To create a strata file see \code{\link[radiator]{individuals2strata}}.
+To create a strata file see \href{https://thierrygosselin.github.io/radiator/reference/individuals2strata.html}{individuals2strata}.
 If you have already run
 \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
 the strata file is similar to a stacks \emph{population map file}, make sure you
@@ -48,7 +53,7 @@ and you want to check the distribution in the number of reads between samples.
 \examples{
 \dontrun{
 library(stackr)
-# To run this function, bioconductor \\code{ShortRead} package is necessary:
+# To run this function, bioconductor \code{ShortRead} package is necessary:
 source("http://bioconductor.org/biocLite.R")
 biocLite("ShortRead")
 

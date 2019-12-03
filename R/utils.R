@@ -51,24 +51,24 @@ NULL
 #' @importFrom ShortRead readFastq
 
 
-.onAttach <- function(libname, pkgname) {
-  stackr.version <- utils::packageDescription("stackr", fields = "Version")
-
-  startup.message <- stringi::stri_join("
-******************************* IMPORTANT NOTICE *******************************\n",
-"stackr v.", stackr.version, "\n",
-"stackr was modified heavily and now focuses exclusively on running stacks
-software in R and reading particular files it produces.\n
-For filters and other functions that were in stackr,
-please see my new package called radiator.
-https://github.com/thierrygosselin/radiator
-
-
-Reproducibility note: all zenodo DOI and stackr versions were left intact.
-********************************************************************************",
-sep = "")
-packageStartupMessage(startup.message)
-}
+# .onAttach <- function(libname, pkgname) {
+#   stackr.version <- utils::packageDescription("stackr", fields = "Version")
+#
+#   startup.message <- stringi::stri_join("
+# ******************************* IMPORTANT NOTICE *******************************\n",
+# "stackr v.", stackr.version, "\n",
+# "stackr was modified heavily and now focuses exclusively on running stacks
+# software in R and reading particular files it produces.\n
+# For filters and other functions that were in stackr,
+# please see my new package called radiator.
+# https://github.com/thierrygosselin/radiator
+#
+#
+# Reproducibility note: all zenodo DOI and stackr versions were left intact.
+# ********************************************************************************",
+# sep = "")
+# packageStartupMessage(startup.message)
+# }
 
 
 #' @title split_vec_row

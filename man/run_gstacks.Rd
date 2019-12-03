@@ -4,17 +4,33 @@
 \alias{run_gstacks}
 \title{Run STACKS new module called gstacks}
 \usage{
-run_gstacks(denovo = TRUE, P = "06_ustacks_2_gstacks",
-  M = "02_project_info/population.map.tsv2bam.tsv", I = NULL,
-  B = NULL, O = NULL, parallel.core = parallel::detectCores() - 1,
-  model = "marukilow", var.alpha = 0.01, gt.alpha = 0.05,
-  rm.pcr.duplicates = FALSE, rm.unpaired.reads = FALSE,
-  ignore.pe.reads = TRUE, unpaired = TRUE, kmer.length = 31,
-  max.debruijn.reads = 1000, min.kmer.cov = 2,
-  write.alignments = FALSE, min.mapq = 10, max.clipped = 0.2,
-  max.insert.len = 1000, details = FALSE,
+run_gstacks(
+  denovo = TRUE,
+  P = "06_ustacks_2_gstacks",
+  M = "02_project_info/population.map.tsv2bam.tsv",
+  I = NULL,
+  B = NULL,
+  O = NULL,
+  parallel.core = parallel::detectCores() - 1,
+  model = "marukilow",
+  var.alpha = 0.01,
+  gt.alpha = 0.05,
+  rm.pcr.duplicates = FALSE,
+  rm.unpaired.reads = FALSE,
+  ignore.pe.reads = TRUE,
+  unpaired = TRUE,
+  kmer.length = 31,
+  max.debruijn.reads = 1000,
+  min.kmer.cov = 2,
+  write.alignments = FALSE,
+  min.mapq = 10,
+  max.clipped = 0.2,
+  max.insert.len = 1000,
+  details = FALSE,
   phasing.cooccurrences.thr.range = c(1, 2),
-  phasing.dont.prune.hets = FALSE, h = FALSE)
+  phasing.dont.prune.hets = FALSE,
+  h = FALSE
+)
 }
 \arguments{
 \item{denovo}{(logical) de novo vs reference-based mode.

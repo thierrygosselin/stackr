@@ -34,10 +34,10 @@ The function is parallelize and can also move the renamed files in a different f
 \examples{
 \dontrun{
 # change.fq = "fq.new.naming.tsv". This files contains a data frame
-# with 2 columns separated by a TAB: OLD_FQ\\tNEW_FQ
+# with 2 columns separated by a TAB: OLD_FQ\tNEW_FQ
 
 # The first line after column headers could be:
-# 04_process_radtags/124134249.fastq.gz\\t04_process_radtags/EST-NEL-ADU-2013-0001.fastq.gz
+# 04_process_radtags/124134249.fastq.gz\t04_process_radtags/EST-NEL-ADU-2013-0001.fastq.gz
 # and so on.
 # To run:
 rename_fq(change.fq = "fq.new.naming.tsv", parallel.core = 12)
@@ -45,7 +45,7 @@ rename_fq(change.fq = "fq.new.naming.tsv", parallel.core = 12)
 
 # The function can also rename and move files at the same time.
 # The first line after column headers could be:
-# Downloads/124134249.fastq.gz\\t04_process_radtags/EST-NEL-ADU-2013-0001.fastq.gz
+# Downloads/124134249.fastq.gz\t04_process_radtags/EST-NEL-ADU-2013-0001.fastq.gz
 # The second column points to a different and existing folder.
 # To run, same as above:
 rename_fq(change.fq = "fq.new.naming.tsv", parallel.core = 12)

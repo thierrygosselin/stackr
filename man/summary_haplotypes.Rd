@@ -4,10 +4,18 @@
 \alias{summary_haplotypes}
 \title{Haplotypes file summary}
 \usage{
-summary_haplotypes(data, strata = NULL, read.length,
-  whitelist.markers = NULL, blacklist.id = NULL,
-  keep.consensus = TRUE, pop.levels = NULL, pop.labels = NULL,
-  artifact.only = TRUE, parallel.core = parallel::detectCores() - 1)
+summary_haplotypes(
+  data,
+  strata = NULL,
+  read.length,
+  whitelist.markers = NULL,
+  blacklist.id = NULL,
+  keep.consensus = TRUE,
+  pop.levels = NULL,
+  pop.labels = NULL,
+  artifact.only = TRUE,
+  parallel.core = parallel::detectCores() - 1
+)
 }
 \arguments{
 \item{data}{The 'batch_x.haplotypes.tsv' created by STACKS.}
@@ -15,7 +23,7 @@ summary_haplotypes(data, strata = NULL, read.length,
 \item{strata}{A tab delimited file with 2 columns with header:
 \code{INDIVIDUALS} and \code{STRATA}.
 The \code{STRATA} column can be any hierarchical grouping.
-To create a strata file see \code{\link[radiator]{individuals2strata}}.
+To create a strata file see \href{https://thierrygosselin.github.io/radiator/reference/individuals2strata.html}{individuals2strata}.
 If you have already run
 \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
 the strata file is similar to a stacks `population map file`, make sure you

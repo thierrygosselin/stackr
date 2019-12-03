@@ -4,8 +4,10 @@
 \alias{extract_catalog_sql_ids}
 \title{Extract sample SQL IDs from STACKS catalog file}
 \usage{
-extract_catalog_sql_ids(x = "06_ustacks_2_gstacks/catalog.tags.tsv.gz",
-  parallel.core = parallel::detectCores() - 1)
+extract_catalog_sql_ids(
+  x = "06_ustacks_2_gstacks/catalog.tags.tsv.gz",
+  parallel.core = parallel::detectCores() - 1
+)
 }
 \arguments{
 \item{x}{(character, path). The path to the \code{catalog.tags.tsv.gz} file.

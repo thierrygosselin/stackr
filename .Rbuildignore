@@ -7,3 +7,10 @@
 ^README\.Rmd$
 ^README-.*\.png$
 ^vignettes/*\.Rmd
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github
+^LICENSE\.md$
+^cran-comments\.md$
+^CRAN-RELEASE$

@@ -3,9 +3,9 @@ citHeader("To cite stackr in publications use:")
 citEntry(
 entry="Manual",
 title = "stackr: an R package to run stacks software pipeline",
-year = "2017",
+year = "2019",
 author = personList(as.person("Thierry Gosselin")),
 url = "https://github.com/thierrygosselin/stackr",
 doi = "http://dx.doi.org/10.5281/zenodo.154432",
-textVersion = paste("Thierry Gosselin (2017). stackr: an R package to run stacks software pipeline. R package version 2.0.1 https://github.com/thierrygosselin/stackr. doi : 10.5281/zenodo.154432")
+textVersion = paste("Thierry Gosselin (2019). stackr: an R package to run stacks software pipeline. R package version 2.1.0 https://github.com/thierrygosselin/stackr. doi : 10.5281/zenodo.154432")
 )

@@ -4,11 +4,20 @@
 \alias{run_cstacks}
 \title{Run STACKS cstacks module}
 \usage{
-run_cstacks(P = "06_ustacks_2_gstacks", o = "06_ustacks_2_gstacks",
+run_cstacks(
+  P = "06_ustacks_2_gstacks",
+  o = "06_ustacks_2_gstacks",
   M = "02_project_info/population.map.catalog.tsv",
-  catalog.path = NULL, n = 1, parallel.core = parallel::detectCores()
-  - 1, max.gaps = 2, min.aln.len = 0.8, disable.gapped = FALSE,
-  k.len = NULL, report.mmatches = FALSE, split.catalog = 20)
+  catalog.path = NULL,
+  n = 1,
+  parallel.core = parallel::detectCores() - 1,
+  max.gaps = 2,
+  min.aln.len = 0.8,
+  disable.gapped = FALSE,
+  k.len = NULL,
+  report.mmatches = FALSE,
+  split.catalog = 20
+)
 }
 \arguments{
 \item{P}{path to the directory containing STACKS files.
@@ -41,9 +50,7 @@ P folder along the samples files and detected automatically.
 If a catalog is detected in the input folder,
 the samples in the \code{sample.list} argument
 will be added in this catalog. The catalog is made of 3 files:
-\code{batch_1.catalog.alleles.tsv.gz,
-batch_1.catalog.snps.tsv.gz,
-batch_1.catalog.tags.tsv.gz}}
+\code{catalog.alleles.tsv.gz, catalog.snps.tsv.gz, catalog.tags.tsv.gz}}
 
 \item{n}{number of mismatches allowed between sample loci when build the catalog.
 Default: \code{n = 1}}

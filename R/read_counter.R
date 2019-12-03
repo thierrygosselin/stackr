@@ -13,7 +13,7 @@
 #' The strata file is a tab delimited file with 2 columns headers:
 #' \code{INDIVIDUALS} and \code{STRATA}.
 #' The \code{STRATA} column can be any hierarchical grouping.
-#' To create a strata file see \code{\link[radiator]{individuals2strata}}.
+#' To create a strata file see \href{https://thierrygosselin.github.io/radiator/reference/individuals2strata.html}{individuals2strata}.
 #' If you have already run
 #' \href{http://catchenlab.life.illinois.edu/stacks/}{stacks} on your data,
 #' the strata file is similar to a stacks \emph{population map file}, make sure you
