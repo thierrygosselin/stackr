@@ -195,8 +195,6 @@ run_ustacks <- function(
     stop("Mismatch testing requires a range of values for M argument. e.g. M = 1:5 to test 1, 2, 3, 4, 5 mismatches")
   }
 
-  parallel.core <- p
-
   # Samples ---------------------------
   if (is.null(sample.list)) {
     sample.list <- list_sample_file(f = f)
