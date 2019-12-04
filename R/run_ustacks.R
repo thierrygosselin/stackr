@@ -275,7 +275,7 @@ run_ustacks <- function(
       t = t,
       R = R,
       H = H,
-      p = p,
+      parallel.core = parallel.core,
       h = h,
       d = d,
       keep.high.cov = keep.high.cov,
