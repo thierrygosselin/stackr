@@ -43,6 +43,8 @@ that speed up my RADseq workflow:
 * Some important steps are **parallelized**.
 * You have more than 1 sequencing chip/lane ? This workflow will save you lots of time.
 * **Technical replicates**, inside or across chip/lanes are managed uniquely.
+* Noise reduction.
+* Data normalization.
 * **nightmares because of a crashed computer/cluster/server?** stackr manage 
 stacks unique integer (previously called SQL IDs) throughout the pipeline. It's 
 integrated from the start, making it a breeze to just re-start your pipeline after a crash!

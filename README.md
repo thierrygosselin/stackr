@@ -12,7 +12,7 @@ state and is being actively
 developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
 [![packageversion](https://img.shields.io/badge/Package%20version-2.1.0-orange.svg)](commits/master)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2019--12--03-brightgreen.svg)](/commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2019--12--04-brightgreen.svg)](/commits/master)
 <!-- badges: end -->
 
 # stackr: an R package to run stacks software pipeline
@@ -30,6 +30,8 @@ there that speed up my RADseq workflow:
     you lots of time.
   - **Technical replicates**, inside or across chip/lanes are managed
     uniquely.
+  - Noise reduction.
+  - Data normalization.
   - **nightmares because of a crashed computer/cluster/server?** stackr
     manage stacks unique integer (previously called SQL IDs) throughout
     the pipeline. It’s integrated from the start, making it a breeze to

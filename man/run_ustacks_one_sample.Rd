@@ -16,7 +16,7 @@ run_ustacks_one_sample(
   t = "guess",
   R = FALSE,
   H = TRUE,
-  p = parallel::detectCores() - 1,
+  parallel.core = parallel::detectCores() - 1,
   h = FALSE,
   d = TRUE,
   keep.high.cov = FALSE,

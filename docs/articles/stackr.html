@@ -70,7 +70,7 @@
       <h1>Using stackr to run stacks pipeline inside R/RStudio</h1>
                         <h4 class="author">Thierry Gosselin</h4>
             
-            <h4 class="date">2019-12-03</h4>
+            <h4 class="date">2019-12-04</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/thierrygosselin/stackr/blob/master/vignettes/stackr.Rmd"><code>vignettes/stackr.Rmd</code></a></small>
       <div class="hidden name"><code>stackr.Rmd</code></div>
@@ -100,6 +100,8 @@
 <li>You have more than 1 sequencing chip/lane ? This workflow will save you lots of time.</li>
 <li>
 <strong>Technical replicates</strong>, inside or across chip/lanes are managed uniquely.</li>
+<li>Noise reduction.</li>
+<li>Data normalization.</li>
 <li>
 <strong>nightmares because of a crashed computer/cluster/server?</strong> stackr manage stacks unique integer (previously called SQL IDs) throughout the pipeline. It’s integrated from the start, making it a breeze to just re-start your pipeline after a crash!</li>
 <li>
@@ -355,6 +357,208 @@
 <a class="sourceLine" id="cb7-14" data-line-number="14"><span class="co"># look for the remaining default arguments...</span></a></code></pre></div>
 </div>
 </div>
+<div id="noise" class="section level2">
+<h2 class="hasAnchor">
+<a href="#noise" class="anchor"></a>Noise reduction</h2>
+<p>Reducing the noise in an individual FQ file could really help speeding up your analysis. I use it when I have more than 200 samples. Nothing new here:</p>
+<ul>
+<li>Daniel Ilut explains it in his pipeline (Ilut et al. 2014) and my function here his basically the same as his but in R…</li>
+<li>Jon Puritz’s <a href="http://www.ddocent.com/UserGuide/#de-novo-assembly">dDocent data reduction step</a> as a similar example.</li>
+<li>Praveen’s pipeline <a href="https://github.com/beiko-lab/RADProc">RADProc</a> (Ravindran et al. 2019) use something similar.</li>
+<li>Metagenomic analysis pipeline all have some step of denoising the data.</li>
+</ul>
+<div id="visualization" class="section level3">
+<h3 class="hasAnchor">
+<a href="#visualization" class="anchor"></a>Visualization</h3>
+<p>I prefer Daniel Ilut way of visualizing the information.</p>
+<p>The function <code><a href="../reference/read_depth_plot.html">stackr::read_depth_plot</a></code> requires 1 FQ file (after stacks <em>process_radtags</em> or <code><a href="../reference/run_process_radtags.html">stackr::run_process_radtags</a></code>) and <strong>is very fast to run</strong>. It will highlight read coverage groups within a sample.</p>
+<p><img src="read_depth_coverage_groups.png"></p>
+<p><strong>4 read coverage groups are shown:</strong></p>
+<ul>
+<li>
+<strong>distinct reads with low coverage (in red): </strong> these reads are likely sequencing errors or uninformative polymorphisms (shared only by a few samples).</li>
+<li>
+<p><strong>disting reads for a target coverage (in green): </strong></p>
+<ul>
+<li>Usually represent around 80% of the reads in the FQ file.</li>
+<li>It’s a <em>safe coverage range</em> to start exploring your data (open for discussion).</li>
+<li>Lower threshold (default = 7): you can’t escape it, it’s your tolerance to call heterozygote <strong>a true heterozygote</strong>. You want a minimum coverage for both the reference and the alternative allele. Yes, you can use population information to lower this threshold or use some fancy <em>bayesian</em> algorithm.</li>
+<li>Higher threshold: is a lot more open for discussion, here it’s the lower limit of another group (the orange, see below for description). Minus 1 bp.</li>
+</ul>
+</li>
+<li>
+<strong>distinct reads with high coverage &gt; 1 read depth (in yellow): </strong> those are legitimate locus with high coverage.</li>
+<li><p><strong>distinct unique reads with high coverage (in orange): </strong> those loci are usually paralogs, transposable elements, etc.</p></li>
+</ul>
+<p>To run it on your data:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">read.plot &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/read_depth_plot.html">read_depth_plot</a></span>(</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">  <span class="dt">fq.file =</span> <span class="st">"my-fq.fq.gz"</span>,</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">  <span class="dt">min.coverage.fig =</span> 7L, <span class="co">#default</span></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">  <span class="dt">parallel.core =</span> parallel<span class="op">::</span><span class="kw"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span>() <span class="op">-</span><span class="st"> </span><span class="dv">1</span> <span class="co">#default</span></a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">)</a></code></pre></div>
+<p>The function will generate the plot shown above and write the figure in the working directory, using the sample name: <code>my-fq_hap_read_depth.png</code>).</p>
+</div>
+<div id="filtering" class="section level3">
+<h3 class="hasAnchor">
+<a href="#filtering" class="anchor"></a>Filtering ?</h3>
+<p>Removing or not the noise in FQ files, is usually a hot topic… Personally, for small project, I don’t think the noise is a problem for stacks, but it’s one bottleneck for larger project, with more than a hundred samples. When you generate <em>de novo</em> assembly for so many samples and generate a catalog with all the noise, cleaning the data can represent weeks of computation time that you shave off your project… really.</p>
+<p>You don’t have to believe what I just wrote, test it yourself:</p>
+<p><strong>1. Clean the FQ file</strong></p>
+<p>Use the sample you just used in the read coverage groups, above, clean it with <code><a href="../reference/clean_fq.html">stackr::clean_fq</a></code>. It’s very fast to run:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">clean.fq.name &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/clean_fq.html">clean_fq</a></span>(</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">  <span class="dt">fq.file =</span> <span class="st">"my-fq.fq.gz"</span>, </a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">  <span class="dt">min.coverage.threshold =</span> <span class="dv">5</span>, </a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">  <span class="dt">remove.unique.reads =</span> <span class="ot">TRUE</span>, <span class="co">#default</span></a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">  <span class="dt">write.blacklist.fasta =</span> <span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">  <span class="dt">write.blacklist =</span> <span class="ot">FALSE</span>, <span class="co">#default</span></a>
+<a class="sourceLine" id="cb9-7" data-line-number="7">  <span class="dt">parallel.core =</span> parallel<span class="op">::</span><span class="kw"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span>() <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="co">#default</span></a>
+<a class="sourceLine" id="cb9-8" data-line-number="8">  <span class="dt">verbose =</span> <span class="ot">TRUE</span> <span class="co">#default</span></a>
+<a class="sourceLine" id="cb9-9" data-line-number="9">  )</a></code></pre></div>
+<p>This will generate:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">my<span class="op">-</span>fq_cleaned.fq.gz <span class="co"># the cleaned fq file</span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">my<span class="op">-</span>fq_blacklisted_reads.fasta.gz <span class="co"># a fasta file with blacklisted sequences...</span></a></code></pre></div>
+<p><strong>2. <em>de novo</em> assembly</strong></p>
+<p>Run stacks <em>ustacks</em> or even better, stay in stackr and do the next step below: <em>the mismatch threshold series</em> (using <code><a href="../reference/run_ustacks.html">stackr::run_ustacks</a></code>). For this, use the raw and clean FQ files and compare the output…</p>
+<p>In all my projects, having less reads (the cleaned FQ file) means:</p>
+<ul>
+<li>faster <em>de novo</em> assemblies (I’ve seen up to 3 times faster).</li>
+<li>less loci generated, but of better qualities:
+<ul>
+<li>higher coverage in all the <em>de novo</em> assembly steps of stacks</li>
+<li>less repetitive stacks blacklisted</li>
+<li>lower number of locus with assembly artifacts (lors of SNPs/locus, etc)</li>
+<li>very similar heterozygosity and homozygosity proportions</li>
+</ul>
+</li>
+<li>the mismathches plots are almost always identical: showing me that I can use the same Mismatch threshold (the <code>-M</code> in stacks <em>ustacks</em>) for the cleaned or the raw FQ files.</li>
+<li>faster catalog generation time, the stacks <em>cstacks</em> or <code><a href="../reference/run_cstacks.html">stackr::run_cstacks</a></code> step.</li>
+<li>NO DIFFERENCES in downstream analysis (population structure, outlier detection, Fst, assignment, closekin).</li>
+</ul>
+<p><strong>Why keep the blacklisted sequences (the fasta file) ?</strong></p>
+<p>You could use <code><a href="https://rdrr.io/pkg/Biostrings/man/matchPattern.html">Biostrings::countPattern</a></code> function to look for TE in those sequences;)</p>
+</div>
+</div>
+<div id="normalization" class="section level2">
+<h2 class="hasAnchor">
+<a href="#normalization" class="anchor"></a>Data normalization</h2>
+<p>Another hot topic, up for debate…</p>
+<p>After the stacks step called <em>process_radtags</em>, in stackr <code>run_process_radtags</code>, looking at the distribution of the number of reads per sample, you might be getting one of these distribution:</p>
+<p><img src="read_distribution.png"></p>
+<p>In an ideal world, <strong>you want the uniform distribution</strong>. That translate in good field and wet-lab techniques:</p>
+<ul>
+<li>tissue sampling and preservation</li>
+<li>extraction (robots ?)</li>
+<li>pipetting</li>
+<li>DNA quantification</li>
+<li>all the other required techniques</li>
+</ul>
+<p>And this resulted in similar sequenced information between your samples. You’re about to compare apples with apples. :)</p>
+<p>If you have a skewed (left or right) or a normal distribution, you’ll be comparing apples with … citrus. The samples with lower reads will have less loci and usually less heterozygous loci. Similarly, the samples with higher number of reads will have more loci, more heterozygous loci.</p>
+<p>What’s the likely cause for these ?</p>
+<ul>
+<li>student with no prior wet-lab experience doing the DNA extraction or downstream step (e.g. library prep)</li>
+<li>data preservation issues: historical DNA, fragmented DNA, etc.</li>
+<li>skipping the DNA quantification or library QC steps</li>
+</ul>
+<p>Ok, but what’s the problem with that ?</p>
+<p><strong>Potentially these problems:</strong></p>
+<ul>
+<li>ascertainment bias that could drive populations polymorphism discovery bias</li>
+<li>missing data patterns</li>
+<li>individual heterozygosity problems or patterns</li>
+<li>downstream analysis impacted by the differences between your samples: artifactual or biological ?</li>
+</ul>
+<p><strong>Solutions ?</strong></p>
+<div id="wet-lab-normalization" class="section level3">
+<h3 class="hasAnchor">
+<a href="#wet-lab-normalization" class="anchor"></a>1. Wet-lab normalization</h3>
+<p>Here are the basic steps:</p>
+<ul>
+<li>sequence the samples</li>
+<li>look at the stats we’ve discussed</li>
+<li>go back in the wet-lab to prepare a new plate</li>
+<li>sequence</li>
+<li>pool or not the lanes/chips</li>
+<li>look at the sequencing statistics</li>
+<li>repeat the step above or continue with the pipeline</li>
+</ul>
+<p>I’m not a fan:</p>
+<ul>
+<li>Way to many wet-lab steps.</li>
+<li>The wet-lab is <strong>THE MOST</strong> important part.</li>
+<li>Everything gets exacerbated with RADseq.</li>
+<li>I’m not in favor of pooling lanes or chips (more on this some day!).</li>
+<li>It’s really not like working with microsatelites.</li>
+</ul>
+</div>
+<div id="bio-informatic-normalization" class="section level3">
+<h3 class="hasAnchor">
+<a href="#bio-informatic-normalization" class="anchor"></a>2. Bio-informatic normalization</h3>
+<p>When doing it right from the start is impossible, I prefer to do the normalization after de demultiplexing step… after <code><a href="../reference/run_process_radtags.html">stackr::run_process_radtags</a></code>. The prerequisite is to have enough sequencing material (reads) for all my samples.</p>
+<p>The tool? <a href="http://thierrygosselin.github.io/stackr/reference/normalize_reads.html">stackr::normalize_reads</a> function.</p>
+<p>Rarefaction of fasq files by sub-sampling the reads before <em>de novo</em> assembly or alignment is not new:</p>
+<ul>
+<li>
+<strong>Community and biodiversity ecologists</strong> are well aware of species accumulation curves obtained with rarefaction (Sanders, 1968). The rarefaction method guarantees the samples have the same weight in the analysis.</li>
+<li>
+<strong>Metagenomics community</strong> before analyzing the alpha diversity will deal with differing sample depth for a given diversity statistic by using rarefaction. It means taking a random subset of a given size of the original sample (see <a href="https://mothur.org">mothur</a>, Schloss et al. 2009).</li>
+<li>
+<strong>Molecular ecologists</strong> for some reasons, RADseq enthusiasts seems unaware of this concept, but see (Hale et al. 2009; Kalinowski, 2004 and Puncher et al. 2018).</li>
+<li>
+<strong>The Keywords:</strong> rarefaction, sub-sampling, normalization, standardization, sample size correction.</li>
+</ul>
+<p><strong>The steps ?</strong></p>
+<ul>
+<li>the goal is to reduce variance in number of reads between samples</li>
+<li>rarefaction/normalization is conducted aon the fq file after stacks <em>process_radtags</em> and after removing the noise.</li>
+<li>normalized replicates are generated by the function by randomly selecting the reads (without replacement) for each samples</li>
+<li>you choose the number of replicates (default: 3) and you manage those replicates like other replicates you might have (you want replicates…).</li>
+</ul>
+<p>Read the <a href="http://thierrygosselin.github.io/stackr/reference/normalize_reads.html#examples">function documentation and look at the example</a></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="co"># To run this function, bioconductor's ShortRead package is necessary:</span></a>
+<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span>(<span class="st">"http://bioconductor.org/biocLite.R"</span>)</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3"><span class="kw">biocLite</span>(<span class="st">"ShortRead"</span>)</a>
+<a class="sourceLine" id="cb11-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb11-5" data-line-number="5"><span class="co"># Using OpenMP threads</span></a>
+<a class="sourceLine" id="cb11-6" data-line-number="6">nthreads &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a></span>(ShortRead<span class="op">:::</span>.set_omp_threads, 1L)</a>
+<a class="sourceLine" id="cb11-7" data-line-number="7"><span class="kw"><a href="https://rdrr.io/r/base/on.exit.html">on.exit</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a></span>(ShortRead<span class="op">:::</span>.set_omp_threads, nthreads))</a>
+<a class="sourceLine" id="cb11-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb11-9" data-line-number="9"><span class="co"># using defaults:</span></a>
+<a class="sourceLine" id="cb11-10" data-line-number="10">stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/normalize_reads.html">normalize_reads</a></span>(<span class="dt">path.samples =</span> <span class="st">"~/corals"</span>)</a>
+<a class="sourceLine" id="cb11-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb11-12" data-line-number="12"><span class="co"># customizing the function:</span></a>
+<a class="sourceLine" id="cb11-13" data-line-number="13">stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/normalize_reads.html">normalize_reads</a></span>(</a>
+<a class="sourceLine" id="cb11-14" data-line-number="14">   <span class="dt">project.info =</span> <span class="st">"project.info.corals.tsv"</span>,</a>
+<a class="sourceLine" id="cb11-15" data-line-number="15">   <span class="dt">path.samples =</span> <span class="st">"04_process_radtags"</span>,</a>
+<a class="sourceLine" id="cb11-16" data-line-number="16">   <span class="dt">sample.reads =</span> <span class="dv">2000000</span>,</a>
+<a class="sourceLine" id="cb11-17" data-line-number="17">   <span class="dt">number.replicates =</span> <span class="dv">3</span>,</a>
+<a class="sourceLine" id="cb11-18" data-line-number="18">   <span class="dt">random.seed =</span> <span class="dv">3</span>,</a>
+<a class="sourceLine" id="cb11-19" data-line-number="19">   <span class="dt">parallel.core =</span> <span class="dv">12</span></a>
+<a class="sourceLine" id="cb11-20" data-line-number="20">   )</a></code></pre></div>
+<p><strong>My observations using rarefaction:</strong></p>
+<ul>
+<li>the replicates have similar mismathches plots: showing me that I can use the same Mismatch threshold (the <code>-M</code> in stacks <em>ustacks</em>) for the rarefied samples.</li>
+<li>better <em>de novo</em> assembly statistics</li>
+<li>when the individual or population heterozygosity <strong>is a real biological signal</strong>, rarefaction <strong>doesn’t impact the downstream analysis</strong>.</li>
+<li>when the heterozygosity was driven by the sequencing bias, bioinformatic rarefaction took care of the problem.</li>
+</ul>
+<div id="faq-1" class="section level4">
+<h4 class="hasAnchor">
+<a href="#faq-1" class="anchor"></a>FAQ</h4>
+<p><strong>It doesn’t bother you to throw away all the valuable information that samples with high read numbers have ?</strong></p>
+<p>Absolutely not!</p>
+<ul>
+<li>
+<strong>most of the information is already lost</strong>: that is if you used stacks to generate a catalog and then filtered the data to keep markers in x individuals and/or in all sampling sites/populations. At this step it’s either you loose markers or get more missing data…</li>
+<li>
+<strong>It’s not a loss of information if the information cannot be confirmed with other samples:</strong> it’s a statistic problem and ecologists are well aware of this.</li>
+<li>
+<strong>The loss of reads is intrinsic to RADseq: </strong> Don’t believe me, inspect stacks, stackr or any RADseq pipeline log files… Rarefaction is just another step, molecular ecologists are not used to it.</li>
+<li>check the total read depth of 1 sample after all the bioinformatic steps. Compare the numbers with the actual read number from the start of the pipeline. If you have &gt; 30% you are lucky!</li>
+</ul>
+</div>
+</div>
+</div>
 <div id="run_ustacks" class="section level2">
 <h2 class="hasAnchor">
 <a href="#run_ustacks" class="anchor"></a>run_ustacks</h2>
@@ -373,34 +577,34 @@
 <a href="#mismatches" class="anchor"></a>Mismatches</h3>
 <p>When using paired-end data, use forward reads for the analysis.</p>
 <p>Select one sample to do the test. For this, you could use a sample with average file size or use the stats produced directly by the output of <code>run_process_radtags</code> and available inside the updated project info file saved by the function.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">info.stats &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_tsv</a></span>(<span class="dt">file =</span> <span class="st">"02_project_info/project.info.20191121@1606.tsv"</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(info.stats, REPLICATES <span class="op">==</span><span class="st"> "1"</span>)</a>
-<a class="sourceLine" id="cb8-3" data-line-number="3">m &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/mean.html">mean</a></span>(info.stats<span class="op">$</span>RETAINED)</a>
-<a class="sourceLine" id="cb8-4" data-line-number="4">s &lt;-<span class="st"> </span>stats<span class="op">::</span><span class="kw"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span>(info.stats<span class="op">$</span>RETAINED)</a>
-<a class="sourceLine" id="cb8-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb8-6" data-line-number="6">read.min &lt;-<span class="st"> </span>m <span class="op">-</span><span class="st"> </span>s</a>
-<a class="sourceLine" id="cb8-7" data-line-number="7">read.max &lt;-<span class="st"> </span>m <span class="op">+</span><span class="st"> </span>s</a>
-<a class="sourceLine" id="cb8-8" data-line-number="8"></a>
-<a class="sourceLine" id="cb8-9" data-line-number="9">sample.select &lt;-<span class="st"> </span>info.stats <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb8-10" data-line-number="10"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(RETAINED <span class="op">&gt;=</span><span class="st"> </span>read.min <span class="op">&amp;</span><span class="st"> </span>RETAINED <span class="op">&lt;=</span><span class="st"> </span>read.max) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb8-11" data-line-number="11"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/sample.html">sample_n</a></span>(<span class="dt">size =</span> <span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb8-12" data-line-number="12">sample.select<span class="op">$</span>FQ_FILES_F</a>
-<a class="sourceLine" id="cb8-13" data-line-number="13"><span class="co"># [1] "BET-LAM-60044-1682200-1.1.fq.gz"</span></a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">info.stats &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_tsv</a></span>(<span class="dt">file =</span> <span class="st">"02_project_info/project.info.20191121@1606.tsv"</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(info.stats, REPLICATES <span class="op">==</span><span class="st"> "1"</span>)</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">m &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/mean.html">mean</a></span>(info.stats<span class="op">$</span>RETAINED)</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4">s &lt;-<span class="st"> </span>stats<span class="op">::</span><span class="kw"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span>(info.stats<span class="op">$</span>RETAINED)</a>
+<a class="sourceLine" id="cb12-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb12-6" data-line-number="6">read.min &lt;-<span class="st"> </span>m <span class="op">-</span><span class="st"> </span>s</a>
+<a class="sourceLine" id="cb12-7" data-line-number="7">read.max &lt;-<span class="st"> </span>m <span class="op">+</span><span class="st"> </span>s</a>
+<a class="sourceLine" id="cb12-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb12-9" data-line-number="9">sample.select &lt;-<span class="st"> </span>info.stats <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb12-10" data-line-number="10"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(RETAINED <span class="op">&gt;=</span><span class="st"> </span>read.min <span class="op">&amp;</span><span class="st"> </span>RETAINED <span class="op">&lt;=</span><span class="st"> </span>read.max) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb12-11" data-line-number="11"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/sample.html">sample_n</a></span>(<span class="dt">size =</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb12-12" data-line-number="12">sample.select<span class="op">$</span>FQ_FILES_F</a>
+<a class="sourceLine" id="cb12-13" data-line-number="13"><span class="co"># [1] "BET-LAM-60044-1682200-1.1.fq.gz"</span></a></code></pre></div>
 <p>Make a copy the file inside the folder: <code>05_clustering_mismatches</code>:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/base/files.html">file.copy</a></span>(</a>
-<a class="sourceLine" id="cb9-2" data-line-number="2">  <span class="dt">from =</span> <span class="kw"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(<span class="st">"04_process_radtags"</span>, sample.select<span class="op">$</span>FQ_FILES_F), </a>
-<a class="sourceLine" id="cb9-3" data-line-number="3">  <span class="dt">to =</span> <span class="kw"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(<span class="st">"05_clustering_mismatches/"</span>, sample.select<span class="op">$</span>FQ_FILES_F)</a>
-<a class="sourceLine" id="cb9-4" data-line-number="4">)</a></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/base/files.html">file.copy</a></span>(</a>
+<a class="sourceLine" id="cb13-2" data-line-number="2">  <span class="dt">from =</span> <span class="kw"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(<span class="st">"04_process_radtags"</span>, sample.select<span class="op">$</span>FQ_FILES_F), </a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">  <span class="dt">to =</span> <span class="kw"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(<span class="st">"05_clustering_mismatches/"</span>, sample.select<span class="op">$</span>FQ_FILES_F)</a>
+<a class="sourceLine" id="cb13-4" data-line-number="4">)</a></code></pre></div>
 <p><strong>Run the mismatch clustering series:</strong></p>
 <ul>
 <li>with files around 2M reads</li>
 <li>testing 1 to 5 mismatches is very fast to run</li>
 </ul>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">mismatch &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_ustacks.html">run_ustacks</a></span>(</a>
-<a class="sourceLine" id="cb10-2" data-line-number="2">  <span class="dt">mismatch.testing =</span> <span class="ot">TRUE</span>,</a>
-<a class="sourceLine" id="cb10-3" data-line-number="3">  <span class="dt">f =</span> <span class="st">"05_clustering_mismatches"</span>,</a>
-<a class="sourceLine" id="cb10-4" data-line-number="4">  <span class="dt">M =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">5</span>,</a>
-<a class="sourceLine" id="cb10-5" data-line-number="5">  <span class="dt">model.type =</span> <span class="st">"bounded"</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">mismatch &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_ustacks.html">run_ustacks</a></span>(</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2">  <span class="dt">mismatch.testing =</span> <span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb14-3" data-line-number="3">  <span class="dt">f =</span> <span class="st">"05_clustering_mismatches"</span>,</a>
+<a class="sourceLine" id="cb14-4" data-line-number="4">  <span class="dt">M =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">5</span>,</a>
+<a class="sourceLine" id="cb14-5" data-line-number="5">  <span class="dt">model.type =</span> <span class="st">"bounded"</span>)</a></code></pre></div>
 <p>This will generate 5 folders inside <code>05_clustering_mismatches</code> that will have the mismatches number and associated ustacks output files in it.</p>
 <p>A figure similar to this one:</p>
 <p><img src="mismatches.plot.png"></p>
@@ -416,13 +620,13 @@
 <h3 class="hasAnchor">
 <a href="#de-novo-assembly" class="anchor"></a>de novo assembly</h3>
 <p>Now that you have decided the mismatch threshold, corresponding to the <code>M</code> argument inside <code><a href="../reference/run_ustacks.html">stackr::run_ustacks</a></code>, run the function:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">u &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_ustacks.html">run_ustacks</a></span>(</a>
-<a class="sourceLine" id="cb11-2" data-line-number="2">  <span class="dt">project.info =</span> <span class="st">"02_project_info/project.info.20191121@1606.tsv"</span>,</a>
-<a class="sourceLine" id="cb11-3" data-line-number="3">  <span class="dt">M =</span> <span class="dv">3</span>,</a>
-<a class="sourceLine" id="cb11-4" data-line-number="4">  <span class="dt">model.type =</span> <span class="st">"bounded"</span>,</a>
-<a class="sourceLine" id="cb11-5" data-line-number="5">  <span class="dt">parallel.core =</span> <span class="dv">12</span></a>
-<a class="sourceLine" id="cb11-6" data-line-number="6">)</a>
-<a class="sourceLine" id="cb11-7" data-line-number="7"><span class="co"># careful with the defaults...</span></a></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">u &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_ustacks.html">run_ustacks</a></span>(</a>
+<a class="sourceLine" id="cb15-2" data-line-number="2">  <span class="dt">project.info =</span> <span class="st">"02_project_info/project.info.20191121@1606.tsv"</span>,</a>
+<a class="sourceLine" id="cb15-3" data-line-number="3">  <span class="dt">M =</span> <span class="dv">3</span>,</a>
+<a class="sourceLine" id="cb15-4" data-line-number="4">  <span class="dt">model.type =</span> <span class="st">"bounded"</span>,</a>
+<a class="sourceLine" id="cb15-5" data-line-number="5">  <span class="dt">parallel.core =</span> <span class="dv">12</span></a>
+<a class="sourceLine" id="cb15-6" data-line-number="6">)</a>
+<a class="sourceLine" id="cb15-7" data-line-number="7"><span class="co"># careful with the defaults...</span></a></code></pre></div>
 <p>When using paired-end data, the function uses the forward reads for the assembly. The reverse reads are used later in the pipeline.</p>
 <p><strong>Output: </strong></p>
 <p>The folder <code>06_ustacks_2_gstacks</code> will be populated with 3 files per samples ending with:</p>
@@ -439,7 +643,7 @@
 <div id="run_cstacks" class="section level2">
 <h2 class="hasAnchor">
 <a href="#run_cstacks" class="anchor"></a>run_cstacks</h2>
-<p>This is the catalog or pseudo reference genome for the <em>de novo</em> part of stacks, the module is called <a href="http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php">cstacks</a>.</p>
+<p>This is the catalog or pseudo reference genome for the <em>de novo</em> part of stacks, the module is called <a href="http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php">cstacks</a>. It’s probably the longest part of the pipeline for large sample-size projects. It’s also the part where a crashing computer or cluster as the biggest drawbacks and test your bioinformatic patience.</p>
 <p>Function documentation: <code><a href="../reference/run_cstacks.html">?stackr::run_cstacks</a></code> (read it twice).</p>
 <p>Difference with stacks <code>cstacks</code> ?</p>
 <ul>
@@ -457,21 +661,59 @@
 </ul>
 <p>For now, I highly discourage subsampling to build the catalog = please use all the samples in the project.</p>
 <p>Start by generating a population map:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">pop.map.catalog &lt;-<span class="st"> </span>u<span class="op">$</span>project.info <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/distinct.html">distinct</a></span>(INDIVIDUALS_REP) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb12-3" data-line-number="3"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(<span class="dt">POP_ID =</span> 1L) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb12-4" data-line-number="4"><span class="st">  </span>readr<span class="op">::</span><span class="kw"><a href="https://readr.tidyverse.org/reference/write_delim.html">write_tsv</a></span>(</a>
-<a class="sourceLine" id="cb12-5" data-line-number="5">    <span class="dt">x =</span> .,</a>
-<a class="sourceLine" id="cb12-6" data-line-number="6">    <span class="dt">path =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,</a>
-<a class="sourceLine" id="cb12-7" data-line-number="7">    <span class="dt">col_names =</span> FALSE<span class="co"># stacks doesn't want column header</span></a>
-<a class="sourceLine" id="cb12-8" data-line-number="8">  ) </a></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">pop.map.catalog &lt;-<span class="st"> </span>u<span class="op">$</span>project.info <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/distinct.html">distinct</a></span>(INDIVIDUALS_REP) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(<span class="dt">POP_ID =</span> 1L) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-4" data-line-number="4"><span class="st">  </span>readr<span class="op">::</span><span class="kw"><a href="https://readr.tidyverse.org/reference/write_delim.html">write_tsv</a></span>(</a>
+<a class="sourceLine" id="cb16-5" data-line-number="5">    <span class="dt">x =</span> .,</a>
+<a class="sourceLine" id="cb16-6" data-line-number="6">    <span class="dt">path =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,</a>
+<a class="sourceLine" id="cb16-7" data-line-number="7">    <span class="dt">col_names =</span> FALSE<span class="co"># stacks doesn't want column header</span></a>
+<a class="sourceLine" id="cb16-8" data-line-number="8">  ) </a></code></pre></div>
 <p><strong>Build the catalog:</strong></p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">c &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_cstacks.html">run_cstacks</a></span> (</a>
-<a class="sourceLine" id="cb13-2" data-line-number="2">  <span class="dt">P =</span> <span class="st">"06_ustacks_2_gstacks"</span>,</a>
-<a class="sourceLine" id="cb13-3" data-line-number="3">  <span class="dt">M =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,</a>
-<a class="sourceLine" id="cb13-4" data-line-number="4">  <span class="dt">n =</span> <span class="dv">3</span>,</a>
-<a class="sourceLine" id="cb13-5" data-line-number="5">  <span class="dt">parallel.core =</span> <span class="dv">32</span></a>
-<a class="sourceLine" id="cb13-6" data-line-number="6">)</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">c &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_cstacks.html">run_cstacks</a></span> (</a>
+<a class="sourceLine" id="cb17-2" data-line-number="2">  <span class="dt">P =</span> <span class="st">"06_ustacks_2_gstacks"</span>,</a>
+<a class="sourceLine" id="cb17-3" data-line-number="3">  <span class="dt">M =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,</a>
+<a class="sourceLine" id="cb17-4" data-line-number="4">  <span class="dt">n =</span> <span class="dv">3</span>,</a>
+<a class="sourceLine" id="cb17-5" data-line-number="5">  <span class="dt">parallel.core =</span> <span class="dv">32</span></a>
+<a class="sourceLine" id="cb17-6" data-line-number="6">)</a></code></pre></div>
+<p><strong>Who’s in the catalog?</strong></p>
+<p>Use the function <a href="http://thierrygosselin.github.io/stackr/reference/extract_catalog_sql_ids.html">stackr::extract_catalog_sql_ids</a> to verify the SQL IDs of the samples used for the catalog construction.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">ids &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw">extract_catalog_sql_id</span>(<span class="dt">x =</span> <span class="st">"06_ustacks_2_gstacks/catalog.tags.tsv.gz"</span>)</a></code></pre></div>
+</div>
+<div id="ustackscstacks-alternatives" class="section level2">
+<h2 class="hasAnchor">
+<a href="#ustackscstacks-alternatives" class="anchor"></a>ustacks/cstacks alternatives ?</h2>
+<p>You have tried the noise reduction <a href="#noise">step</a> and/or the normalization <a href="#normalization">step</a> and it’s still way to long ?</p>
+<p>The <a href="https://github.com/beiko-lab/RADProc">RADProc</a> approach developped by Praveen Nadukkalam Ravindran (Ravindran et al. 2019) is a viable alternative and it’s compatible with stacks. You replace the <em>de novo</em> and catalog steps by <strong>RADProc</strong>. For a project I did, it’s a question of 15 days to run stacks <strong>ustacks/cstacks</strong> or 1 day to run <strong>RADProc</strong>…no kidding!</p>
+<p>macOS installation instructions:</p>
+<ul>
+<li><strong>installing RADProc requires <a href="https://www.gnu.org/software/m4/m4.html">m4</a></strong></li>
+</ul>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="bu">cd</span> Downloads</a>
+<a class="sourceLine" id="cb19-2" data-line-number="2"><span class="ex">curl</span> -O ftp://ftp.gnu.org/gnu/m4/m4-1.4.18.tar.gz</a>
+<a class="sourceLine" id="cb19-3" data-line-number="3"><span class="fu">tar</span> -xzvf m4*</a>
+<a class="sourceLine" id="cb19-4" data-line-number="4"><span class="bu">cd</span> m4*</a>
+<a class="sourceLine" id="cb19-5" data-line-number="5"><span class="ex">./configure</span> ac_cv_type_struct_sched_param=yes <span class="kw"><a href="https://rdrr.io/r/base/Logic.html">&amp;&amp;</a></span> <span class="fu">make</span> -j4 <span class="kw"><a href="https://rdrr.io/r/base/Logic.html">&amp;&amp;</a></span> <span class="fu">sudo</span> make install</a>
+<a class="sourceLine" id="cb19-6" data-line-number="6"><span class="bu">cd</span> ..</a>
+<a class="sourceLine" id="cb19-7" data-line-number="7"><span class="fu">sudo</span> rm -R m*</a></code></pre></div>
+<ul>
+<li>Download <a href="https://github.com/beiko-lab/RADProc">RADProc</a>
+</li>
+</ul>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="fu">sudo</span> chmod -R 777 RADProc-master</a>
+<a class="sourceLine" id="cb20-2" data-line-number="2"><span class="bu">cd</span> RADProc-master/Install/</a>
+<a class="sourceLine" id="cb20-3" data-line-number="3"><span class="ex">autoreconf</span> --install</a>
+<a class="sourceLine" id="cb20-4" data-line-number="4"><span class="fu">sh</span> ./configure</a>
+<a class="sourceLine" id="cb20-5" data-line-number="5"><span class="fu">make</span> <span class="kw"><a href="https://rdrr.io/r/base/Logic.html">&amp;&amp;</a></span> <span class="fu">sudo</span> make install</a></code></pre></div>
+<p>Read the documentation…</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="ex">RADProc</span> -t <span class="st">"gzfastq"</span> -f <span class="st">"04_process_radtags"</span> -o <span class="st">"06_ustacks_2_gstacks"</span> -M 4 -m 3 -n 4 -p 8 -x 3 -S 80 -D 7 <span class="op">2&gt;&amp;1</span> <span class="kw"><a href="https://rdrr.io/r/base/Logic.html">|</a></span> <span class="fu">tee</span> radproc_date@time.log</a></code></pre></div>
+<p>The output of that command:</p>
+<ul>
+<li>3 catalog files: <code>batch_1.catalog.tags.tsv</code>, <code>batch_1.catalog.snps.tsv</code>, <code>batch_1.catalog.alleles.tsv</code>
+</li>
+<li>4 files per individual: <code>tags.tsv</code>, <code>snps.tsv</code>, <code>alleles.tsv</code> and <code>model.tsv</code> (similar to stacks v.1)</li>
+<li>a file with the summary statistics</li>
+</ul>
 </div>
 <div id="run_sstacks" class="section level2">
 <h2 class="hasAnchor">
@@ -484,7 +726,7 @@
 <li>But I like the summary it does automatically at the end. It allows to see potential problem in the data.</li>
 <li>Computer or server problem during the sstacks ? Just launch again the same command, the function will start again, but only with the unmatched samples!</li>
 </ul>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">s &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_sstacks.html">run_sstacks</a></span>(<span class="dt">parallel.core =</span> <span class="dv">12</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1">s &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_sstacks.html">run_sstacks</a></span>(<span class="dt">parallel.core =</span> <span class="dv">12</span>)</a></code></pre></div>
 </div>
 <div id="run_tsv2bam" class="section level2">
 <h2 class="hasAnchor">
@@ -497,12 +739,12 @@
 <li>The function uses <code>SAMtools</code> to merge <strong>in parallel</strong> the BAM sample files into a unique BAM catalog file..</li>
 </ul>
 <p>Function documentation: <code><a href="../reference/run_tsv2bam.html">?stackr::run_tsv2bam</a></code> (read it twice).</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="co"># example with paired-end data:</span></a>
-<a class="sourceLine" id="cb15-2" data-line-number="2">bam.sum &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_tsv2bam.html">run_tsv2bam</a></span>(</a>
-<a class="sourceLine" id="cb15-3" data-line-number="3">  <span class="dt">M =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,</a>
-<a class="sourceLine" id="cb15-4" data-line-number="4">  <span class="dt">R =</span> <span class="st">"04_process_radtags/"</span>,</a>
-<a class="sourceLine" id="cb15-5" data-line-number="5">  <span class="dt">parallel.core =</span> <span class="dv">12</span></a>
-<a class="sourceLine" id="cb15-6" data-line-number="6">)</a></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1"><span class="co"># example with paired-end data:</span></a>
+<a class="sourceLine" id="cb23-2" data-line-number="2">bam.sum &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_tsv2bam.html">run_tsv2bam</a></span>(</a>
+<a class="sourceLine" id="cb23-3" data-line-number="3">  <span class="dt">M =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,</a>
+<a class="sourceLine" id="cb23-4" data-line-number="4">  <span class="dt">R =</span> <span class="st">"04_process_radtags/"</span>,</a>
+<a class="sourceLine" id="cb23-5" data-line-number="5">  <span class="dt">parallel.core =</span> <span class="dv">12</span></a>
+<a class="sourceLine" id="cb23-6" data-line-number="6">)</a></code></pre></div>
 </div>
 <div id="run_gstacks" class="section level2">
 <h2 class="hasAnchor">
@@ -512,22 +754,22 @@
 <div id="single-end-1" class="section level3">
 <h3 class="hasAnchor">
 <a href="#single-end-1" class="anchor"></a>single-end</h3>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">g &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_gstacks.html">run_gstacks</a></span>(</a>
-<a class="sourceLine" id="cb16-2" data-line-number="2">  <span class="dt">M =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,</a>
-<a class="sourceLine" id="cb16-3" data-line-number="3">  <span class="dt">parallel.core =</span> <span class="dv">12</span></a>
-<a class="sourceLine" id="cb16-4" data-line-number="4">  )</a></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1">g &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_gstacks.html">run_gstacks</a></span>(</a>
+<a class="sourceLine" id="cb24-2" data-line-number="2">  <span class="dt">M =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,</a>
+<a class="sourceLine" id="cb24-3" data-line-number="3">  <span class="dt">parallel.core =</span> <span class="dv">12</span></a>
+<a class="sourceLine" id="cb24-4" data-line-number="4">  )</a></code></pre></div>
 </div>
 <div id="paired-end-1" class="section level3">
 <h3 class="hasAnchor">
 <a href="#paired-end-1" class="anchor"></a>paired-end</h3>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">g &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_gstacks.html">run_gstacks</a></span>(</a>
-<a class="sourceLine" id="cb17-2" data-line-number="2">  <span class="dt">M =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,</a>
-<a class="sourceLine" id="cb17-3" data-line-number="3">  <span class="dt">rm.pcr.duplicates =</span> <span class="ot">TRUE</span>,</a>
-<a class="sourceLine" id="cb17-4" data-line-number="4">  <span class="dt">rm.unpaired.reads =</span> <span class="ot">TRUE</span>,</a>
-<a class="sourceLine" id="cb17-5" data-line-number="5">  <span class="dt">unpaired =</span> <span class="ot">FALSE</span>,</a>
-<a class="sourceLine" id="cb17-6" data-line-number="6">  <span class="dt">ignore.pe.reads =</span> <span class="ot">FALSE</span>,</a>
-<a class="sourceLine" id="cb17-7" data-line-number="7">  <span class="dt">parallel.core =</span> <span class="dv">12</span></a>
-<a class="sourceLine" id="cb17-8" data-line-number="8">)</a></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1">g &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_gstacks.html">run_gstacks</a></span>(</a>
+<a class="sourceLine" id="cb25-2" data-line-number="2">  <span class="dt">M =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,</a>
+<a class="sourceLine" id="cb25-3" data-line-number="3">  <span class="dt">rm.pcr.duplicates =</span> <span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb25-4" data-line-number="4">  <span class="dt">rm.unpaired.reads =</span> <span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb25-5" data-line-number="5">  <span class="dt">unpaired =</span> <span class="ot">FALSE</span>,</a>
+<a class="sourceLine" id="cb25-6" data-line-number="6">  <span class="dt">ignore.pe.reads =</span> <span class="ot">FALSE</span>,</a>
+<a class="sourceLine" id="cb25-7" data-line-number="7">  <span class="dt">parallel.core =</span> <span class="dv">12</span></a>
+<a class="sourceLine" id="cb25-8" data-line-number="8">)</a></code></pre></div>
 </div>
 </div>
 <div id="run_populations" class="section level2">
@@ -535,14 +777,27 @@
 <a href="#run_populations" class="anchor"></a>run_populations</h2>
 <p>For this step, I like to keep it simple and get a VCF file. Filters are best handled in my package <a href="https://thierrygosselin.github.io/radiator/index.html">radiator</a>.</p>
 <p>Function documentation: <code><a href="../reference/run_populations.html">?stackr::run_populations</a></code> (read it twice).</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">p &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_populations.html">run_populations</a></span>(</a>
-<a class="sourceLine" id="cb18-2" data-line-number="2">  <span class="dt">M =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>, </a>
-<a class="sourceLine" id="cb18-3" data-line-number="3">  <span class="dt">verbose =</span> <span class="ot">TRUE</span>, </a>
-<a class="sourceLine" id="cb18-4" data-line-number="4">  <span class="dt">r =</span> <span class="fl">0.1</span>, </a>
-<a class="sourceLine" id="cb18-5" data-line-number="5">  <span class="dt">R =</span> <span class="fl">0.1</span>,</a>
-<a class="sourceLine" id="cb18-6" data-line-number="6">  <span class="dt">p =</span> <span class="dv">1</span>,</a>
-<a class="sourceLine" id="cb18-7" data-line-number="7">  <span class="dt">parallele.core =</span> <span class="dv">1</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1">p &lt;-<span class="st"> </span>stackr<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/stackr/man/run_populations.html">run_populations</a></span>(</a>
+<a class="sourceLine" id="cb26-2" data-line-number="2">  <span class="dt">M =</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>, </a>
+<a class="sourceLine" id="cb26-3" data-line-number="3">  <span class="dt">verbose =</span> <span class="ot">TRUE</span>, </a>
+<a class="sourceLine" id="cb26-4" data-line-number="4">  <span class="dt">r =</span> <span class="fl">0.1</span>, </a>
+<a class="sourceLine" id="cb26-5" data-line-number="5">  <span class="dt">R =</span> <span class="fl">0.1</span>,</a>
+<a class="sourceLine" id="cb26-6" data-line-number="6">  <span class="dt">p =</span> <span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb26-7" data-line-number="7">  <span class="dt">parallele.core =</span> <span class="dv">1</span>)</a></code></pre></div>
 </div>
+</div>
+<div id="references" class="section level1">
+<h1 class="hasAnchor">
+<a href="#references" class="anchor"></a>References</h1>
+<p>Ilut, D., Nydam, M., Hare, M. (2014). Defining Loci in Restriction-Based Reduced Representation Genomic Data from Non model Species: Sources of Bias and Diagnostics for Optimal Clustering BioMed Research International 2014(2), 1 9. <a href="https://dx.doi.org/10.1155/2014/675158" class="uri">https://dx.doi.org/10.1155/2014/675158</a></p>
+<p>Rochette, N., Rivera‐Colón, A., Catchen, J. (2019). Stacks 2: Analytical methods for paired‐end sequencing improve RADseq‐based population genomics. Molecular Ecology <a href="https://dx.doi.org/10.1111/mec.15253" class="uri">https://dx.doi.org/10.1111/mec.15253</a></p>
+<p>Harvey, M., Judy, C., Seeholzer, G., Maley, J. (2015). Similarity thresholds used in short read assembly reduce the comparability of population histories across species PeerJ 3(), e895. <a href="https://dx.doi.org/10.7717/peerj.895" class="uri">https://dx.doi.org/10.7717/peerj.895</a></p>
+<p>Ravindran, P., Bentzen, P., Bradbury, I., Beiko, R. (2019). RADProc: A computationally efficient de novo locus assembler for population studies using RADseq data Molecular Ecology Resources 19(1), 272-282. <a href="https://dx.doi.org/10.1111/1755-0998.12954" class="uri">https://dx.doi.org/10.1111/1755-0998.12954</a></p>
+<p>Schloss, P.D., et al., Introducing mothur: Open-source, platform-independent, community-supported software for describing and comparing microbial communities. Appl Environ Microbiol, 2009. 75(23):7537-41.</p>
+<p>Sanders HL (1968) Marine benthic diversity: A comparative study. The American Naturalist 102: pp. 243–282</p>
+<p>Hale et al. (2009) on the relative merits of normalization and rarefaction in gene discovery in sturgeons. BMC genomics, 10, 203.</p>
+<p>Kalinowski (2004) Counting Alleles with Rarefaction. Conservation Genetics, 5, 539–543.</p>
+<p>Puncher et al. (2018) Molecular Ecology Resources, 44, 678.</p>
 </div>
   </div>
 
@@ -564,14 +819,18 @@
       <li><a href="#transfer-sequencing-files">Transfer sequencing files</a></li>
       <li><a href="#quality-control">Quality control</a></li>
       <li><a href="#run_process_radtags">run_process_radtags</a></li>
+      <li><a href="#noise">Noise reduction</a></li>
+      <li><a href="#normalization">Data normalization</a></li>
       <li><a href="#run_ustacks">run_ustacks</a></li>
       <li><a href="#run_cstacks">run_cstacks</a></li>
+      <li><a href="#ustackscstacks-alternatives">ustacks/cstacks alternatives ?</a></li>
       <li><a href="#run_sstacks">run_sstacks</a></li>
       <li><a href="#run_tsv2bam">run_tsv2bam</a></li>
       <li><a href="#run_gstacks">run_gstacks</a></li>
       <li><a href="#run_populations">run_populations</a></li>
       </ul>
 </li>
+      <li><a href="#references">References</a></li>
       </ul>
 </div>
       </div>

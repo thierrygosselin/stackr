@@ -20,10 +20,13 @@ reference:
 
 - title: Utility functions
   contents:
-  - extract_catalog_sql_ids
-  - normalize_reads
+  - read_depth_plot
+  - clean_fq
   - read_counter
+  - normalize_reads
   - rename_fq
+  - extract_catalog_sql_ids
+
 
 navbar:
   type: default
