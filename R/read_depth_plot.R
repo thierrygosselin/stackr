@@ -32,9 +32,9 @@
 #' limit of another group (the orange, see below for description). Minus 1 bp.
 #' }
 #' \item distinct reads with high coverage > 1 read depth (in yellow): those are
-#' legitimate locus with high coverage.
-#' \item distinct unique reads with high coverage (in orange): those loci are
-#' usually paralogs, transposable elements, etc.
+#' legitimate alleles with high coverage.
+#' \item distinct and unique reads with high coverage (in orange): those
+#' alleles when they are assembled in locus are usually paralogs, transposable elements, etc.
 #' }
 
 #' @rdname read_depth_plot
@@ -142,7 +142,7 @@ read_depth_plot <- function(
     )
   base_breaks <- function(n = 10){
     function(x) {
-      axisTicks(log10(range(x, na.rm = TRUE)), log = TRUE, n = n)
+      grDevices::axisTicks(log10(range(x, na.rm = TRUE)), log = TRUE, n = n)
     }
   }
 

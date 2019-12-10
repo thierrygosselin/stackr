@@ -188,7 +188,7 @@ run_ustacks <- function(
   timing <- proc.time()
 
   # Check directory ------------------------------------------------------------
-  if (!dir.exists(o)) dir.create(o)
+  if (!dir.exists(o) && !mismatch.testing) dir.create(o)
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
 
   if (mismatch.testing && length(M) < 2) {
@@ -248,8 +248,10 @@ run_ustacks <- function(
       dplyr::arrange(INDIVIDUALS_REP) %>%
       dplyr::mutate(SQL_ID = seq(1, n()))
 
-    readr::write_tsv(x = project.info, path = "project.info.sqlid.tsv")
-    message("Unique id info was generated: project.info.sqlid.tsv")
+    if (!mismatch.testing) {
+      readr::write_tsv(x = project.info, path = "project.info.sqlid.tsv")
+      message("Unique id info was generated: project.info.sqlid.tsv")
+    }
   }
 
   # Mismatch -------------------------------------------------------------------
@@ -803,8 +805,12 @@ fq_file_type <- function(x) {
 #' @export
 #' @keywords internal
 mismatch_fig <- function(mismatch.run) {
-  if (!dir.exists("05_clustering_mismatches")) dir.create("05_clustering_mismatches")
-
+  if (!dir.exists("05_clustering_mismatches")) {
+    dir.create("clustering_mismatches")
+    out.path <- "clustering_mismatches"
+  } else {
+    out.path <- "05_clustering_mismatches"
+  }
 
   # mismatch.run <- res$mismatches#test
   res <- list() # store results
@@ -815,7 +821,7 @@ mismatch_fig <- function(mismatch.run) {
     dplyr::bind_cols(purrr::map(.x = mismatch.run,.f = remove_first_column))
 
   # write in the working directory
-  readr::write_tsv(x = res$mismatches.summary, path = file.path("05_clustering_mismatches", "mismatches.summary.tsv"))
+  readr::write_tsv(x = res$mismatches.summary, path = file.path(out.path, "mismatches.summary.tsv"))
   message("Summary of all mismatches written in folder: mismatches.summary.tsv")
 
 
@@ -873,7 +879,7 @@ mismatch_fig <- function(mismatch.run) {
       axis.text = ggplot2::element_text(size = 12, family = "Helvetica"))
 
   ggplot2::ggsave(
-    filename = file.path("05_clustering_mismatches", "mismatches.plot.pdf"),
+    filename = file.path(out.path, "mismatches.plot.pdf"),
     plot = res$mismatches.plot,
     height = 15, width = 30, dpi = 600, units = "cm", useDingbats = FALSE)
   return(res)

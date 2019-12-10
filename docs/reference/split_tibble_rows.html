@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Generate the read length distribution of a fastq file — reads_length_distribution • stackr</title>
+<title>split_tibble_rows — split_tibble_rows • stackr</title>
 
 
 <!-- jquery -->
@@ -35,10 +35,8 @@
 
 
 
-<meta property="og:title" content="Generate the read length distribution of a fastq file — reads_length_distribution" />
-<meta property="og:description" content="This function reads the fastq file of an individual, lane or chip
-and generate the read length distribution to help decide the threshold to cut the
-reads to a specific length." />
+<meta property="og:title" content="split_tibble_rows — split_tibble_rows" />
+<meta property="og:description" content="Split rows of tibble for parallel processing" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -107,76 +105,28 @@ reads to a specific length." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Generate the read length distribution of a fastq file</h1>
-    <small class="dont-index">Source: <a href='https://github.com/thierrygosselin/stackr/blob/master/R/reads_length_distribution.R'><code>R/reads_length_distribution.R</code></a></small>
-    <div class="hidden name"><code>reads_length_distribution.Rd</code></div>
+    <h1>split_tibble_rows</h1>
+    <small class="dont-index">Source: <a href='https://github.com/thierrygosselin/stackr/blob/master/R/utils.R'><code>R/utils.R</code></a></small>
+    <div class="hidden name"><code>split_tibble_rows.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This function reads the fastq file of an individual, lane or chip
-and generate the read length distribution to help decide the threshold to cut the
-reads to a specific length.</p>
+    <p>Split rows of tibble for parallel processing</p>
     </div>
 
-    <pre class="usage"><span class='fu'>reads_length_distribution</span>(
-  <span class='no'>fq.file</span>,
+    <pre class="usage"><span class='fu'>split_tibble_rows</span>(
+  <span class='no'>x</span>,
+  <span class='kw'>lines.cpu</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
   <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>,
-  <span class='kw'>with.future</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+  <span class='kw'>group.split</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
 )</pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>fq.file</th>
-      <td><p>(character, path). The path to the fastq file
-(individal, lane or chip).
-Default: <code>fq.file = "my-sample.fq.gz"</code>.</p></td>
-    </tr>
-    <tr>
-      <th>parallel.core</th>
-      <td><p>(integer) Enable parallel execution with the number of threads.
-Default: <code>parallel.core = parallel::detectCores() - 1</code>.</p></td>
-    </tr>
-    <tr>
-      <th>with.future</th>
-      <td><p>(logical) When <code>TRUE</code> will use future package to run
-the code in parallel. Set <code>parallel.core</code> to the number of physical, not
-logical, cores. See example below.
-Default: <code>with.future = FALSE</code>.</p></td>
-    </tr>
-    </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>The function returns a plot and a tibble with potential reads length
-thresholds and associated number of reads.</p>
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>coming soon, just try it in the meantime...</p>
-
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
-<span class='fu'><a href='https://rdrr.io/r/base/library.html'>require</a></span>(<span class='no'>ShortRead</span>)
-<span class='no'>reads.length.info</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>stackr</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/stackr/man/reads_length_distribution.html'>reads_length_distribution</a></span>(
-  <span class='kw'>fq.file</span> <span class='kw'>=</span> <span class='st'>"my-sample.fq.gz"</span>)
-
- <span class='co'># with future package to get faster results:</span>
- <span class='fu'><a href='https://rdrr.io/r/base/library.html'>require</a></span>(<span class='no'>future</span>)
- <span class='fu'><a href='https://rdrr.io/r/base/library.html'>require</a></span>(<span class='no'>listenv</span>)
- <span class='no'>reads.length.info</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>stackr</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/stackr/man/reads_length_distribution.html'>reads_length_distribution</a></span>(
-  <span class='kw'>fq.file</span> <span class='kw'>=</span> <span class='st'>"my-sample.fq.gz"</span>,
-  <span class='kw'>with.future</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
-  )
-}</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#details">Details</a></li>
-      <li><a href="#examples">Examples</a></li>
     </ul>
 
   </div>

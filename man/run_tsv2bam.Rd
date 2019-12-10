@@ -78,7 +78,7 @@ into being organized by locus. This allows downstream improvements
 }
 \details{
 \strong{Install SAMtools}
-\href{link to detailed instructions on how to install SAMtools}{http://gbs-cloud-tutorial.readthedocs.io/en/latest/07_start_from_new_image.html#install-gbs-radseq-software-time-required-30min}
+\href{http://gbs-cloud-tutorial.readthedocs.io/en/latest/07_start_from_new_image.html#install-gbs-radseq-software-time-required-30min}{link to detailed instructions on how to install SAMtools}
 }
 \examples{
 \dontrun{

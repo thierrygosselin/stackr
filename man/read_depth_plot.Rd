@@ -45,9 +45,9 @@ information to lower this threshold or use some fancy bayesian algorithm.
 limit of another group (the orange, see below for description). Minus 1 bp.
 }
 \item distinct reads with high coverage > 1 read depth (in yellow): those are
-legitimate locus with high coverage.
-\item distinct unique reads with high coverage (in orange): those loci are
-usually paralogs, transposable elements, etc.
+legitimate alleles with high coverage.
+\item distinct and unique reads with high coverage (in orange): those
+alleles when they are assembled in locus are usually paralogs, transposable elements, etc.
 }
 }
 \examples{

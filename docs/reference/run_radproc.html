@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Generate a figure with the read depth groups — read_depth_plot • stackr</title>
+<title>Run RADproc — run_radproc • stackr</title>
 
 
 <!-- jquery -->
@@ -35,9 +35,11 @@
 
 
 
-<meta property="og:title" content="Generate a figure with the read depth groups — read_depth_plot" />
-<meta property="og:description" content="This function reads the fastq file of an individual and generate
-a figure of read coverage groups." />
+<meta property="og:title" content="Run RADproc — run_radproc" />
+<meta property="og:description" content="Runs RADproc.
+The approach **replaces ustacks and cstacks** steps. Read the paper
+for more information.
+Read stackr vignette." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -106,80 +108,125 @@ a figure of read coverage groups." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Generate a figure with the read depth groups</h1>
-    <small class="dont-index">Source: <a href='https://github.com/thierrygosselin/stackr/blob/master/R/read_depth_plot.R'><code>R/read_depth_plot.R</code></a></small>
-    <div class="hidden name"><code>read_depth_plot.Rd</code></div>
+    <h1>Run RADproc</h1>
+    <small class="dont-index">Source: <a href='https://github.com/thierrygosselin/stackr/blob/master/R/run_radproc.R'><code>R/run_radproc.R</code></a></small>
+    <div class="hidden name"><code>run_radproc.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This function reads the fastq file of an individual and generate
-a figure of read coverage groups.</p>
+    <p>Runs <a href='https://github.com/beiko-lab/RADProc'>RADproc</a>.
+The approach **replaces ustacks and cstacks** steps. Read the paper
+for more information.
+Read <a href='http://thierrygosselin.github.io/stackr/articles/stackr.html'>stackr</a> vignette.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>read_depth_plot</span>(
-  <span class='no'>fq.file</span>,
-  <span class='kw'>min.coverage.fig</span> <span class='kw'>=</span> <span class='fl'>7L</span>,
-  <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>
+    <pre class="usage"><span class='fu'>run_radproc</span>(
+  <span class='kw'>file.type</span> <span class='kw'>=</span> <span class='st'>"gzfastq"</span>,
+  <span class='kw'>f</span> <span class='kw'>=</span> <span class='st'>"04_process_radtags"</span>,
+  <span class='kw'>o</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
+  <span class='kw'>a</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>M</span> <span class='kw'>=</span> <span class='fl'>2</span>,
+  <span class='kw'>m</span> <span class='kw'>=</span> <span class='fl'>3</span>,
+  <span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>2</span>,
+  <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>,
+  <span class='kw'>x</span> <span class='kw'>=</span> <span class='fl'>3</span>,
+  <span class='kw'>S</span> <span class='kw'>=</span> <span class='fl'>2</span>,
+  <span class='kw'>D</span> <span class='kw'>=</span> <span class='fl'>7</span>,
+  <span class='kw'>cmd.path</span> <span class='kw'>=</span> <span class='st'>"/usr/local/bin/RADProc"</span>
 )</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>fq.file</th>
-      <td><p>(character, path). The path to the individual fastq file to check.
-Default: <code>fq.file = "my-sample.fq.gz"</code>.</p></td>
+      <th>file.type</th>
+      <td><p>(character) Input file Type.
+Supported types: fasta, fastq, gzfasta, or gzfastq.
+Default: <code>file.type = "gzfastq"</code>.</p></td>
     </tr>
     <tr>
-      <th>min.coverage.fig</th>
-      <td><p>(character, path). Minimum coverage used to draw the
-color on the figure.
-Default: <code>min.coverage.fig = 7L</code>.</p></td>
+      <th>f</th>
+      <td><p>(path) Input file path. Usually,
+the stacks process_radtags output folder.
+Default: <code>f = "04_process_radtags"</code>.</p></td>
+    </tr>
+    <tr>
+      <th>o</th>
+      <td><p>(path) Output path to write results.
+Default: <code>o = "06_ustacks_2_gstacks"</code>.</p></td>
+    </tr>
+    <tr>
+      <th>a</th>
+      <td><p>(logical) Enable parameter sweep mode.
+Default: <code>a = FALSE</code>.
+Please use <code>run_ustacks</code> with mismatch testing.</p></td>
+    </tr>
+    <tr>
+      <th>M</th>
+      <td><p>Maximum distance (in nucleotides) allowed between stacks to form
+network.
+Default: <code>M = 2</code>.</p></td>
+    </tr>
+    <tr>
+      <th>m</th>
+      <td><p>Minimum depth of coverage.
+Default: <code>m = 3</code>.</p></td>
+    </tr>
+    <tr>
+      <th>n</th>
+      <td><p>Maximum distance (in nucleotides) allowed between catalog loci to merge
+Default: <code>n = 2</code>.</p></td>
     </tr>
     <tr>
       <th>parallel.core</th>
-      <td><p>(integer) Enable parallel execution with the number of threads.
+      <td><p>(integer) Enable parallel execution with num_threads
+threads.
 Default: <code>parallel.core = parallel::detectCores() - 1</code>.</p></td>
+    </tr>
+    <tr>
+      <th>x</th>
+      <td><p>(integer) Maximum number stacks per locus.
+Default: <code>x = 3</code>.</p></td>
+    </tr>
+    <tr>
+      <th>S</th>
+      <td><p>(percentage) Minimum sample percentage.
+Default: <code>S = 30</code>.</p></td>
+    </tr>
+    <tr>
+      <th>D</th>
+      <td><p>(percentage) Minimum average coverage depth.
+Default: <code>D = 7</code>.</p></td>
+    </tr>
+    <tr>
+      <th>cmd.path</th>
+      <td><p>(character, path) Provide the FULL path to RADProc
+program. See details on how to install RADProc in
+<a href='http://thierrygosselin.github.io/stackr/articles/stackr.html#ustackscstacks-alternatives'>stackr vignette</a>.
+Default: <code>cmd.path = "/usr/local/bin/RADProc"</code>.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>The function returns the read depth groups plot.</p>
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>4 read coverage groups are shown:</p><ol>
-<li><p>distinct reads with low coverage (in red): these reads are likely
-sequencing errors or uninformative polymorphisms (shared only by a few samples).</p></li>
-<li><p>disting reads for a target coverage (in green):</p><ul>
-<li><p>Usually represent around 80<!-- % of the reads in the FQ file. --></p></li>
-<li><p>It’s a safe coverage range to start exploring your data (open for discussion).</p></li>
-<li><p>Lower threshold (default = 7): you can’t escape it, it’s your tolerance
-to call heterozygote a true heterozygote. You want a minimum coverage for
-both the reference and the alternative allele. Yes, you can use population
-information to lower this threshold or use some fancy bayesian algorithm.</p></li>
-<li><p>Higher threshold: is a lot more open for discussion, here it’s the lower
-limit of another group (the orange, see below for description). Minus 1 bp.</p></li>
-</ul></li>
-<li><p>distinct reads with high coverage &gt; 1 read depth (in yellow): those are
-legitimate alleles with high coverage.</p></li>
-<li><p>distinct and unique reads with high coverage (in orange): those
-alleles when they are assembled in locus are usually paralogs, transposable elements, etc.</p></li>
-</ol>
-
+    <p>Returns 3 files per samples: <code>.snps.tsv</code>, <code>.tags.tsv</code>,
+<code>.alleles.tsv</code>. Also returns 3 catalog files: <code>catalog.snps.tsv,
+catalog.tags.tsv, catalog.alleles.tsv</code>.</p>
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
-    <p>Ilut, D., Nydam, M., Hare, M. (2014).
-Defining Loci in Restriction-Based Reduced Representation Genomic Data from Non
-model Species:
-Sources of Bias and Diagnostics for Optimal Clustering BioMed Research
-International  2014.
-https://dx.doi.org/10.1155/2014/675158</p>
+    <p>Ravindran, P., Bentzen, P., Bradbury, I., Beiko, R. (2019).
+RADProc: A computationally efficient de novo locus assembler for population
+studies using RADseq data.
+Molecular Ecology Resources 19(1), 272-282.
+https://dx.doi.org/10.1111/1755-0998.12954</p>
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
+
+    <div class='dont-index'><p><a href='https://github.com/beiko-lab/RADProc'>RADproc</a>.#'</p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
-<span class='fu'><a href='https://rdrr.io/r/base/library.html'>require</a></span>(<span class='no'>vroom</span>)
-<span class='no'>check.reads.depth.groups</span> <span class='kw'>&lt;-</span> <span class='fu'>read_depth_plot</span>(<span class='kw'>fq.file</span> <span class='kw'>=</span> <span class='st'>"my-sample.fq.gz"</span>)
+<span class='co'># The simplest form of the function:</span>
+<span class='no'>u</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>stackr</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/stackr/man/run_radproc.html'>run_radproc</a></span>() <span class='co'># that's it !</span>
 }</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
@@ -187,8 +234,8 @@ https://dx.doi.org/10.1155/2014/675158</p>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
       <li><a href="#value">Value</a></li>
-      <li><a href="#details">Details</a></li>
       <li><a href="#references">References</a></li>
+      <li><a href="#see-also">See also</a></li>
       <li><a href="#examples">Examples</a></li>
     </ul>
 

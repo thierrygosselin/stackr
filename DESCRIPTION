@@ -20,8 +20,11 @@ Imports:
     stringdist,
     tidyverse
 Suggests:
+    future,
     ggplot2 (>= 3.0.0),
+    grDevices,
     knitr,
+    listenv,
     parallel,
     purrr,
     methods,

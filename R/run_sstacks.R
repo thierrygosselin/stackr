@@ -227,6 +227,7 @@ run_sstacks <- function(
     M <- ""
     P <- ""
   } else {
+    P <- stringi::stri_join("-P ", P)
     M <- stringi::stri_join("-M ", M)
     s <- ""
     c <- ""

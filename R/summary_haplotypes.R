@@ -529,6 +529,10 @@ summary_haplotypes <- function(
 
       # split_vec_row
 
+      ## Need to upgrade to split_tibble_rows
+      # summary.loc.pop <- split_tibble_rows()
+
+
       summary.loc.pop <- haplotype.filtered %>%
         dplyr::left_join(split.vec, by = "LOCUS") %>%
         split(x = ., f = .$SPLIT_VEC) %>%
