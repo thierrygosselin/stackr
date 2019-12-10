@@ -25,7 +25,7 @@ reference:
 - title: Utility functions
   contents:
   - read_depth_plot
-  - read_length_distribution
+  - reads_length_distribution
   - clean_fq
   - read_counter
   - normalize_reads
