@@ -10,6 +10,7 @@ clean_fq(
   remove.unique.reads = TRUE,
   write.blacklist = FALSE,
   write.blacklist.fasta = FALSE,
+  compress = FALSE,
   parallel.core = parallel::detectCores() - 1
 )
 }
@@ -31,6 +32,10 @@ Default: \code{write.blacklist = FALSE}.}
 \item{write.blacklist.fasta}{(logical). Write the blacklisted reads to a
 fasta file.
 Default: \code{write.blacklist.fasta = FALSE}.}
+
+\item{compress}{(logical) To compress the output files. If you have the disk
+space, don't compress, it's way faster this way to write.
+Default: \code{compress = FALSE}.}
 
 \item{parallel.core}{(integer) Enable parallel execution with the number of threads.
 Default: \code{parallel.core = parallel::detectCores() - 1}.}

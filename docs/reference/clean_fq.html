@@ -130,6 +130,7 @@ by removing:</p><ul>
   <span class='kw'>remove.unique.reads</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>write.blacklist</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>write.blacklist.fasta</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>compress</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>
 )</pre>
 
@@ -163,6 +164,12 @@ Default: <code>write.blacklist = FALSE</code>.</p></td>
       <td><p>(logical). Write the blacklisted reads to a
 fasta file.
 Default: <code>write.blacklist.fasta = FALSE</code>.</p></td>
+    </tr>
+    <tr>
+      <th>compress</th>
+      <td><p>(logical) To compress the output files. If you have the disk
+space, don't compress, it's way faster this way to write.
+Default: <code>compress = FALSE</code>.</p></td>
     </tr>
     <tr>
       <th>parallel.core</th>

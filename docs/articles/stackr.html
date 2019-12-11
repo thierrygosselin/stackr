@@ -70,7 +70,7 @@
       <h1>Using stackr to run stacks pipeline inside R/RStudio</h1>
                         <h4 class="author">Thierry Gosselin</h4>
             
-            <h4 class="date">2019-12-09</h4>
+            <h4 class="date">2019-12-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/thierrygosselin/stackr/blob/master/vignettes/stackr.Rmd"><code>vignettes/stackr.Rmd</code></a></small>
       <div class="hidden name"><code>stackr.Rmd</code></div>
@@ -359,7 +359,7 @@
 <div id="reads-length" class="section level3">
 <h3 class="hasAnchor">
 <a href="#reads-length" class="anchor"></a>reads length</h3>
-<p>If you are using Illumina sequencing, chances are that you have 100 pb reads. With Ion Torrent, the size will be highly variable and you have to determine the optimal size. Stacks will work better with uniform read length.</p>
+<p>If you are using Illumina sequencing, chances are that you have 100 pb reads (SE RADseq). With Ion Torrent, the size will be highly variable and you have to determine the optimal size to cut your reads to the same length (<a href="http://catchenlab.life.illinois.edu/stacks/manual/">stacks works better with uniform read length, check stacks manual under section <em>Sequencer Type</em></a>).</p>
 <ol style="list-style-type: decimal">
 <li>output of <a href="https://www.bioinformatics.babraham.ac.uk/projects/fastqc/">FastQC</a>
 </li>
@@ -382,6 +382,7 @@
 <p><strong>Remember that depending of types of file (individual or entire lane/chip:</strong></p>
 <ul>
 <li>Barcodes and adapters might be in this relationship observed in the figure.</li>
+<li>It’s not uncommon to see increasing adapters present with increasing read size.</li>
 <li>Repetitive sequences, unique reads and so on might impact the results (<a href="#noise">see noise section below</a>).</li>
 </ul>
 </div>
@@ -427,7 +428,7 @@
 <div id="qc" class="section level3">
 <h3 class="hasAnchor">
 <a href="#qc" class="anchor"></a>QC</h3>
-<p>I highly recommend running the individual fastq files through FastQC.</p>
+<p>I highly recommend running the individual fastq files through <a href="https://www.bioinformatics.babraham.ac.uk/projects/fastqc/">FastQC</a> or <a href="http://www.sthda.com/english/wiki/fastqcr-an-r-package-facilitating-quality-controls-of-sequencing-data-for-large-numbers-of-samples">fastqcr</a>.</p>
 </div>
 </div>
 <div id="noise" class="section level2">
@@ -781,8 +782,21 @@
 <a href="#alternative" class="anchor"></a>ustacks/cstacks alternatives ?</h2>
 <p>You have tried the noise reduction <a href="#noise">step</a> and/or the normalization <a href="#normalization">step</a> and it’s still way to long ?</p>
 <p>The <a href="https://github.com/beiko-lab/RADProc">RADProc</a> approach developped by Praveen Nadukkalam Ravindran (Ravindran et al. 2019) is a viable alternative and it’s compatible with stacks. You replace the <em>de novo</em> and catalog steps by <strong>RADProc</strong>. For a project I did, it’s a question of 15 days to run stacks <strong>ustacks/cstacks</strong> or 1,5 days to run <strong>RADProc</strong> + the rest of stacks pipeline… no kidding!</p>
-<p><strong>Note</strong></p>
-<p>The current version works with stacks 2 (sstacks and after), but their is no gap alignment (for INDELS). Consequently, use with caution if you have INDELS, some sequencing technologies are more prone to it. Verify by generating a test set with both approach and comparing. stackr is the ideal tool for this.</p>
+<p><strong>Limitations</strong></p>
+<ul>
+<li>
+<em>de novo</em> only</li>
+<li>Works only with SE RADseq data, no paired-end.</li>
+<li>No gapped alignment (for INDELS):
+<ul>
+<li>some sequencing technologies are more prone to INDEL…</li>
+<li>verify by generating a test set with both approach and comparing.</li>
+</ul>
+</li>
+<li>No control on SQL IDs (the id use for the catalog).</li>
+<li>You cannot add sample to a pre-existing catalog: you have to start from the start with <em>de novo</em> assemblies of all samples you want in the catalog…</li>
+</ul>
+<p>The current version works with stacks 2 (sstacks and after).</p>
 <p>macOS installation instructions:</p>
 <ul>
 <li><strong>installing RADProc requires <a href="https://www.gnu.org/software/m4/m4.html">m4</a></strong></li>

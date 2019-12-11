@@ -124,7 +124,8 @@
 #' merge all input files into a single output file.
 #' Default: \code{merge = FALSE}.
 #' @param filter.illumina (logical) Discard reads that have been marked by
-#' Illumina's chastity/purity filter as failing.
+#' Illumina's chastity/purity filter as failing. With Ion Torrent sequencing, you
+#' have to use \code{filter.illumina = FALSE}.
 #' Default: \code{filter.illumina = TRUE}.
 #' @param disable.rad.check (logical) Disable checking if the RAD site is intact.
 #' Default: \code{disable.rad.check = FALSE}.
@@ -149,7 +150,6 @@
 #' @return For stacks specific output see \href{http://catchenlab.life.illinois.edu/stacks/comp/process_radtags.php}{process_radtags}.
 #'
 #'
-
 
 #' @details
 #' \strong{Step 1. Individual naming}

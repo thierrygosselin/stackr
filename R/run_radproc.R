@@ -135,7 +135,7 @@ run_radproc <- function(
   command.arguments <- paste(file.type, f, o, a, M, m, n, parallel.core, x, S, D)
 
   # run command ----------------------------------------------------------------
-  system2(command = "RADProc", args = command.arguments, stdout = radproc.log.file)
+  system2(command = "RADProc", args = command.arguments, stderr = radproc.log.file)
 
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")

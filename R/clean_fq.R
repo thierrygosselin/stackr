@@ -25,6 +25,9 @@
 #' fasta file.
 #' Default: \code{write.blacklist.fasta = FALSE}.
 
+#' @param compress (logical) To compress the output files. If you have the disk
+#' space, don't compress, it's way faster this way to write.
+#' Default: \code{compress = FALSE}.
 
 #' @param parallel.core (integer) Enable parallel execution with the number of threads.
 #' Default: \code{parallel.core = parallel::detectCores() - 1}.
@@ -57,6 +60,7 @@ clean_fq <- function (
   remove.unique.reads = TRUE,
   write.blacklist = FALSE,
   write.blacklist.fasta = FALSE,
+  compress = FALSE,
   parallel.core = parallel::detectCores() - 1
 ) {
   # Required package -----------------------------------------------------------
@@ -82,9 +86,15 @@ clean_fq <- function (
   message("Sample: ", sample.clean)
 
   # sample name and blacklist name
-  if (write.blacklist) bl.filename <- stringi::stri_join(sample.clean, "_blacklisted_reads.fq.gz")
-  if (write.blacklist.fasta) bl.fasta <- stringi::stri_join(sample.clean, "_blacklisted_reads.fasta.gz")
-  clean.name <- stringi::stri_join(sample.clean, "_cleaned.fq.gz")
+  if (compress) {
+    if (write.blacklist) bl.filename <- stringi::stri_join(sample.clean, "_blacklisted_reads.fq.gz")
+    if (write.blacklist.fasta) bl.fasta <- stringi::stri_join(sample.clean, "_blacklisted_reads.fasta.gz")
+    clean.name <- stringi::stri_join(sample.clean, "_cleaned.fq.gz")
+  } else {
+    if (write.blacklist) bl.filename <- stringi::stri_join(sample.clean, "_blacklisted_reads.fq")
+    if (write.blacklist.fasta) bl.fasta <- stringi::stri_join(sample.clean, "_blacklisted_reads.fasta")
+    clean.name <- stringi::stri_join(sample.clean, "_cleaned.fq")
+  }
   bl.fq <- NULL
 
   fq <- vroom::vroom(

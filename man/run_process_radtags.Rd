@@ -184,7 +184,8 @@ merge all input files into a single output file.
 Default: \code{merge = FALSE}.}
 
 \item{filter.illumina}{(logical) Discard reads that have been marked by
-Illumina's chastity/purity filter as failing.
+Illumina's chastity/purity filter as failing. With Ion Torrent sequencing, you
+have to use \code{filter.illumina = FALSE}.
 Default: \code{filter.illumina = TRUE}.}
 
 \item{disable.rad.check}{(logical) Disable checking if the RAD site is intact.
