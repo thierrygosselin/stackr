@@ -61,6 +61,7 @@ read_depth_plot <- function(
   min.coverage.fig = 7L,
   parallel.core = parallel::detectCores() - 1
 ) {
+
   if (!"vroom" %in% utils::installed.packages()[,"Package"]) {
     rlang::abort('Please install vroom for this option:\n
                  install.packages("vroom")')
@@ -78,6 +79,7 @@ read_depth_plot <- function(
     file = fq.file,
     col_names = "READS",
     col_types = "c",
+    delim = "\t",
     num_threads = parallel.core,
     progress = TRUE
   ) %>%
@@ -90,9 +92,25 @@ read_depth_plot <- function(
   total.sequences <- nrow(read.stats)
   message("Number of reads: ", total.sequences)
 
+  # stats ----------------------------------------------------------------------
   read.stats %<>%
     dplyr::group_by(READS) %>%
     dplyr::tally(name = "DEPTH") %>%
+    dplyr::ungroup(.)
+
+  # detect indel and / or low quality reads...----------------------------------
+  indel <- read.stats %>%
+    dplyr::mutate(
+      N = stringi::stri_count_fixed(str = READS, pattern = "N"),
+      GC = stringi::stri_count_fixed(str = READS, pattern = c("C", "G")),
+      LENGTH = stringi::stri_length(str = READS),
+      GC_PROP = GC / LENGTH,
+      N_PROP = N / LENGTH
+    )
+
+
+  # stats ----------------------------------------------------------------------
+  read.stats %<>%
     dplyr::group_by(DEPTH) %>%
     dplyr::tally(name = "NUMBER_DISTINCT_READS") %>%
     dplyr::ungroup(.)

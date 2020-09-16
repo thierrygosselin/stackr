@@ -1,7 +1,7 @@
 #' @name run_radproc
 #' @title Run RADproc
 #' @description Runs \href{https://github.com/beiko-lab/RADProc}{RADproc}.
-#' The approach **replaces ustacks and cstacks** steps. Read the paper
+#' The approach \emph{replaces ustacks and cstacks} steps. Read the paper
 #' for more information.
 #' Read \href{http://thierrygosselin.github.io/stackr/articles/stackr.html}{stackr} vignette.
 
@@ -64,7 +64,7 @@
 #' }
 
 #' @seealso
-#' \href{https://github.com/beiko-lab/RADProc}{RADproc}.#'
+#' \href{https://github.com/beiko-lab/RADProc}{RADproc}.
 
 #' @references Ravindran, P., Bentzen, P., Bradbury, I., Beiko, R. (2019).
 #' RADProc: A computationally efficient de novo locus assembler for population
@@ -115,6 +115,7 @@ run_radproc <- function(
   # file type
   file.type <- stringi::stri_join("-t ", shQuote(file.type))
   f <- stringi::stri_join("-f ", shQuote(f))
+  o.bk <- o
   o <- stringi::stri_join("-o ", shQuote(o))
 
   if (a) {
@@ -125,6 +126,7 @@ run_radproc <- function(
   M <- stringi::stri_join("-M ", M)
   m <- stringi::stri_join("-m ", m)
   n <- stringi::stri_join("-n ", n)
+  parallel.core.bk <- parallel.core
   parallel.core <- stringi::stri_join("-p ", parallel.core)
   x <- stringi::stri_join("-x ", x)
   S <- stringi::stri_join("-S ", S)
@@ -136,6 +138,25 @@ run_radproc <- function(
 
   # run command ----------------------------------------------------------------
   system2(command = "RADProc", args = command.arguments, stderr = radproc.log.file)
+
+  # We have to rename the files and move them out of the RADProc folder
+  # detect RADProc folder created
+
+  rp.folder <- "M0_m3"
+  rename.radproc.files <- tibble::tibble(
+    OLD_FQ = list.files(path = file.path(o.bk, rp.folder), full.names = TRUE)
+  ) %>%
+    dplyr::mutate(
+      NEW_FQ = stringi::stri_replace_all_fixed(
+        str = OLD_FQ,
+        pattern = c(".fq", paste0(rp.folder, "/")),
+        replacement = c("", ""),
+        vectorize_all = FALSE
+        )
+    )
+  stackr::rename_fq(change.fq = rename.radproc.files, parallel.core = parallel.core.bk)
+  file.remove(file.path(o.bk, rp.folder))
+
 
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")

@@ -70,7 +70,7 @@ catalog.tags.tsv, catalog.alleles.tsv}.
 }
 \description{
 Runs \href{https://github.com/beiko-lab/RADProc}{RADproc}.
-The approach **replaces ustacks and cstacks** steps. Read the paper
+The approach \emph{replaces ustacks and cstacks} steps. Read the paper
 for more information.
 Read \href{http://thierrygosselin.github.io/stackr/articles/stackr.html}{stackr} vignette.
 }

@@ -23,11 +23,11 @@
 #' @param parallel.core (integer) enable parallel execution with num_threads threads.
 #' Default: \code{parallel.core = parallel::detectCores() - 1}
 
-#' @param batch_size (integer) The number of loci (de novo mode) or
+#' @param batch.size (integer) The number of loci (de novo mode) or
 #' chromosome (reference mode), to process in a batch.
 #' Increase to speed analysis, uses more memory, decrease to save memory).
-#' Default in de novo mode (loci/batch): \code{batch_size = 10000}.
-#' Default in reference mode (chromosome/batch): \code{batch_size = 1}.
+#' Default in de novo mode (loci/batch): \code{batch.size = 10000}.
+#' Default in reference mode (chromosome/batch): \code{batch.size = 1}.
 
 #' @param p (integer) Minimum number of populations a locus must be present in to process a locus.
 #' Default: \code{p = 1}.
@@ -104,9 +104,11 @@
 #' @param ordered.export (logical) If data is reference aligned, exports will be ordered; only a single representative of each overlapping site.
 #' Default: \code{ordered.export = FALSE}.
 #' @param fasta.loci (logical) Output consensus sequences of all loci, in FASTA format.
-#' Default: \code{fasta.loci = FALSE}.
+#' stackr default is different than stacks default because I think having this info helps to identify problems.
+#' Default: \code{fasta.loci = TRUE}.
 #' @param fasta.samples (logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
-#' Default: \code{fasta.samples = FALSE}.
+#' stackr default is different than stacks default because I think having this info helps to identify problems.
+#' Default: \code{fasta.samples = TRUE}.
 #' @param fasta.samples_raw (logical) Output all haplotypes observed in each sample, for each locus, in FASTA format.
 #' Default: \code{fasta.samples_raw = FALSE}.
 #' @param vcf  (logical) Output SNPs in Variant Call Format (VCF).
@@ -190,7 +192,7 @@ run_populations <- function(
   O = "07_populations",
   M,
   parallel.core = parallel::detectCores() - 1,
-  batch_size = 10000,
+  batch.size = 10000,
   p = 1,
   r = 0.3,
   R = 0.3,
@@ -221,9 +223,9 @@ run_populations <- function(
   bootstrap.phist = FALSE,
   bootstrap.wl = NULL,
   ordered.export = FALSE,
-  fasta.samples = FALSE,
+  fasta.samples = TRUE,
   fasta.samples_raw = FALSE,
-  fasta.loci = FALSE,
+  fasta.loci = TRUE,
   vcf = TRUE,
   genepop = FALSE,
   structure = FALSE,
@@ -284,7 +286,7 @@ run_populations <- function(
 
   # parallel.core <- t
   t <- stringi::stri_join("-t ", parallel.core)
-  batch_size <- stringi::stri_join("--batch_size ", batch_size)
+  batch.size <- stringi::stri_join("--batch-size ", batch.size)
 
   # Data Filtering -------------------------------------------------------------
   p <- stringi::stri_join("-p ", p)
@@ -601,7 +603,9 @@ run_populations <- function(
 
   # command args ---------------------------------------------------------------
   command.arguments <- paste(
-    P, V, O, M, t, batch_size, p, r, min.maf, min.mac, max.obs.het, write.single.snp,
+    P, V, O, M, t,
+    batch.size,
+    p, r, min.maf, min.mac, max.obs.het, write.single.snp,
     write.random.snp, B, W, e, merge.sites, merge.prune.lim, hwe, fstats, fst.correction,
     p.value.cutoff, k, smooth.fstats, smooth.popstats, sigma, bootstrap, N, bootstrap.pifis, bootstrap.fst,
     bootstrap.div, bootstrap.phist, bootstrap.wl, ordered.export,
@@ -617,7 +621,7 @@ run_populations <- function(
 
 
   # run command ----------------------------------------------------------------
-  system2(command = "populations", args = command.arguments, stderr = populations.log.file)
+  system2(command = "populations", args = command.arguments, stdout = populations.log.file)
 
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")

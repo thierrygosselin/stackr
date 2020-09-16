@@ -10,7 +10,7 @@ run_populations(
   O = "07_populations",
   M,
   parallel.core = parallel::detectCores() - 1,
-  batch_size = 10000,
+  batch.size = 10000,
   p = 1,
   r = 0.3,
   R = 0.3,
@@ -83,11 +83,11 @@ e.g. \code{M = "02_project_info/population.map.catalog.tsv"}}
 \item{parallel.core}{(integer) enable parallel execution with num_threads threads.
 Default: \code{parallel.core = parallel::detectCores() - 1}}
 
-\item{batch_size}{(integer) The number of loci (de novo mode) or
+\item{batch.size}{(integer) The number of loci (de novo mode) or
 chromosome (reference mode), to process in a batch.
 Increase to speed analysis, uses more memory, decrease to save memory).
-Default in de novo mode (loci/batch): \code{batch_size = 10000}.
-Default in reference mode (chromosome/batch): \code{batch_size = 1}.}
+Default in de novo mode (loci/batch): \code{batch.size = 10000}.
+Default in reference mode (chromosome/batch): \code{batch.size = 1}.}
 
 \item{p}{(integer) Minimum number of populations a locus must be present in to process a locus.
 Default: \code{p = 1}.}

@@ -238,7 +238,12 @@ summary_haplotypes <- function(
     na = "-",
     col_names = FALSE,
     col_types = readr::cols(.default = readr::col_character())) %>%
-    tidyr::gather(data = .,key = DELETE, value = INFO) %>%
+    tidyr::pivot_longer(
+      data = .,
+      cols = tidyselect::everything(),
+      names_to = "DELETE",
+      values_to = "INFO"
+    ) %>%
     dplyr::mutate(INFO = clean_ind_names(INFO)) %>%
     dplyr::select(-DELETE) %>%
     dplyr::mutate(INFO = clean_ind_names(INFO)) %>%
@@ -263,11 +268,12 @@ summary_haplotypes <- function(
   if (tibble::has_name(haplotype, "Seg Dist")) {
     haplotype <- dplyr::select(.data = haplotype, -`Seg Dist`)
   }
-  haplotype <- tidyr::gather(
+  haplotype <- tidyr::pivot_longer(
     data = haplotype,
-    key = "INDIVIDUALS",
-    value = "HAPLOTYPES", # previously using "GT_HAPLO"
-    -LOCUS)
+    cols = -LOCUS,
+    names_to = "INDIVIDUALS",
+    values_to = "HAPLOTYPES"
+  )
 
   haplotype$INDIVIDUALS <- clean_ind_names(haplotype$INDIVIDUALS)
 
@@ -342,7 +348,8 @@ summary_haplotypes <- function(
 
     consensus <- consensus.pop %>%
       dplyr::group_by(POP_ID) %>%
-      dplyr::summarise(CONSENSUS = dplyr::n_distinct(LOCUS))
+      dplyr::summarise(CONSENSUS = dplyr::n_distinct(LOCUS)) %>%
+      dplyr::ungroup(.)
 
     res$consensus.pop <- consensus.pop
     res$consensus.loci <- blacklist.loci.consensus
@@ -363,6 +370,7 @@ summary_haplotypes <- function(
     dplyr::group_by(POP_ID) %>%
     dplyr::tally(.) %>%
     dplyr::rename(NUM = n) %>%
+    dplyr::ungroup(.) %>%
     tibble::add_row(.data = ., POP_ID = "OVERALL", NUM = sum(.$NUM))
 
   # Sequencing errors and assembly artifact ------------------------------------
@@ -581,12 +589,15 @@ summary_haplotypes <- function(
         HOM_O = mean(HOM_O, na.rm = TRUE),
         HET_O = mean(HET_O, na.rm = TRUE)
       ) %>%
+      dplyr::ungroup(.) %>%
       dplyr::full_join(
         dplyr::group_by(.data = hs, POP_ID) %>%
           dplyr::summarise(
             HOM_E = mean(HOM_E, na.rm = TRUE),
             HET_E = (1 - HOM_E),
-            HS = mean(HS, na.rm = TRUE))
+            HS = mean(HS, na.rm = TRUE)
+            ) %>%
+          dplyr::ungroup(.)
         , by = "POP_ID")
 
     summary.locus <- summary.loc.pop %>%
@@ -595,12 +606,15 @@ summary_haplotypes <- function(
         HOM_O = mean(HOM_O, na.rm = TRUE),
         HET_O = mean(HET_O, na.rm = TRUE)
       ) %>%
+      dplyr::ungroup(.) %>%
       dplyr::full_join(
         dplyr::group_by(.data = hs, LOCUS) %>%
           dplyr::summarise(
             HOM_E = mean(HOM_E, na.rm = TRUE),
             HET_E = (1 - HOM_E),
-            HS = mean(HS, na.rm = TRUE))
+            HS = mean(HS, na.rm = TRUE)
+            ) %>%
+          dplyr::ungroup(.)
         , by = "LOCUS")
 
     hs <- summary.loc.pop <- NULL
@@ -862,8 +876,12 @@ summary_haplotypes <- function(
 
     # Pi: by pop------------------------------------------------------------------
     message("    Pi calculations: populations...")
-    pi.data <- pi.data %>%
-      tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, INDIVIDUALS, POP_ID))
+    pi.data <- tidyr::pivot_longer(
+        data = pi.data,
+        cols = -c("LOCUS", "INDIVIDUALS", "POP_ID"),
+        names_to = "ALLELE_GROUP",
+        values_to = "ALLELES"
+      )
 
     pi.pop <- pi.data %>%
       split(x = ., f = .$POP_ID) %>%
@@ -951,7 +969,7 @@ summary_haplotypes <- function(
       ggplot2::ggplot(data = ., ggplot2::aes(x = factor(POP_ID), y = PI, na.rm = TRUE)) +
       ggplot2::geom_violin(trim = F) +
       ggplot2::geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA) +
-      ggplot2::stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
+      ggplot2::stat_summary(fun = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
       ggplot2::labs(x = "Sampling sites") +
       ggplot2::labs(y = "Individual nucleotide diversity (Pi)") +
       ggplot2::theme(
@@ -972,7 +990,7 @@ summary_haplotypes <- function(
       ggplot2::ggplot(data = ., ggplot2::aes(x = factor(POP_ID), y = FH, na.rm = T)) +
       ggplot2::geom_violin(trim = F) +
       ggplot2::geom_boxplot(width = 0.1, fill = "black", outlier.colour = NA) +
-      ggplot2::stat_summary(fun.y = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
+      ggplot2::stat_summary(fun = "mean", geom = "point", shape = 21, size = 2.5, fill = "white") +
       ggplot2::labs(x = "Sampling sites") +
       ggplot2::labs(y = "Individual IBDg (FH)") +
       ggplot2::theme(
@@ -1035,7 +1053,12 @@ strata_haplo <- function(strata = NULL, data = NULL, blacklist.id = NULL) {
       na = "-",
       col_names = FALSE,
       col_types = readr::cols(.default = readr::col_character())) %>%
-      tidyr::gather(data = .,key = DELETE, value = INDIVIDUALS) %>%
+      tidyr::pivot_longer(
+        data = .,
+        cols = tidyselect::everything(),
+        names_to = "DELETE",
+        values_to = "INDIVIDUALS"
+      ) %>%
       dplyr::mutate(INDIVIDUALS = clean_ind_names(INDIVIDUALS)) %>%
       dplyr::select(-DELETE) %>%
       dplyr::filter(!INDIVIDUALS %in% c("Catalog ID", "Cnt")) %>%
@@ -1165,7 +1188,12 @@ separate_haplo_long <- function(x) {
     ) %>%
     dplyr::mutate(ALLELE2 = ifelse(is.na(ALLELE2), ALLELE1, ALLELE2)) %>%
     dplyr::select(-INDIVIDUALS) %>%
-    tidyr::gather(ALLELE_GROUP, ALLELES, -c(LOCUS, POP_ID)) %>%
+    tidyr::pivot_longer(
+      data = .,
+      cols = -c("LOCUS", "POP_ID"),
+      names_to = "ALLELE_GROUP",
+      values_to = "ALLELES"
+    ) %>%
     dplyr::select(-ALLELE_GROUP)
   return(res)
 }#End separate_haplo_long
