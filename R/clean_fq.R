@@ -102,6 +102,7 @@ clean_fq <- function (
     col_names = "READS",
     col_types = "c",
     num_threads = parallel.core,
+    delim = "\t",
     progress = TRUE
   ) %>%
     dplyr::mutate(
