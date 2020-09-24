@@ -54,7 +54,7 @@
 #'   )
 #' }
 
-clean_fq <- function (
+clean_fq <- function(
   fq.file,
   min.coverage.threshold = 2L,
   remove.unique.reads = TRUE,

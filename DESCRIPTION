@@ -36,6 +36,7 @@ Suggests:
     stringi,
     tibble,
     tidyr,
+    tidyselect,
     utils
 License: GPL (>=2)
 LazyLoad: yes

@@ -10,23 +10,27 @@
 
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -39,7 +43,6 @@
 <meta property="og:description" content="Run STACKS
 populations
 module inside R!" />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -57,7 +60,7 @@ module inside R!" />
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -119,62 +122,62 @@ module inside R!</p>
     </div>
 
     <pre class="usage"><span class='fu'>run_populations</span>(
-  <span class='kw'>P</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
-  <span class='kw'>V</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>O</span> <span class='kw'>=</span> <span class='st'>"07_populations"</span>,
-  <span class='no'>M</span>,
-  <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>,
-  <span class='kw'>batch_size</span> <span class='kw'>=</span> <span class='fl'>10000</span>,
-  <span class='kw'>p</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>r</span> <span class='kw'>=</span> <span class='fl'>0.3</span>,
-  <span class='kw'>R</span> <span class='kw'>=</span> <span class='fl'>0.3</span>,
-  <span class='kw'>H</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>min.maf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>min.mac</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>max.obs.het</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>write.single.snp</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>write.random.snp</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>B</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>W</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>e</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>merge.sites</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>merge.prune.lim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>hwe</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>fstats</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>fst.correction</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>p.value.cutoff</span> <span class='kw'>=</span> <span class='fl'>0.05</span>,
-  <span class='kw'>k</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>smooth.fstats</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>smooth.popstats</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='fl'>150000</span>,
-  <span class='kw'>bootstrap</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>N</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>bootstrap.pifis</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>bootstrap.fst</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>bootstrap.div</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>bootstrap.phist</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>bootstrap.wl</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>ordered.export</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>fasta.samples</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>fasta.samples_raw</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>fasta.loci</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>vcf</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>genepop</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>structure</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>radpainter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>phase</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>fastphase</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>plink</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>hzar</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>phylip</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>phylip.var</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>phylip.var.all</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>treemix</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>no.hap.exports</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>h</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>v</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>log.fst.comp</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+  P = <span class='st'>"06_ustacks_2_gstacks"</span>,
+  V = <span class='kw'>NULL</span>,
+  O = <span class='st'>"07_populations"</span>,
+  <span class='kw'>M</span>,
+  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>,
+  batch.size = <span class='fl'>10000</span>,
+  p = <span class='fl'>1</span>,
+  r = <span class='fl'>0.3</span>,
+  R = <span class='fl'>0.3</span>,
+  H = <span class='fl'>TRUE</span>,
+  min.maf = <span class='kw'>NULL</span>,
+  min.mac = <span class='kw'>NULL</span>,
+  max.obs.het = <span class='kw'>NULL</span>,
+  write.single.snp = <span class='fl'>FALSE</span>,
+  write.random.snp = <span class='fl'>FALSE</span>,
+  B = <span class='kw'>NULL</span>,
+  W = <span class='kw'>NULL</span>,
+  e = <span class='kw'>NULL</span>,
+  merge.sites = <span class='fl'>FALSE</span>,
+  merge.prune.lim = <span class='kw'>NULL</span>,
+  hwe = <span class='fl'>FALSE</span>,
+  fstats = <span class='fl'>FALSE</span>,
+  fst.correction = <span class='kw'>NULL</span>,
+  p.value.cutoff = <span class='fl'>0.05</span>,
+  k = <span class='fl'>FALSE</span>,
+  smooth.fstats = <span class='fl'>FALSE</span>,
+  smooth.popstats = <span class='fl'>FALSE</span>,
+  sigma = <span class='fl'>150000</span>,
+  bootstrap = <span class='fl'>FALSE</span>,
+  N = <span class='fl'>100</span>,
+  bootstrap.pifis = <span class='fl'>FALSE</span>,
+  bootstrap.fst = <span class='fl'>FALSE</span>,
+  bootstrap.div = <span class='fl'>FALSE</span>,
+  bootstrap.phist = <span class='fl'>FALSE</span>,
+  bootstrap.wl = <span class='kw'>NULL</span>,
+  ordered.export = <span class='fl'>FALSE</span>,
+  fasta.samples = <span class='fl'>TRUE</span>,
+  fasta.samples_raw = <span class='fl'>FALSE</span>,
+  fasta.loci = <span class='fl'>TRUE</span>,
+  vcf = <span class='fl'>TRUE</span>,
+  genepop = <span class='fl'>FALSE</span>,
+  structure = <span class='fl'>FALSE</span>,
+  radpainter = <span class='fl'>FALSE</span>,
+  phase = <span class='fl'>FALSE</span>,
+  fastphase = <span class='fl'>FALSE</span>,
+  plink = <span class='fl'>FALSE</span>,
+  hzar = <span class='fl'>FALSE</span>,
+  phylip = <span class='fl'>FALSE</span>,
+  phylip.var = <span class='fl'>FALSE</span>,
+  phylip.var.all = <span class='fl'>FALSE</span>,
+  treemix = <span class='fl'>FALSE</span>,
+  no.hap.exports = <span class='fl'>FALSE</span>,
+  h = <span class='fl'>FALSE</span>,
+  verbose = <span class='fl'>FALSE</span>,
+  v = <span class='fl'>FALSE</span>,
+  log.fst.comp = <span class='fl'>FALSE</span>
 )</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -210,12 +213,12 @@ e.g. <code>M = "02_project_info/population.map.catalog.tsv"</code></p></td>
 Default: <code>parallel.core = parallel::detectCores() - 1</code></p></td>
     </tr>
     <tr>
-      <th>batch_size</th>
+      <th>batch.size</th>
       <td><p>(integer) The number of loci (de novo mode) or
 chromosome (reference mode), to process in a batch.
 Increase to speed analysis, uses more memory, decrease to save memory).
-Default in de novo mode (loci/batch): <code>batch_size = 10000</code>.
-Default in reference mode (chromosome/batch): <code>batch_size = 1</code>.</p></td>
+Default in de novo mode (loci/batch): <code>batch.size = 10000</code>.
+Default in reference mode (chromosome/batch): <code>batch.size = 1</code>.</p></td>
     </tr>
     <tr>
       <th>p</th>
@@ -374,7 +377,8 @@ Default: <code>ordered.export = FALSE</code>.</p></td>
     <tr>
       <th>fasta.samples</th>
       <td><p>(logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
-Default: <code>fasta.samples = FALSE</code>.</p></td>
+stackr default is different than stacks default because I think having this info helps to identify problems.
+Default: <code>fasta.samples = TRUE</code>.</p></td>
     </tr>
     <tr>
       <th>fasta.samples_raw</th>
@@ -384,7 +388,8 @@ Default: <code>fasta.samples_raw = FALSE</code>.</p></td>
     <tr>
       <th>fasta.loci</th>
       <td><p>(logical) Output consensus sequences of all loci, in FASTA format.
-Default: <code>fasta.loci = FALSE</code>.</p></td>
+stackr default is different than stacks default because I think having this info helps to identify problems.
+Default: <code>fasta.loci = TRUE</code>.</p></td>
     </tr>
     <tr>
       <th>vcf</th>
@@ -494,20 +499,15 @@ Biometrics, 48, 361-372.</p>
 <a href='http://catchenlab.life.illinois.edu/stacks/'>STACKS Version 2.0b</a></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
-<span class='no'>pop</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>stackr</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/stackr/man/run_populations.html'>run_populations</a></span>(<span class='kw'>M</span> <span class='kw'>=</span> <span class='st'>"population.map.tsv"</span>)
-}</div></pre>
+    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
+<span class='kw'>pop</span> <span class='op'>&lt;-</span> <span class='kw'>stackr</span>::<span class='fu'>run_populations</span>(M = <span class='st'>"population.map.tsv"</span>)
+}
+</div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#references">References</a></li>
-      <li><a href="#see-also">See also</a></li>
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -518,7 +518,7 @@ Biometrics, 48, 361-372.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

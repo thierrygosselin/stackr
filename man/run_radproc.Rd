@@ -88,5 +88,5 @@ Molecular Ecology Resources 19(1), 272-282.
 https://dx.doi.org/10.1111/1755-0998.12954
 }
 \seealso{
-\href{https://github.com/beiko-lab/RADProc}{RADproc}.#'
+\href{https://github.com/beiko-lab/RADProc}{RADproc}.
 }

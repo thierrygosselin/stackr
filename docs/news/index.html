@@ -10,23 +10,27 @@
 
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -53,7 +57,7 @@
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-news">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -103,90 +107,90 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Changelog <small></small></h1>
+      <h1 data-toc-skip>Changelog <small></small></h1>
       <small>Source: <a href='https://github.com/thierrygosselin/stackr/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div id="stackr-2-1-0-2019-11-28" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-1-0-2019-11-28" class="anchor"></a>stackr 2.1.0 2019-11-28</h1>
+    <div id="stackr-210-2019-11-28" class="section level1">
+<h1 class="page-header" data-toc-text="2.1.0">
+<a href="#stackr-210-2019-11-28" class="anchor"></a>stackr 2.1.0 2019-11-28</h1>
 <ul>
 <li>better <code>summary_cstacks</code> and <code>summary_sstacks</code> functions to help decide thresholds</li>
 <li>work a lot better with paired-end rad and the functionalities will be describe in a vignette.</li>
 </ul>
 </div>
-    <div id="stackr-2-0-9-2019-11-05" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-0-9-2019-11-05" class="anchor"></a>stackr 2.0.9 2019-11-05</h1>
+    <div id="stackr-209-2019-11-05" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.9">
+<a href="#stackr-209-2019-11-05" class="anchor"></a>stackr 2.0.9 2019-11-05</h1>
 <ul>
 <li>updated to work with stacks 2.41</li>
 <li>new <code>summary_cstacks</code> and <code>summary_sstacks</code> functions to help decide thresholds</li>
 </ul>
 </div>
-    <div id="stackr-2-0-8-2019-01-14" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-0-8-2019-01-14" class="anchor"></a>stackr 2.0.8 2019-01-14</h1>
+    <div id="stackr-208-2019-01-14" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.8">
+<a href="#stackr-208-2019-01-14" class="anchor"></a>stackr 2.0.8 2019-01-14</h1>
 <ul>
 <li>updated to work with stacks 2.3</li>
 </ul>
 </div>
-    <div id="stackr-2-0-7-2018-10-12" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-0-7-2018-10-12" class="anchor"></a>stackr 2.0.7 2018-10-12</h1>
+    <div id="stackr-207-2018-10-12" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.7">
+<a href="#stackr-207-2018-10-12" class="anchor"></a>stackr 2.0.7 2018-10-12</h1>
 <ul>
 <li>updated <code>run_gstacks</code> to work with stacks 2.2</li>
 </ul>
 </div>
-    <div id="stackr-2-0-6-2018-08-23" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-0-6-2018-08-23" class="anchor"></a>stackr 2.0.6 2018-08-23</h1>
+    <div id="stackr-206-2018-08-23" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.6">
+<a href="#stackr-206-2018-08-23" class="anchor"></a>stackr 2.0.6 2018-08-23</h1>
 <ul>
 <li>updated <code>summary_ustacks</code> to work with non-compressed files</li>
 </ul>
 </div>
-    <div id="stackr-2-0-5-2018-07-09" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-0-5-2018-07-09" class="anchor"></a>stackr 2.0.5 2018-07-09</h1>
+    <div id="stackr-205-2018-07-09" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.5">
+<a href="#stackr-205-2018-07-09" class="anchor"></a>stackr 2.0.5 2018-07-09</h1>
 <ul>
 <li>stackr ready for R 3.5.1 “Feather Spray” released on 2018/07/05</li>
 <li>stackr updated to work with ggplot2 3.0.0</li>
 </ul>
 </div>
-    <div id="stackr-2-0-4-2018-03-02" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-0-4-2018-03-02" class="anchor"></a>stackr 2.0.4 2018-03-02</h1>
+    <div id="stackr-204-2018-03-02" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.4">
+<a href="#stackr-204-2018-03-02" class="anchor"></a>stackr 2.0.4 2018-03-02</h1>
 <ul>
 <li>
 <code>normalize_samples</code>: new function to check the impact of biased read numbers per individual. The function normalize the number of reads and generate replicate samples.</li>
 </ul>
 </div>
-    <div id="stackr-2-0-3-2018-02-05" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-0-3-2018-02-05" class="anchor"></a>stackr 2.0.3 2018-02-05</h1>
+    <div id="stackr-203-2018-02-05" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.3">
+<a href="#stackr-203-2018-02-05" class="anchor"></a>stackr 2.0.3 2018-02-05</h1>
 <ul>
 <li>
 <code>stackr</code> is working nice with beta8 and waiting for final and stable version</li>
 </ul>
 </div>
-    <div id="stackr-2-0-2-2018-01-16" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-0-2-2018-01-16" class="anchor"></a>stackr 2.0.2 2018-01-16</h1>
+    <div id="stackr-202-2018-01-16" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.2">
+<a href="#stackr-202-2018-01-16" class="anchor"></a>stackr 2.0.2 2018-01-16</h1>
 <ul>
 <li>
 <code>stackr</code> is working nice with beta7c and waiting for final and stable version</li>
 </ul>
 </div>
-    <div id="stackr-2-0-1-2017-12-11" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-0-1-2017-12-11" class="anchor"></a>stackr 2.0.1 2017-12-11</h1>
+    <div id="stackr-201-2017-12-11" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.1">
+<a href="#stackr-201-2017-12-11" class="anchor"></a>stackr 2.0.1 2017-12-11</h1>
 <ul>
 <li>
 <code>stackr</code> is working nice with beta6 and waiting for final and stable version</li>
 </ul>
 </div>
-    <div id="stackr-2-0-0-2017-10-11" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-2-0-0-2017-10-11" class="anchor"></a>stackr 2.0.0 2017-10-11</h1>
+    <div id="stackr-200-2017-10-11" class="section level1">
+<h1 class="page-header" data-toc-text="2.0.0">
+<a href="#stackr-200-2017-10-11" class="anchor"></a>stackr 2.0.0 2017-10-11</h1>
 <ul>
 <li>updated <code>stackr</code> to follow Stacks Version 2.0Beta1</li>
 <li>
@@ -197,40 +201,40 @@
 <code>run_gstacks</code> runs Stacks gstacks module.</li>
 </ul>
 </div>
-    <div id="stackr-1-0-0-2017-08-18" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-1-0-0-2017-08-18" class="anchor"></a>stackr 1.0.0 2017-08-18</h1>
+    <div id="stackr-100-2017-08-18" class="section level1">
+<h1 class="page-header" data-toc-text="1.0.0">
+<a href="#stackr-100-2017-08-18" class="anchor"></a>stackr 1.0.0 2017-08-18</h1>
 <ul>
 <li>re-focusing <code>stackr</code> on running stacks pipeline within R.</li>
 <li>moving all non-essential functions in a new package called <code>radiator</code>.</li>
 </ul>
 </div>
-    <div id="stackr-0-5-9-2017-08-15" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-5-9-2017-08-15" class="anchor"></a>stackr 0.5.9 2017-08-15</h1>
+    <div id="stackr-059-2017-08-15" class="section level1">
+<h1 class="page-header" data-toc-text="0.5.9">
+<a href="#stackr-059-2017-08-15" class="anchor"></a>stackr 0.5.9 2017-08-15</h1>
 <ul>
 <li>restored progress bar when using parallel computing by installing the new dev version of <code>pbmcapply</code> package.</li>
 </ul>
 </div>
-    <div id="stackr-0-5-8-2017-08-15" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-5-8-2017-08-15" class="anchor"></a>stackr 0.5.8 2017-08-15</h1>
+    <div id="stackr-058-2017-08-15" class="section level1">
+<h1 class="page-header" data-toc-text="0.5.8">
+<a href="#stackr-058-2017-08-15" class="anchor"></a>stackr 0.5.8 2017-08-15</h1>
 <ul>
 <li>bug fix: removed the progress bar when using parallel computing. This is temporary, while waiting for a fix with <code>pbmcapply</code> package.</li>
 </ul>
 </div>
-    <div id="stackr-0-5-7-2017-06-17" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-5-7-2017-06-17" class="anchor"></a>stackr 0.5.7 2017-06-17</h1>
+    <div id="stackr-057-2017-06-17" class="section level1">
+<h1 class="page-header" data-toc-text="0.5.7">
+<a href="#stackr-057-2017-06-17" class="anchor"></a>stackr 0.5.7 2017-06-17</h1>
 <ul>
 <li>
 <strong>stackr</strong> works with <code>dplyr 0.7.0</code>
 </li>
 </ul>
 </div>
-    <div id="stackr-0-5-6-2017-06-08" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-5-6-2017-06-08" class="anchor"></a>stackr 0.5.6 2017-06-08</h1>
+    <div id="stackr-056-2017-06-08" class="section level1">
+<h1 class="page-header" data-toc-text="0.5.6">
+<a href="#stackr-056-2017-06-08" class="anchor"></a>stackr 0.5.6 2017-06-08</h1>
 <ul>
 <li>
 <code>tidy_genomic_data</code>: bug fix that originated with the new version of PEGAS.</li>
@@ -244,25 +248,25 @@
 <code>run_ustacks</code>: allows to run <code>Stacks</code> ustacks module inside R with the option to run mismatch thresholds testing…</li>
 </ul>
 </div>
-    <div id="stackr-0-5-5-2017-05-22" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-5-5-2017-05-22" class="anchor"></a>stackr 0.5.5 2017-05-22</h1>
+    <div id="stackr-055-2017-05-22" class="section level1">
+<h1 class="page-header" data-toc-text="0.5.5">
+<a href="#stackr-055-2017-05-22" class="anchor"></a>stackr 0.5.5 2017-05-22</h1>
 <ul>
 <li><p><code>tidy_genomic_data</code> : bug fix introduce with previous commit when fixing <code>LOCUS</code> and <code>COL</code> with stacks version &gt; 1.44. Thanks to Eric Archer for highlighting the bug.</p></li>
-<li><p><code>summary_haplotypes</code>: this function gets a new arguments, <code>keep.consensus</code>, to enable the calculation of <strong>pi</strong> to include or not the consensus markers presents in stacks haplotype file (e.g. <em>batch_1.haplotypes.tsv</em>). This argument works to circumvent the impact of using a whitelist of markers, that potentially removed those markers in previous versions. Also changed in this function, the summary table include a <strong>POLYMORPHISM</strong> column that no longer include the artifact marker counts (markers with more than 2 alleles). This information is kept in a separate column (as before).</p></li>
+<li><p><code>summary_haplotypes</code>: this function gets a new arguments, <code>keep.consensus</code>, to enable the calculation of <strong>pi</strong> to include or not the consensus markers presents in stacks haplotype file (e.g. <em>batch_1.haplotypes.tsv</em>). This argument works to circumvent the impact of using a whitelist of markers, that potentially removed those markers in previous versions. Also changed in this function, the summary table include a <strong>POLYMORPHISM</strong> column that no longer include the artifact marker counts (markers with more than 2 alleles). This information is kept in a separate column (as before).</p></li>
 </ul>
 </div>
-    <div id="stackr-0-5-4-2017-04-06" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-5-4-2017-04-06" class="anchor"></a>stackr 0.5.4 2017-04-06</h1>
+    <div id="stackr-054-2017-04-06" class="section level1">
+<h1 class="page-header" data-toc-text="0.5.4">
+<a href="#stackr-054-2017-04-06" class="anchor"></a>stackr 0.5.4 2017-04-06</h1>
 <ul>
 <li>
 <code>detect_duplicate_genomes</code> : huge speed bump for pairwise genome similarity method. Instead of hours the range is more in minutes.</li>
 </ul>
 </div>
-    <div id="stackr-0-5-3-2017-04-05" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-5-3-2017-04-05" class="anchor"></a>stackr 0.5.3 2017-04-05</h1>
+    <div id="stackr-053-2017-04-05" class="section level1">
+<h1 class="page-header" data-toc-text="0.5.3">
+<a href="#stackr-053-2017-04-05" class="anchor"></a>stackr 0.5.3 2017-04-05</h1>
 <ul>
 <li>
 <code>stackr_imputations_module</code> : better integration of VCF with haplotypes so that nucleotide information is kept during imputations.</li>
@@ -270,17 +274,17 @@
 <code>filter_fis</code> : bug fix when no heterozygote were found. Thanks to Manuel Lamothe.</li>
 </ul>
 </div>
-    <div id="stackr-0-5-2-2017-03-27" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-5-2-2017-03-27" class="anchor"></a>stackr 0.5.2 2017-03-27</h1>
+    <div id="stackr-052-2017-03-27" class="section level1">
+<h1 class="page-header" data-toc-text="0.5.2">
+<a href="#stackr-052-2017-03-27" class="anchor"></a>stackr 0.5.2 2017-03-27</h1>
 <ul>
 <li>
 <code>stackr_imputations_module</code> : work on faster on-the-fly random forest and extreme gradient tree boosting algorithm.</li>
 </ul>
 </div>
-    <div id="stackr-0-5-1-2017-03-21" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-5-1-2017-03-21" class="anchor"></a>stackr 0.5.1 2017-03-21</h1>
+    <div id="stackr-051-2017-03-21" class="section level1">
+<h1 class="page-header" data-toc-text="0.5.1">
+<a href="#stackr-051-2017-03-21" class="anchor"></a>stackr 0.5.1 2017-03-21</h1>
 <p>Major work on <code>tidy_genomic_data</code>:</p>
 <ul>
 <li>
@@ -289,31 +293,31 @@
 <li>better parallelization during parsing and cleaning</li>
 </ul>
 </div>
-    <div id="stackr-0-5-0" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-5-0" class="anchor"></a>stackr 0.5.0</h1>
+    <div id="stackr-050" class="section level1">
+<h1 class="page-header" data-toc-text="0.5.0">
+<a href="#stackr-050" class="anchor"></a>stackr 0.5.0</h1>
 <ul>
 <li>better parallelization of <code>summary_haplotypes</code> function. With progress bar…</li>
 <li>bug fix with <code>summary_haplotypes</code> not properly summarizing info when no assembly artifacts were found</li>
 </ul>
 </div>
-    <div id="stackr-0-4-9" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-4-9" class="anchor"></a>stackr 0.4.9</h1>
+    <div id="stackr-049" class="section level1">
+<h1 class="page-header" data-toc-text="0.4.9">
+<a href="#stackr-049" class="anchor"></a>stackr 0.4.9</h1>
 <ul>
 <li>bug fix with detection of mixed bi/multi allelic dataset. The bug was detected in <code>tidy_genomic_data</code> and <code>genomic_converter</code> functions.</li>
 </ul>
 </div>
-    <div id="stackr-0-4-8" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-4-8" class="anchor"></a>stackr 0.4.8</h1>
+    <div id="stackr-048" class="section level1">
+<h1 class="page-header" data-toc-text="0.4.8">
+<a href="#stackr-048" class="anchor"></a>stackr 0.4.8</h1>
 <ul>
 <li>safer use and better parsing of <code>strataG</code> object to work with tidy data and pass Travis CI.</li>
 </ul>
 </div>
-    <div id="stackr-0-4-7" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-4-7" class="anchor"></a>stackr 0.4.7</h1>
+    <div id="stackr-047" class="section level1">
+<h1 class="page-header" data-toc-text="0.4.7">
+<a href="#stackr-047" class="anchor"></a>stackr 0.4.7</h1>
 <ul>
 <li>Better parsing of genepop file with 2 characters for allele coding</li>
 <li>Only 10% of markers are now used for increase speed of bi-allelic markers detection</li>
@@ -321,9 +325,9 @@
 <li>Better code for the progress bar (Linux and Mac only) that now shows an ETA along the progress.</li>
 </ul>
 </div>
-    <div id="stackr-0-4-6" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-4-6" class="anchor"></a>stackr 0.4.6</h1>
+    <div id="stackr-046" class="section level1">
+<h1 class="page-header" data-toc-text="0.4.6">
+<a href="#stackr-046" class="anchor"></a>stackr 0.4.6</h1>
 <ul>
 <li>I’m pleased to announce that <code>stackr</code> parallel mode now works with <strong>Windows</strong>! Nothing to install, just need to choose the number of CPU, the rest is done automatically.</li>
 <li>
@@ -332,9 +336,9 @@
 <code>write_colony</code>: works similarly to the deprecated function <code>haplo2colony</code>, * with the major advantage that it’s no longer restricted to STACKS haplotypes file. * The function is using the <code>tidy_genomic_data</code> module to import files. So you can choose one of the 10 input file formats supported by <code>stackr</code>! * other benefits also include the possibility to efficiently test MAF, snp.ld, haplotypes/snp approach, whitelist of markes, blacklist of individuals, blacklist of genotypes, etc. with the buit-it arguments. * the function only <strong>keeps markers in common</strong> between populations/groups and <strong>is removing monomorphic markers</strong>. * <strong>Note:</strong> there are several <em>defaults</em> in the function and it’s a complicated file format, so make sure to read the function documentation, please, and <code>COLONY</code> manual.</li>
 </ul>
 </div>
-    <div id="stackr-0-4-5" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-4-5" class="anchor"></a>stackr 0.4.5</h1>
+    <div id="stackr-045" class="section level1">
+<h1 class="page-header" data-toc-text="0.4.5">
+<a href="#stackr-045" class="anchor"></a>stackr 0.4.5</h1>
 <ul>
 <li>temporary fix to <code>tidy_genomic_data</code> to read unconventional Tassel VCF</li>
 <li>new function <code>ibdg_fh</code> computes the FH measure that was previously computed in <code>summary_haplotypes</code>. It now works with biallelic and multiallelic data. The FH measure is based on the excess in the observed number of homozygous genotypes within an individual relative to the mean number of homozygous genotypes expected under random mating (see function for details). The <code>IBDg</code> in the name is because the measure is a proxy of the realized proportion of the genome that is identical by descent by reference to the current population under hypothetical random mating.</li>
@@ -344,9 +348,9 @@
 <code>tidy_stacks_haplotypes_vcf</code> is now deprecated in favor of using <code>tidy_genomic_data</code> that will import haplotypic vcf files.</li>
 </ul>
 </div>
-    <div id="stackr-0-4-4" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-4-4" class="anchor"></a>stackr 0.4.4</h1>
+    <div id="stackr-044" class="section level1">
+<h1 class="page-header" data-toc-text="0.4.4">
+<a href="#stackr-044" class="anchor"></a>stackr 0.4.4</h1>
 <ul>
 <li>several updates to make functions faster.</li>
 <li>
@@ -358,9 +362,9 @@
 <code>missing_visualization</code> now show the proportion of variance with plot axis text.</li>
 </ul>
 </div>
-    <div id="stackr-0-4-3" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-4-3" class="anchor"></a>stackr 0.4.3</h1>
+    <div id="stackr-043" class="section level1">
+<h1 class="page-header" data-toc-text="0.4.3">
+<a href="#stackr-043" class="anchor"></a>stackr 0.4.3</h1>
 <ul>
 <li>bug fix in <code>summary_haplotypes</code> stemming from a new <code>readr</code> version</li>
 <li>
@@ -368,69 +372,69 @@
 </li>
 </ul>
 </div>
-    <div id="stackr-0-4-2" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-4-2" class="anchor"></a>stackr 0.4.2</h1>
+    <div id="stackr-042" class="section level1">
+<h1 class="page-header" data-toc-text="0.4.2">
+<a href="#stackr-042" class="anchor"></a>stackr 0.4.2</h1>
 <ul>
 <li>
 <code>gtypes</code> object from [strataG] (<a href="https://github.com/EricArcher/strataG" class="uri">https://github.com/EricArcher/strataG</a>) package can now be read/write in/out of <strong>Stackr</strong> using the <code>tidy_genomic_data</code> and <code>genomic_converter</code> functions.</li>
 </ul>
 </div>
-    <div id="stackr-0-4-1" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-4-1" class="anchor"></a>stackr 0.4.1</h1>
+    <div id="stackr-041" class="section level1">
+<h1 class="page-header" data-toc-text="0.4.1">
+<a href="#stackr-041" class="anchor"></a>stackr 0.4.1</h1>
 <ul>
 <li>update <code>missing_visualization</code> function to include more PCoA plots</li>
 </ul>
 </div>
-    <div id="stackr-0-4-0" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-4-0" class="anchor"></a>stackr 0.4.0</h1>
+    <div id="stackr-040" class="section level1">
+<h1 class="page-header" data-toc-text="0.4.0">
+<a href="#stackr-040" class="anchor"></a>stackr 0.4.0</h1>
 <ul>
 <li>couple of bug fix for detecting file formats</li>
 </ul>
 </div>
-    <div id="stackr-0-3-9" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-3-9" class="anchor"></a>stackr 0.3.9</h1>
+    <div id="stackr-039" class="section level1">
+<h1 class="page-header" data-toc-text="0.3.9">
+<a href="#stackr-039" class="anchor"></a>stackr 0.3.9</h1>
 <ul>
 <li>several performance update</li>
 <li>couple of bug fix for detecting file formats</li>
 </ul>
 </div>
-    <div id="stackr-0-3-8" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-3-8" class="anchor"></a>stackr 0.3.8</h1>
+    <div id="stackr-038" class="section level1">
+<h1 class="page-header" data-toc-text="0.3.8">
+<a href="#stackr-038" class="anchor"></a>stackr 0.3.8</h1>
 <ul>
 <li>fixed a bug in <code>filter_genotype_likelihood</code>, since the updated function to the interactive mode, some old code where still present in if/else sentences, breaking the code. Thanks to Jaromir Guzinski for the bug report.</li>
 </ul>
 </div>
-    <div id="stackr-0-3-7" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-3-7" class="anchor"></a>stackr 0.3.7</h1>
+    <div id="stackr-037" class="section level1">
+<h1 class="page-header" data-toc-text="0.3.7">
+<a href="#stackr-037" class="anchor"></a>stackr 0.3.7</h1>
 <ul>
 <li>fixed a bug in <code>write_vcf</code>, the function was using REF/ALT coding in integer not character format. This function is used inside <code>vcf_imputation</code> and sometimes inside <code>genomic_converter</code>. Thanks to <a href='https://github.com/jeansebastienmoore'>@jeansebastienmoore</a> for highlighting the problem.</li>
 </ul>
 </div>
-    <div id="stackr-0-3-6" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-3-6" class="anchor"></a>stackr 0.3.6</h1>
+    <div id="stackr-036" class="section level1">
+<h1 class="page-header" data-toc-text="0.3.6">
+<a href="#stackr-036" class="anchor"></a>stackr 0.3.6</h1>
 <ul>
 <li>fixed a bug in <code>vcf_imputation</code>, the function now calls <code>genomic_converter</code> with all the bells and whistles of that function (updated vcf import and imputations modules)</li>
 </ul>
 </div>
-    <div id="stackr-0-3-5" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-3-5" class="anchor"></a>stackr 0.3.5</h1>
+    <div id="stackr-035" class="section level1">
+<h1 class="page-header" data-toc-text="0.3.5">
+<a href="#stackr-035" class="anchor"></a>stackr 0.3.5</h1>
 <ul>
 <li>updated tidy_genepop to read other flavors of the famous file format</li>
 <li>extracted a code block to create a new function called <code>tidy_fstat</code>
 </li>
 </ul>
 </div>
-    <div id="stackr-0-3-4" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-3-4" class="anchor"></a>stackr 0.3.4</h1>
+    <div id="stackr-034" class="section level1">
+<h1 class="page-header" data-toc-text="0.3.4">
+<a href="#stackr-034" class="anchor"></a>stackr 0.3.4</h1>
 <ul>
 <li>updated documentation</li>
 <li>bug fix in <code>summary_haplotypes</code> introduced by the new version of <code><a href="https://dplyr.tidyverse.org/reference/distinct.html">dplyr::distinct</a></code> (0.5.0)</li>
@@ -438,17 +442,17 @@
 </li>
 </ul>
 </div>
-    <div id="stackr-0-3-3" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-3-3" class="anchor"></a>stackr 0.3.3</h1>
+    <div id="stackr-033" class="section level1">
+<h1 class="page-header" data-toc-text="0.3.3">
+<a href="#stackr-033" class="anchor"></a>stackr 0.3.3</h1>
 <ul>
 <li>
 <code>tidy_genomic_data</code>: added a check to throw an error when pop.levels != the pop.id in strata</li>
 </ul>
 </div>
-    <div id="stackr-0-3-2" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-3-2" class="anchor"></a>stackr 0.3.2</h1>
+    <div id="stackr-032" class="section level1">
+<h1 class="page-header" data-toc-text="0.3.2">
+<a href="#stackr-032" class="anchor"></a>stackr 0.3.2</h1>
 <ul>
 <li>
 <code>genomic_converter</code> including all the <code>vcf2...</code> function can now use phase/unphase genotypes. Some <strong>pyRAD</strong> vcf (e.g. 3.0.64) have a mix of GT format with <code><a href="https://rdrr.io/r/base/Arithmetic.html">/</a></code> and <code><a href="https://rdrr.io/r/base/Logic.html">|</a></code>. e.g. missing GT = <code>./.</code> and genotyped individuals = <code>0|0</code>. I’m not sure it follows <a href="http://samtools.github.io/hts-specs/VCFv4.2.pdf">VCF specification</a>, but <strong>stackr</strong> can now read those vcf files.</li>
@@ -456,16 +460,16 @@
 <code>vcf2dadi</code> is more user-friendly for scientist with in- and out-group metadata, using STACKS or not.</li>
 </ul>
 </div>
-    <div id="stackr-0-3-1" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-3-1" class="anchor"></a>stackr 0.3.1</h1>
+    <div id="stackr-031" class="section level1">
+<h1 class="page-header" data-toc-text="0.3.1">
+<a href="#stackr-031" class="anchor"></a>stackr 0.3.1</h1>
 <ul>
 <li>Bug fix: combined use of <code>if (getRversion() &gt;= "2.15.1") utils::globalVariables("variable")</code> and <code>@inheritParams</code> was not showing all the argument description.</li>
 </ul>
 </div>
-    <div id="stackr-0-3-0" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-3-0" class="anchor"></a>stackr 0.3.0</h1>
+    <div id="stackr-030" class="section level1">
+<h1 class="page-header" data-toc-text="0.3.0">
+<a href="#stackr-030" class="anchor"></a>stackr 0.3.0</h1>
 <ul>
 <li>Update that makes my coding life easier.</li>
 <li>Several internal functions to convert from a tidy dataframe to: <code>vcf</code>, <code>plink</code>, <code>genind</code>, <code>genlight</code>, <code>gtypes</code>, <code>hierfstat</code>, <code>genepop</code>, <code>structure</code> and <code>betadiv</code> are now separate modules available to users (look for <code>write_...</code> with the outputformat)</li>
@@ -475,26 +479,26 @@
 <li>New feature: when arguments <code>pop.select</code>, <code>blacklist.id</code> and <code>imputation.method</code> are used, the REF and ALT alleles are now re-computed to account for the filters and imputations.</li>
 </ul>
 </div>
-    <div id="stackr-0-2-9" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-2-9" class="anchor"></a>stackr 0.2.9</h1>
+    <div id="stackr-029" class="section level1">
+<h1 class="page-header" data-toc-text="0.2.9">
+<a href="#stackr-029" class="anchor"></a>stackr 0.2.9</h1>
 <ul>
 <li>bug fix in <code>tidy_genomic_data</code>
 </li>
 <li>bug fix between stackr -&gt; devtools -&gt; github -&gt; travis, [this page helped] (<a href="http://itsalocke.com/using-travis-make-sure-use-github-pat/" class="uri">http://itsalocke.com/using-travis-make-sure-use-github-pat/</a>)</li>
 </ul>
 </div>
-    <div id="stackr-0-2-8" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-2-8" class="anchor"></a>stackr 0.2.8</h1>
+    <div id="stackr-028" class="section level1">
+<h1 class="page-header" data-toc-text="0.2.8">
+<a href="#stackr-028" class="anchor"></a>stackr 0.2.8</h1>
 <ul>
 <li>bug fix in <code>tidy_genomic_data</code> while using data.table::melt.data.table instead of tidyr::gather, and forgot to</li>
 </ul>
 <p>(i) add variable.factor = FALSE when melting the vcf and (ii) use as_data_frame at the end of the melting to be able to continue working with dplyr verbs.</p>
 </div>
-    <div id="stackr-0-2-7" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-2-7" class="anchor"></a>stackr 0.2.7</h1>
+    <div id="stackr-027" class="section level1">
+<h1 class="page-header" data-toc-text="0.2.7">
+<a href="#stackr-027" class="anchor"></a>stackr 0.2.7</h1>
 <ul>
 <li>Added a <code>NEWS.md</code> file to track changes to the package.</li>
 <li>New function: <code>individuals2strata</code>. Several functions in <strong>stackr</strong> and [assigner] (<a href="https://github.com/thierrygosselin/assigner" class="uri">https://github.com/thierrygosselin/assigner</a>) requires a <code>strata</code> argument, i.e. a data frame with the individuals and associated groupings. You can do it manually, however, if your individuals have a consistent naming scheme (e.g. SPECIES-POPULATION-MATURITY-YEAR-ID = CHI-QUE-ADU-2014-020), use this function to rapidly create a strata file.</li>
@@ -504,53 +508,53 @@
 <li>New function: <code>find_duplicate_id</code> Compute pairwise genome similarity to highligh potential duplicate individuals.</li>
 </ul>
 </div>
-    <div id="stackr-0-2-6" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-2-6" class="anchor"></a>stackr 0.2.6</h1>
+    <div id="stackr-026" class="section level1">
+<h1 class="page-header" data-toc-text="0.2.6">
+<a href="#stackr-026" class="anchor"></a>stackr 0.2.6</h1>
 <ul>
 <li>dart2df_genind_plink: swiss army knife tool to prepare DArT output file (wide or binary format) for population genetics analysis. Import, filter and transform a DArT output file to different format: tidy data frame of genotypes, genind object and/or PLINK <code>tped/tfam</code> format. Map-independent imputation also available.</li>
 </ul>
 </div>
-    <div id="stackr-0-2-5" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-2-5" class="anchor"></a>stackr 0.2.5</h1>
+    <div id="stackr-025" class="section level1">
+<h1 class="page-header" data-toc-text="0.2.5">
+<a href="#stackr-025" class="anchor"></a>stackr 0.2.5</h1>
 <ul>
 <li><p>vcf2plink: to easily convert a VCF file created in STACKS to a PLINK input file (tped/tfam format). This function comes with the commonly used arguments in <strong>stackr</strong>: map-independent imputation, whitelist, blacklist, common marker filtering, etc.</p></li>
 <li><p>data_pruning: to prune your dataset with whitelist, blacklist of individuals, erase genotypes, use common markers and other filtering (see function argument while waiting for the upcomming documentation).</p></li>
 </ul>
 </div>
-    <div id="stackr-0-2-4" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-2-4" class="anchor"></a>stackr 0.2.4</h1>
+    <div id="stackr-024" class="section level1">
+<h1 class="page-header" data-toc-text="0.2.4">
+<a href="#stackr-024" class="anchor"></a>stackr 0.2.4</h1>
 <ul>
 <li>updated the vcf_imputation function for the commonly used arguments in <strong>stackr</strong>.</li>
 </ul>
 </div>
-    <div id="stackr-0-2-3" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-2-3" class="anchor"></a>stackr 0.2.3</h1>
+    <div id="stackr-023" class="section level1">
+<h1 class="page-header" data-toc-text="0.2.3">
+<a href="#stackr-023" class="anchor"></a>stackr 0.2.3</h1>
 <ul>
 <li>vcf2dadi: to easily convert a VCF file created in STACKS to a dadi input file. This function comes with the commonly used arguments in <strong>stackr</strong>: map-independent imputation, whitelist, blacklist, common marker filtering, etc.</li>
 </ul>
 </div>
-    <div id="stackr-0-2-2" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-2-2" class="anchor"></a>stackr 0.2.2</h1>
+    <div id="stackr-022" class="section level1">
+<h1 class="page-header" data-toc-text="0.2.2">
+<a href="#stackr-022" class="anchor"></a>stackr 0.2.2</h1>
 <ul>
 <li>vcf2genepop: to easily convert a VCF file created in STACKS to a genepop input file. This function comes with the commonly used arguments in <strong>stackr</strong>: map-dependent imputation, whitelist, blacklist, etc. For the haplotype version, see haplo2genepop.</li>
 </ul>
 </div>
-    <div id="stackr-0-2-1" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-2-1" class="anchor"></a>stackr 0.2.1</h1>
+    <div id="stackr-021" class="section level1">
+<h1 class="page-header" data-toc-text="0.2.1">
+<a href="#stackr-021" class="anchor"></a>stackr 0.2.1</h1>
 <ul>
 <li>‘read_stacks_vcf’ can now use a whitelist or blacklist of loci that works with CHROM and/or SNP and/or LOCUS.</li>
 <li>‘filter_maf’, ‘filter_fis’, ‘filter_het’ and ‘filter_genotype_likelihood’ now works by haplotypes or SNP.</li>
 </ul>
 </div>
-    <div id="stackr-0-2-0" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-2-0" class="anchor"></a>stackr 0.2.0</h1>
+    <div id="stackr-020" class="section level1">
+<h1 class="page-header" data-toc-text="0.2.0">
+<a href="#stackr-020" class="anchor"></a>stackr 0.2.0</h1>
 <p>Introducing several new functions:</p>
 <ul>
 <li>vcf2betadiv: to easily convert a VCF file created in STACKS to a betadiv input file.</li>
@@ -558,9 +562,9 @@
 <li>vcf2hierfstat: same as haplo2hierfstat but works with SNP instead of haplotypes.</li>
 </ul>
 </div>
-    <div id="stackr-0-1-5" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-1-5" class="anchor"></a>stackr 0.1.5</h1>
+    <div id="stackr-015" class="section level1">
+<h1 class="page-header" data-toc-text="0.1.5">
+<a href="#stackr-015" class="anchor"></a>stackr 0.1.5</h1>
 <p>Introducing <em>haplo2gsi_sim</em> function.</p>
 <ul>
 <li>Conversion of STACKS haplotypes file into a gsi_sim data input file.</li>
@@ -569,14 +573,14 @@
 <li>[gsi_sim] (<a href="https://github.com/eriqande/gsi_sim" class="uri">https://github.com/eriqande/gsi_sim</a>) is a tool developed by Eric C. Anderson for doing and simulating genetic stock identification.</li>
 </ul>
 </div>
-    <div id="stackr-0-1-4" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-1-4" class="anchor"></a>stackr 0.1.4</h1>
+    <div id="stackr-014" class="section level1">
+<h1 class="page-header" data-toc-text="0.1.4">
+<a href="#stackr-014" class="anchor"></a>stackr 0.1.4</h1>
 <p>Introducing <em>haplo2fstat</em> function. Conversion of STACKS haplotypes file into a hierfstat object and fstat file. Access all the functions in the R package [hierfstat] (<a href="https://github.com/jgx65/hierfstat" class="uri">https://github.com/jgx65/hierfstat</a>).</p>
 </div>
-    <div id="stackr-0-1-3" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-1-3" class="anchor"></a>stackr 0.1.3</h1>
+    <div id="stackr-013" class="section level1">
+<h1 class="page-header" data-toc-text="0.1.3">
+<a href="#stackr-013" class="anchor"></a>stackr 0.1.3</h1>
 <p>Map-independent imputations of a VCF file created by STACKS. Two options are available for imputations: using Random Forest or the most frequent allele.</p>
 <p>Before imputations, the VCF file can be filtered with:</p>
 <ul>
@@ -585,9 +589,9 @@
 <li>also, a list of genotypes with bad coverage and/or genotype likelihood can be supplied to erase the genotypes before imputations (for more details look at the function: blacklist_erase_genotype).</li>
 </ul>
 </div>
-    <div id="stackr-0-1-2" class="section level1">
-<h1 class="page-header">
-<a href="#stackr-0-1-2" class="anchor"></a>stackr 0.1.2</h1>
+    <div id="stackr-012" class="section level1">
+<h1 class="page-header" data-toc-text="0.1.2">
+<a href="#stackr-012" class="anchor"></a>stackr 0.1.2</h1>
 <p><strong>The <em>summary_haplotypes</em> function now outputs:</strong></p>
 <ul>
 <li>Putative paralogs, consensus, monomorphic and polymorphic loci</li>
@@ -609,68 +613,10 @@
 </div>
   </div>
 
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <div id="tocnav">
-      <h2>Contents</h2>
-      <ul class="nav nav-pills nav-stacked">
-        <li><a href="#stackr-2-1-0-2019-11-28">2.1.0</a></li>
-        <li><a href="#stackr-2-0-9-2019-11-05">2.0.9</a></li>
-        <li><a href="#stackr-2-0-8-2019-01-14">2.0.8</a></li>
-        <li><a href="#stackr-2-0-7-2018-10-12">2.0.7</a></li>
-        <li><a href="#stackr-2-0-6-2018-08-23">2.0.6</a></li>
-        <li><a href="#stackr-2-0-5-2018-07-09">2.0.5</a></li>
-        <li><a href="#stackr-2-0-4-2018-03-02">2.0.4</a></li>
-        <li><a href="#stackr-2-0-3-2018-02-05">2.0.3</a></li>
-        <li><a href="#stackr-2-0-2-2018-01-16">2.0.2</a></li>
-        <li><a href="#stackr-2-0-1-2017-12-11">2.0.1</a></li>
-        <li><a href="#stackr-2-0-0-2017-10-11">2.0.0</a></li>
-        <li><a href="#stackr-1-0-0-2017-08-18">1.0.0</a></li>
-        <li><a href="#stackr-0-5-9-2017-08-15">0.5.9</a></li>
-        <li><a href="#stackr-0-5-8-2017-08-15">0.5.8</a></li>
-        <li><a href="#stackr-0-5-7-2017-06-17">0.5.7</a></li>
-        <li><a href="#stackr-0-5-6-2017-06-08">0.5.6</a></li>
-        <li><a href="#stackr-0-5-5-2017-05-22">0.5.5</a></li>
-        <li><a href="#stackr-0-5-4-2017-04-06">0.5.4</a></li>
-        <li><a href="#stackr-0-5-3-2017-04-05">0.5.3</a></li>
-        <li><a href="#stackr-0-5-2-2017-03-27">0.5.2</a></li>
-        <li><a href="#stackr-0-5-1-2017-03-21">0.5.1</a></li>
-        <li><a href="#stackr-0-5-0">0.5.0</a></li>
-        <li><a href="#stackr-0-4-9">0.4.9</a></li>
-        <li><a href="#stackr-0-4-8">0.4.8</a></li>
-        <li><a href="#stackr-0-4-7">0.4.7</a></li>
-        <li><a href="#stackr-0-4-6">0.4.6</a></li>
-        <li><a href="#stackr-0-4-5">0.4.5</a></li>
-        <li><a href="#stackr-0-4-4">0.4.4</a></li>
-        <li><a href="#stackr-0-4-3">0.4.3</a></li>
-        <li><a href="#stackr-0-4-2">0.4.2</a></li>
-        <li><a href="#stackr-0-4-1">0.4.1</a></li>
-        <li><a href="#stackr-0-4-0">0.4.0</a></li>
-        <li><a href="#stackr-0-3-9">0.3.9</a></li>
-        <li><a href="#stackr-0-3-8">0.3.8</a></li>
-        <li><a href="#stackr-0-3-7">0.3.7</a></li>
-        <li><a href="#stackr-0-3-6">0.3.6</a></li>
-        <li><a href="#stackr-0-3-5">0.3.5</a></li>
-        <li><a href="#stackr-0-3-4">0.3.4</a></li>
-        <li><a href="#stackr-0-3-3">0.3.3</a></li>
-        <li><a href="#stackr-0-3-2">0.3.2</a></li>
-        <li><a href="#stackr-0-3-1">0.3.1</a></li>
-        <li><a href="#stackr-0-3-0">0.3.0</a></li>
-        <li><a href="#stackr-0-2-9">0.2.9</a></li>
-        <li><a href="#stackr-0-2-8">0.2.8</a></li>
-        <li><a href="#stackr-0-2-7">0.2.7</a></li>
-        <li><a href="#stackr-0-2-6">0.2.6</a></li>
-        <li><a href="#stackr-0-2-5">0.2.5</a></li>
-        <li><a href="#stackr-0-2-4">0.2.4</a></li>
-        <li><a href="#stackr-0-2-3">0.2.3</a></li>
-        <li><a href="#stackr-0-2-2">0.2.2</a></li>
-        <li><a href="#stackr-0-2-1">0.2.1</a></li>
-        <li><a href="#stackr-0-2-0">0.2.0</a></li>
-        <li><a href="#stackr-0-1-5">0.1.5</a></li>
-        <li><a href="#stackr-0-1-4">0.1.4</a></li>
-        <li><a href="#stackr-0-1-3">0.1.3</a></li>
-        <li><a href="#stackr-0-1-2">0.1.2</a></li>
-      </ul>
-    </div>
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 
 </div>
@@ -682,7 +628,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

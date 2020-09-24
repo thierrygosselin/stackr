@@ -10,23 +10,27 @@
 
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -40,7 +44,6 @@
 process_radtags
 module inside R. This function was tested on single-end sequences only.
 If you want to contribute with other types of RAD data, let me know." />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -58,7 +61,7 @@ If you want to contribute with other types of RAD data, let me know." />
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -121,45 +124,45 @@ If you want to contribute with other types of RAD data, let me know.</p>
     </div>
 
     <pre class="usage"><span class='fu'>run_process_radtags</span>(
-  <span class='no'>project.info</span>,
-  <span class='kw'>path.seq.lanes</span> <span class='kw'>=</span> <span class='st'>"03_sequencing_lanes"</span>,
-  <span class='kw'>P</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>I</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>i</span> <span class='kw'>=</span> <span class='st'>"guess"</span>,
-  <span class='kw'>o</span> <span class='kw'>=</span> <span class='st'>"04_process_radtags"</span>,
-  <span class='kw'>y</span> <span class='kw'>=</span> <span class='st'>"guess"</span>,
-  <span class='kw'>pe.1</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>pe.2</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>c</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>q</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>r</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>t</span> <span class='kw'>=</span> <span class='fl'>90</span>,
-  <span class='kw'>D</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>E</span> <span class='kw'>=</span> <span class='st'>"phred33"</span>,
-  <span class='kw'>w</span> <span class='kw'>=</span> <span class='fl'>0.15</span>,
-  <span class='kw'>s</span> <span class='kw'>=</span> <span class='fl'>10</span>,
-  <span class='kw'>barcode.inline.null</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>barcode.index.null</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>barcode.null.index</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>barcode.inline.inline</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>barcode.index.index</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>barcode.inline.index</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>barcode.index.inline</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>enzyme</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>renz.1</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>renz.2</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>bestrad</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>adapter.1</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>adapter.2</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>adapter.mm</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>retain.header</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>merge</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>filter.illumina</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>disable.rad.check</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>len.limit</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>barcode.dist.1</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>barcode.dist.2</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>
+  <span class='kw'>project.info</span>,
+  path.seq.lanes = <span class='st'>"03_sequencing_lanes"</span>,
+  P = <span class='fl'>FALSE</span>,
+  I = <span class='fl'>FALSE</span>,
+  i = <span class='st'>"guess"</span>,
+  o = <span class='st'>"04_process_radtags"</span>,
+  y = <span class='st'>"guess"</span>,
+  pe.1 = <span class='kw'>NULL</span>,
+  pe.2 = <span class='kw'>NULL</span>,
+  c = <span class='fl'>TRUE</span>,
+  q = <span class='fl'>TRUE</span>,
+  r = <span class='fl'>TRUE</span>,
+  t = <span class='fl'>90</span>,
+  D = <span class='fl'>FALSE</span>,
+  E = <span class='st'>"phred33"</span>,
+  w = <span class='fl'>0.15</span>,
+  s = <span class='fl'>10</span>,
+  barcode.inline.null = <span class='fl'>TRUE</span>,
+  barcode.index.null = <span class='fl'>FALSE</span>,
+  barcode.null.index = <span class='fl'>FALSE</span>,
+  barcode.inline.inline = <span class='fl'>FALSE</span>,
+  barcode.index.index = <span class='fl'>FALSE</span>,
+  barcode.inline.index = <span class='fl'>FALSE</span>,
+  barcode.index.inline = <span class='fl'>FALSE</span>,
+  enzyme = <span class='kw'>NULL</span>,
+  renz.1 = <span class='kw'>NULL</span>,
+  renz.2 = <span class='kw'>NULL</span>,
+  bestrad = <span class='fl'>FALSE</span>,
+  adapter.1 = <span class='kw'>NULL</span>,
+  adapter.2 = <span class='kw'>NULL</span>,
+  adapter.mm = <span class='kw'>NULL</span>,
+  retain.header = <span class='fl'>TRUE</span>,
+  merge = <span class='fl'>FALSE</span>,
+  filter.illumina = <span class='fl'>TRUE</span>,
+  disable.rad.check = <span class='fl'>FALSE</span>,
+  len.limit = <span class='kw'>NULL</span>,
+  barcode.dist.1 = <span class='fl'>1</span>,
+  barcode.dist.2 = <span class='kw'>NULL</span>,
+  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>
 )</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -455,31 +458,25 @@ Molecular Ecology, 22, 3124-3140.</p>
     <div class='dont-index'><p><a href='http://catchenlab.life.illinois.edu/stacks/comp/process_radtags.php'>process_radtags</a>.</p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
+    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
 <span class='co'># library(stackr)</span>
 <span class='co'># If you haven't already build the folders to store all the files:</span>
 <span class='co'># stackr::build_stackr_workflow_dir()</span>
 <span class='co'>#</span>
 <span class='co'># run a double digest process_radtags within R:</span>
-<span class='no'>process.radtags.tuna</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>stackr</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/stackr/man/run_process_radtags.html'>run_process_radtags</a></span>(
-<span class='kw'>project.info</span> <span class='kw'>=</span> <span class='st'>"02_project_info/project.info.tuna.tsv"</span>,
-<span class='kw'>path.seq.lanes</span> <span class='kw'>=</span> <span class='st'>"03_sequencing_lanes"</span>,
-<span class='kw'>renz.1</span> <span class='kw'>=</span> <span class='st'>"pstI"</span>, <span class='kw'>renz.2</span> <span class='kw'>=</span> <span class='st'>"mspI"</span>,
-<span class='kw'>adapter.1</span> <span class='kw'>=</span> <span class='st'>"CGAGATCGGAAGAGCGGG"</span>, <span class='kw'>adapter.mm</span> <span class='kw'>=</span> <span class='fl'>2</span>)
+<span class='kw'>process.radtags.tuna</span> <span class='op'>&lt;-</span> <span class='kw'>stackr</span>::<span class='fu'>run_process_radtags</span>(
+project.info = <span class='st'>"02_project_info/project.info.tuna.tsv"</span>,
+path.seq.lanes = <span class='st'>"03_sequencing_lanes"</span>,
+renz.1 = <span class='st'>"pstI"</span>, renz.2 = <span class='st'>"mspI"</span>,
+adapter.1 = <span class='st'>"CGAGATCGGAAGAGCGGG"</span>, adapter.mm = <span class='fl'>2</span>)
 <span class='co'># remaining arguments are defaults, so carefully look at them in the doc.</span>
-}</div></pre>
+}
+</div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#details">Details</a></li>
-      <li><a href="#references">References</a></li>
-      <li><a href="#see-also">See also</a></li>
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -490,7 +487,7 @@ Molecular Ecology, 22, 3124-3140.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

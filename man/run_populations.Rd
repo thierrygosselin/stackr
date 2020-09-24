@@ -41,9 +41,9 @@ run_populations(
   bootstrap.phist = FALSE,
   bootstrap.wl = NULL,
   ordered.export = FALSE,
-  fasta.samples = FALSE,
+  fasta.samples = TRUE,
   fasta.samples_raw = FALSE,
-  fasta.loci = FALSE,
+  fasta.loci = TRUE,
   vcf = TRUE,
   genepop = FALSE,
   structure = FALSE,
@@ -184,13 +184,15 @@ Default: \code{bootstrap.wl = NULL}.}
 Default: \code{ordered.export = FALSE}.}
 
 \item{fasta.samples}{(logical) Output the sequences of the two haplotypes of each (diploid) sample, for each locus, in FASTA format.
-Default: \code{fasta.samples = FALSE}.}
+stackr default is different than stacks default because I think having this info helps to identify problems.
+Default: \code{fasta.samples = TRUE}.}
 
 \item{fasta.samples_raw}{(logical) Output all haplotypes observed in each sample, for each locus, in FASTA format.
 Default: \code{fasta.samples_raw = FALSE}.}
 
 \item{fasta.loci}{(logical) Output consensus sequences of all loci, in FASTA format.
-Default: \code{fasta.loci = FALSE}.}
+stackr default is different than stacks default because I think having this info helps to identify problems.
+Default: \code{fasta.loci = TRUE}.}
 
 \item{vcf}{(logical) Output SNPs in Variant Call Format (VCF).
 Default: \code{vcf = TRUE}.}

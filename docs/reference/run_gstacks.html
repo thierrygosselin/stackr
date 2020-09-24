@@ -10,23 +10,27 @@
 
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous" />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -39,7 +43,6 @@
 <meta property="og:description" content="Run STACKS
 gstacks
 module inside R!" />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -57,7 +60,7 @@ module inside R!" />
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -119,31 +122,31 @@ module inside R!</p>
     </div>
 
     <pre class="usage"><span class='fu'>run_gstacks</span>(
-  <span class='kw'>denovo</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>P</span> <span class='kw'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
-  <span class='kw'>M</span> <span class='kw'>=</span> <span class='st'>"02_project_info/population.map.tsv2bam.tsv"</span>,
-  <span class='kw'>I</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>B</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>O</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>parallel.core</span> <span class='kw'>=</span> <span class='kw pkg'>parallel</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() - <span class='fl'>1</span>,
-  <span class='kw'>model</span> <span class='kw'>=</span> <span class='st'>"marukilow"</span>,
-  <span class='kw'>var.alpha</span> <span class='kw'>=</span> <span class='fl'>0.01</span>,
-  <span class='kw'>gt.alpha</span> <span class='kw'>=</span> <span class='fl'>0.05</span>,
-  <span class='kw'>rm.pcr.duplicates</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>rm.unpaired.reads</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>ignore.pe.reads</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>unpaired</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>kmer.length</span> <span class='kw'>=</span> <span class='fl'>31</span>,
-  <span class='kw'>max.debruijn.reads</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
-  <span class='kw'>min.kmer.cov</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>write.alignments</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>min.mapq</span> <span class='kw'>=</span> <span class='fl'>10</span>,
-  <span class='kw'>max.clipped</span> <span class='kw'>=</span> <span class='fl'>0.2</span>,
-  <span class='kw'>max.insert.len</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
-  <span class='kw'>details</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>phasing.cooccurrences.thr.range</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='fl'>2</span>),
-  <span class='kw'>phasing.dont.prune.hets</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>h</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+  denovo = <span class='fl'>TRUE</span>,
+  P = <span class='st'>"06_ustacks_2_gstacks"</span>,
+  M = <span class='st'>"02_project_info/population.map.tsv2bam.tsv"</span>,
+  I = <span class='kw'>NULL</span>,
+  B = <span class='kw'>NULL</span>,
+  O = <span class='kw'>NULL</span>,
+  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>,
+  model = <span class='st'>"marukilow"</span>,
+  var.alpha = <span class='fl'>0.01</span>,
+  gt.alpha = <span class='fl'>0.05</span>,
+  rm.pcr.duplicates = <span class='fl'>FALSE</span>,
+  rm.unpaired.reads = <span class='fl'>FALSE</span>,
+  ignore.pe.reads = <span class='fl'>TRUE</span>,
+  unpaired = <span class='fl'>TRUE</span>,
+  kmer.length = <span class='fl'>31</span>,
+  max.debruijn.reads = <span class='fl'>1000</span>,
+  min.kmer.cov = <span class='fl'>2</span>,
+  write.alignments = <span class='fl'>FALSE</span>,
+  min.mapq = <span class='fl'>10</span>,
+  max.clipped = <span class='fl'>0.2</span>,
+  max.insert.len = <span class='fl'>1000</span>,
+  details = <span class='fl'>FALSE</span>,
+  phasing.cooccurrences.thr.range = <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='fl'>2</span>),
+  phasing.dont.prune.hets = <span class='fl'>FALSE</span>,
+  h = <span class='fl'>FALSE</span>
 )</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -346,22 +349,17 @@ Genotype Calling from Population-Genomic Sequencing Data. G3, 7, 1393-1404.</p>
     <div class='dont-index'><p><a href='http://catchenlab.life.illinois.edu/stacks/'>STACKS</a></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
+    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
 <span class='co'># The simplest form of the function with De novo data:</span>
-<span class='no'>bam.sum</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>stackr</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/stackr/man/run_gstacks.html'>run_gstacks</a></span>() <span class='co'># that's it !</span>
+<span class='kw'>bam.sum</span> <span class='op'>&lt;-</span> <span class='kw'>stackr</span>::<span class='fu'>run_gstacks</span>() <span class='co'># that's it !</span>
 <span class='co'># This will use, by default, the same population map used in run_tsv2bam</span>
-}</div></pre>
+}
+</div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#value">Value</a></li>
-      <li><a href="#references">References</a></li>
-      <li><a href="#see-also">See also</a></li>
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
@@ -372,7 +370,7 @@ Genotype Calling from Population-Genomic Sequencing Data. G3, 7, 1393-1404.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
