@@ -33,7 +33,7 @@ sample.
 locus (linked loci).
 \item LOCUS_CATALOG_END: the number of locus in the catalog at the end of
 processing the sample.
-\item MISMATHES: the number of mismatches allowed between loci of different samples.
+\item MISMATCHES: the number of mismatches allowed between loci of different samples.
 }
 }
 \description{

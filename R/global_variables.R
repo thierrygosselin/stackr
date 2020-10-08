@@ -83,7 +83,8 @@ if (getRversion() >= "2.15.1") {
       "FORWARD", "REVERSE", "LOCUS_CATALOG_END", "LOCUS_CATALOG_START", "p",
       "parallel.core", "DEPTH", "DEPTH_GROUP", "DISTINCT_READS_DEPTH", "LABELS",
       "NUMBER_DISTINCT_READS", "NUMBER_READS_PROP", "READS_LENGTH", "SEQ", "GC",
-      "LENGTH"
+      "LENGTH", ".data", "IQR", "MAX", "MIN", "OUTLIERS_HIGH", "OUTLIERS_LOW",
+      "Parameters", "Q25", "Q75", "SHORT_NAMES", "fq.files.short", "where"
     )
   )
 }

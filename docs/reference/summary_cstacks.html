@@ -76,7 +76,7 @@ it can be run on it's own." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -125,7 +125,7 @@ This function is run automatically inside <code><a href='run_cstacks.html'>run_c
 it can be run on it's own.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>summary_cstacks</span>(<span class='kw'>cstacks.log</span>, verbose = <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>summary_cstacks</span><span class='op'>(</span><span class='va'>cstacks.log</span>, verbose <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -162,7 +162,7 @@ sample.</p></li>
 locus (linked loci).</p></li>
 <li><p>LOCUS_CATALOG_END: the number of locus in the catalog at the end of
 processing the sample.</p></li>
-<li><p>MISMATHES: the number of mismatches allowed between loci of different samples.</p></li>
+<li><p>MISMATCHES: the number of mismatches allowed between loci of different samples.</p></li>
 </ol>
 
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
@@ -179,12 +179,12 @@ Molecular Ecology, 22, 3124-3140.</p>
 <code><a href='run_cstacks.html'>run_cstacks</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
-<span class='kw'>cstacks.summary</span> <span class='op'>&lt;-</span> <span class='kw'>stackr</span>::<span class='fu'>summary_cstacks</span>(
-cstacks.log = <span class='st'>"09_log_files/cstacks_20191101@1108.log"</span>,
-verbose = <span class='fl'>TRUE</span>
-)
-}
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
+<span class='va'>cstacks.summary</span> <span class='op'>&lt;-</span> <span class='fu'>stackr</span><span class='fu'>::</span><span class='fu'>summary_cstacks</span><span class='op'>(</span>
+cstacks.log <span class='op'>=</span> <span class='st'>"09_log_files/cstacks_20191101@1108.log"</span>,
+verbose <span class='op'>=</span> <span class='cn'>TRUE</span>
+<span class='op'>)</span>
+<span class='op'>}</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

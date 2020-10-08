@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -70,7 +70,7 @@
       <h1 data-toc-skip>Using stackr to run stacks pipeline inside R/RStudio</h1>
                         <h4 class="author">Thierry Gosselin</h4>
             
-            <h4 class="date">2020-09-24</h4>
+            <h4 class="date">2020-10-08</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/thierrygosselin/stackr/blob/master/vignettes/stackr.Rmd"><code>vignettes/stackr.Rmd</code></a></small>
       <div class="hidden name"><code>stackr.Rmd</code></div>
@@ -164,9 +164,8 @@
 <p>To get the doc on the function we’re about to use: <code><a href="../reference/build_stackr_workflow_dir.html">?stackr::build_stackr_workflow_dir</a></code>.</p>
 <p>Let’s start a project on turtles…</p>
 <div class="sourceCode" id="cb1"><pre class="downlit">
-<span class="kw">stackr</span>::<span class="fu"><a href="../reference/build_stackr_workflow_dir.html">build_stackr_workflow_dir</a></span>(main.folder.name = <span class="st">"turtle"</span>)
-<span class="co"># stackr::build_stackr_workflow_dir(main.folder.name = "turtle", date = FALSE) #if you don't want the date appended</span>
-</pre></div>
+<span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/build_stackr_workflow_dir.html">build_stackr_workflow_dir</a></span><span class="op">(</span>main.folder.name <span class="op">=</span> <span class="st">"turtle"</span><span class="op">)</span>
+<span class="co"># stackr::build_stackr_workflow_dir(main.folder.name = "turtle", date = FALSE) #if you don't want the date appended</span></pre></div>
 <p>By default, the date and time is appended to the main folder and inside, these folders will be generated:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="dv">01</span>_scripts</span>
 <span id="cb2-2"><a href="#cb2-2"></a><span class="dv">02</span>_project_info</span>
@@ -206,18 +205,17 @@
 </ul>
 <p>Below an example using metadata: <code>SPECIES</code>, <code>STRATA</code> (could be location, I don’t know the pop yet), <code>YEAR</code> (of sampling), <code>SEX</code>, <code>ID</code> (with sufficient digits)</p>
 <div class="sourceCode" id="cb3"><pre class="downlit">
-<span class="kw">STU</span><span class="op">-</span><span class="kw">BUR</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="kw">F</span><span class="op">-</span><span class="fl">0001</span>
-<span class="kw">STU</span><span class="op">-</span><span class="kw">BUR</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="kw">F</span><span class="op">-</span><span class="fl">0002</span>
-<span class="kw">STU</span><span class="op">-</span><span class="kw">BUR</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="kw">F</span><span class="op">-</span><span class="fl">0003</span>
-<span class="kw">STU</span><span class="op">-</span><span class="kw">BUR</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="kw">F</span><span class="op">-</span><span class="fl">0004</span>
-<span class="kw">STU</span><span class="op">-</span><span class="kw">BUR</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="kw">M</span><span class="op">-</span><span class="fl">0005</span>
-<span class="kw">STU</span><span class="op">-</span><span class="kw">BUR</span><span class="op">-</span><span class="fl">2017</span><span class="op">-</span><span class="kw">F</span><span class="op">-</span><span class="fl">0006</span>
-<span class="kw">STU</span><span class="op">-</span><span class="kw">GRA</span><span class="op">-</span><span class="fl">2017</span><span class="op">-</span><span class="kw">M</span><span class="op">-</span><span class="fl">0007</span> <span class="co"># you could start over from 0001 with different strata, it doesn't matter</span>
-<span class="kw">STU</span><span class="op">-</span><span class="kw">GRA</span><span class="op">-</span><span class="fl">2018</span><span class="op">-</span><span class="kw">M</span><span class="op">-</span><span class="fl">0008</span>
-<span class="kw">STU</span><span class="op">-</span><span class="kw">GRA</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="kw">M</span><span class="op">-</span><span class="fl">0009</span>
-<span class="kw">STU</span><span class="op">-</span><span class="kw">GRA</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="kw">F</span><span class="op">-</span><span class="fl">0010</span>
-<span class="kw">STU</span><span class="op">-</span><span class="kw">GRA</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="kw">F</span><span class="op">-</span><span class="fl">0011</span>
-</pre></div>
+<span class="va">STU</span><span class="op">-</span><span class="va">BUR</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="cn">F</span><span class="op">-</span><span class="fl">0001</span>
+<span class="va">STU</span><span class="op">-</span><span class="va">BUR</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="cn">F</span><span class="op">-</span><span class="fl">0002</span>
+<span class="va">STU</span><span class="op">-</span><span class="va">BUR</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="cn">F</span><span class="op">-</span><span class="fl">0003</span>
+<span class="va">STU</span><span class="op">-</span><span class="va">BUR</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="cn">F</span><span class="op">-</span><span class="fl">0004</span>
+<span class="va">STU</span><span class="op">-</span><span class="va">BUR</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="va">M</span><span class="op">-</span><span class="fl">0005</span>
+<span class="va">STU</span><span class="op">-</span><span class="va">BUR</span><span class="op">-</span><span class="fl">2017</span><span class="op">-</span><span class="cn">F</span><span class="op">-</span><span class="fl">0006</span>
+<span class="va">STU</span><span class="op">-</span><span class="va">GRA</span><span class="op">-</span><span class="fl">2017</span><span class="op">-</span><span class="va">M</span><span class="op">-</span><span class="fl">0007</span> <span class="co"># you could start over from 0001 with different strata, it doesn't matter</span>
+<span class="va">STU</span><span class="op">-</span><span class="va">GRA</span><span class="op">-</span><span class="fl">2018</span><span class="op">-</span><span class="va">M</span><span class="op">-</span><span class="fl">0008</span>
+<span class="va">STU</span><span class="op">-</span><span class="va">GRA</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="va">M</span><span class="op">-</span><span class="fl">0009</span>
+<span class="va">STU</span><span class="op">-</span><span class="va">GRA</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="cn">F</span><span class="op">-</span><span class="fl">0010</span>
+<span class="va">STU</span><span class="op">-</span><span class="va">GRA</span><span class="op">-</span><span class="fl">2019</span><span class="op">-</span><span class="cn">F</span><span class="op">-</span><span class="fl">0011</span></pre></div>
 <p><strong>Special considerations:</strong></p>
 <ul>
 <li>keep it simple.</li>
@@ -240,13 +238,12 @@
 </ul>
 <p>Generate an empty file like this:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit">
-<span class="kw">tibble</span>::<span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span>(
-  LANES = <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span>(<span class="fl">0</span>), 
-  BARCODES = <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span>(<span class="fl">0</span>), 
-  INDIVIDUALS = <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span>(<span class="fl">0</span>)
-) <span class="op">%&gt;%</span> 
-  <span class="kw">readr</span>::<span class="fu"><a href="https://readr.tidyverse.org/reference/write_delim.html">write_tsv</a></span>(x = <span class="kw">.</span>, path = <span class="st">"02_project_info/project.info.turtle.tsv"</span>)
-</pre></div>
+<span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>
+  LANES <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>, 
+  BARCODES <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>, 
+  INDIVIDUALS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>
+<span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/write_delim.html">write_tsv</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.</span>, path <span class="op">=</span> <span class="st">"02_project_info/project.info.turtle.tsv"</span><span class="op">)</span></pre></div>
 </div>
 <div id="paired-end" class="section level3">
 <h3 class="hasAnchor">
@@ -264,14 +261,13 @@
 </ul>
 <p>Generate an empty file like this:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit">
-<span class="kw">tibble</span>::<span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span>(
-  BARCODES = <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span>(<span class="fl">0</span>), 
-  INDIVIDUALS = <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span>(<span class="fl">0</span>),
-  FORWARD = <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span>(<span class="fl">0</span>),
-  REVERSE = <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span>(<span class="fl">0</span>)
-) <span class="op">%&gt;%</span> 
-  <span class="kw">readr</span>::<span class="fu"><a href="https://readr.tidyverse.org/reference/write_delim.html">write_tsv</a></span>(x = <span class="kw">.</span>, path = <span class="st">"02_project_info/project.info.turtle.tsv"</span>)
-</pre></div>
+<span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>
+  BARCODES <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>, 
+  INDIVIDUALS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,
+  FORWARD <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,
+  REVERSE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>
+<span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/write_delim.html">write_tsv</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.</span>, path <span class="op">=</span> <span class="st">"02_project_info/project.info.turtle.tsv"</span><span class="op">)</span></pre></div>
 </div>
 <div id="faq" class="section level3">
 <h3 class="hasAnchor">
@@ -382,12 +378,11 @@
 <p><img src="ion_torrent_2.png"></p>
 <p>The function is:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit">
-<span class="kw">size</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/reads_length_distribution.html">reads_length_distribution</a></span>(
-  fq.file = <span class="st">"my-fastq.fastq.gz"</span>, 
-  with.future = <span class="fl">TRUE</span>, 
-  parallel.core = <span class="fl">12L</span>
-  )
-</pre></div>
+<span class="va">size</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/reads_length_distribution.html">reads_length_distribution</a></span><span class="op">(</span>
+  fq.file <span class="op">=</span> <span class="st">"my-fastq.fastq.gz"</span>, 
+  with.future <span class="op">=</span> <span class="cn">TRUE</span>, 
+  parallel.core <span class="op">=</span> <span class="fl">12L</span>
+  <span class="op">)</span></pre></div>
 <p>You can use individual file or entire chip or lane. Function documentation: <code><a href="../reference/reads_length_distribution.html">?stackr::reads_length_distribution</a></code></p>
 <p><strong>Remember that depending of types of file (individual or entire lane/chip:</strong></p>
 <ul>
@@ -401,43 +396,41 @@
 <a href="#se-radseq" class="anchor"></a>SE RADseq</h3>
 <p>Example with single-end, 2 enzymes RADseq//GBS data:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit">
-<span class="kw">step1</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_process_radtags.html">run_process_radtags</a></span>(
-  project.info = <span class="st">"02_project_info/project.info.turtle.tsv"</span>,
-  path.seq.lanes = <span class="st">"03_sequencing_lanes"</span>,
-  q = <span class="fl">FALSE</span>,
-  renz.1 = <span class="st">"pstI"</span>, 
-  renz.2 = <span class="st">"sphI"</span>,
-  t = <span class="fl">90</span>, 
-  len.limit = <span class="fl">90</span>,
-  filter.illumina = <span class="fl">TRUE</span>, 
-  retain.header = <span class="fl">TRUE</span>,
-  adapter.1 = <span class="st">"CGAGATCGGAAGAGCGGG"</span>, 
-  adapter.mm = <span class="fl">2</span>,
-  parallel.core = <span class="fl">12</span>
-)
-<span class="co"># look for the remaining default arguments...</span>
-</pre></div>
+<span class="va">step1</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_process_radtags.html">run_process_radtags</a></span><span class="op">(</span>
+  project.info <span class="op">=</span> <span class="st">"02_project_info/project.info.turtle.tsv"</span>,
+  path.seq.lanes <span class="op">=</span> <span class="st">"03_sequencing_lanes"</span>,
+  q <span class="op">=</span> <span class="cn">FALSE</span>,
+  renz.1 <span class="op">=</span> <span class="st">"pstI"</span>, 
+  renz.2 <span class="op">=</span> <span class="st">"sphI"</span>,
+  t <span class="op">=</span> <span class="fl">90</span>, 
+  len.limit <span class="op">=</span> <span class="fl">90</span>,
+  filter.illumina <span class="op">=</span> <span class="cn">TRUE</span>, 
+  retain.header <span class="op">=</span> <span class="cn">TRUE</span>,
+  adapter.1 <span class="op">=</span> <span class="st">"CGAGATCGGAAGAGCGGG"</span>, 
+  adapter.mm <span class="op">=</span> <span class="fl">2</span>,
+  parallel.core <span class="op">=</span> <span class="fl">12</span>
+<span class="op">)</span>
+<span class="co"># look for the remaining default arguments...</span></pre></div>
 </div>
 <div id="pe-radseq" class="section level3">
 <h3 class="hasAnchor">
 <a href="#pe-radseq" class="anchor"></a>PE RADseq</h3>
 <p>Example with paired-end 1 enzyme RADseq:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit">
-<span class="kw">step1</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_process_radtags.html">run_process_radtags</a></span>(
-  P = <span class="fl">TRUE</span>,
-  project.info = <span class="st">'02_project_info/project.info.turtle.tsv'</span>,
-  path.seq.lanes = <span class="st">"03_sequencing_lanes"</span>,
-  enzyme = <span class="st">"sbfI"</span>,
-  adapter.1 = <span class="st">"CGAGATCGGAAGAGCGGG"</span>,
-  adapter.2 = <span class="st">"CGAGATCGGAAGAGCGGG"</span>,
-  adapter.mm = <span class="fl">2</span>,
-  t = <span class="fl">90</span>, 
-  len.limit = <span class="fl">90</span>,
-  retain.header = <span class="fl">TRUE</span>,
-  parallel.core = <span class="fl">8</span>
-)
-<span class="co"># look for the remaining default arguments...</span>
-</pre></div>
+<span class="va">step1</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_process_radtags.html">run_process_radtags</a></span><span class="op">(</span>
+  P <span class="op">=</span> <span class="cn">TRUE</span>,
+  project.info <span class="op">=</span> <span class="st">'02_project_info/project.info.turtle.tsv'</span>,
+  path.seq.lanes <span class="op">=</span> <span class="st">"03_sequencing_lanes"</span>,
+  enzyme <span class="op">=</span> <span class="st">"sbfI"</span>,
+  adapter.1 <span class="op">=</span> <span class="st">"CGAGATCGGAAGAGCGGG"</span>,
+  adapter.2 <span class="op">=</span> <span class="st">"CGAGATCGGAAGAGCGGG"</span>,
+  adapter.mm <span class="op">=</span> <span class="fl">2</span>,
+  t <span class="op">=</span> <span class="fl">90</span>, 
+  len.limit <span class="op">=</span> <span class="fl">90</span>,
+  retain.header <span class="op">=</span> <span class="cn">TRUE</span>,
+  parallel.core <span class="op">=</span> <span class="fl">8</span>
+<span class="op">)</span>
+<span class="co"># look for the remaining default arguments...</span></pre></div>
 </div>
 <div id="qc" class="section level3">
 <h3 class="hasAnchor">
@@ -478,12 +471,11 @@
 </ul>
 <p>To run it on your data:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit">
-<span class="kw">read.plot</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/read_depth_plot.html">read_depth_plot</a></span>(
-  fq.file = <span class="st">"04_process_radtags/my-fq.fq.gz"</span>,
-  min.coverage.fig = <span class="fl">7L</span>, <span class="co">#default</span>
-  parallel.core = <span class="kw">parallel</span>::<span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span>() <span class="op">-</span> <span class="fl">1</span> <span class="co">#default</span>
-)
-</pre></div>
+<span class="va">read.plot</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/read_depth_plot.html">read_depth_plot</a></span><span class="op">(</span>
+  fq.file <span class="op">=</span> <span class="st">"04_process_radtags/my-fq.fq.gz"</span>,
+  min.coverage.fig <span class="op">=</span> <span class="fl">7L</span>, <span class="co">#default</span>
+  parallel.core <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span> <span class="co">#default</span>
+<span class="op">)</span></pre></div>
 <p>The function will generate the plot shown above and write the figure in the working directory, using the sample name: <code>my-fq_hap_read_depth.png</code>.</p>
 </div>
 <div id="faq-1" class="section level3">
@@ -500,21 +492,19 @@
 <p><strong>1. Clean the FQ file</strong></p>
 <p>Use the sample you just used in the read coverage groups, above, clean it with <code><a href="../reference/clean_fq.html">stackr::clean_fq</a></code>. It’s very fast to run:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit">
-<span class="kw">clean.fq.name</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/clean_fq.html">clean_fq</a></span>(
-  fq.file = <span class="st">"04_process_radtags/my-fq.fq.gz"</span>, 
-  min.coverage.threshold = <span class="fl">2</span>, 
-  remove.unique.reads = <span class="fl">TRUE</span>, <span class="co">#default</span>
-  write.blacklist.fasta = <span class="fl">TRUE</span>,
-  write.blacklist = <span class="fl">FALSE</span>, <span class="co">#default</span>
-  parallel.core = <span class="kw">parallel</span>::<span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span>() <span class="op">-</span> <span class="fl">1</span>, <span class="co">#default</span>
-  verbose = <span class="fl">TRUE</span> <span class="co">#default</span>
-  )
-</pre></div>
+<span class="va">clean.fq.name</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/clean_fq.html">clean_fq</a></span><span class="op">(</span>
+  fq.file <span class="op">=</span> <span class="st">"04_process_radtags/my-fq.fq.gz"</span>, 
+  min.coverage.threshold <span class="op">=</span> <span class="fl">2</span>, 
+  remove.unique.reads <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">#default</span>
+  write.blacklist.fasta <span class="op">=</span> <span class="cn">TRUE</span>,
+  write.blacklist <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co">#default</span>
+  parallel.core <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span>, <span class="co">#default</span>
+  verbose <span class="op">=</span> <span class="cn">TRUE</span> <span class="co">#default</span>
+  <span class="op">)</span></pre></div>
 <p>This will generate:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit">
-<span class="kw">my</span><span class="op">-</span><span class="kw">fq_cleaned.fq.gz</span> <span class="co"># the cleaned fq file</span>
-<span class="kw">my</span><span class="op">-</span><span class="kw">fq_blacklisted_reads.fasta.gz</span> <span class="co"># a fasta file with blacklisted sequences...</span>
-</pre></div>
+<span class="va">my</span><span class="op">-</span><span class="va">fq_cleaned.fq.gz</span> <span class="co"># the cleaned fq file</span>
+<span class="va">my</span><span class="op">-</span><span class="va">fq_blacklisted_reads.fasta.gz</span> <span class="co"># a fasta file with blacklisted sequences...</span></pre></div>
 <p><strong>2. <em>de novo</em> assembly</strong></p>
 <p>Run stacks <em>ustacks</em> or even better, stay in stackr and do the next step below: <em>the mismatch threshold series</em> (using <code><a href="../reference/run_ustacks.html">stackr::run_ustacks</a></code>). For this, use the raw and clean FQ files and compare the output…</p>
 <p>In all my projects, having less reads (the cleaned FQ file) means:</p>
@@ -537,19 +527,18 @@
 <p><strong>3. Filtering the entire dataset</strong></p>
 <p>If you see a big difference and are convince that filtering is the way to go, you can easily do it with this piece of code:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit">
-<span class="kw">fq.to.clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span>(path = <span class="st">"04_process_radtags/"</span>)
-<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span>(<span class="kw">fq.to.clean</span>) <span class="op">&lt;-</span> <span class="kw">fq.to.clean</span>
+<span class="va">fq.to.clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span>path <span class="op">=</span> <span class="st">"04_process_radtags/"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">fq.to.clean</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">fq.to.clean</span>
 
-<span class="kw">clean.all</span> <span class="op">&lt;-</span> <span class="kw">purrr</span>::<span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_df</a></span>(
-  .x = <span class="kw">fq.to.clean</span>, 
-  .f = <span class="kw">stackr</span>::<span class="kw"><a href="../reference/clean_fq.html">clean_fq</a></span>,
-  min.coverage.threshold = <span class="fl">5</span>, 
-  remove.unique.reads = <span class="fl">TRUE</span>, <span class="co">#default</span>
-  write.blacklist.fasta = <span class="fl">TRUE</span>,
-  write.blacklist = <span class="fl">FALSE</span>, <span class="co">#default</span>
-  parallel.core = <span class="fl">12</span>
-)
-</pre></div>
+<span class="va">clean.all</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_df</a></span><span class="op">(</span>
+  .x <span class="op">=</span> <span class="va">fq.to.clean</span>, 
+  .f <span class="op">=</span> <span class="fu">stackr</span><span class="fu">::</span><span class="va"><a href="../reference/clean_fq.html">clean_fq</a></span>,
+  min.coverage.threshold <span class="op">=</span> <span class="fl">5</span>, 
+  remove.unique.reads <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">#default</span>
+  write.blacklist.fasta <span class="op">=</span> <span class="cn">TRUE</span>,
+  write.blacklist <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co">#default</span>
+  parallel.core <span class="op">=</span> <span class="fl">12</span>
+<span class="op">)</span></pre></div>
 <p>Transfer the cleaned files or the raw ones in a separate folder/sub-folder to keep things tidy.</p>
 </div>
 </div>
@@ -632,26 +621,25 @@
 <p>Read the <a href="http://thierrygosselin.github.io/stackr/reference/normalize_reads.html#examples">function documentation and look at the example</a></p>
 <div class="sourceCode" id="cb13"><pre class="downlit">
 <span class="co"># To run this function, bioconductor's ShortRead package is necessary:</span>
-<span class="fu"><a href="https://rdrr.io/r/base/source.html">source</a></span>(<span class="st">"http://bioconductor.org/biocLite.R"</span>)
-<span class="fu">biocLite</span>(<span class="st">"ShortRead"</span>)
+<span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"http://bioconductor.org/biocLite.R"</span><span class="op">)</span>
+<span class="fu">biocLite</span><span class="op">(</span><span class="st">"ShortRead"</span><span class="op">)</span>
 
 <span class="co"># Using OpenMP threads</span>
-<span class="kw">nthreads</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a></span>(<span class="kw">ShortRead</span>:::<span class="kw">.set_omp_threads</span>, <span class="fl">1L</span>)
-<span class="fu"><a href="https://rdrr.io/r/base/on.exit.html">on.exit</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a></span>(<span class="kw">ShortRead</span>:::<span class="kw">.set_omp_threads</span>, <span class="kw">nthreads</span>))
+<span class="va">nthreads</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a></span><span class="op">(</span><span class="fu">ShortRead</span><span class="fu">:::</span><span class="va">.set_omp_threads</span>, <span class="fl">1L</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/on.exit.html">on.exit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a></span><span class="op">(</span><span class="fu">ShortRead</span><span class="fu">:::</span><span class="va">.set_omp_threads</span>, <span class="va">nthreads</span><span class="op">)</span><span class="op">)</span>
 
 <span class="co"># using defaults:</span>
-<span class="kw">stackr</span>::<span class="fu"><a href="../reference/normalize_reads.html">normalize_reads</a></span>(path.samples = <span class="st">"~/corals"</span>)
+<span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/normalize_reads.html">normalize_reads</a></span><span class="op">(</span>path.samples <span class="op">=</span> <span class="st">"~/corals"</span><span class="op">)</span>
 
 <span class="co"># customizing the function:</span>
-<span class="kw">stackr</span>::<span class="fu"><a href="../reference/normalize_reads.html">normalize_reads</a></span>(
-   project.info = <span class="st">"project.info.corals.tsv"</span>,
-   path.samples = <span class="st">"04_process_radtags"</span>,
-   sample.reads = <span class="fl">2000000</span>,
-   number.replicates = <span class="fl">3</span>,
-   random.seed = <span class="fl">3</span>,
-   parallel.core = <span class="fl">12</span>
-   )
-</pre></div>
+<span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/normalize_reads.html">normalize_reads</a></span><span class="op">(</span>
+   project.info <span class="op">=</span> <span class="st">"project.info.corals.tsv"</span>,
+   path.samples <span class="op">=</span> <span class="st">"04_process_radtags"</span>,
+   sample.reads <span class="op">=</span> <span class="fl">2000000</span>,
+   number.replicates <span class="op">=</span> <span class="fl">3</span>,
+   random.seed <span class="op">=</span> <span class="fl">3</span>,
+   parallel.core <span class="op">=</span> <span class="fl">12</span>
+   <span class="op">)</span></pre></div>
 <p><strong>My observations using rarefaction:</strong></p>
 <ul>
 <li>the replicates have similar mismathches plots: showing me that I can use the same Mismatch threshold (the <code>-M</code> in stacks <em>ustacks</em>) for the rarefied samples.</li>
@@ -695,39 +683,36 @@
 <p>When using paired-end data, use forward reads for the analysis.</p>
 <p>Select one sample to do the test. For this, you could use a sample with average file size or use the stats produced directly by the output of <code>run_process_radtags</code> and available inside the updated project info file saved by the function.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit">
-<span class="kw">info.stats</span> <span class="op">&lt;-</span> <span class="kw">readr</span>::<span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_tsv</a></span>(file = <span class="st">"02_project_info/project.info.20191121@1606.tsv"</span>) <span class="op">%&gt;%</span>
-  <span class="kw">dplyr</span>::<span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(<span class="kw">info.stats</span>, <span class="kw">REPLICATES</span> <span class="op">==</span> <span class="st">"1"</span>)
-<span class="kw">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span>(<span class="kw">info.stats</span><span class="op">$</span><span class="kw">RETAINED</span>)
-<span class="kw">s</span> <span class="op">&lt;-</span> <span class="kw">stats</span>::<span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span>(<span class="kw">info.stats</span><span class="op">$</span><span class="kw">RETAINED</span>)
+<span class="va">info.stats</span> <span class="op">&lt;-</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_tsv</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"02_project_info/project.info.20191121@1606.tsv"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">info.stats</span>, <span class="va">REPLICATES</span> <span class="op">==</span> <span class="st">"1"</span><span class="op">)</span>
+<span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">info.stats</span><span class="op">$</span><span class="va">RETAINED</span><span class="op">)</span>
+<span class="va">s</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">info.stats</span><span class="op">$</span><span class="va">RETAINED</span><span class="op">)</span>
 
-<span class="kw">read.min</span> <span class="op">&lt;-</span> <span class="kw">m</span> <span class="op">-</span> <span class="kw">s</span>
-<span class="kw">read.max</span> <span class="op">&lt;-</span> <span class="kw">m</span> <span class="op">+</span> <span class="kw">s</span>
+<span class="va">read.min</span> <span class="op">&lt;-</span> <span class="va">m</span> <span class="op">-</span> <span class="va">s</span>
+<span class="va">read.max</span> <span class="op">&lt;-</span> <span class="va">m</span> <span class="op">+</span> <span class="va">s</span>
 
-<span class="kw">sample.select</span> <span class="op">&lt;-</span> <span class="kw">info.stats</span> <span class="op">%&gt;%</span>
-  <span class="kw">dplyr</span>::<span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span>(<span class="kw">RETAINED</span> <span class="op">&gt;=</span> <span class="kw">read.min</span> <span class="op">&amp;</span> <span class="kw">RETAINED</span> <span class="op">&lt;=</span> <span class="kw">read.max</span>) <span class="op">%&gt;%</span>
-  <span class="kw">dplyr</span>::<span class="fu"><a href="https://dplyr.tidyverse.org/reference/sample_n.html">sample_n</a></span>(size = <span class="fl">1</span>)
-<span class="kw">sample.select</span><span class="op">$</span><span class="kw">FQ_FILES_F</span>
-<span class="co"># [1] "BET-LAM-60044-1682200-1.1.fq.gz"</span>
-</pre></div>
+<span class="va">sample.select</span> <span class="op">&lt;-</span> <span class="va">info.stats</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">RETAINED</span> <span class="op">&gt;=</span> <span class="va">read.min</span> <span class="op">&amp;</span> <span class="va">RETAINED</span> <span class="op">&lt;=</span> <span class="va">read.max</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/sample_n.html">sample_n</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
+<span class="va">sample.select</span><span class="op">$</span><span class="va">FQ_FILES_F</span>
+<span class="co"># [1] "BET-LAM-60044-1682200-1.1.fq.gz"</span></pre></div>
 <p>Make a copy the file inside the folder: <code>05_clustering_mismatches</code>:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/base/files.html">file.copy</a></span>(
-  from = <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(<span class="st">"04_process_radtags"</span>, <span class="kw">sample.select</span><span class="op">$</span><span class="kw">FQ_FILES_F</span>), 
-  to = <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(<span class="st">"05_clustering_mismatches/"</span>, <span class="kw">sample.select</span><span class="op">$</span><span class="kw">FQ_FILES_F</span>)
-)
-</pre></div>
+<span class="fu"><a href="https://rdrr.io/r/base/files.html">file.copy</a></span><span class="op">(</span>
+  from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="st">"04_process_radtags"</span>, <span class="va">sample.select</span><span class="op">$</span><span class="va">FQ_FILES_F</span><span class="op">)</span>, 
+  to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="st">"05_clustering_mismatches/"</span>, <span class="va">sample.select</span><span class="op">$</span><span class="va">FQ_FILES_F</span><span class="op">)</span>
+<span class="op">)</span></pre></div>
 <p><strong>Run the mismatch clustering series:</strong></p>
 <ul>
 <li>with files around 2M reads</li>
 <li>testing 1 to 5 mismatches is very fast to run</li>
 </ul>
 <div class="sourceCode" id="cb16"><pre class="downlit">
-<span class="kw">mismatch</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_ustacks.html">run_ustacks</a></span>(
-  mismatch.testing = <span class="fl">TRUE</span>,
-  f = <span class="st">"05_clustering_mismatches"</span>,
-  M = <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,
-  model.type = <span class="st">"bounded"</span>)
-</pre></div>
+<span class="va">mismatch</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_ustacks.html">run_ustacks</a></span><span class="op">(</span>
+  mismatch.testing <span class="op">=</span> <span class="cn">TRUE</span>,
+  f <span class="op">=</span> <span class="st">"05_clustering_mismatches"</span>,
+  M <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,
+  model.type <span class="op">=</span> <span class="st">"bounded"</span><span class="op">)</span></pre></div>
 <p>This will generate 5 folders inside <code>05_clustering_mismatches</code> that will have the mismatches number and associated ustacks output files in it.</p>
 <p>A figure similar to this one:</p>
 <p><img src="mismatches.plot.png"></p>
@@ -745,14 +730,13 @@
 <p>Now that you have decided the mismatch threshold, corresponding to the <code>M</code> argument inside <code><a href="../reference/run_ustacks.html">stackr::run_ustacks</a></code>, run the function on all samples.</p>
 <p>Depending on project size, you might want to look at the alternative of ustacks and cstacks: <a href="#alternative">run_radproc</a>.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit">
-<span class="kw">u</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_ustacks.html">run_ustacks</a></span>(
-  project.info = <span class="st">"02_project_info/project.info.20191121@1606.tsv"</span>,
-  M = <span class="fl">3</span>,
-  model.type = <span class="st">"bounded"</span>,
-  parallel.core = <span class="fl">12</span>
-)
-<span class="co"># careful with the defaults...</span>
-</pre></div>
+<span class="va">u</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_ustacks.html">run_ustacks</a></span><span class="op">(</span>
+  project.info <span class="op">=</span> <span class="st">"02_project_info/project.info.20191121@1606.tsv"</span>,
+  M <span class="op">=</span> <span class="fl">3</span>,
+  model.type <span class="op">=</span> <span class="st">"bounded"</span>,
+  parallel.core <span class="op">=</span> <span class="fl">12</span>
+<span class="op">)</span>
+<span class="co"># careful with the defaults...</span></pre></div>
 <p>When using paired-end data, the function uses the forward reads for the assembly. The reverse reads are used later in the pipeline.</p>
 <p><strong>Output: </strong></p>
 <p>The folder <code>06_ustacks_2_gstacks</code> will be populated with 3 files per samples ending with:</p>
@@ -789,29 +773,26 @@
 <p>For now, I highly discourage subsampling to build the catalog = please use all the samples in the project.</p>
 <p>Start by generating a population map:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit">
-<span class="kw">pop.map.catalog</span> <span class="op">&lt;-</span> <span class="kw">u</span><span class="op">$</span><span class="kw">project.info</span> <span class="op">%&gt;%</span>
-  <span class="kw">dplyr</span>::<span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html">distinct</a></span>(<span class="kw">INDIVIDUALS_REP</span>) <span class="op">%&gt;%</span>
-  <span class="kw">dplyr</span>::<span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span>(POP_ID = <span class="fl">1L</span>) <span class="op">%&gt;%</span>
-  <span class="kw">readr</span>::<span class="fu"><a href="https://readr.tidyverse.org/reference/write_delim.html">write_tsv</a></span>(
-    x = <span class="kw">.</span>,
-    path = <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,
-    col_names = <span class="fl">FALSE</span><span class="co"># stacks doesn't want column header</span>
-  ) 
-</pre></div>
+<span class="va">pop.map.catalog</span> <span class="op">&lt;-</span> <span class="va">u</span><span class="op">$</span><span class="va">project.info</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html">distinct</a></span><span class="op">(</span><span class="va">INDIVIDUALS_REP</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>POP_ID <span class="op">=</span> <span class="fl">1L</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/write_delim.html">write_tsv</a></span><span class="op">(</span>
+    x <span class="op">=</span> <span class="va">.</span>,
+    path <span class="op">=</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,
+    col_names <span class="op">=</span> <span class="cn">FALSE</span><span class="co"># stacks doesn't want column header</span>
+  <span class="op">)</span> </pre></div>
 <p><strong>Build the catalog:</strong></p>
 <div class="sourceCode" id="cb19"><pre class="downlit">
-<span class="kw">c</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_cstacks.html">run_cstacks</a></span> (
-  P = <span class="st">"06_ustacks_2_gstacks"</span>,
-  M = <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,
-  n = <span class="fl">3</span>,
-  parallel.core = <span class="fl">32</span>
-)
-</pre></div>
+<span class="va">c</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_cstacks.html">run_cstacks</a></span> <span class="op">(</span>
+  P <span class="op">=</span> <span class="st">"06_ustacks_2_gstacks"</span>,
+  M <span class="op">=</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,
+  n <span class="op">=</span> <span class="fl">3</span>,
+  parallel.core <span class="op">=</span> <span class="fl">32</span>
+<span class="op">)</span></pre></div>
 <p><strong>Who’s in the catalog?</strong></p>
 <p>Use the function <a href="http://thierrygosselin.github.io/stackr/reference/extract_catalog_sql_ids.html">stackr::extract_catalog_sql_ids</a> to verify the SQL IDs of the samples used for the catalog construction.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit">
-<span class="kw">ids</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu">extract_catalog_sql_id</span>(x = <span class="st">"06_ustacks_2_gstacks/catalog.tags.tsv.gz"</span>)
-</pre></div>
+<span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu">extract_catalog_sql_id</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"06_ustacks_2_gstacks/catalog.tags.tsv.gz"</span><span class="op">)</span></pre></div>
 </div>
 <div id="alternative" class="section level2">
 <h2 class="hasAnchor">
@@ -858,8 +839,7 @@
 <div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1"></a><span class="ex">RADProc</span> -t <span class="st">"gzfastq"</span> -f <span class="st">"04_process_radtags"</span> -o <span class="st">"06_ustacks_2_gstacks"</span> -M 4 -m 3 -n 4 -p 8 -x 3 -S 80 -D 7 <span class="op">2&gt;&amp;1</span> <span class="kw">|</span> <span class="fu">tee</span> radproc_date@time.log</span></code></pre></div>
 <p><strong>To run within stackr</strong></p>
 <div class="sourceCode" id="cb24"><pre class="downlit">
-<span class="kw">r</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_radproc.html">run_radproc</a></span>(M = <span class="fl">3</span>, m = <span class="fl">4</span>, n = <span class="fl">3</span>)
-</pre></div>
+<span class="va">r</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_radproc.html">run_radproc</a></span><span class="op">(</span>M <span class="op">=</span> <span class="fl">3</span>, m <span class="op">=</span> <span class="fl">4</span>, n <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></pre></div>
 <p>Function documentation: <code><a href="../reference/run_radproc.html">?stackr::run_radproc</a></code> (read it twice).</p>
 <p>The output of that command:</p>
 <ul>
@@ -881,8 +861,7 @@
 <li>Computer or server problem during the sstacks ? Just launch again the same command, the function will start again, but only with the unmatched samples!</li>
 </ul>
 <div class="sourceCode" id="cb25"><pre class="downlit">
-<span class="kw">s</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_sstacks.html">run_sstacks</a></span>(parallel.core = <span class="fl">12</span>)
-</pre></div>
+<span class="va">s</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_sstacks.html">run_sstacks</a></span><span class="op">(</span>parallel.core <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></pre></div>
 </div>
 <div id="run_tsv2bam" class="section level2">
 <h2 class="hasAnchor">
@@ -897,12 +876,11 @@
 <p>Function documentation: <code><a href="../reference/run_tsv2bam.html">?stackr::run_tsv2bam</a></code> (read it twice).</p>
 <div class="sourceCode" id="cb26"><pre class="downlit">
 <span class="co"># example with paired-end data:</span>
-<span class="kw">bam.sum</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_tsv2bam.html">run_tsv2bam</a></span>(
-  M = <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,
-  R = <span class="st">"04_process_radtags/"</span>,
-  parallel.core = <span class="fl">12</span>
-)
-</pre></div>
+<span class="va">bam.sum</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_tsv2bam.html">run_tsv2bam</a></span><span class="op">(</span>
+  M <span class="op">=</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,
+  R <span class="op">=</span> <span class="st">"04_process_radtags/"</span>,
+  parallel.core <span class="op">=</span> <span class="fl">12</span>
+<span class="op">)</span></pre></div>
 </div>
 <div id="run_gstacks" class="section level2">
 <h2 class="hasAnchor">
@@ -913,25 +891,23 @@
 <h3 class="hasAnchor">
 <a href="#single-end-1" class="anchor"></a>single-end</h3>
 <div class="sourceCode" id="cb27"><pre class="downlit">
-<span class="kw">g</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_gstacks.html">run_gstacks</a></span>(
-  M = <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,
-  parallel.core = <span class="fl">12</span>
-  )
-</pre></div>
+<span class="va">g</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_gstacks.html">run_gstacks</a></span><span class="op">(</span>
+  M <span class="op">=</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,
+  parallel.core <span class="op">=</span> <span class="fl">12</span>
+  <span class="op">)</span></pre></div>
 </div>
 <div id="paired-end-1" class="section level3">
 <h3 class="hasAnchor">
 <a href="#paired-end-1" class="anchor"></a>paired-end</h3>
 <div class="sourceCode" id="cb28"><pre class="downlit">
-<span class="kw">g</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_gstacks.html">run_gstacks</a></span>(
-  M = <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,
-  rm.pcr.duplicates = <span class="fl">TRUE</span>,
-  rm.unpaired.reads = <span class="fl">TRUE</span>,
-  unpaired = <span class="fl">FALSE</span>,
-  ignore.pe.reads = <span class="fl">FALSE</span>,
-  parallel.core = <span class="fl">12</span>
-)
-</pre></div>
+<span class="va">g</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_gstacks.html">run_gstacks</a></span><span class="op">(</span>
+  M <span class="op">=</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>,
+  rm.pcr.duplicates <span class="op">=</span> <span class="cn">TRUE</span>,
+  rm.unpaired.reads <span class="op">=</span> <span class="cn">TRUE</span>,
+  unpaired <span class="op">=</span> <span class="cn">FALSE</span>,
+  ignore.pe.reads <span class="op">=</span> <span class="cn">FALSE</span>,
+  parallel.core <span class="op">=</span> <span class="fl">12</span>
+<span class="op">)</span></pre></div>
 </div>
 </div>
 <div id="run_populations" class="section level2">
@@ -940,14 +916,13 @@
 <p>For this step, I like to keep it simple and get a VCF file. Filters are best handled in my package <a href="https://thierrygosselin.github.io/radiator/index.html">radiator</a>.</p>
 <p>Function documentation: <code><a href="../reference/run_populations.html">?stackr::run_populations</a></code> (read it twice).</p>
 <div class="sourceCode" id="cb29"><pre class="downlit">
-<span class="kw">p</span> <span class="op">&lt;-</span> <span class="kw">stackr</span>::<span class="fu"><a href="../reference/run_populations.html">run_populations</a></span>(
-  M = <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>, 
-  verbose = <span class="fl">TRUE</span>, 
-  r = <span class="fl">0.1</span>, 
-  R = <span class="fl">0.1</span>,
-  p = <span class="fl">1</span>,
-  parallele.core = <span class="fl">1</span>)
-</pre></div>
+<span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/run_populations.html">run_populations</a></span><span class="op">(</span>
+  M <span class="op">=</span> <span class="st">"02_project_info/population.map.turtle.catalog.tsv"</span>, 
+  verbose <span class="op">=</span> <span class="cn">TRUE</span>, 
+  r <span class="op">=</span> <span class="fl">0.1</span>, 
+  R <span class="op">=</span> <span class="fl">0.1</span>,
+  p <span class="op">=</span> <span class="fl">1</span>,
+  parallele.core <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></pre></div>
 </div>
 <div id="filtering-1" class="section level2">
 <h2 class="hasAnchor">

@@ -77,7 +77,7 @@ distinct reads with low coverage
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -127,29 +127,40 @@ by removing:</p><ul>
 
     </div>
 
-    <pre class="usage"><span class='fu'>clean_fq</span>(
-  <span class='kw'>fq.file</span>,
-  min.coverage.threshold = <span class='fl'>2L</span>,
-  remove.unique.reads = <span class='fl'>TRUE</span>,
-  write.blacklist = <span class='fl'>FALSE</span>,
-  write.blacklist.fasta = <span class='fl'>FALSE</span>,
-  compress = <span class='fl'>FALSE</span>,
-  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>
-)</pre>
+    <pre class="usage"><span class='fu'>clean_fq</span><span class='op'>(</span>
+  <span class='va'>fq.files</span>,
+  min.coverage.threshold <span class='op'>=</span> <span class='fl'>2L</span>,
+  max.coverage.threshold <span class='op'>=</span> <span class='st'>"high.coverage.unique.reads"</span>,
+  remove.unique.reads <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  write.blacklist <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  write.blacklist.fasta <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  compress <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  output.dir <span class='op'>=</span> <span class='cn'>NULL</span>,
+  parallel.core <span class='op'>=</span> <span class='fu'>parallel</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>-</span> <span class='fl'>1</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>fq.file</th>
+      <th>fq.files</th>
       <td><p>(character, path). The path to the individual fastq file to check.
-Default: <code>fq.file = "my-sample.fq.gz"</code>.</p></td>
+Default: <code>fq.files = "my-sample.fq.gz"</code>.</p></td>
     </tr>
     <tr>
       <th>min.coverage.threshold</th>
-      <td><p>(character, path). Minimum coverage threshold.
+      <td><p>(integer). Minimum coverage threshold.
 The function will remove distinct reads with coverage &lt;= to the threshold.
+To turn off, <code>min.coverage.threshold = NULL or 0L</code>.
 Default: <code>min.coverage.threshold = 2L</code>.</p></td>
+    </tr>
+    <tr>
+      <th>max.coverage.threshold</th>
+      <td><p>(integer, character). Maximum coverage threshold.
+The function will remove distinct reads with coverage &gt;= than this threshold.
+To turn off, <code>max.coverage.threshold = NULL</code>.
+The default, use the starting depth where high coverage unique reads are observed.
+Default: <code>max.coverage.threshold = "high.coverage.unique.reads"</code>.</p></td>
     </tr>
     <tr>
       <th>remove.unique.reads</th>
@@ -175,6 +186,11 @@ space, don't compress, it's way faster this way to write.
 Default: <code>compress = FALSE</code>.</p></td>
     </tr>
     <tr>
+      <th>output.dir</th>
+      <td><p>(path) Write the cleaned fq files in a specific directory.
+Default: <code>output.dir = NULL</code>, uses the working directory.</p></td>
+    </tr>
+    <tr>
       <th>parallel.core</th>
       <td><p>(integer) Enable parallel execution with the number of threads.
 Default: <code>parallel.core = parallel::detectCores() - 1</code>.</p></td>
@@ -184,22 +200,13 @@ Default: <code>parallel.core = parallel::detectCores() - 1</code>.</p></td>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>The function returns a cleaned fq file with the name of the sample and
-<code>_cleaned</code> appended to the filename.</p>
+<code>-cleaned</code> appended to the filename.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>coming soon, just try it in the meantime...</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
-<span class='fu'><a href='https://rdrr.io/r/base/library.html'>require</a></span>(<span class='kw'><a href='https://vroom.r-lib.org'>vroom</a></span>)
-<span class='kw'>clean.id</span> <span class='op'>&lt;-</span> <span class='kw'>stackr</span>::<span class='fu'>clean_fq</span>(
-  fq.file = <span class='st'>"my-sample.fq.gz"</span>,
-  min.coverage.threshold = <span class='fl'>7</span>,
-  remove.unique.reads = <span class='fl'>TRUE</span>,
-  write.blacklist.fasta = <span class='fl'>TRUE</span>
-  )
-}
-</div></pre>
+    <pre class="examples"></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

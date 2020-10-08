@@ -74,7 +74,7 @@ module inside R!" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -121,64 +121,64 @@ module inside R!" />
 module inside R!</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_populations</span>(
-  P = <span class='st'>"06_ustacks_2_gstacks"</span>,
-  V = <span class='kw'>NULL</span>,
-  O = <span class='st'>"07_populations"</span>,
-  <span class='kw'>M</span>,
-  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>,
-  batch.size = <span class='fl'>10000</span>,
-  p = <span class='fl'>1</span>,
-  r = <span class='fl'>0.3</span>,
-  R = <span class='fl'>0.3</span>,
-  H = <span class='fl'>TRUE</span>,
-  min.maf = <span class='kw'>NULL</span>,
-  min.mac = <span class='kw'>NULL</span>,
-  max.obs.het = <span class='kw'>NULL</span>,
-  write.single.snp = <span class='fl'>FALSE</span>,
-  write.random.snp = <span class='fl'>FALSE</span>,
-  B = <span class='kw'>NULL</span>,
-  W = <span class='kw'>NULL</span>,
-  e = <span class='kw'>NULL</span>,
-  merge.sites = <span class='fl'>FALSE</span>,
-  merge.prune.lim = <span class='kw'>NULL</span>,
-  hwe = <span class='fl'>FALSE</span>,
-  fstats = <span class='fl'>FALSE</span>,
-  fst.correction = <span class='kw'>NULL</span>,
-  p.value.cutoff = <span class='fl'>0.05</span>,
-  k = <span class='fl'>FALSE</span>,
-  smooth.fstats = <span class='fl'>FALSE</span>,
-  smooth.popstats = <span class='fl'>FALSE</span>,
-  sigma = <span class='fl'>150000</span>,
-  bootstrap = <span class='fl'>FALSE</span>,
-  N = <span class='fl'>100</span>,
-  bootstrap.pifis = <span class='fl'>FALSE</span>,
-  bootstrap.fst = <span class='fl'>FALSE</span>,
-  bootstrap.div = <span class='fl'>FALSE</span>,
-  bootstrap.phist = <span class='fl'>FALSE</span>,
-  bootstrap.wl = <span class='kw'>NULL</span>,
-  ordered.export = <span class='fl'>FALSE</span>,
-  fasta.samples = <span class='fl'>TRUE</span>,
-  fasta.samples_raw = <span class='fl'>FALSE</span>,
-  fasta.loci = <span class='fl'>TRUE</span>,
-  vcf = <span class='fl'>TRUE</span>,
-  genepop = <span class='fl'>FALSE</span>,
-  structure = <span class='fl'>FALSE</span>,
-  radpainter = <span class='fl'>FALSE</span>,
-  phase = <span class='fl'>FALSE</span>,
-  fastphase = <span class='fl'>FALSE</span>,
-  plink = <span class='fl'>FALSE</span>,
-  hzar = <span class='fl'>FALSE</span>,
-  phylip = <span class='fl'>FALSE</span>,
-  phylip.var = <span class='fl'>FALSE</span>,
-  phylip.var.all = <span class='fl'>FALSE</span>,
-  treemix = <span class='fl'>FALSE</span>,
-  no.hap.exports = <span class='fl'>FALSE</span>,
-  h = <span class='fl'>FALSE</span>,
-  verbose = <span class='fl'>FALSE</span>,
-  v = <span class='fl'>FALSE</span>,
-  log.fst.comp = <span class='fl'>FALSE</span>
-)</pre>
+    <pre class="usage"><span class='fu'>run_populations</span><span class='op'>(</span>
+  P <span class='op'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
+  V <span class='op'>=</span> <span class='cn'>NULL</span>,
+  O <span class='op'>=</span> <span class='st'>"07_populations"</span>,
+  <span class='va'>M</span>,
+  parallel.core <span class='op'>=</span> <span class='fu'>parallel</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>-</span> <span class='fl'>1</span>,
+  batch.size <span class='op'>=</span> <span class='fl'>10000</span>,
+  p <span class='op'>=</span> <span class='fl'>1</span>,
+  r <span class='op'>=</span> <span class='fl'>0.3</span>,
+  R <span class='op'>=</span> <span class='fl'>0.3</span>,
+  H <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  min.maf <span class='op'>=</span> <span class='cn'>NULL</span>,
+  min.mac <span class='op'>=</span> <span class='cn'>NULL</span>,
+  max.obs.het <span class='op'>=</span> <span class='cn'>NULL</span>,
+  write.single.snp <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  write.random.snp <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  B <span class='op'>=</span> <span class='cn'>NULL</span>,
+  W <span class='op'>=</span> <span class='cn'>NULL</span>,
+  e <span class='op'>=</span> <span class='cn'>NULL</span>,
+  merge.sites <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  merge.prune.lim <span class='op'>=</span> <span class='cn'>NULL</span>,
+  hwe <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  fstats <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  fst.correction <span class='op'>=</span> <span class='cn'>NULL</span>,
+  p.value.cutoff <span class='op'>=</span> <span class='fl'>0.05</span>,
+  k <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  smooth.fstats <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  smooth.popstats <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  sigma <span class='op'>=</span> <span class='fl'>150000</span>,
+  bootstrap <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  N <span class='op'>=</span> <span class='fl'>100</span>,
+  bootstrap.pifis <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  bootstrap.fst <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  bootstrap.div <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  bootstrap.phist <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  bootstrap.wl <span class='op'>=</span> <span class='cn'>NULL</span>,
+  ordered.export <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  fasta.samples <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  fasta.samples_raw <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  fasta.loci <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  vcf <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  genepop <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  structure <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  radpainter <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  phase <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  fastphase <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  plink <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  hzar <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  phylip <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  phylip.var <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  phylip.var.all <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  treemix <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  no.hap.exports <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  h <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  verbose <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  v <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  log.fst.comp <span class='op'>=</span> <span class='cn'>FALSE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -499,9 +499,9 @@ Biometrics, 48, 361-372.</p>
 <a href='http://catchenlab.life.illinois.edu/stacks/'>STACKS Version 2.0b</a></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
-<span class='kw'>pop</span> <span class='op'>&lt;-</span> <span class='kw'>stackr</span>::<span class='fu'>run_populations</span>(M = <span class='st'>"population.map.tsv"</span>)
-}
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
+<span class='va'>pop</span> <span class='op'>&lt;-</span> <span class='fu'>stackr</span><span class='fu'>::</span><span class='fu'>run_populations</span><span class='op'>(</span>M <span class='op'>=</span> <span class='st'>"population.map.tsv"</span><span class='op'>)</span>
+<span class='op'>}</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

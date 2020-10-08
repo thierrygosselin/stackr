@@ -80,7 +80,7 @@ pipeline
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -133,11 +133,11 @@ the catalog, the next step in
 (see example).</p>
     </div>
 
-    <pre class="usage"><span class='fu'>summary_pstacks</span>(
-  <span class='kw'>pstacks.folder</span>,
-  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>,
-  verbose = <span class='fl'>FALSE</span>
-)</pre>
+    <pre class="usage"><span class='fu'>summary_pstacks</span><span class='op'>(</span>
+  <span class='va'>pstacks.folder</span>,
+  parallel.core <span class='op'>=</span> <span class='fu'>parallel</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>-</span> <span class='fl'>1</span>,
+  verbose <span class='op'>=</span> <span class='cn'>FALSE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -191,55 +191,55 @@ Molecular Ecology, 22, 3124-3140.</p>
 <code><a href='run_cstacks.html'>run_cstacks</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
-<span class='kw'>pstacks.summary</span> <span class='op'>&lt;-</span> <span class='kw'>stackr</span>::<span class='fu'>summary_pstacks</span>(
-pstacks.folder = <span class='st'>"output_pstacks"</span>, verbose = <span class='fl'>TRUE</span>)
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
+<span class='va'>pstacks.summary</span> <span class='op'>&lt;-</span> <span class='fu'>stackr</span><span class='fu'>::</span><span class='fu'>summary_pstacks</span><span class='op'>(</span>
+pstacks.folder <span class='op'>=</span> <span class='st'>"output_pstacks"</span>, verbose <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
 
 <span class='co'># To get the number of snp/locus for a specific individual:</span>
-<span class='kw'>snp.info</span> <span class='op'>&lt;-</span> <span class='kw'>pstacks.summary</span> <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/filter.html'>filter</a></span>(<span class='kw'>INDIVIDUALS</span> <span class='op'>==</span> <span class='st'>"ID2"</span>) <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span>(<span class='kw'>INDIVIDUALS</span>, <span class='kw'>SNP_LOCUS</span>) <span class='op'>%&gt;%</span>
-<span class='kw'>tidyr</span>::<span class='fu'><a href='https://tidyr.tidyverse.org/reference/nest.html'>unnest</a></span>(<span class='kw'>.</span>)
+<span class='va'>snp.info</span> <span class='op'>&lt;-</span> <span class='va'>pstacks.summary</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/filter.html'>filter</a></span><span class='op'>(</span><span class='va'>INDIVIDUALS</span> <span class='op'>==</span> <span class='st'>"ID2"</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>INDIVIDUALS</span>, <span class='va'>SNP_LOCUS</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>tidyr</span><span class='fu'>::</span><span class='fu'><a href='https://tidyr.tidyverse.org/reference/nest.html'>unnest</a></span><span class='op'>(</span><span class='va'>.</span><span class='op'>)</span>
 
 <span class='co'>#Similarly, for the blacklisted locus (artifactual):</span>
-<span class='kw'>blacklist</span> <span class='op'>&lt;-</span> <span class='kw'>pstacks.summary</span> <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/filter.html'>filter</a></span>(<span class='kw'>INDIVIDUALS</span> <span class='op'>==</span> <span class='st'>"ID2"</span>) <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span>(<span class='kw'>INDIVIDUALS</span>, <span class='kw'>BLACKLIST_ARTIFACT</span>) <span class='op'>%&gt;%</span>
-<span class='kw'>tidyr</span>::<span class='fu'><a href='https://tidyr.tidyverse.org/reference/nest.html'>unnest</a></span>(<span class='kw'>.</span>)
+<span class='va'>blacklist</span> <span class='op'>&lt;-</span> <span class='va'>pstacks.summary</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/filter.html'>filter</a></span><span class='op'>(</span><span class='va'>INDIVIDUALS</span> <span class='op'>==</span> <span class='st'>"ID2"</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>INDIVIDUALS</span>, <span class='va'>BLACKLIST_ARTIFACT</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>tidyr</span><span class='fu'>::</span><span class='fu'><a href='https://tidyr.tidyverse.org/reference/nest.html'>unnest</a></span><span class='op'>(</span><span class='va'>.</span><span class='op'>)</span>
 
 <span class='co'># Decide individuals to include in catalog:</span>
 
 <span class='co'># Make the pstacks.summary dataframe population wise by including pop info.</span>
 <span class='co'># For this we need a strata file ... it's similar to a population map, but with headers.</span>
 <span class='co'># It's a 2 columns files with INDIVIDUALS and STRATA as column header.</span>
-<span class='kw'>strata</span> <span class='op'>&lt;-</span> <span class='kw'>readr</span>::<span class='fu'><a href='https://readr.tidyverse.org/reference/read_delim.html'>read_tsv</a></span>(<span class='st'>"strata.octopus.tsv"</span>, col_types = <span class='st'>"cc"</span>) <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/rename.html'>rename</a></span>(POP_ID = <span class='kw'>STRATA</span>)
+<span class='va'>strata</span> <span class='op'>&lt;-</span> <span class='fu'>readr</span><span class='fu'>::</span><span class='fu'><a href='https://readr.tidyverse.org/reference/read_delim.html'>read_tsv</a></span><span class='op'>(</span><span class='st'>"strata.octopus.tsv"</span>, col_types <span class='op'>=</span> <span class='st'>"cc"</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/rename.html'>rename</a></span><span class='op'>(</span>POP_ID <span class='op'>=</span> <span class='va'>STRATA</span><span class='op'>)</span>
 
 <span class='co'># join the dataframes</span>
-<span class='kw'>individuals.catalog</span> <span class='op'>&lt;-</span> <span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/mutate-joins.html'>left_join</a></span>(<span class='kw'>pstacks.summary</span>, <span class='kw'>strata</span>, by = <span class='st'>"INDIVIDUALS"</span>) <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/arrange.html'>arrange</a></span>(<span class='fu'>desc</span>(<span class='kw'>FILTERED</span>))
+<span class='va'>individuals.catalog</span> <span class='op'>&lt;-</span> <span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/mutate-joins.html'>left_join</a></span><span class='op'>(</span><span class='va'>pstacks.summary</span>, <span class='va'>strata</span>, by <span class='op'>=</span> <span class='st'>"INDIVIDUALS"</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/arrange.html'>arrange</a></span><span class='op'>(</span><span class='fu'>desc</span><span class='op'>(</span><span class='va'>FILTERED</span><span class='op'>)</span><span class='op'>)</span>
 
 <span class='co'># look at the FILTERED column</span>
-<span class='fu'><a href='https://rdrr.io/r/graphics/hist.html'>hist</a></span>(<span class='kw'>individuals.catalog</span><span class='op'>$</span><span class='kw'>FILTERED</span>)
-<span class='fu'><a href='https://rdrr.io/r/graphics/boxplot.html'>boxplot</a></span>(<span class='kw'>individuals.catalog</span><span class='op'>$</span><span class='kw'>FILTERED</span>)
-<span class='fu'><a href='https://rdrr.io/r/base/mean.html'>mean</a></span>(<span class='kw'>individuals.catalog</span><span class='op'>$</span><span class='kw'>FILTERED</span>)
+<span class='fu'><a href='https://rdrr.io/r/graphics/hist.html'>hist</a></span><span class='op'>(</span><span class='va'>individuals.catalog</span><span class='op'>$</span><span class='va'>FILTERED</span><span class='op'>)</span>
+<span class='fu'><a href='https://rdrr.io/r/graphics/boxplot.html'>boxplot</a></span><span class='op'>(</span><span class='va'>individuals.catalog</span><span class='op'>$</span><span class='va'>FILTERED</span><span class='op'>)</span>
+<span class='fu'><a href='https://rdrr.io/r/base/mean.html'>mean</a></span><span class='op'>(</span><span class='va'>individuals.catalog</span><span class='op'>$</span><span class='va'>FILTERED</span><span class='op'>)</span>
 
 <span class='co'># lets say we want to filter out individuals below 45000 markers</span>
-<span class='kw'>individuals.catalog.filtered</span> <span class='op'>&lt;-</span> <span class='kw'>individuals.catalog</span> <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/filter.html'>filter</a></span>(<span class='kw'>FILTERED</span> <span class='op'>&gt;</span> <span class='fl'>45000</span>)
+<span class='va'>individuals.catalog.filtered</span> <span class='op'>&lt;-</span> <span class='va'>individuals.catalog</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/filter.html'>filter</a></span><span class='op'>(</span><span class='va'>FILTERED</span> <span class='op'>&gt;</span> <span class='fl'>45000</span><span class='op'>)</span>
 
 <span class='co'># number of ind per pop</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span>(<span class='kw'>individuals.catalog.filtered</span>, <span class='kw'>INDIVIDUALS</span>, <span class='kw'>POP_ID</span>) <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/group_by.html'>group_by</a></span>(<span class='kw'>POP_ID</span>) <span class='op'>%&gt;%</span> <span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/count.html'>tally</a></span>(<span class='kw'>.</span>)
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>individuals.catalog.filtered</span>, <span class='va'>INDIVIDUALS</span>, <span class='va'>POP_ID</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/group_by.html'>group_by</a></span><span class='op'>(</span><span class='va'>POP_ID</span><span class='op'>)</span> <span class='op'>%&gt;%</span> <span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/count.html'>tally</a></span><span class='op'>(</span><span class='va'>.</span><span class='op'>)</span>
 
 <span class='co'># choose 20% of individuals per pop to represent the catalog</span>
 
-<span class='kw'>individuals.catalog.select</span> <span class='op'>&lt;-</span> <span class='kw'>individuals.catalog.filtered</span> <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/group_by.html'>group_by</a></span>(<span class='kw'>POP_ID</span>) <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/sample_n.html'>sample_frac</a></span>(tbl = <span class='kw'>.</span>, size = <span class='fl'>0.2</span>, replace = <span class='fl'>FALSE</span>) <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/group_by.html'>ungroup</a></span>(<span class='kw'>.</span>) <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/arrange.html'>arrange</a></span>(<span class='fu'>desc</span>(<span class='kw'>FILTERED</span>)) <span class='op'>%&gt;%</span>
-<span class='kw'>dplyr</span>::<span class='fu'><a href='https://dplyr.tidyverse.org/reference/distinct.html'>distinct</a></span>(<span class='kw'>INDIVIDUALS</span>, <span class='kw'>POP_ID</span>)
+<span class='va'>individuals.catalog.select</span> <span class='op'>&lt;-</span> <span class='va'>individuals.catalog.filtered</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/group_by.html'>group_by</a></span><span class='op'>(</span><span class='va'>POP_ID</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/sample_n.html'>sample_frac</a></span><span class='op'>(</span>tbl <span class='op'>=</span> <span class='va'>.</span>, size <span class='op'>=</span> <span class='fl'>0.2</span>, replace <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/group_by.html'>ungroup</a></span><span class='op'>(</span><span class='va'>.</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/arrange.html'>arrange</a></span><span class='op'>(</span><span class='fu'>desc</span><span class='op'>(</span><span class='va'>FILTERED</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+<span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/distinct.html'>distinct</a></span><span class='op'>(</span><span class='va'>INDIVIDUALS</span>, <span class='va'>POP_ID</span><span class='op'>)</span>
 
 <span class='co'># Using desc (from large to lower number of markers) ensure that</span>
 <span class='co'># the catalog is populated with samples with the highest number of loci first.</span>
@@ -249,11 +249,11 @@ pstacks.folder = <span class='st'>"output_pstacks"</span>, verbose = <span class
 <span class='co'># Create a file with individuals and pop to use in</span>
 <span class='co'># cstacks or run_cstacks</span>
 
-<span class='kw'>readr</span>::<span class='fu'><a href='https://readr.tidyverse.org/reference/write_delim.html'>write_tsv</a></span>(
-x = <span class='kw'>individuals.catalog.select</span>,
-path = <span class='st'>"population.map.octopus.samples.catalog.tsv"</span>,
-col_names = <span class='fl'>FALSE</span>) <span class='co'># stacks doesn't want column header</span>
-}
+<span class='fu'>readr</span><span class='fu'>::</span><span class='fu'><a href='https://readr.tidyverse.org/reference/write_delim.html'>write_tsv</a></span><span class='op'>(</span>
+x <span class='op'>=</span> <span class='va'>individuals.catalog.select</span>,
+path <span class='op'>=</span> <span class='st'>"population.map.octopus.samples.catalog.tsv"</span>,
+col_names <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span> <span class='co'># stacks doesn't want column header</span>
+<span class='op'>}</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

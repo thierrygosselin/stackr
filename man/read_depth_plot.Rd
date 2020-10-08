@@ -47,7 +47,8 @@ limit of another group (the orange, see below for description). Minus 1 bp.
 \item distinct reads with high coverage > 1 read depth (in yellow): those are
 legitimate alleles with high coverage.
 \item distinct and unique reads with high coverage (in orange): those
-alleles when they are assembled in locus are usually paralogs, transposable elements, etc.
+repetitive elements when assembled in locus are usually paralogs,
+retrotransposons, transposable elements, etc.
 }
 }
 \examples{

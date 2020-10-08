@@ -4,7 +4,11 @@
 \alias{rename_fq}
 \title{Rename fastq files}
 \usage{
-rename_fq(change.fq, parallel.core = parallel::detectCores() - 1)
+rename_fq(
+  change.fq,
+  parallel.core = parallel::detectCores() - 1,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{change.fq}{(object, path to a file) Data frame in the global environment or a tab separated file.
@@ -15,6 +19,9 @@ See example below.}
 
 \item{parallel.core}{Enable parallel execution using multiple core.
 Default: \code{parallel.core = parallel::detectCores() - 1}.}
+
+\item{verbose}{By function the function chats.
+Default: \code{verbose = TRUE}.}
 }
 \value{
 The function returns nothing in the global environment. The function

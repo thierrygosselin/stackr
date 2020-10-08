@@ -6,6 +6,7 @@
 \usage{
 read_counter(
   path.samples,
+  recursive = FALSE,
   strata = NULL,
   plot.reads = TRUE,
   write = TRUE,
@@ -15,6 +16,10 @@ read_counter(
 \arguments{
 \item{path.samples}{(character, path) Path of folder containing the
 samples to count reads}
+
+\item{recursive}{(logical) Should the listing recurse into the directory?
+e.g. when \code{path.samples} contains nested folders with FQ files.
+Default: \code{recursive = FALSE}.}
 
 \item{strata}{(optional)
 The strata file is a tab delimited file with 2 columns headers:
@@ -65,7 +70,7 @@ on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
 read.info <- stackr::read_counter(path.samples = "corals")
 
 # to extract info from the list
-read.data = read.info$read.data
+reads = read.info$reads
 reads.distribution <- read.info$reads.distribution
 reads.boxplot <- read.info$reads.boxplot
 

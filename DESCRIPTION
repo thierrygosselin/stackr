@@ -1,8 +1,8 @@
 Package: stackr
 Type: Package
 Title: Run stacks software pipeline for RADseq analysis inside R
-Version: 2.1.0
-Date: 2019-11-28
+Version: 2.2.0
+Date: 2020-10-08
 Encoding: UTF-8
 Authors@R: c(
   person("Thierry", "Gosselin", email = "thierrygosselin@icloud.com", role = c("aut", "cre"))
@@ -20,12 +20,15 @@ Imports:
     stringdist,
     tidyverse
 Suggests:
+    assertthat,
     future,
     ggplot2 (>= 3.0.0),
     grDevices,
+    furrr,
     knitr,
     listenv,
     parallel,
+    progressr,
     purrr,
     methods,
     readr,
@@ -42,5 +45,6 @@ License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1
-URL: https://github.com/thierrygosselin/stackr
+URL: http://thierrygosselin.github.io/stackr/
 BugReports: https://github.com/thierrygosselin/stackr/issues
+

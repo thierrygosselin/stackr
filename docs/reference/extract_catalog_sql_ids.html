@@ -75,7 +75,7 @@ file to generate a tibble of sample SQL ids that were used to generate the catal
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -123,10 +123,10 @@ file to generate a tibble of sample SQL ids that were used to generate the catal
 file to generate a tibble of sample SQL ids that were used to generate the catalog.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>extract_catalog_sql_ids</span>(
-  x = <span class='st'>"06_ustacks_2_gstacks/catalog.tags.tsv.gz"</span>,
-  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>
-)</pre>
+    <pre class="usage"><span class='fu'>extract_catalog_sql_ids</span><span class='op'>(</span>
+  x <span class='op'>=</span> <span class='st'>"06_ustacks_2_gstacks/catalog.tags.tsv.gz"</span>,
+  parallel.core <span class='op'>=</span> <span class='fu'>parallel</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>-</span> <span class='fl'>1</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -160,9 +160,9 @@ Molecular Ecology, 22, 3124-3140.</p>
 <code><a href='run_cstacks.html'>run_cstacks</a></code></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
-<span class='kw'>ids</span> <span class='op'>&lt;-</span> <span class='kw'>stackr</span>::<span class='fu'>extract_catalog_sql_id</span>(x = <span class='st'>"06_ustacks_2_gstacks/catalog.tags.tsv.gz"</span>)
-}
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
+<span class='va'>ids</span> <span class='op'>&lt;-</span> <span class='fu'>stackr</span><span class='fu'>::</span><span class='fu'>extract_catalog_sql_id</span><span class='op'>(</span>x <span class='op'>=</span> <span class='st'>"06_ustacks_2_gstacks/catalog.tags.tsv.gz"</span><span class='op'>)</span>
+<span class='op'>}</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

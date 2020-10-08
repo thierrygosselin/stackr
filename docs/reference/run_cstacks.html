@@ -75,7 +75,7 @@ at the end (summary_cstacks)." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -123,20 +123,20 @@ module inside R! The function runs a summary of the log file automatically
 at the end (<code><a href='summary_cstacks.html'>summary_cstacks</a></code>).</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_cstacks</span>(
-  P = <span class='st'>"06_ustacks_2_gstacks"</span>,
-  o = <span class='st'>"06_ustacks_2_gstacks"</span>,
-  M = <span class='st'>"02_project_info/population.map.catalog.tsv"</span>,
-  catalog.path = <span class='kw'>NULL</span>,
-  n = <span class='fl'>1</span>,
-  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>,
-  max.gaps = <span class='fl'>2</span>,
-  min.aln.len = <span class='fl'>0.8</span>,
-  disable.gapped = <span class='fl'>FALSE</span>,
-  k.len = <span class='kw'>NULL</span>,
-  report.mmatches = <span class='fl'>FALSE</span>,
-  split.catalog = <span class='fl'>20</span>
-)</pre>
+    <pre class="usage"><span class='fu'>run_cstacks</span><span class='op'>(</span>
+  P <span class='op'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
+  o <span class='op'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
+  M <span class='op'>=</span> <span class='st'>"02_project_info/population.map.catalog.tsv"</span>,
+  catalog.path <span class='op'>=</span> <span class='cn'>NULL</span>,
+  n <span class='op'>=</span> <span class='fl'>1</span>,
+  parallel.core <span class='op'>=</span> <span class='fu'>parallel</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>-</span> <span class='fl'>1</span>,
+  max.gaps <span class='op'>=</span> <span class='fl'>2</span>,
+  min.aln.len <span class='op'>=</span> <span class='fl'>0.8</span>,
+  disable.gapped <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  k.len <span class='op'>=</span> <span class='cn'>NULL</span>,
+  report.mmatches <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  split.catalog <span class='op'>=</span> <span class='fl'>20</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">

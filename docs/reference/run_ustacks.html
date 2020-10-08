@@ -78,7 +78,7 @@ module." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -129,34 +129,34 @@ individual's fastq files. Those files are created in the
 module.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_ustacks</span>(
-  mismatch.testing = <span class='fl'>FALSE</span>,
-  sample.list = <span class='kw'>NULL</span>,
-  project.info = <span class='kw'>NULL</span>,
-  f = <span class='st'>"04_process_radtags"</span>,
-  o = <span class='st'>"06_ustacks_2_gstacks"</span>,
-  m = <span class='fl'>3</span>,
-  M = <span class='fl'>2</span>,
-  N = <span class='kw'>M</span> <span class='op'>+</span> <span class='fl'>2</span>,
-  t = <span class='st'>"guess"</span>,
-  R = <span class='fl'>FALSE</span>,
-  H = <span class='fl'>TRUE</span>,
-  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>,
-  h = <span class='fl'>FALSE</span>,
-  d = <span class='fl'>TRUE</span>,
-  keep.high.cov = <span class='fl'>FALSE</span>,
-  high.cov.thres = <span class='fl'>3</span>,
-  max.locus.stacks = <span class='fl'>3</span>,
-  k.len = <span class='kw'>NULL</span>,
-  max.gaps = <span class='fl'>2</span>,
-  min.aln.len = <span class='fl'>0.8</span>,
-  disable.gapped = <span class='fl'>FALSE</span>,
-  model.type = <span class='st'>"snp"</span>,
-  alpha = <span class='fl'>0.05</span>,
-  bound.low = <span class='fl'>0</span>,
-  bound.high = <span class='fl'>0.2</span>,
-  bc.err.freq = <span class='kw'>NULL</span>
-)</pre>
+    <pre class="usage"><span class='fu'>run_ustacks</span><span class='op'>(</span>
+  mismatch.testing <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  sample.list <span class='op'>=</span> <span class='cn'>NULL</span>,
+  project.info <span class='op'>=</span> <span class='cn'>NULL</span>,
+  f <span class='op'>=</span> <span class='st'>"04_process_radtags"</span>,
+  o <span class='op'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
+  m <span class='op'>=</span> <span class='fl'>3</span>,
+  M <span class='op'>=</span> <span class='fl'>2</span>,
+  N <span class='op'>=</span> <span class='va'>M</span> <span class='op'>+</span> <span class='fl'>2</span>,
+  t <span class='op'>=</span> <span class='st'>"guess"</span>,
+  R <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  H <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  parallel.core <span class='op'>=</span> <span class='fu'>parallel</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>-</span> <span class='fl'>1</span>,
+  h <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  d <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  keep.high.cov <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  high.cov.thres <span class='op'>=</span> <span class='fl'>3</span>,
+  max.locus.stacks <span class='op'>=</span> <span class='fl'>3</span>,
+  k.len <span class='op'>=</span> <span class='cn'>NULL</span>,
+  max.gaps <span class='op'>=</span> <span class='fl'>2</span>,
+  min.aln.len <span class='op'>=</span> <span class='fl'>0.8</span>,
+  disable.gapped <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  model.type <span class='op'>=</span> <span class='st'>"snp"</span>,
+  alpha <span class='op'>=</span> <span class='fl'>0.05</span>,
+  bound.low <span class='op'>=</span> <span class='fl'>0</span>,
+  bound.high <span class='op'>=</span> <span class='fl'>0.2</span>,
+  bc.err.freq <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">

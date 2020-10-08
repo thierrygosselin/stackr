@@ -1,3 +1,14 @@
+# stackr 2.2.0 2020-10-08
+
+* better `summary_` functions to help decide thresholds, works with *most* stacks version.
+* started to work with *future* package for better parallelization with PC.
+* `run_radproc`: new function that will run *RADProc* and generate *ustacks* and 
+*cstacks* file type.
+* `summary_reads`: new function that highlight GC content and INDELs. It can also produce the read depth plot,
+in parallel for all sample found in the directory.
+
+
+
 # stackr 2.1.0 2019-11-28
 
 * better `summary_cstacks` and `summary_sstacks` functions to help decide thresholds

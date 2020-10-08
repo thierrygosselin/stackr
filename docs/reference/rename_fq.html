@@ -77,7 +77,7 @@ The function is parallelize and can also move the renamed files in a different f
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -127,7 +127,11 @@ messing things with your new data. Plus, it will fit nicely in your reproducible
 <p>The function is parallelize and can also move the renamed files in a different folder.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rename_fq</span>(<span class='kw'>change.fq</span>, parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><span class='fu'>rename_fq</span><span class='op'>(</span>
+  <span class='va'>change.fq</span>,
+  parallel.core <span class='op'>=</span> <span class='fu'>parallel</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>-</span> <span class='fl'>1</span>,
+  verbose <span class='op'>=</span> <span class='cn'>TRUE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -144,6 +148,11 @@ See example below.</p></td>
       <th>parallel.core</th>
       <td><p>Enable parallel execution using multiple core.
 Default: <code>parallel.core = parallel::detectCores() - 1</code>.</p></td>
+    </tr>
+    <tr>
+      <th>verbose</th>
+      <td><p>By function the function chats.
+Default: <code>verbose = TRUE</code>.</p></td>
     </tr>
     </table>
 

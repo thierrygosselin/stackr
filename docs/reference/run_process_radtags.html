@@ -75,7 +75,7 @@ If you want to contribute with other types of RAD data, let me know." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -123,47 +123,47 @@ module inside R. This function was tested on single-end sequences only.
 If you want to contribute with other types of RAD data, let me know.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_process_radtags</span>(
-  <span class='kw'>project.info</span>,
-  path.seq.lanes = <span class='st'>"03_sequencing_lanes"</span>,
-  P = <span class='fl'>FALSE</span>,
-  I = <span class='fl'>FALSE</span>,
-  i = <span class='st'>"guess"</span>,
-  o = <span class='st'>"04_process_radtags"</span>,
-  y = <span class='st'>"guess"</span>,
-  pe.1 = <span class='kw'>NULL</span>,
-  pe.2 = <span class='kw'>NULL</span>,
-  c = <span class='fl'>TRUE</span>,
-  q = <span class='fl'>TRUE</span>,
-  r = <span class='fl'>TRUE</span>,
-  t = <span class='fl'>90</span>,
-  D = <span class='fl'>FALSE</span>,
-  E = <span class='st'>"phred33"</span>,
-  w = <span class='fl'>0.15</span>,
-  s = <span class='fl'>10</span>,
-  barcode.inline.null = <span class='fl'>TRUE</span>,
-  barcode.index.null = <span class='fl'>FALSE</span>,
-  barcode.null.index = <span class='fl'>FALSE</span>,
-  barcode.inline.inline = <span class='fl'>FALSE</span>,
-  barcode.index.index = <span class='fl'>FALSE</span>,
-  barcode.inline.index = <span class='fl'>FALSE</span>,
-  barcode.index.inline = <span class='fl'>FALSE</span>,
-  enzyme = <span class='kw'>NULL</span>,
-  renz.1 = <span class='kw'>NULL</span>,
-  renz.2 = <span class='kw'>NULL</span>,
-  bestrad = <span class='fl'>FALSE</span>,
-  adapter.1 = <span class='kw'>NULL</span>,
-  adapter.2 = <span class='kw'>NULL</span>,
-  adapter.mm = <span class='kw'>NULL</span>,
-  retain.header = <span class='fl'>TRUE</span>,
-  merge = <span class='fl'>FALSE</span>,
-  filter.illumina = <span class='fl'>TRUE</span>,
-  disable.rad.check = <span class='fl'>FALSE</span>,
-  len.limit = <span class='kw'>NULL</span>,
-  barcode.dist.1 = <span class='fl'>1</span>,
-  barcode.dist.2 = <span class='kw'>NULL</span>,
-  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>
-)</pre>
+    <pre class="usage"><span class='fu'>run_process_radtags</span><span class='op'>(</span>
+  <span class='va'>project.info</span>,
+  path.seq.lanes <span class='op'>=</span> <span class='st'>"03_sequencing_lanes"</span>,
+  P <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  I <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  i <span class='op'>=</span> <span class='st'>"guess"</span>,
+  o <span class='op'>=</span> <span class='st'>"04_process_radtags"</span>,
+  y <span class='op'>=</span> <span class='st'>"guess"</span>,
+  pe.1 <span class='op'>=</span> <span class='cn'>NULL</span>,
+  pe.2 <span class='op'>=</span> <span class='cn'>NULL</span>,
+  c <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  q <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  r <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  t <span class='op'>=</span> <span class='fl'>90</span>,
+  D <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  E <span class='op'>=</span> <span class='st'>"phred33"</span>,
+  w <span class='op'>=</span> <span class='fl'>0.15</span>,
+  s <span class='op'>=</span> <span class='fl'>10</span>,
+  barcode.inline.null <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  barcode.index.null <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  barcode.null.index <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  barcode.inline.inline <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  barcode.index.index <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  barcode.inline.index <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  barcode.index.inline <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  enzyme <span class='op'>=</span> <span class='cn'>NULL</span>,
+  renz.1 <span class='op'>=</span> <span class='cn'>NULL</span>,
+  renz.2 <span class='op'>=</span> <span class='cn'>NULL</span>,
+  bestrad <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  adapter.1 <span class='op'>=</span> <span class='cn'>NULL</span>,
+  adapter.2 <span class='op'>=</span> <span class='cn'>NULL</span>,
+  adapter.mm <span class='op'>=</span> <span class='cn'>NULL</span>,
+  retain.header <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  merge <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  filter.illumina <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  disable.rad.check <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  len.limit <span class='op'>=</span> <span class='cn'>NULL</span>,
+  barcode.dist.1 <span class='op'>=</span> <span class='fl'>1</span>,
+  barcode.dist.2 <span class='op'>=</span> <span class='cn'>NULL</span>,
+  parallel.core <span class='op'>=</span> <span class='fu'>parallel</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>-</span> <span class='fl'>1</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -458,19 +458,19 @@ Molecular Ecology, 22, 3124-3140.</p>
     <div class='dont-index'><p><a href='http://catchenlab.life.illinois.edu/stacks/comp/process_radtags.php'>process_radtags</a>.</p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
 <span class='co'># library(stackr)</span>
 <span class='co'># If you haven't already build the folders to store all the files:</span>
 <span class='co'># stackr::build_stackr_workflow_dir()</span>
 <span class='co'>#</span>
 <span class='co'># run a double digest process_radtags within R:</span>
-<span class='kw'>process.radtags.tuna</span> <span class='op'>&lt;-</span> <span class='kw'>stackr</span>::<span class='fu'>run_process_radtags</span>(
-project.info = <span class='st'>"02_project_info/project.info.tuna.tsv"</span>,
-path.seq.lanes = <span class='st'>"03_sequencing_lanes"</span>,
-renz.1 = <span class='st'>"pstI"</span>, renz.2 = <span class='st'>"mspI"</span>,
-adapter.1 = <span class='st'>"CGAGATCGGAAGAGCGGG"</span>, adapter.mm = <span class='fl'>2</span>)
+<span class='va'>process.radtags.tuna</span> <span class='op'>&lt;-</span> <span class='fu'>stackr</span><span class='fu'>::</span><span class='fu'>run_process_radtags</span><span class='op'>(</span>
+project.info <span class='op'>=</span> <span class='st'>"02_project_info/project.info.tuna.tsv"</span>,
+path.seq.lanes <span class='op'>=</span> <span class='st'>"03_sequencing_lanes"</span>,
+renz.1 <span class='op'>=</span> <span class='st'>"pstI"</span>, renz.2 <span class='op'>=</span> <span class='st'>"mspI"</span>,
+adapter.1 <span class='op'>=</span> <span class='st'>"CGAGATCGGAAGAGCGGG"</span>, adapter.mm <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span>
 <span class='co'># remaining arguments are defaults, so carefully look at them in the doc.</span>
-}
+<span class='op'>}</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

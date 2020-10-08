@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -104,18 +104,16 @@
 <a href="#installation" class="anchor"></a>Installation</h2>
 <p>To try out the dev version of <strong>stackr</strong>, copy/paste the code below:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit">
-<span class="co">if</span> (<span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/library.html">require</a></span>(<span class="st"><a href="https://devtools.r-lib.org">"devtools"</a></span>)) <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="st">"devtools"</span>)
-<span class="kw">devtools</span>::<span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"thierrygosselin/stackr"</span>)
-<span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="kw"><a href="https://github.com/thierrygosselin/stackr">stackr</a></span>)
-</pre></div>
+<span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="st"><a href="https://devtools.r-lib.org/">"devtools"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"thierrygosselin/stackr"</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://thierrygosselin.github.io/stackr/">stackr</a></span><span class="op">)</span></pre></div>
 </div>
 <div id="citation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#citation" class="anchor"></a>Citation:</h2>
 <p>To get the citation, inside R:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/utils/citation.html">citation</a></span>(<span class="st">"stackr"</span>)
-</pre></div>
+<span class="fu"><a href="https://rdrr.io/r/utils/citation.html">citation</a></span><span class="op">(</span><span class="st">"stackr"</span><span class="op">)</span></pre></div>
 <p>Web site with additional info: <a href="http://thierrygosselin.github.io/stackr/" class="uri">http://thierrygosselin.github.io/stackr/</a></p>
 <ul>
 <li><a href="https://thierrygosselin.github.io/radiator/articles/rad_genomics_computer_setup.html">Computer setup and troubleshooting</a></li>
@@ -178,13 +176,12 @@
 <h2>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://tidyverse.org/lifecycle/#experimental"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="lifecycle"></a></li>
-<li><a href="https://travis-ci.org/thierrygosselin/stackr"><img src="https://travis-ci.org/thierrygosselin/stackr.svg?branch=master" alt="Travis-CI Build Status"></a></li>
-<li><a href="https://ci.appveyor.com/project/thierrygosselin/stackr"><img src="https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&amp;svg=true" alt="AppVeyor Build Status"></a></li>
 <li><a href="http://cran.r-project.org/package=stackr"><img src="http://www.r-pkg.org/badges/version/stackr" alt="CRAN_Status_Badge"></a></li>
 <li><a href="http://www.repostatus.org/#active"><img src="http://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active – The project has reached a stable, usable state and is being actively developed."></a></li>
 <li><a href="https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr"><img src="https://zenodo.org/badge/14548/thierrygosselin/stackr.svg" alt="DOI"></a></li>
-<li><a href="commits/master"><img src="https://img.shields.io/badge/Package%20version-2.1.0-orange.svg" alt="packageversion"></a></li>
-<li><a href="/commits/master"><img src="https://img.shields.io/badge/last%20change-2020--09--24-brightgreen.svg" alt="Last-changedate"></a></li>
+<li><a href="commits/master"><img src="https://img.shields.io/badge/Package%20version-2.2.0-orange.svg" alt="packageversion"></a></li>
+<li><a href="/commits/master"><img src="https://img.shields.io/badge/last%20change-2020--10--08-brightgreen.svg" alt="Last-changedate"></a></li>
+<li><a href="https://cran.r-project.org/"><img src="https://img.shields.io/badge/R%3E%3D-3.4.0-6666ff.svg" alt="minimal R version"></a></li>
 </ul>
 </div>
 </div>

@@ -5,10 +5,8 @@
 \title{stackr_normalize}
 \usage{
 stackr_normalize(
-  x,
-  fastq.files,
-  fastq.files.short,
-  project.info,
+  fq.to.normalize,
+  count.reads = FALSE,
   number.replicates,
   sample.reads,
   parallel.core = parallel::detectCores() - 1

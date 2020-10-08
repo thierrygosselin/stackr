@@ -4,7 +4,7 @@
 \alias{check_fq}
 \title{check_fq}
 \usage{
-check_fq(fastq.files, parallel.core = parallel::detectCores() - 1)
+check_fq(fq.files, parallel.core = parallel::detectCores() - 1)
 }
 \description{
 Check if weird fq UPPER CASE ending is used

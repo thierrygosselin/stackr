@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -117,15 +117,13 @@
     <p>main normalize function</p>
     </div>
 
-    <pre class="usage"><span class='fu'>stackr_normalize</span>(
-  <span class='kw'>x</span>,
-  <span class='kw'>fastq.files</span>,
-  <span class='kw'>fastq.files.short</span>,
-  <span class='kw'>project.info</span>,
-  <span class='kw'>number.replicates</span>,
-  <span class='kw'>sample.reads</span>,
-  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>
-)</pre>
+    <pre class="usage"><span class='fu'>stackr_normalize</span><span class='op'>(</span>
+  <span class='va'>fq.to.normalize</span>,
+  count.reads <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  <span class='va'>number.replicates</span>,
+  <span class='va'>sample.reads</span>,
+  parallel.core <span class='op'>=</span> <span class='fu'>parallel</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>-</span> <span class='fl'>1</span>
+<span class='op'>)</span></pre>
 
 
 

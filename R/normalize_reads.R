@@ -5,6 +5,8 @@
 #' before de novo assembly or alignment.
 #' The normalization/standardization/sample size correction step allows to check
 #' if some statistics are increasing with read numbers (e.g. heterozygous markers).
+#' It's a very easy way to disentangle artifact from biological signal caused by
+#' varying read numbers across samples.
 
 #' @param project.info (character, path, optional) When using the stackr pipeline,
 #' a project info file is created. This file provides all the info and stats
@@ -16,7 +18,7 @@
 #' at the number of reads in the fastq files and this will take longer.
 #' Default: \code{project.info = NULL}.
 
-#' @param path.samples (character, path) Path of folder containing the
+#' @param fq.files (character, path) Path of folder containing the
 #' samples to normalize.
 
 #' @param sample.reads (integer) The number of reads to pick randomly.
@@ -33,10 +35,9 @@
 
 #' @param parallel.core (optional) The number of core for parallel
 #' programming. Each samples to normalize is sequentially treated and replicates
-#' are generated in parallel. By default, \code{parallel.core = number.replicates}.
-#' Only if \code{number.replicates < parallel::detectCores()}.
-#' If not, the default is \code{parallel.core = parallel::detectCores() - 1}.
-
+#' are generated in parallel.
+#' By default, \code{parallel.core = parallel::detectCores() - 1}.
+#' This number is adjusted automatically to the number of replicates.
 
 #' @rdname normalize_reads
 #' @export
@@ -56,12 +57,12 @@
 #' nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
 #' on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
 #' # using defaults:
-#' stackr::normalize_reads(path.samples = "~/corals")
+#' stackr::normalize_reads(fq.files = "~/corals")
 #'
 #' # customizing the function:
 #' stackr::normalize_reads(
 #'    project.info = "project.info.corals.tsv",
-#'    path.samples = "~/corals",
+#'    fq.files = "~/corals",
 #'    sample.reads = 2000000,
 #'    number.replicates = 5,
 #'    random.seed = 3,
@@ -79,11 +80,11 @@
 
 normalize_reads <- function(
   project.info = NULL,
-  path.samples,
+  fq.files,
   sample.reads = 1000000,
   number.replicates = 3,
   random.seed = NULL,
-  parallel.core = number.replicates
+  parallel.core = parallel::detectCores() - 1
 ) {
   opt.change <- getOption("width")
   options(width = 70)
@@ -94,7 +95,7 @@ normalize_reads <- function(
 
   # Missing argument -----------------------------------------------------------
   # folder is given
-  if (missing(path.samples)) stop("path.samples argument is required")
+  if (missing(fq.files)) stop("fq.files argument is required")
 
   # Check for required package -------------------------------------------------
   if (!requireNamespace("ShortRead", quietly = TRUE)) {
@@ -103,64 +104,88 @@ normalize_reads <- function(
   }
 
   # Check parallel.core and number.replicates -------------------------------------
-  if (number.replicates > parallel::detectCores()) {
-    parallel.core <- parallel::detectCores() - 1
-  } else {
-    parallel.core <- number.replicates
-  }
-
+  if (number.replicates < parallel.core) parallel.core <- number.replicates
   message("Setting parallel.core: ", parallel.core)
 
-  # import project info file if present ----------------------------------------
-  if (!is.null(project.info)) {
-    project.info.filename <- stringi::stri_replace_all_fixed(
-      str = project.info,
-      pattern = c(".tsv", ".txt"),
-      replacement = "", vectorize_all = FALSE)
-    project.info <- suppressMessages(readr::read_tsv(file = project.info))
-  }
-
   # Set seed for random sampling -----------------------------------------------
-  if (is.null(random.seed)) {
-    random.seed <- sample(x = 1:1000000, size = 1)
-  }
+  if (is.null(random.seed)) random.seed <- sample(x = 1:1000000, size = 1)
   set.seed(random.seed)
 
   # Change UPPER CASE file ending ----------------------------------------------
-  check_fq(list_sample_file(f = path.samples, full.path = TRUE))
+  # check_fq(list_sample_file(f = fq.files, full.path = TRUE))
 
   # FQ FILES  ------------------------------------------------------------------
-  fastq.files <- list_sample_file(f = path.samples, full.path = TRUE)
-  fastq.files.short <- list_sample_file(f = path.samples, full.path = FALSE)
-  todo <- length(fastq.files)
-  message("Number of samples to normalize: ", todo)
+  fq.files <- list_sample_file(f = fq.files, full.path = TRUE)
+  names(fq.files) <- fq.files
+  message("Number of samples: ", length(fq.files))
+  fq.type <- stackr::fq_file_type(fq.files)
+  path.fq <- unique(dirname(fq.files))
+  if (length(path.fq) == 0) path.fq <- getwd()
 
-  # fastq.files <- fastq.files[1]#test
+  # import project info file if present ----------------------------------------
+  count.reads <-  TRUE
+  fq.to.normalize <- fq.files
+  if (!is.null(project.info)) {
+    project.info.filename <- stringi::stri_replace_all_fixed(
+      str = project.info,
+      pattern = ".tsv",
+      replacement = "_normalize.tsv",
+      vectorize_all = FALSE
+    )
+    project.info <- suppressMessages(readr::read_tsv(file = project.info))
 
-  suppressWarnings(
-    purrr::walk(
-      .x = 1:todo,
+    # Check FQ to normalize
+    want <- c("RETAINED", "NUMBER_READS")
+    read.column.name <- purrr::keep(.x = want, .p = want %in% colnames(project.info))
+    if (length(read.column.name) == 0) {
+      count.reads <- TRUE
+      message("Impossible to extract RETAINED or NUMBER_READS in project.info")
+      message("Number of reads will be extracted from fq files")
+    } else {
+      fq.to.normalize <- project.info %>%
+        dplyr::filter(INDIVIDUALS %in% stackr::clean_fq_filename(basename(fq.files))) %>%
+        dplyr::filter(.data[[read.column.name]] > sample.reads) %$%
+        INDIVIDUALS
+      if (length(fq.to.normalize) == 0) {
+        rlang::abort("Problem between project.info file, fq.files and threshold of sample.reads to use")
+      }
+      fq.to.normalize <- file.path(path.fq, paste0(fq.to.normalize, fq.type))
+      names(fq.to.normalize) <- fq.to.normalize
+      message("Number of samples to normalize: ", length(fq.to.normalize))
+      count.reads <- FALSE
+    }
+  }
+
+  rep.name <- suppressWarnings(
+    purrr::map(
+      .x = fq.to.normalize,
       .f = stackr_normalize,
-      fastq.files = fastq.files,
-      fastq.files.short = fastq.files.short,
-      project.info = project.info,
+      count.reads = count.reads,
       number.replicates = number.replicates,
       sample.reads = sample.reads,
-      parallel.core = parallel.core))
+      parallel.core = parallel.core
+    )
+  )
 
   # Update project info --------------------------------------------------------
   # new.rep.names <- purrr::flatten_chr(new.names)
   if (!is.null(project.info)) {
     message("\nUpdating project info file")
-    replicates <- list_sample_file(f = path.samples, full.path = FALSE)
-    replicates <- purrr::keep(.x = replicates, .p = !replicates %in% fastq.files.short)
+    replicates <- list_sample_file(f = fq.files, full.path = FALSE)
+    path.fq
+    replicates <- list_sample_file(f = path.fq, full.path = FALSE)
+
+
+    replicates <- purrr::keep(.x = replicates, .p = !replicates %in% fq.files.short)
     n.rep <- length(replicates)
-    fq.file.type <- suppressWarnings(unique(fq_file_type(fastq.files.short)))
+    fq.file.type <- suppressWarnings(unique(fq_file_type(fq.files.short)))
     new.rep.id <- stringi::stri_replace_all_fixed(
       str = replicates,
       pattern = fq.file.type,
       replacement = "",
       vectorize_all = FALSE)
+
+
     rep <- stringi::stri_sub(str = new.rep.id, -(stringi::stri_count_regex(number.replicates, "[0-9]")))
     project.info.normalize <- tibble::add_row(
       .data = project.info,
@@ -191,63 +216,41 @@ normalize_reads <- function(
 #' @rdname stackr_normalize
 #' @export
 #' @keywords internal
-stackr_normalize <- function(x, fastq.files, fastq.files.short, project.info, number.replicates, sample.reads, parallel.core = parallel::detectCores() - 1) {
-  # x <- 1
-  fastq.files <- fastq.files[x]
-  fastq.files.short <- fastq.files.short[x]
-
-  fq.type <- unique(fq_file_type(fastq.files))
-
-  sample.id <- stringi::stri_replace_all_fixed(
-    str = fastq.files.short,
-    pattern = fq.type, replacement = "", vectorize_all = FALSE)
-  message("\nNormalizing sample: ", sample.id)
+stackr_normalize <- function(
+  fq.to.normalize,
+  count.reads = FALSE,
+  number.replicates,
+  sample.reads,
+  parallel.core = parallel::detectCores() - 1
+) {
+  # fq.to.normalize <- fq.to.normalize[1]
+  clean.names <- stackr::clean_fq_filename(basename(fq.to.normalize))
 
   # check number of reads
-  if (is.null(project.info)) {
-    message("    Counting the number of reads in fastq file")
-    n.reads <- length(ShortRead::readFastq(fastq.files))
-    # length(readLines(fastq.files))
-    # R.utils::countLines(fastq.files)
-  } else {
-    message("    Using project info file for read counts")
-    if (tibble::has_name(project.info, "RETAINED")) {
-      n.reads <- dplyr::filter(project.info, FQ_FILES %in% fastq.files.short) %>%
-        dplyr::select(RETAINED) %>%
-        purrr::flatten_int(.)
-    }
-    if (!length(n.reads) > 0 | !tibble::has_name(project.info, "RETAINED")) {
-      message("        Could not access the the number of reads info")
-      message("        Counting the number of reads in fastq file")
-      n.reads <- length(ShortRead::readFastq(fastq.files))
-      # update project.info
-      project.info <- NULL
+  if (count.reads) {
+    n.reads <- read_count_one(fastq.files = fq.to.normalize) %$% NUMBER_READS
+    if (n.reads < sample.reads) {
+      message("Number of reads lower than threshold: no normalization")
+      return(rep.name = NULL)
     }
   }
-  message("    Number of reads: ", n.reads)
+  message("\nNormalizing sample: ", clean.names)
 
-  if (n.reads < sample.reads) {
-    message("\n    Number of reads the sample is lower than ", sample.reads)
-    message("        skipping normalization for this sample ")
-    skip.normalization <- TRUE
-  } else {
-  skip.normalization <- FALSE
-  }
-
-  if (!skip.normalization) {
-    suppressWarnings(subsample.random <- ShortRead::FastqSampler(fastq.files, n = sample.reads, verbose = TRUE, ordered = TRUE))
-    message("    Generating ", number.replicates, " normalized replicates")
-    message("    Number of reads sampled for each replicates: ", sample.reads)
-    suppressWarnings(
-      .stackr_parallel_mc(
-        X = 1:number.replicates,
-        FUN = write_normalize,
-        mc.cores = parallel.core,
-        subsample.random = subsample.random,
-        fastq.files = fastq.files,
-        sample.reads = sample.reads))
-  }
-  }#End stackr_normalize
+  suppressWarnings(subsample.random <- ShortRead::FastqSampler(con = fq.to.normalize, n = sample.reads, verbose = TRUE, ordered = TRUE))
+  message("Generating ", number.replicates, " normalized replicates")
+  message("Number of reads sampled for each replicates: ", sample.reads)
+  rep.name <- suppressWarnings(
+    .stackr_parallel_mc(
+      X = 1:number.replicates,
+      FUN = write_normalize,
+      mc.cores = parallel.core,
+      subsample.random = subsample.random,
+      fq.to.normalize = fq.to.normalize,
+      sample.reads = sample.reads
+      )
+    )
+  return(rep.name)
+}#End stackr_normalize
 
 
 #' @title write_normalize
@@ -255,15 +258,16 @@ stackr_normalize <- function(x, fastq.files, fastq.files.short, project.info, nu
 #' @rdname write_normalize
 #' @export
 #' @keywords internal
-write_normalize <- function(number.replicates, subsample.random, fastq.files, sample.reads) {
+write_normalize <- function(number.replicates, subsample.random, fq.to.normalize, sample.reads) {
   message("Writing normalized samples: ", number.replicates)
   new.sample <- ShortRead::yield(subsample.random)
-  fq.file.type <- unique(fq_file_type(fastq.files))
+  fq.type <- stackr::fq_file_type(fq.to.normalize)
   new.name <- stringi::stri_replace_all_fixed(
-    str = fastq.files,
-    pattern = fq.file.type,
-    replacement = stringi::stri_join("-", sample.reads, "-", number.replicates, fq.file.type),
+    str = fq.to.normalize,
+    pattern = fq.type,
+    replacement = stringi::stri_join("-", sample.reads, "-", number.replicates, fq.type),
     vectorize_all = FALSE)
+
   suppressWarnings(ShortRead::writeFastq(new.sample, new.name))
   return(new.name)
 }#End write_normalize
@@ -275,8 +279,8 @@ write_normalize <- function(number.replicates, subsample.random, fastq.files, sa
 #' @export
 #' @keywords internal
 
-check_fq <- function(fastq.files, parallel.core = parallel::detectCores() - 1) {
-  change.fq <- tibble::as_tibble(list(OLD_FQ = c(fastq.files))) %>%
+check_fq <- function(fq.files, parallel.core = parallel::detectCores() - 1) {
+  change.fq <- tibble::as_tibble(list(OLD_FQ = c(fq.files))) %>%
     dplyr::mutate(NEW_FQ = TRUE %in% stringi::stri_detect_fixed(str = OLD_FQ, pattern = c(".FASTQ.GZ", ".FASTQ.gz"))) %>%
     dplyr::filter(NEW_FQ)
   fq.check <- nrow(change.fq)

@@ -2,17 +2,15 @@
 <!-- badges: start -->
 
 [![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://tidyverse.org/lifecycle/#experimental)
-[![Travis-CI Build
-Status](https://travis-ci.org/thierrygosselin/stackr.svg?branch=master)](https://travis-ci.org/thierrygosselin/stackr)
-[![AppVeyor Build
-Status](https://ci.appveyor.com/api/projects/status/github/thierrygosselin/stackr?branch=master&svg=true)](https://ci.appveyor.com/project/thierrygosselin/stackr)
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/stackr)](http://cran.r-project.org/package=stackr)
 [![Project Status: Active – The project has reached a stable, usable
 state and is being actively
 developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 [![DOI](https://zenodo.org/badge/14548/thierrygosselin/stackr.svg)](https://zenodo.org/badge/latestdoi/14548/thierrygosselin/stackr)
-[![packageversion](https://img.shields.io/badge/Package%20version-2.1.0-orange.svg)](commits/master)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2020--09--24-brightgreen.svg)](/commits/master)
+[![packageversion](https://img.shields.io/badge/Package%20version-2.2.0-orange.svg)](commits/master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2020--10--08-brightgreen.svg)](/commits/master)
+[![minimal R
+version](https://img.shields.io/badge/R%3E%3D-3.4.0-6666ff.svg)](https://cran.r-project.org/)
 <!-- badges: end -->
 
 # stackr: an R package to run stacks software pipeline

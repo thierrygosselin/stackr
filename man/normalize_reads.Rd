@@ -6,11 +6,11 @@
 \usage{
 normalize_reads(
   project.info = NULL,
-  path.samples,
+  fq.files,
   sample.reads = 1e+06,
   number.replicates = 3,
   random.seed = NULL,
-  parallel.core = number.replicates
+  parallel.core = parallel::detectCores() - 1
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ If no \code{project.info} file is provided, the function will have to look
 at the number of reads in the fastq files and this will take longer.
 Default: \code{project.info = NULL}.}
 
-\item{path.samples}{(character, path) Path of folder containing the
+\item{fq.files}{(character, path) Path of folder containing the
 samples to normalize.}
 
 \item{sample.reads}{(integer) The number of reads to pick randomly.
@@ -41,9 +41,9 @@ Default: \code{random.seed = NULL}.}
 
 \item{parallel.core}{(optional) The number of core for parallel
 programming. Each samples to normalize is sequentially treated and replicates
-are generated in parallel. By default, \code{parallel.core = number.replicates}.
-Only if \code{number.replicates < parallel::detectCores()}.
-If not, the default is \code{parallel.core = parallel::detectCores() - 1}.}
+are generated in parallel.
+By default, \code{parallel.core = parallel::detectCores() - 1}.
+This number is adjusted automatically to the number of replicates.}
 }
 \value{
 fastq files with "-1", "-2", "..." appended to the original name.
@@ -56,6 +56,8 @@ Rarefaction of fasq files by sub-sampling the reads
 before de novo assembly or alignment.
 The normalization/standardization/sample size correction step allows to check
 if some statistics are increasing with read numbers (e.g. heterozygous markers).
+It's a very easy way to disentangle artifact from biological signal caused by
+varying read numbers across samples.
 }
 \examples{
 \dontrun{
@@ -67,12 +69,12 @@ biocLite("ShortRead")
 nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
 on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
 # using defaults:
-stackr::normalize_reads(path.samples = "~/corals")
+stackr::normalize_reads(fq.files = "~/corals")
 
 # customizing the function:
 stackr::normalize_reads(
    project.info = "project.info.corals.tsv",
-   path.samples = "~/corals",
+   fq.files = "~/corals",
    sample.reads = 2000000,
    number.replicates = 5,
    random.seed = 3,

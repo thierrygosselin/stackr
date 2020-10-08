@@ -74,7 +74,7 @@ module inside R!" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">stackr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.2.0</span>
       </span>
     </div>
 
@@ -121,33 +121,33 @@ module inside R!" />
 module inside R!</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_gstacks</span>(
-  denovo = <span class='fl'>TRUE</span>,
-  P = <span class='st'>"06_ustacks_2_gstacks"</span>,
-  M = <span class='st'>"02_project_info/population.map.tsv2bam.tsv"</span>,
-  I = <span class='kw'>NULL</span>,
-  B = <span class='kw'>NULL</span>,
-  O = <span class='kw'>NULL</span>,
-  parallel.core = <span class='kw'>parallel</span>::<span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span>() <span class='op'>-</span> <span class='fl'>1</span>,
-  model = <span class='st'>"marukilow"</span>,
-  var.alpha = <span class='fl'>0.01</span>,
-  gt.alpha = <span class='fl'>0.05</span>,
-  rm.pcr.duplicates = <span class='fl'>FALSE</span>,
-  rm.unpaired.reads = <span class='fl'>FALSE</span>,
-  ignore.pe.reads = <span class='fl'>TRUE</span>,
-  unpaired = <span class='fl'>TRUE</span>,
-  kmer.length = <span class='fl'>31</span>,
-  max.debruijn.reads = <span class='fl'>1000</span>,
-  min.kmer.cov = <span class='fl'>2</span>,
-  write.alignments = <span class='fl'>FALSE</span>,
-  min.mapq = <span class='fl'>10</span>,
-  max.clipped = <span class='fl'>0.2</span>,
-  max.insert.len = <span class='fl'>1000</span>,
-  details = <span class='fl'>FALSE</span>,
-  phasing.cooccurrences.thr.range = <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='fl'>2</span>),
-  phasing.dont.prune.hets = <span class='fl'>FALSE</span>,
-  h = <span class='fl'>FALSE</span>
-)</pre>
+    <pre class="usage"><span class='fu'>run_gstacks</span><span class='op'>(</span>
+  denovo <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  P <span class='op'>=</span> <span class='st'>"06_ustacks_2_gstacks"</span>,
+  M <span class='op'>=</span> <span class='st'>"02_project_info/population.map.tsv2bam.tsv"</span>,
+  I <span class='op'>=</span> <span class='cn'>NULL</span>,
+  B <span class='op'>=</span> <span class='cn'>NULL</span>,
+  O <span class='op'>=</span> <span class='cn'>NULL</span>,
+  parallel.core <span class='op'>=</span> <span class='fu'>parallel</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/r/parallel/detectCores.html'>detectCores</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>-</span> <span class='fl'>1</span>,
+  model <span class='op'>=</span> <span class='st'>"marukilow"</span>,
+  var.alpha <span class='op'>=</span> <span class='fl'>0.01</span>,
+  gt.alpha <span class='op'>=</span> <span class='fl'>0.05</span>,
+  rm.pcr.duplicates <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  rm.unpaired.reads <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  ignore.pe.reads <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  unpaired <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  kmer.length <span class='op'>=</span> <span class='fl'>31</span>,
+  max.debruijn.reads <span class='op'>=</span> <span class='fl'>1000</span>,
+  min.kmer.cov <span class='op'>=</span> <span class='fl'>2</span>,
+  write.alignments <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  min.mapq <span class='op'>=</span> <span class='fl'>10</span>,
+  max.clipped <span class='op'>=</span> <span class='fl'>0.2</span>,
+  max.insert.len <span class='op'>=</span> <span class='fl'>1000</span>,
+  details <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  phasing.cooccurrences.thr.range <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>2</span><span class='op'>)</span>,
+  phasing.dont.prune.hets <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  h <span class='op'>=</span> <span class='cn'>FALSE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -349,11 +349,11 @@ Genotype Calling from Population-Genomic Sequencing Data. G3, 7, 1393-1404.</p>
     <div class='dont-index'><p><a href='http://catchenlab.life.illinois.edu/stacks/'>STACKS</a></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
 <span class='co'># The simplest form of the function with De novo data:</span>
-<span class='kw'>bam.sum</span> <span class='op'>&lt;-</span> <span class='kw'>stackr</span>::<span class='fu'>run_gstacks</span>() <span class='co'># that's it !</span>
+<span class='va'>bam.sum</span> <span class='op'>&lt;-</span> <span class='fu'>stackr</span><span class='fu'>::</span><span class='fu'>run_gstacks</span><span class='op'>(</span><span class='op'>)</span> <span class='co'># that's it !</span>
 <span class='co'># This will use, by default, the same population map used in run_tsv2bam</span>
-}
+<span class='op'>}</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

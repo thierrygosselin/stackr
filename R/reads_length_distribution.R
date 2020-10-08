@@ -91,40 +91,61 @@ reads_length_distribution <- function(
   #   dplyr::filter(SEQ == 2L) %>%
   #   dplyr::select(READS)
 
-  # no future
-  if (with.future) {
+
+  read_length <- function(fq.file, counter = 0L, with.future = FALSE, parallel.core = parallel::detectCores() - 1) {
     # with future
-    future::plan(strategy = "multisession", workers = parallel.core)
+    if (with.future) future::plan(strategy = "multisession", workers = parallel.core)
 
-    read_length <- function(fq.file, counter = 0L) {
-      f <- ShortRead::FastqStreamer(fq.file, verbose = FALSE)
+    f <- ShortRead::FastqStreamer(fq.file, verbose = FALSE)
+    if (with.future) {
       res <- listenv::listenv()
-      while (length(fq <- ShortRead::yield(f))) {
-        new.counter <- counter + 1L
-        res[[new.counter]] <- as.integer(fq@sread@ranges@width)
-        counter <- new.counter
-      }
-      close(f)
-      res <- tibble::tibble(READ_LENGTH = purrr::flatten_int(.x = as.list(res)))
-      return(res)
-    }#End read_length
-  } else {
-    read_length <- function(fq.file, counter = 0L) {
-      f <- ShortRead::FastqStreamer(fq.file, verbose = FALSE)
+    } else {
       res <- list()
-      while (length(fq <- ShortRead::yield(f))) {
-        new.counter <- counter + 1L
-        res[[new.counter]] <- as.integer(fq@sread@ranges@width)
-        counter <- new.counter
-      }
-      close(f)
-      res <- tibble::tibble(READ_LENGTH = purrr::flatten_int(.x = res))
-      return(res)
-    }#End read_length
-  }
+    }
+    while (length(fq <- ShortRead::yield(f))) {
+      new.counter <- counter + 1L
+      res[[new.counter]] <- as.integer(fq@sread@ranges@width)
+      counter <- new.counter
+    }
+    close(f)
+    res <- tibble::tibble(READ_LENGTH = purrr::flatten_int(.x = res))
+    return(res)
+  }#End read_length
+
+  # no future
+  # if (with.future) {
+  #   # with future
+  #   future::plan(strategy = "multisession", workers = parallel.core)
+  #
+  #   read_length <- function(fq.file, counter = 0L) {
+  #     f <- ShortRead::FastqStreamer(fq.file, verbose = FALSE)
+  #     res <- listenv::listenv()
+  #     while (length(fq <- ShortRead::yield(f))) {
+  #       new.counter <- counter + 1L
+  #       res[[new.counter]] <- as.integer(fq@sread@ranges@width)
+  #       counter <- new.counter
+  #     }
+  #     close(f)
+  #     res <- tibble::tibble(READ_LENGTH = purrr::flatten_int(.x = as.list(res)))
+  #     return(res)
+  #   }#End read_length
+  # } else {
+  #   read_length <- function(fq.file, counter = 0L) {
+  #     f <- ShortRead::FastqStreamer(fq.file, verbose = FALSE)
+  #     res <- list()
+  #     while (length(fq <- ShortRead::yield(f))) {
+  #       new.counter <- counter + 1L
+  #       res[[new.counter]] <- as.integer(fq@sread@ranges@width)
+  #       counter <- new.counter
+  #     }
+  #     close(f)
+  #     res <- tibble::tibble(READ_LENGTH = purrr::flatten_int(.x = res))
+  #     return(res)
+  #   }#End read_length
+  # }
 
 
-  fq <- read_length(fq.file = fq.file)
+  fq <- read_length(fq.file = fq.file, with.future = with.future, parallel.core = parallel.core)
   message("Number of reads: ", nrow(fq))
   cum_length <- function(threshold, x) x <- length(x$READ_LENGTH[x$READ_LENGTH >= threshold])
   read.breaks <- read.seq <- seq(from = (max(min(fq$READ_LENGTH), 50)), to = (min(max(fq$READ_LENGTH), 200)), by = 10L)
@@ -140,7 +161,7 @@ reads_length_distribution <- function(
     ggplot2::geom_line() +
     ggplot2::geom_point(size = 2, shape = 21, fill = "white") +
     ggplot2::scale_x_continuous(name = "Read length maximum size", breaks = read.breaks) +
-    ggplot2::scale_y_continuous(name = "Number of reads")+
+    ggplot2::scale_y_continuous(name = "Number of reads") +
     ggplot2::theme_bw() +
     ggplot2::theme(
       axis.title.x = ggplot2::element_text(size = 10, face = "bold"),

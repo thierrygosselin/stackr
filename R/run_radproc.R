@@ -98,6 +98,10 @@ run_radproc <- function(
   # Check directory ------------------------------------------------------------
   if (!dir.exists(f)) dir.create(f)
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
+  if (!dir.exists("08_stacks_results")) dir.create("08_stacks_results")
+  if (!dir.exists("06_ustacks_2_gstacks")) dir.create("06_ustacks_2_gstacks")
+
+
 
   # check that RADProc is installed -----------------------0---------------------
   if (!file.exists(cmd.path)) stop("Path to RADProc is not valid")
@@ -115,6 +119,9 @@ run_radproc <- function(
   # file type
   file.type <- stringi::stri_join("-t ", shQuote(file.type))
   f <- stringi::stri_join("-f ", shQuote(f))
+
+  # output dir
+  if (!dir.exists(o)) dir.create(o)
   o.bk <- o
   o <- stringi::stri_join("-o ", shQuote(o))
 
@@ -139,24 +146,30 @@ run_radproc <- function(
   # run command ----------------------------------------------------------------
   system2(command = "RADProc", args = command.arguments, stderr = radproc.log.file)
 
+  stats.filename <- file.path("08_stacks_results", stringi::stri_join("De_novo_stats", file.date.time, sep = "_"))
+  file.rename(from = file.path(o.bk, "De_novo_stats"), to = stats.filename)
+
+
   # We have to rename the files and move them out of the RADProc folder
   # detect RADProc folder created
 
-  rp.folder <- "M0_m3"
-  rename.radproc.files <- tibble::tibble(
-    OLD_FQ = list.files(path = file.path(o.bk, rp.folder), full.names = TRUE)
+  rp.folder <- readr::read_tsv(file = stats.filename, comment = "#", col_types = "ccddd", n_max = 3) %>%
+    dplyr::distinct(Parameters) %$%
+    Parameters
+
+  move.tibble <- tibble::tibble(
+    OLD_FQ = list.files(path = file.path(o.bk, rp.folder), full.names = TRUE),
+    SHORT_NAMES = list.files(path = file.path(o.bk, rp.folder), full.names = FALSE)
   ) %>%
     dplyr::mutate(
-      NEW_FQ = stringi::stri_replace_all_fixed(
-        str = OLD_FQ,
-        pattern = c(".fq", paste0(rp.folder, "/")),
-        replacement = c("", ""),
-        vectorize_all = FALSE
-        )
+      NEW_FQ = file.path(o.bk, SHORT_NAMES),
+      SHORT_NAMES = NULL
     )
-  stackr::rename_fq(change.fq = rename.radproc.files, parallel.core = parallel.core.bk)
-  file.remove(file.path(o.bk, rp.folder))
 
+  message("Moved ", nrow(move.tibble), " files from folder ", rp.folder, " to output folder ", basename(o.bk))
+
+  stackr::rename_fq(change.fq = move.tibble, parallel.core = parallel.core.bk, verbose = FALSE)
+  file.remove(file.path(o.bk, rp.folder))
 
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")

@@ -403,6 +403,11 @@ read_stacks_ustacks_log <- function(
   parallel.core = parallel::detectCores() - 1
 ) {
 
+  # log.file = "09_log_files/ustacks_STU-COD-ADU-001-R-cleaned_mismatch_1.log"
+  # ustacks.folder = "mismatches_tests/STU-COD-ADU-001-R-cleaned_mismatch_1"
+  # parallel.core = parallel::detectCores() - 1
+
+
   ustacks.log <- suppressMessages(readr::read_lines(file = log.file))
 
   # Parameters
@@ -415,6 +420,15 @@ read_stacks_ustacks_log <- function(
       n_max = 11,
       col_names = c("PARAMETER", "VALUE")) %>%
       dplyr::mutate(VALUE = as.character(VALUE))))
+
+  # when gapped is disabled...
+  remove <- which(
+    stringi::stri_detect_fixed(str = mismatch$PARAMETER,
+                               pattern = "Load"))
+
+  if (length(remove) > 0L) {
+    mismatch %<>% dplyr::filter(PARAMETER < remove)
+  }
 
   # n.radtags.start ------------------------------------------------------------
   n.radtags.start <- tibble::tibble(
@@ -604,58 +618,66 @@ read_stacks_ustacks_log <- function(
   gap.info <- which(stringi::stri_detect_fixed(
     str = ustacks.log,
     pattern = "Searching for gaps between merged stacks"))
-  if (length(coverage.info) == 0) {
-    gap <- tibble::tibble(
-      PARAMETER = c("Stacks_assembled_before_gap", "Stacks_assembled_after_gap"),
-      VALUE = stringi::stri_match_all_regex(
-        str = readr::read_lines(
-          log.file,
-          skip = which(
-            stringi::stri_detect_fixed(
+
+  # gapped ON
+  if (length(remove) == 0) {
+    if (length(coverage.info) == 0) {
+      gap <- tibble::tibble(
+        PARAMETER = c("Stacks_assembled_before_gap", "Stacks_assembled_after_gap"),
+        VALUE = stringi::stri_match_all_regex(
+          str = readr::read_lines(
+            log.file,
+            skip = which(
+              stringi::stri_detect_fixed(
+                str = ustacks.log,
+                pattern = "Assembled"))[[2]] - 1,
+            n_max = 1),
+          pattern = "[0-9]*[.]*[0-9]+"
+        )[1] %>% unlist)
+    } else {
+      gap  <- tibble::tibble(
+        PARAMETER = c("Stacks_before_merged_gap", "Stacks_after_merged_gap", "Gapped_alignments"),
+        VALUE = stringi::stri_match_all_regex(
+          str = readr::read_lines(log.file,
+                                  skip = gap.info + 1,
+                                  n_max = 1),
+          pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+    }
+    # coverage.post.gap ----------------------------------------------------------
+    coverage.info <- which(stringi::stri_detect_fixed(
+      str = ustacks.log,
+      pattern = "After gapped alignments, coverage depth"))
+
+    if (length(coverage.info) == 0) {
+      coverage.post.gap <- tibble::tibble(
+        PARAMETER = c("Coverage_post_gapped_alignments_mean",
+                      "Coverage_post_gapped_alignments_sd",
+                      "Coverage_post_gapped_alignments_max",
+                      "Coverage_post_gapped_alignments_n_reads",
+                      "Coverage_post_gapped_alignments_primary_reads_percent"),
+        VALUE = stringi::stri_match_all_regex(
+          str = readr::read_lines(
+            log.file,
+            skip = which(stringi::stri_detect_fixed(
               str = ustacks.log,
-              pattern = "Assembled"))[[2]] - 1,
-          n_max = 1),
-        pattern = "[0-9]*[.]*[0-9]+"
-      )[1] %>% unlist)
-  } else {
-    gap  <- tibble::tibble(
-      PARAMETER = c("Stacks_before_merged_gap", "Stacks_after_merged_gap", "Gapped_alignments"),
-      VALUE = stringi::stri_match_all_regex(
-        str = readr::read_lines(log.file,
-                                skip = gap.info + 1,
-                                n_max = 1),
-        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+              pattern = "Coverage after gapped assembly")) - 1,
+            n_max = 1),
+          pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+    } else {
+      coverage.post.gap <- tibble::tibble(
+        PARAMETER = c("Coverage_post_gapped_alignments_mean",
+                      "Coverage_post_gapped_alignments_sd",
+                      "Coverage_post_gapped_alignments_max"),
+        VALUE = stringi::stri_match_all_regex(
+          str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1),
+          pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+    }
+  } else {# Gapped OFF
+    gap <- coverage.post.gap <- NULL
   }
 
-  # coverage.post.gap ----------------------------------------------------------
-  coverage.info <- which(stringi::stri_detect_fixed(
-    str = ustacks.log,
-    pattern = "After gapped alignments, coverage depth"))
 
-  if (length(coverage.info) == 0) {
-    coverage.post.gap <- tibble::tibble(
-      PARAMETER = c("Coverage_post_gapped_alignments_mean",
-                    "Coverage_post_gapped_alignments_sd",
-                    "Coverage_post_gapped_alignments_max",
-                    "Coverage_post_gapped_alignments_n_reads",
-                    "Coverage_post_gapped_alignments_primary_reads_percent"),
-      VALUE = stringi::stri_match_all_regex(
-        str = readr::read_lines(
-          log.file,
-          skip = which(stringi::stri_detect_fixed(
-            str = ustacks.log,
-            pattern = "Coverage after gapped assembly")) - 1,
-          n_max = 1),
-        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
-  } else {
-    coverage.post.gap <- tibble::tibble(
-      PARAMETER = c("Coverage_post_gapped_alignments_mean",
-                    "Coverage_post_gapped_alignments_sd",
-                    "Coverage_post_gapped_alignments_max"),
-      VALUE = stringi::stri_match_all_regex(
-        str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1),
-        pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
-  }
+
 
   # Final coverage -------------------------------------------------------------
   coverage.info <- which(stringi::stri_detect_fixed(
@@ -672,13 +694,16 @@ read_stacks_ustacks_log <- function(
                     "Coverage_final_n_reads",
                     "Coverage_final_primary_reads_percent"),
       VALUE = stringi::stri_match_all_regex(
-        str = readr::read_lines(
-          log.file,
-          skip = which(stringi::stri_detect_fixed(
-            str = ustacks.log,
-            pattern = "Coverage after gapped assembly")) - 1,
-          n_max = 1),
+        str = readr::read_lines(log.file, skip = coverage.info - 1, n_max = 1),
         pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
+      # VALUE = stringi::stri_match_all_regex(
+      #   str = readr::read_lines(
+      #     log.file,
+      #     skip = which(stringi::stri_detect_fixed(
+      #       str = ustacks.log,
+      #       pattern = "Coverage after gapped assembly")) - 1,
+      #     n_max = 1),
+      #   pattern = "[0-9]*[.]*[0-9]+")[1] %>% unlist)
   }
 
   # reads.used.info ------------------------------------------------------------
@@ -732,72 +757,7 @@ read_stacks_ustacks_log <- function(
 
 }#End read_stacks_ustacks_log
 
-#' @title list_sample_file
-#' @description List sample file in folder
-#' @rdname list_sample_file
-#' @export
-#' @keywords internal
-list_sample_file <- function(f, full.path = FALSE) {
-  sample_file <- function(x, f) {
-    sample.file <- list.files(
-      path = f,
-      pattern = x,
-      full.names = full.path)
 
-    # fq files with .rem.
-    not.wanted <- list.files(
-      path = f,
-      pattern = ".rem.",
-      full.names = full.path)
-
-    sample.file <- purrr::keep(.x = sample.file, .p = !sample.file %in% not.wanted)
-
-    # reverse paired-end files
-    not.wanted <- list.files(
-      path = f,
-      pattern = "\\.2\\.",
-      full.names = full.path)
-
-    sample.file <- purrr::keep(.x = sample.file, .p = !sample.file %in% not.wanted)
-
-    if (length(sample.file) > 0) {
-      return(sample.file)
-    } else {
-      return(NULL)
-    }
-  }
-  sample.list <- purrr::map(
-    .x = c("fq.gz", "fq", "fasta", "fastq", "gzfasta", "gzfastq", "fastq.gz", "FASTQ.gz", "FASTQ.GZ"),
-    .f = sample_file, f = f) %>%
-    purrr::flatten_chr(.) %>%
-    unique
-  return(sample.list)
-}#End list_sample_file
-
-#' @title fq_file_type
-#' @description Detect fq file type
-#' @rdname fq_file_type
-#' @export
-#' @keywords internal
-fq_file_type <- function(x) {
-  fq.file.type <-  suppressWarnings(
-    stringi::stri_match_all_regex(
-      str = x,
-      omit_no_match = TRUE,
-      pattern = c( ".fq", ".fq.gz", ".fasta", ".gzfasta", ".gzfastq", ".fastq", ".fastq.gz", ".FASTQ.gz", ".FASTQ.GZ")
-    ) %>%
-      purrr::flatten_chr(.)
-    ) %>%
-    unique
-
-  # if (identical(x = c(".fastq", ".fastq.gz", ".FASTQ.gz", ".FASTQ.GZ"), y = fq.file.type)) fq.file.type <- ".fastq.gz"
-  # if (identical(x = c(".FASTQ.GZ"), y = fq.file.type)) fq.file.type <- ".fastq.gz"
-  # if (identical(x = c(".FASTQ.gz"), y = fq.file.type)) fq.file.type <- ".fastq.gz"
-  if (identical(x = c(".fastq", ".fastq.gz"), y = fq.file.type)) fq.file.type <- ".fastq.gz"
-  if (identical(x = c(".fq", ".fq.gz"), y = fq.file.type)) fq.file.type <- ".fq.gz"
-  if (identical(x = c(".fasta", ".gzfasta"), y = fq.file.type)) fq.file.type <- ".gzfasta"
-  return(fq.file.type)
-}#End fq_file_type
 
 #' @title mismatch_fig
 #' @description Summary of mismatches

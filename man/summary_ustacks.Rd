@@ -37,6 +37,7 @@ The function returns a summary (data frame) containing:
 \item FILTERED: the number of locus after artifacts are removed
 \item HOMOZYGOSITY: the number of homozygous genotypes
 \item HETEROZYGOSITY: the number of heterozygous genotypes
+\item HET_PROP: the proportion of heterozygous genotypes
 \item MEAN_NUMBER_SNP_LOCUS: the mean number of SNP/locus (excluding the artifact locus)
 \item MAX_NUMBER_SNP_LOCUS: the max number of SNP/locus observed for this individual (excluding the artifact locus)
 \item NUMBER_LOCUS_4SNP: the number of locus with 4 or more SNP/locus (excluding the artifact locus)

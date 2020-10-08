@@ -21,6 +21,9 @@
 #' @param parallel.core Enable parallel execution using multiple core.
 #' Default: \code{parallel.core = parallel::detectCores() - 1}.
 
+#' @param verbose By function the function chats.
+#' Default: \code{verbose = TRUE}.
+
 #' @return The function returns nothing in the global environment. The function
 #' just renames the fq files.
 
@@ -78,12 +81,12 @@
 #' }
 
 
-rename_fq <- function(change.fq, parallel.core = parallel::detectCores() - 1) {
+rename_fq <- function(change.fq, parallel.core = parallel::detectCores() - 1, verbose = TRUE) {
   opt.change <- getOption("width")
   options(width = 70)
-  cat("#######################################################################\n")
-  cat("########################## stackr::rename_fq ##########################\n")
-  cat("#######################################################################\n")
+  if (verbose) cat("#######################################################################\n")
+  if (verbose) cat("########################## stackr::rename_fq ##########################\n")
+  if (verbose) cat("#######################################################################\n")
   timing <- proc.time()
 
 
@@ -98,7 +101,7 @@ rename_fq <- function(change.fq, parallel.core = parallel::detectCores() - 1) {
     stop("Verify data frame column naming")
   }
 
-  message("Renaming ", nrow(change.fq), " fastq files...")
+  if (verbose) message("Renaming/moving ", nrow(change.fq), " fastq files...")
 
   rename_one_fq <- function(x, change.fq) {
     change.fq <- dplyr::filter(change.fq, OLD_FQ == x)
@@ -113,7 +116,7 @@ rename_fq <- function(change.fq, parallel.core = parallel::detectCores() - 1) {
       change.fq = change.fq))
 
   timing <- proc.time() - timing
-  message("\nComputation time: ", round(timing[[3]]), " sec")
-  cat("############################## completed ##############################\n")
+  if (verbose) message("\nComputation time: ", round(timing[[3]]), " sec")
+  if (verbose) cat("############################## completed ##############################\n")
   options(width = opt.change)
 }#End rename_fq

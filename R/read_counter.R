@@ -9,6 +9,10 @@
 #' @param path.samples (character, path) Path of folder containing the
 #' samples to count reads
 
+#' @param recursive (logical) Should the listing recurse into the directory?
+#' e.g. when \code{path.samples} contains nested folders with FQ files.
+#' Default: \code{recursive = FALSE}.
+
 #' @param strata (optional)
 #' The strata file is a tab delimited file with 2 columns headers:
 #' \code{INDIVIDUALS} and \code{STRATA}.
@@ -54,7 +58,7 @@
 #' read.info <- stackr::read_counter(path.samples = "corals")
 #'
 #' # to extract info from the list
-#' read.data = read.info$read.data
+#' reads = read.info$reads
 #' reads.distribution <- read.info$reads.distribution
 #' reads.boxplot <- read.info$reads.boxplot
 #'
@@ -82,6 +86,7 @@
 
 read_counter <- function(
   path.samples,
+  recursive = FALSE,
   strata = NULL,
   plot.reads = TRUE,
   write = TRUE,
@@ -93,6 +98,7 @@ read_counter <- function(
   cat("######################## stackr::read_counter #########################\n")
   cat("#######################################################################\n")
   timing <- proc.time()
+  file.date <- format(Sys.time(), "%Y%m%d@%H%M")
 
   # Missing argument -----------------------------------------------------------
   # folder is given
@@ -106,39 +112,89 @@ read_counter <- function(
 
 
   # Check for results folder
-  results.folder <- FALSE #defaults
-  if (file.exists("08_stacks_results")) results.folder <- TRUE
+  results.folder <- getwd()
+  if (file.exists("08_stacks_results")) results.folder <- "08_stacks_results"
 
-  # get fq files
-  fastq.files <- list_sample_file(f = path.samples, full.path = TRUE)
-  fastq.files.short <- list_sample_file(f = path.samples, full.path = FALSE)
-  todo <- length(fastq.files)
-  message("Number of samples to count: ", todo)
-
+  # get fq files ---------------------------------------------------------------
+  fastq.files <- list_sample_file(f = path.samples, full.path = TRUE, recursive = recursive)
+  message("Number of samples to count: ", length(fastq.files))
   message("\nCounting reads...")
-  read.data <- .stackr_parallel(
-    X = 1:todo,
+  names(fastq.files) <- fastq.files
+
+  # # sequential
+  # reads <- purrr::map_dfr(.x = fastq.files, .f = read_count_one) %>%
+  #   dplyr::arrange(NUMBER_READS)
+
+  # parallel
+  reads <- .stackr_parallel(
+    X = fastq.files,
     FUN = read_count_one,
-    mc.cores = parallel.core,
-    fastq.files, fastq.files.short) %>%
+    mc.cores = parallel.core
+  ) %>%
     dplyr::bind_rows(.) %>%
     dplyr::arrange(NUMBER_READS)
 
-  message("\nTotal reads across samples= ", sum(read.data$NUMBER_READS))
-  se <- round(sqrt(stats::var(read.data$NUMBER_READS)/length(read.data$NUMBER_READS)), 0)
-  mean.reads <- round(mean(read.data$NUMBER_READS), 0)
-  message("\nMean number of reads +/- SE [min - max] = ", mean.reads, " +/- ", se, " [", min(read.data$NUMBER_READS), " - ", max(read.data$NUMBER_READS), "]")
+  # merge strata if present ----------------------------------------------------
+  # read in the strata
+
+  if (is.vector(strata)) {
+    if (!file.exists(strata)) rlang::abort("\nstrata file doesn't exist...\n")
+    strata <- readr::read_tsv(
+      file = strata,
+      col_types = readr::cols(.default = readr::col_character()))
+  }
+
+  if (rlang::has_name(strata, "POP_ID") && !rlang::has_name(strata, "STRATA")) {
+    colnames(strata) <- stringi::stri_replace_all_fixed(
+      colnames(strata), "POP_ID", "STRATA",
+      vectorize_all = FALSE)
+  }
+
+
+  # strata <- radiator::read_strata(strata) %$% strata
+
+  if (!is.null(strata)) {
+    reads %<>% dplyr::left_join(strata, by = "INDIVIDUALS")
+  } else {
+    reads %<>% dplyr::mutate(STRATA = "overall")
+  }
+
+
+  # check if problematic samples .....
+  if (anyNA(reads$NUMBER_READS)) {
+    prob <- reads$INDIVIDUALS[is.na(reads$NUMBER_READS)]
+    message("\n\nProblematic samples: \n", paste0(prob, sep = "\n"))
+    prob.filename <- file.path(results.folder, paste0("problematic_read_counter_samples_", file.date, ".tsv"))
+    tibble::tibble(PROBLEMATIC_SAMPLES = prob) %>%
+      readr::write_tsv(x = ., path = prob.filename)
+    message("File written: ", prob.filename)
+
+    reads %<>% dplyr::filter(!INDIVIDUALS %in% prob)
+  }
+
+  reads.stats <- stats_stackr(data = reads, x = "NUMBER_READS", digits = 0L) %>%
+    tibble::add_column(.data = ., STRATA = "OVERALL", .before = 1L)
+
+  message("\nReads stats:")
+  message("Total reads across samples = ", reads.stats[3])
+  message("Median number of reads = ", reads.stats[7])
+  message("IQR = ", reads.stats[10][[1]])
+  message("Min - Max = ", reads.stats[11], " - ", reads.stats[12])
+  message("Number of outliers (min and max) = ", reads.stats[15] + reads.stats[16])
+
+  if (!is.null(strata)) {
+    reads.stats <- stats_stackr(data = reads, x = "NUMBER_READS", group.by = "STRATA", digits = 0L) %>%
+      dplyr::bind_rows(reads.stats)
+  }
+
+  readr::write_tsv(x = reads.stats, path = file.path(results.folder, paste0("reads_stats_", file.date, ".tsv")))
+
 
   if (plot.reads) {
-
-    if (is.null(strata)) {
-      read.data <- read.data %>% dplyr::mutate(STRATA = rep("overall", n()))
-    }
-
-    n.pop <- dplyr::n_distinct(read.data$STRATA)
+    n.pop <- dplyr::n_distinct(reads$STRATA)
 
     reads.distribution <- suppressMessages(ggplot2::ggplot(
-      data = read.data, ggplot2::aes(x = NUMBER_READS)) +
+      data = reads, ggplot2::aes(x = NUMBER_READS)) +
         ggplot2::geom_histogram() +
         ggplot2::labs(x = "Number of reads") +
         ggplot2::labs(y = "Number of samples") +
@@ -165,22 +221,23 @@ read_counter <- function(
           ggplot2::facet_grid(~STRATA, scales = "free", space = "free_x"))
     }
 
-    distribution.filename <- "reads.distribution.pdf" #default
-    if (results.folder) {
-      distribution.filename <- file.path("08_stacks_results", distribution.filename)
-    }
 
-
-    suppressMessages(ggplot2::ggsave(
-      filename = distribution.filename,
-      plot = reads.distribution,
-      width = width.plot, height = 15,
-      dpi = 600, units = "cm", useDingbats = FALSE, limitsize = FALSE))
+    suppressMessages(
+      ggplot2::ggsave(
+        filename = file.path(results.folder, paste0("reads_distribution_", file.date, ".pdf")),
+        plot = reads.distribution,
+        width = width.plot, height = 15,
+        dpi = 300,
+        units = "cm",
+        useDingbats = FALSE,
+        limitsize = FALSE
+      )
+    )
 
     # boxplot
     reads.boxplot <- suppressMessages(
       ggplot2::ggplot(
-        data = read.data,
+        data = reads,
         ggplot2::aes(x = STRATA, y = NUMBER_READS, colour = STRATA)) +
         ggplot2::geom_jitter(alpha = 0.5) +
         ggplot2::geom_violin(trim = TRUE, fill = NA) +
@@ -205,16 +262,15 @@ read_counter <- function(
       width.plot <- 15
     }
 
-    bp.filename <- "reads.boxplot.pdf" #default
-    if (results.folder) {
-      bp.filename <- file.path("08_stacks_results", bp.filename)
-    }
-
     ggplot2::ggsave(
-      filename = bp.filename,
       plot = reads.boxplot,
+      filename = file.path(results.folder, paste0("reads_boxplot_", file.date, ".pdf")),
       width = width.plot, height = 15,
-      dpi = 600, units = "cm", useDingbats = FALSE, limitsize = FALSE)
+      dpi = 300,
+      units = "cm",
+      useDingbats = FALSE,
+      limitsize = FALSE
+    )
 
   } else {
     reads.distribution <- "option not selected"
@@ -222,19 +278,17 @@ read_counter <- function(
   }
 
   if (write) {
-
-    file.date <- format(Sys.time(), "%Y%m%d@%H%M")
-    filename <- stringi::stri_join("stack_read_counts_", file.date, ".tsv")
-    if (results.folder) {
-      filename <- file.path("08_stacks_results", filename)
-    }
-    readr::write_tsv(x = read.data, path = filename)
+    filename <- file.path(results.folder, paste0("read_counts_", file.date, ".tsv"))
+    readr::write_tsv(x = reads, path = filename)
     message("\nRead count file written: ", filename)
   }
 
-  read.info <- list(read.data = read.data, reads.distribution = reads.distribution, reads.boxplot = reads.boxplot)
-
-
+  read.info <- list(
+    reads.data = reads,
+    reads.stast = reads.stats,
+    reads.distribution = reads.distribution,
+    reads.boxplot = reads.boxplot
+  )
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
   cat("############################## completed ##############################\n")
@@ -249,19 +303,18 @@ read_counter <- function(
 #' @rdname read_count_one
 #' @export
 #' @keywords internal
-read_count_one <- function(x, fastq.files, fastq.files.short) {
-  # x <- 1
-  fastq.files <- fastq.files[x]
-  fastq.files.short <- fastq.files.short[x]
-
-  sample.id <- stringi::stri_replace_all_fixed(
-    str = fastq.files.short,
-    pattern = unique(fq_file_type(fastq.files)),
-    replacement = "", vectorize_all = FALSE)
-  message("\nCounting the number of reads in sample: ", sample.id)
-
-  n.reads <- length(ShortRead::readFastq(fastq.files))
-  message("    Number of reads: ", n.reads)
-  read.data <- tibble::as_tibble(list(INDIVIDUALS = sample.id, NUMBER_READS = n.reads))
-  return(read.data)
+read_count_one <- function(fastq.files) {
+  clean.name <- clean_fq_filename(basename(fastq.files))
+  message("\nCounting the number of reads in sample: ", clean.name)
+  safe_counts <- purrr::safely(.f = ShortRead::readFastq)
+  n.reads <- safe_counts(fastq.files)
+  if (is.null(n.reads$result)) {
+    n.reads <- NA
+    message("\n\nProblematic sample: ", basename(fastq.files), "\n\n")
+    return(tibble::as_tibble(list(INDIVIDUALS = clean.name, NUMBER_READS = NA)))
+  } else {
+    n.reads <- length(n.reads$result)
+    message("    Number of reads: ", n.reads)
+    return(tibble::as_tibble(list(INDIVIDUALS = clean.name, NUMBER_READS = n.reads)))
+  }
 }#End read_count_one

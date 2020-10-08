@@ -34,7 +34,8 @@
 #' \item distinct reads with high coverage > 1 read depth (in yellow): those are
 #' legitimate alleles with high coverage.
 #' \item distinct and unique reads with high coverage (in orange): those
-#' alleles when they are assembled in locus are usually paralogs, transposable elements, etc.
+#' repetitive elements when assembled in locus are usually paralogs,
+#' retrotransposons, transposable elements, etc.
 #' }
 
 #' @rdname read_depth_plot
@@ -66,14 +67,10 @@ read_depth_plot <- function(
     rlang::abort('Please install vroom for this option:\n
                  install.packages("vroom")')
   }
-  sample.clean <- stringi::stri_replace_all_fixed(
-    str = fq.file,
-    pattern = c(".fq.gz", ".fq", ".fasta", ".fastq", ".gzfasta", ".gzfastq", ".fastq.gz", ".FASTQ.gz", ".FASTQ.GZ"),
-    replacement = c("", "", "", "", "", "", "", "", ""),
-    vectorize_all = FALSE
-  )
-  message("Sample: ", sample.clean)
 
+  # remove pattern from sample name
+  clean.names <- stackr::clean_fq_filename(basename(fq.file))
+  message("Sample: ", clean.names)
 
   read.stats <- vroom::vroom(
     file = fq.file,
@@ -93,45 +90,58 @@ read_depth_plot <- function(
   message("Number of reads: ", total.sequences)
 
   # stats ----------------------------------------------------------------------
-  read.stats %<>%
-    dplyr::group_by(READS) %>%
-    dplyr::tally(name = "DEPTH") %>%
-    dplyr::ungroup(.)
+  message("Calculating reads stats...")
+  read.stats %<>% dplyr::count(READS, name = "DEPTH")
+
+  # check <- read.stats %>% dplyr::distinct(READS)
 
   # detect indel and / or low quality reads...----------------------------------
+  # Number of N
+  # GC-content/ratio (or guanine-cytosine content), proportion of nitrogenous bases in a DNA
+  # DNA with low GC-content is less stable than DNA with high GC-content
+
+
   indel <- read.stats %>%
     dplyr::mutate(
-      N = stringi::stri_count_fixed(str = READS, pattern = "N"),
-      GC = stringi::stri_count_fixed(str = READS, pattern = c("C", "G")),
       LENGTH = stringi::stri_length(str = READS),
-      GC_PROP = GC / LENGTH,
-      N_PROP = N / LENGTH
+      N = stringi::stri_count_fixed(str = READS, pattern = "N"),
+      N_PROP = round(N / LENGTH, 2),
+      GC = stringi::stri_count_fixed(str = READS, pattern = "C") +
+        stringi::stri_count_fixed(str = READS, pattern = "G"),
+      GC_PROP = round(GC / LENGTH, 2)
     )
 
+  indel.stats.by.depth.group <- stats_stackr(data = indel, x = "N", group.by = "DEPTH")
+  indel.stats.overall <- stats_stackr(data = indel, x = "N")
+
+  gc.ratio.by.depth.group <- stats_stackr(data = indel, x = "GC_PROP", group.by = "DEPTH")
+  gc.ratio.overall <- stats_stackr(data = indel, x = "GC_PROP")
 
   # stats ----------------------------------------------------------------------
-  read.stats %<>%
-    dplyr::group_by(DEPTH) %>%
-    dplyr::tally(name = "NUMBER_DISTINCT_READS") %>%
-    dplyr::ungroup(.)
+  # check <- read.stats %>% dplyr::filter(DEPTH > 100) %>% dplyr::count(DEPTH, name = "NUMBER_DISTINCT_READS")
+  # check <- read.stats %>% dplyr::count(DEPTH, name = "NUMBER_DISTINCT_READS")
 
+  read.stats %<>% dplyr::count(DEPTH, name = "NUMBER_DISTINCT_READS")
   # sum(read.stats$NUMBER_DISTINCT_READS)
 
   depth.group.levels <- c("low coverage", "target", "high coverage", "distinct reads")
 
-  max.coverage <- read.stats %>%
+  max.coverage.fig <- read.stats %>%
     dplyr::filter(NUMBER_DISTINCT_READS == 1L)
 
-  MIN_COVERAGE <- min.coverage.fig
-  MAX_COVERAGE <- min(max.coverage$DEPTH) - 1
+  if (nrow(max.coverage.fig) == 0) {
+    max.coverage.fig <- max(read.stats$DEPTH, na.rm = TRUE)
+  } else {
+    max.coverage.fig <- min(read.stats$DEPTH[read.stats$NUMBER_DISTINCT_READS == 1L]) - 1
+  }
 
   hap.read.depth <- read.stats %>%
     dplyr::mutate(
       DEPTH_GROUP = dplyr::case_when(
         NUMBER_DISTINCT_READS == 1L ~ "distinct reads",
-        DEPTH < MIN_COVERAGE ~ "low coverage",
-        DEPTH >= MIN_COVERAGE & DEPTH <= MAX_COVERAGE ~ "target",
-        DEPTH > MAX_COVERAGE ~ "high coverage"
+        DEPTH < min.coverage.fig ~ "low coverage",
+        DEPTH >= min.coverage.fig & DEPTH <= max.coverage.fig ~ "target",
+        DEPTH > max.coverage.fig ~ "high coverage"
       ),
       DEPTH_GROUP = factor(x = DEPTH_GROUP, levels = depth.group.levels, ordered = TRUE)
     )
@@ -139,7 +149,7 @@ read_depth_plot <- function(
 
   color.tibble <- tibble::tibble(
     DEPTH_GROUP = c("low coverage", "target", "high coverage", "distinct reads"),
-    LABELS = c("low coverage", paste0("target [", MIN_COVERAGE, " - ", MAX_COVERAGE, "]"), "high coverage > 1 reads", "high coverage, unique reads"),
+    LABELS = c("low coverage", paste0("target [", min.coverage.fig, " - ", max.coverage.fig, "]"), "high coverage > 1 reads", "high coverage, unique reads"),
     GROUP_COLOR = c("red", "green", "yellow", "orange")
   ) %>%
     dplyr::mutate(
@@ -150,10 +160,9 @@ read_depth_plot <- function(
     dplyr::mutate(DISTINCT_READS_DEPTH = DEPTH * NUMBER_DISTINCT_READS) %>%
     dplyr::group_by(DEPTH_GROUP) %>%
     dplyr::summarise(
-      # NUMBER_READS_PROP = round((sum(NUMBER_DISTINCT_READS) / total.number.distinct.reads), 4),
-      NUMBER_READS_PROP = round((sum(DISTINCT_READS_DEPTH) / total.sequences), 4)
+      NUMBER_READS_PROP = round((sum(DISTINCT_READS_DEPTH) / total.sequences), 4),
+      .groups = "drop"
     ) %>%
-    dplyr::ungroup(.) %>%
     dplyr::left_join(color.tibble, by = "DEPTH_GROUP") %>%
     dplyr::mutate(
       LABELS = stringi::stri_join(LABELS, " (", as.character(format(NUMBER_READS_PROP, scientific = FALSE)), ")")
@@ -166,7 +175,12 @@ read_depth_plot <- function(
 
   read.depth.plot <- ggplot2::ggplot(data = hap.read.depth, ggplot2::aes(x = DEPTH, y = NUMBER_DISTINCT_READS)) +
     ggplot2::geom_point(ggplot2::aes(colour = hap.read.depth$DEPTH_GROUP)) +
-    ggplot2::labs(x = "Depth of sequencing (log10)", y = "Number of distinct reads (log10)") +
+    ggplot2::labs(
+      title = paste0("Read Depth Groups for sample: ", clean.names),
+      subtitle = paste0("Total reads: ", total.sequences),
+      x = "Depth of sequencing (log10)",
+      y = "Number of distinct reads (log10)"
+    ) +
     ggplot2::annotation_logticks() +
     ggplot2::scale_colour_manual(
       name = "Read coverage groups",
@@ -181,7 +195,7 @@ read_depth_plot <- function(
       legend.text = ggplot2::element_text(size = 16, face = "bold"),
       legend.position = c(0.7,0.8)
     )
-  filename.plot <- stringi::stri_join(sample.clean, "_hap_read_depth.png")
+  filename.plot <- stringi::stri_join(clean.names, "_hap_read_depth.png")
   ggplot2::ggsave(
     plot = read.depth.plot,
     filename = filename.plot,
@@ -192,3 +206,6 @@ read_depth_plot <- function(
   )
   return(read.depth.plot)
 }# End read_depth_plot
+
+
+

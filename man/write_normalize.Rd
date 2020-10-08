@@ -4,7 +4,12 @@
 \alias{write_normalize}
 \title{write_normalize}
 \usage{
-write_normalize(number.replicates, subsample.random, fastq.files, sample.reads)
+write_normalize(
+  number.replicates,
+  subsample.random,
+  fq.to.normalize,
+  sample.reads
+)
 }
 \description{
 Write the normalize fastq file

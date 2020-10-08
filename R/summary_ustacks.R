@@ -41,6 +41,7 @@
 #' \item FILTERED: the number of locus after artifacts are removed
 #' \item HOMOZYGOSITY: the number of homozygous genotypes
 #' \item HETEROZYGOSITY: the number of heterozygous genotypes
+#' \item HET_PROP: the proportion of heterozygous genotypes
 #' \item MEAN_NUMBER_SNP_LOCUS: the mean number of SNP/locus (excluding the artifact locus)
 #' \item MAX_NUMBER_SNP_LOCUS: the max number of SNP/locus observed for this individual (excluding the artifact locus)
 #' \item NUMBER_LOCUS_4SNP: the number of locus with 4 or more SNP/locus (excluding the artifact locus)
@@ -349,7 +350,8 @@ summary_ustacks <- function(
           MEAN_NUMBER_SNP_LOCUS = round(mean(SNP_NUMBER[SNP_NUMBER > 0]), 2),
           MAX_NUMBER_SNP_LOCUS = max(SNP_NUMBER[SNP_NUMBER > 0]),
           NUMBER_LOCUS_4SNP = length(LOCUS[SNP_NUMBER > 3]))
-    )
+    ) %>%
+      dplyr::mutate(HET_PROP = HETEROZYGOSITY / FILTERED)
     summarise.ustacks <- sample.name <- NULL
     return(summary.ind)
   }#End summarise_ustacks
@@ -385,6 +387,7 @@ summary_ustacks <- function(
     message("  snp/locus [max], excluding artifact locus: ", round(mean.summary$MEAN_NUMBER_SNP_LOCUS), " [", round(mean.summary$MAX_NUMBER_SNP_LOCUS), "]")
     message("  homozygous locus: ", round(mean.summary$HOMOZYGOSITY))
     message("  heterozygous locus: ", round(mean.summary$HETEROZYGOSITY))
+    message("  het prop: ", round(mean.summary$HET_PROP, 2))
     message("  artifactual locus: ", round(mean.summary$BLACKLIST_ARTIFACT))
     message("  locus with 4 or more SNPs (excluding artifactual locus): ", round(mean.summary$NUMBER_LOCUS_4SNP), "\n\n")
 
@@ -398,6 +401,7 @@ summary_ustacks <- function(
     message("  snp/locus [max], excluding artifact locus: ", round(mean.summary$MEAN_NUMBER_SNP_LOCUS), " [", round(mean.summary$MAX_NUMBER_SNP_LOCUS), "]")
     message("  homozygous locus: ", round(mean.summary$HOMOZYGOSITY))
     message("  heterozygous locus: ", round(mean.summary$HETEROZYGOSITY))
+    message("  het prop: ", round(mean.summary$HET_PROP, 2))
     message("  artifactual locus: ", round(mean.summary$BLACKLIST_ARTIFACT))
     message("  locus with 4 or more SNPs (excluding artifactual locus): ", round(mean.summary$NUMBER_LOCUS_4SNP), "\n\n")
   }

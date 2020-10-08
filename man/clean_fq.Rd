@@ -5,22 +5,31 @@
 \title{Removes the noise of an individual fastq file}
 \usage{
 clean_fq(
-  fq.file,
+  fq.files,
   min.coverage.threshold = 2L,
+  max.coverage.threshold = "high.coverage.unique.reads",
   remove.unique.reads = TRUE,
-  write.blacklist = FALSE,
-  write.blacklist.fasta = FALSE,
+  write.blacklist = TRUE,
+  write.blacklist.fasta = TRUE,
   compress = FALSE,
+  output.dir = NULL,
   parallel.core = parallel::detectCores() - 1
 )
 }
 \arguments{
-\item{fq.file}{(character, path). The path to the individual fastq file to check.
-Default: \code{fq.file = "my-sample.fq.gz"}.}
+\item{fq.files}{(character, path). The path to the individual fastq file to check.
+Default: \code{fq.files = "my-sample.fq.gz"}.}
 
-\item{min.coverage.threshold}{(character, path). Minimum coverage threshold.
+\item{min.coverage.threshold}{(integer). Minimum coverage threshold.
 The function will remove distinct reads with coverage <= to the threshold.
+To turn off, \code{min.coverage.threshold = NULL or 0L}.
 Default: \code{min.coverage.threshold = 2L}.}
+
+\item{max.coverage.threshold}{(integer, character). Maximum coverage threshold.
+The function will remove distinct reads with coverage >= than this threshold.
+To turn off, \code{max.coverage.threshold = NULL}.
+The default, use the starting depth where high coverage unique reads are observed.
+Default: \code{max.coverage.threshold = "high.coverage.unique.reads"}.}
 
 \item{remove.unique.reads}{(logical). Remove distinct unique reads with high
 coverage. Likely paralogs or Transposable elements.
@@ -37,12 +46,15 @@ Default: \code{write.blacklist.fasta = FALSE}.}
 space, don't compress, it's way faster this way to write.
 Default: \code{compress = FALSE}.}
 
+\item{output.dir}{(path) Write the cleaned fq files in a specific directory.
+Default: \code{output.dir = NULL}, uses the working directory.}
+
 \item{parallel.core}{(integer) Enable parallel execution with the number of threads.
 Default: \code{parallel.core = parallel::detectCores() - 1}.}
 }
 \value{
 The function returns a cleaned fq file with the name of the sample and
-\code{_cleaned} appended to the filename.
+\code{-cleaned} appended to the filename.
 }
 \description{
 This function reads the fastq file of an individual and clean it
@@ -58,11 +70,27 @@ coming soon, just try it in the meantime...
 \examples{
 \dontrun{
 require(vroom)
+
+# for one sample
 clean.id <- stackr::clean_fq(
-  fq.file = "my-sample.fq.gz",
-  min.coverage.threshold = 7,
-  remove.unique.reads = TRUE,
-  write.blacklist.fasta = TRUE
+  fq.files = "my-sample.fq.gz",
+  min.coverage.threshold = 7L,
+  max.coverage.threshold = "high.coverage.unique.reads"
   )
+
+# for multiple samples in parallel
+# require(progressr)
+
+ progressr::with_progress({
+   clean <- stackr::clean_fq(
+     fq.files = 04_process_radtags,
+      min.coverage.threshold = 2L,
+      max.coverage.threshold = "high.coverage.unique.reads",
+      write.blacklist = TRUE,
+      write.blacklist.fasta = TRUE,
+      compress = FALSE,
+      output.dir = "04_process_radtags/cleaned_fq"
+ )
+ })
 }
 }
