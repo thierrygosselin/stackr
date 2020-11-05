@@ -819,12 +819,11 @@ mismatch_fig <- function(mismatch.run) {
 
 
   PERCENT <- NULL
-  res$mismatches.plot <- ggplot2::ggplot(
-    mismatch.polymorphism,
-    ggplot2::aes(y = PERCENT, x = MISMATCH)) +
-    ggplot2::geom_line(ggplot2::aes(colour = mismatch.polymorphism$PARAMETER)) +
-    ggplot2::geom_point(ggplot2::aes(colour = mismatch.polymorphism$PARAMETER,
-                                     size = mismatch.polymorphism$TOTAL)) +
+  res$mismatches.plot <- ggplot2::ggplot(data = mismatch.polymorphism,
+                                         ggplot2::aes(y = PERCENT, x = MISMATCH)) +
+    ggplot2::geom_line(ggplot2::aes(colour = PARAMETER)) +
+    ggplot2::geom_point(ggplot2::aes(colour = PARAMETER,
+                                     size = TOTAL)) +
     ggplot2::scale_colour_manual(
       name = "Haplotype Cluster:",
       labels = polymorphism.detail, values = c("blue","green","darkred")) +

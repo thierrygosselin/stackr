@@ -166,7 +166,7 @@ read_counter <- function(
     message("\n\nProblematic samples: \n", paste0(prob, sep = "\n"))
     prob.filename <- file.path(results.folder, paste0("problematic_read_counter_samples_", file.date, ".tsv"))
     tibble::tibble(PROBLEMATIC_SAMPLES = prob) %>%
-      readr::write_tsv(x = ., path = prob.filename)
+      readr::write_tsv(x = ., file = prob.filename)
     message("File written: ", prob.filename)
 
     reads %<>% dplyr::filter(!INDIVIDUALS %in% prob)
@@ -187,7 +187,7 @@ read_counter <- function(
       dplyr::bind_rows(reads.stats)
   }
 
-  readr::write_tsv(x = reads.stats, path = file.path(results.folder, paste0("reads_stats_", file.date, ".tsv")))
+  readr::write_tsv(x = reads.stats, file = file.path(results.folder, paste0("reads_stats_", file.date, ".tsv")))
 
 
   if (plot.reads) {
@@ -279,7 +279,7 @@ read_counter <- function(
 
   if (write) {
     filename <- file.path(results.folder, paste0("read_counts_", file.date, ".tsv"))
-    readr::write_tsv(x = reads, path = filename)
+    readr::write_tsv(x = reads, file = filename)
     message("\nRead count file written: ", filename)
   }
 

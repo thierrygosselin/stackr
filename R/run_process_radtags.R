@@ -24,69 +24,69 @@
 #' @param i (character) Input file type, either \code{"fastq"}, \code{"gzfastq"},
 #' \code{"bam"}, or \code{bustard}. Default: \code{i = "guess"}.
 #' @param o (character, path) Path to output the processed files.
-#' Default:\code{o = "04_process_radtags"}.
+#' Default: \code{o = "04_process_radtags"}.
 #' @param y (character) Output file type: \code{"fastq"}, \code{"gzfastq"},
 #' \code{"fasta"}, or \code{gzfasta}. Default: \code{y = "guess"} (match input type).
 #' @param pe.1 (character, path) First input file in a set of
 #' paired-end sequences.
 #' In stacks it's the argument \code{1}.
-#' Default:\code{pe.1 = "FORWARD"}. Corresponding to the \code{FORWARD} column in
+#' Default: \code{pe.1 = "FORWARD"}. Corresponding to the \code{FORWARD} column in
 #' the project info file.
 #' @param pe.2 (character, path) Second input file in a set of
 #' paired-end sequences.
 #' In stacks it's the argument \code{2}.
-#' Default:\code{pe.2 = "REVERSE"}. Corresponding to the \code{REVERSE} column in
+#' Default: \code{pe.2 = "REVERSE"}. Corresponding to the \code{REVERSE} column in
 #' the project info file.
 
 #' @param c (logical) Clean data, remove any read with an uncalled base.
-#' Default:\code{c = TRUE}.
+#' Default: \code{c = TRUE}.
 #' @param q (logical) Discard reads with low quality scores.
-#' Default:\code{q = TRUE}.
+#' Default: \code{q = TRUE}.
 #' @param r (logical) Rescue barcodes and RAD-Tags.
-#' Default:\code{r = TRUE}.
+#' Default: \code{r = TRUE}.
 
 #' @param t (integer) Truncate final read length to this value.
-#' Default:\code{t = 90}.
+#' Default: \code{t = 90}.
 
 #' @param D (logical) Capture discarded reads to a file.
-#' Default:\code{D = FALSE}.
+#' Default: \code{D = FALSE}.
 
 #' @param E (character) Specify how quality scores are encoded,
 #' \code{"phred33"} for Illumina 1.8+/Sanger or \code{"phred64"} for Illumina 1.3-1.5.
-#' Default:\code{E = "phred33"}.
+#' Default: \code{E = "phred33"}.
 
 #' @param w (double) Set the size of the sliding window as a fraction of the
 #' read length, between 0 and 1.
-#' Default:\code{W = 0.15}.
+#' Default: \code{W = 0.15}.
 
 #' @param s (integer) Set the score limit.
 #' If the average score within the sliding window drops below this value,
 #' the read is discarded (default 10).
-#' Default:\code{s = 10}.
+#' Default: \code{s = 10}.
 
 
 #' @param barcode.inline.null (logical) Barcode is inline with sequence,
 #' occurs only on single-end read.
-#' Default:\code{barcode.inline.null = TRUE}.
+#' Default: \code{barcode.inline.null = TRUE}.
 #' @param barcode.index.null Barcode is provided in FASTQ header
 #' (Illumina i5 or i7 read).
-#' Default:\code{barcode.index.null = FALSE}.
+#' Default: \code{barcode.index.null = FALSE}.
 #' @param barcode.null.index Barcode is provded in FASTQ header
 #' (Illumina i7 read if both i5 and i7 read are provided).
-#' Default:\code{barcode.null.index = FALSE}.
+#' Default: \code{barcode.null.index = FALSE}.
 #' @param barcode.inline.inline Barcode is inline with sequence,
 #' occurs on single and paired-end read.
-#' Default:\code{barcode.inline.inline = FALSE}.
+#' Default: \code{barcode.inline.inline = FALSE}.
 #' @param barcode.index.index Barcode is provded in FASTQ header
 #' (Illumina i5 and i7 reads).
-#' Default:\code{barcode.index.index = FALSE}.
+#' Default: \code{barcode.index.index = FALSE}.
 #' @param barcode.inline.index Barcode is inline with sequence on single-end
 #' read and occurs in FASTQ header (from either i5 or i7 read).
-#' Default:\code{barcode.inline.index = FALSE}.
+#' Default: \code{barcode.inline.index = FALSE}.
 #' @param barcode.index.inline Barcode occurs in FASTQ header
 #' (Illumina i5 or i7 read) and is inline with single-end sequence
 #' (for single-end data) on paired-end read (for paired-end data).
-#' Default:\code{barcode.index.inline = FALSE}.
+#' Default: \code{barcode.index.inline = FALSE}.
 
 #' @param enzyme (character) Provide the restriction enzyme used
 #' (cut site occurs on single-end read).
@@ -428,39 +428,21 @@ run_process_radtags <- function(
     barcode.dist.1 = 1,
     barcode.dist.2 = NULL
   ) {
-    # lane.list <- lane.list[1]
+    # lane.list <- lane.list[4]
 
     # generate a barcode file for the lane -------------------------------------
     if (P) {
       info <- dplyr::ungroup(project.info.file) %>%
         dplyr::filter(LANES_SHORT == lane.list)
-
-      lane.short <- unique(info$LANES_SHORT)
-
-      barcode.file <- info %>%
-        dplyr::select(BARCODES, INDIVIDUALS_REP)
-
-      b <- stringi::stri_join("02_project_info/barcodes_id", "_", lane.short, ".txt")
-      readr::write_tsv(barcode.file, b, col_names = FALSE)
-
     } else {
-      lane.todo <- stringi::stri_replace_all_fixed(
-        str = lane.list,
-        pattern = stringi::stri_join(path.seq.lanes, "/"),
-        replacement = "", vectorized_all = FALSE)
-
+      lane.todo <- basename(lane.list)
       info <- dplyr::ungroup(project.info.file) %>%
         dplyr::filter(LANES == lane.todo)
-
-      lane.short <- unique(info$LANES_SHORT)
-
-      barcode.file <- info %>%
-        dplyr::select(BARCODES, INDIVIDUALS_REP)
-
-      b <- stringi::stri_join("02_project_info/barcodes_id", "_", lane.short, ".txt")
-
-      readr::write_tsv(barcode.file, b, col_names = FALSE)
     }
+    lane.short <- unique(info$LANES_SHORT)
+    barcode.file <- info %>% dplyr::select(BARCODES, INDIVIDUALS_REP)
+    b <- stringi::stri_join("02_project_info/barcodes_id", "_", lane.short, ".txt")
+    readr::write_tsv(barcode.file, b, col_names = FALSE)
 
     # process_radtags_options --------------------------------------------------
     if (P) {
@@ -732,11 +714,8 @@ run_process_radtags <- function(
       n_max = 7
     ) %>%
       dplyr::mutate(
-        DESCRIPTION = stringi::stri_replace_all_fixed(
-          str = DESCRIPTION,
-          pattern = " ",
-          replacement = "_", vectorized_all = FALSE),
         DESCRIPTION = stringi::stri_trans_toupper(str = DESCRIPTION),
+        DESCRIPTION = stringi::stri_replace_all_charclass(DESCRIPTION, "\\p{WHITE_SPACE}", "_"),
         LANES_SHORT = rep(lane.short, n())
       ) %>%
       dplyr::group_by(LANES_SHORT) %>%
@@ -745,7 +724,7 @@ run_process_radtags <- function(
     # save lane stats
     readr::write_tsv(
       x = lanes.stats,
-      path = stringi::stri_join(
+      file = stringi::stri_join(
         "08_stacks_results/",
         stringi::stri_join("process_radtags_", lane.short, "_stats"), ".tsv"))
 
@@ -777,7 +756,8 @@ run_process_radtags <- function(
       "process_radtags_", lane.short, "_barcodes_stats")
     readr::write_tsv(
       x = barcodes.stats,
-      path = stringi::stri_join("08_stacks_results/", barcode.res.list.name, ".tsv"))
+      file = stringi::stri_join("08_stacks_results/", barcode.res.list.name, ".tsv"))
+    return(barcodes.stats)
   } # end process_radtags_lane
 
 
@@ -830,23 +810,33 @@ run_process_radtags <- function(
     len.limit = len.limit,
     barcode.dist.1 = barcode.dist.1,
     barcode.dist.2 = barcode.dist.2
-  ) %>%
+  )
+
+  process.radtags.results %<>%
     dplyr::bind_rows(.) %>%
-    `colnames<-`(stringi::stri_trans_toupper(str = colnames(.))) %>%
-    `colnames<-`(stringi::stri_replace_all_fixed(
-      str = colnames(.),
-      pattern = " ",
-      replacement = "_", vectorize_all = FALSE)) %>%
+    dplyr::rename_with(.data = ., .fn = toupper) %>%
+    dplyr::rename_with(
+      .data = .,
+      .fn = stringi::stri_replace_all_charclass,
+      pattern = "\\p{WHITE_SPACE}",
+      replacement = "_",
+      vectorize_all = FALSE
+    ) %>%
     dplyr::mutate(FILENAME = as.character(FILENAME)) %>%
     dplyr::select(
-      INDIVIDUALS_REP = FILENAME, TOTAL,
-      NO_RADTAG = NORADTAG, LOW_QUALITY = LOWQUALITY, RETAINED)
+      INDIVIDUALS_REP = FILENAME,
+      TOTAL,
+      NO_RADTAG = NORADTAG,
+      LOW_QUALITY = LOWQUALITY,
+      RETAINED,
+      tidyselect::everything()
+    )
 
   # transfer the fq.gz file from the separate folder into a new folder
 
   # get the names of the folder
   folder.list <- list.files(path = o, full.names = TRUE)
-  folder.list
+  # folder.list
 
   destination.folder <- o
 
@@ -904,7 +894,8 @@ run_process_radtags <- function(
           TOTAL = sum(TOTAL),
           NO_RADTAG = sum(NO_RADTAG),
           LOW_QUALITY = sum(LOW_QUALITY),
-          RETAINED = sum(RETAINED)
+          RETAINED = sum(RETAINED),
+          .groups = "keep"
         ) %>%
         dplyr::mutate(
           INDIVIDUALS_REP = stringi::stri_join(INDIVIDUALS, "-R"),
@@ -923,7 +914,8 @@ run_process_radtags <- function(
           TOTAL = sum(TOTAL),
           NO_RADTAG = sum(NO_RADTAG),
           LOW_QUALITY = sum(LOW_QUALITY),
-          RETAINED = sum(RETAINED)
+          RETAINED = sum(RETAINED),
+          .groups = "keep"
         ) %>%
         dplyr::mutate(
           INDIVIDUALS_REP = stringi::stri_join(INDIVIDUALS, "-R"),

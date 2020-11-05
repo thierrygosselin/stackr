@@ -52,7 +52,7 @@
 #' @export
 
 #' @return The function returns a cleaned fq file with the name of the sample and
-#' \code{-cleaned} appended to the filename.
+#' \code{-C} appended to the filename.
 
 #' @examples
 #' \dontrun{
@@ -195,15 +195,29 @@ clean <- function(
   message("Sample: ", clean.names)
 
   # sample name and blacklist name
-  if (write.blacklist) bl.filename <- stringi::stri_join(clean.names, "_blacklisted_reads.fq")
-  if (write.blacklist.fasta) bl.fasta <- stringi::stri_join(clean.names, "_blacklisted_reads.fasta")
-  clean.names %<>% stringi::stri_join("-cleaned.fq")
-
-  if (compress) {
-    if (write.blacklist) bl.filename <- stringi::stri_join(bl.filename, ".gz")
-    if (write.blacklist.fasta) bl.fasta <- stringi::stri_join(bl.fasta, ".gz")
-    clean.names <- stringi::stri_join(clean.names, ".gz")
+  if (write.blacklist) {
+    bl.min.filename <- stringi::stri_join(clean.names, "_blacklisted_min_reads.fq")
+    bl.max.filename <- stringi::stri_join(clean.names, "_blacklisted_max_reads.fq")
+    bl.high.unique.filename <- stringi::stri_join(clean.names, "_blacklisted_high_unique_reads.fq")
+    if (compress) {
+      bl.min.filename <- stringi::stri_join(clean.names, "_blacklisted_min_reads.fq.gz")
+      bl.max.filename <- stringi::stri_join(clean.names, "_blacklisted_max_reads.fq.gz")
+      bl.high.unique.filename <- stringi::stri_join(clean.names, "_blacklisted_high_unique_reads.fq.gz")
+    }
   }
+  if (write.blacklist.fasta) {
+    bl.min.fasta <- stringi::stri_join(clean.names, "_blacklisted_min_reads.fasta")
+    bl.max.fasta <- stringi::stri_join(clean.names, "_blacklisted_max_reads.fasta")
+    bl.high.unique.fasta <- stringi::stri_join(clean.names, "_blacklisted_high_unique_reads.fasta")
+    if (compress) {
+      bl.min.fasta <- stringi::stri_join(clean.names, "_blacklisted_min_reads.fasta.gz")
+      bl.max.fasta <- stringi::stri_join(clean.names, "_blacklisted_max_reads.fasta.gz")
+      bl.high.unique.fasta <- stringi::stri_join(clean.names, "_blacklisted_high_unique_reads.fasta.gz")
+    }
+  }
+  clean.names %<>% stringi::stri_join("-C.fq")
+  if (compress) clean.names <- stringi::stri_join(clean.names, ".gz")
+
   bl.fq <- NULL
 
   fq <- vroom::vroom(
@@ -256,6 +270,8 @@ clean <- function(
   # max.coverage.threshold = NULL
   if (!is.null(max.coverage.threshold)) {
     max.coverage.fig <- dplyr::filter(fq.stats, NUMBER_DISTINCT_READS == 1L)
+
+    # determine high coverage unique reads thresholds
     if (nrow(max.coverage.fig) == 0) {
       high.coverage.unique.reads <- max.depth
     } else {
@@ -303,9 +319,9 @@ clean <- function(
             dplyr::distinct(READS) %>%
             vroom::vroom_write(
               x = .,
-              path =  file.path(output.dir, bl.fasta),
+              path =  file.path(output.dir, bl.high.unique.fasta),
               col_names = FALSE,
-              append = TRUE,
+              append = FALSE,
               num_threads = parallel.core,
               progress = TRUE
             )
@@ -319,9 +335,9 @@ clean <- function(
             dplyr::select(READS) %>%
             vroom::vroom_write(
               x = .,
-              path =  file.path(output.dir, bl.filename),
+              path =  file.path(output.dir, bl.high.unique.filename),
               col_names = FALSE,
-              append = TRUE,
+              append = FALSE,
               num_threads = parallel.core,
               progress = TRUE
             )
@@ -349,9 +365,9 @@ clean <- function(
           dplyr::distinct(READS) %>%
           vroom::vroom_write(
             x = .,
-            path =  file.path(output.dir, bl.fasta),
+            path =  file.path(output.dir, bl.high.unique.fasta),
             col_names = FALSE,
-            append = TRUE,
+            append = FALSE,
             num_threads = parallel.core,
             progress = TRUE
           )
@@ -365,9 +381,9 @@ clean <- function(
           dplyr::select(READS) %>%
           vroom::vroom_write(
             x = .,
-            path =  file.path(output.dir, bl.filename),
+            path =  file.path(output.dir, bl.high.unique.filename),
             col_names = FALSE,
-            append = TRUE,
+            append = FALSE,
             num_threads = parallel.core,
             progress = TRUE
           )
@@ -398,9 +414,9 @@ clean <- function(
           dplyr::distinct(READS) %>%
           vroom::vroom_write(
             x = .,
-            path =  file.path(output.dir, bl.fasta),
+            path =  file.path(output.dir, bl.min.fasta),
             col_names = FALSE,
-            append = TRUE,
+            append = FALSE,
             num_threads = parallel.core,
             progress = TRUE
           )
@@ -415,9 +431,9 @@ clean <- function(
           dplyr::select(READS) %>%
           vroom::vroom_write(
             x = .,
-            path =  file.path(output.dir, bl.filename),
+            path =  file.path(output.dir, bl.min.filename),
             col_names = FALSE,
-            append = TRUE,
+            append = FALSE,
             num_threads = parallel.core,
             progress = TRUE
           )
@@ -427,6 +443,8 @@ clean <- function(
     }
   }# min.coverage.threshold
 
+
+  # Write the cleaned fq file---------------------------------------------------
   after.cleaning <- nrow(dplyr::filter(fq, SEQ == 2L))
   message("Number of reads after cleaning: ", after.cleaning, " (kept ", round(after.cleaning / total.sequences, 2), ")")
 
