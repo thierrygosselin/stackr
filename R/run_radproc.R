@@ -96,10 +96,10 @@ run_radproc <- function(
   timing <- proc.time()
 
   # Check directory ------------------------------------------------------------
-  if (!dir.exists(f)) dir.create(f)
+  if (!dir.exists(f)) rlang::abort("Input file path (f) not found... ")
   if (!dir.exists("09_log_files")) dir.create("09_log_files")
   if (!dir.exists("08_stacks_results")) dir.create("08_stacks_results")
-  if (!dir.exists("06_ustacks_2_gstacks")) dir.create("06_ustacks_2_gstacks")
+  if (!dir.exists(o)) dir.create(o)
 
 
 
@@ -121,7 +121,6 @@ run_radproc <- function(
   f <- stringi::stri_join("-f ", shQuote(f))
 
   # output dir
-  if (!dir.exists(o)) dir.create(o)
   o.bk <- o
   o <- stringi::stri_join("-o ", shQuote(o))
 

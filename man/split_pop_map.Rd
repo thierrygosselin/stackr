@@ -4,7 +4,7 @@
 \alias{split_pop_map}
 \title{split_pop_map}
 \usage{
-split_pop_map(pop.map, split.catalog, catalog.path)
+split_pop_map(pop.map, split.catalog, catalog.path, write = TRUE)
 }
 \description{
 Split the catalog map file

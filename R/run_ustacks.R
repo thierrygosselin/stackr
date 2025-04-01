@@ -249,7 +249,7 @@ run_ustacks <- function(
       dplyr::mutate(SQL_ID = seq(1, n()))
 
     if (!mismatch.testing) {
-      readr::write_tsv(x = project.info, path = "project.info.sqlid.tsv")
+      readr::write_tsv(x = project.info, file = "project.info.sqlid.tsv")
       message("Unique id info was generated: project.info.sqlid.tsv")
     }
   }
@@ -781,7 +781,7 @@ mismatch_fig <- function(mismatch.run) {
     dplyr::bind_cols(purrr::map(.x = mismatch.run,.f = remove_first_column))
 
   # write in the working directory
-  readr::write_tsv(x = res$mismatches.summary, path = file.path(out.path, "mismatches.summary.tsv"))
+  readr::write_tsv(x = res$mismatches.summary, file = file.path(out.path, "mismatches.summary.tsv"))
   message("Summary of all mismatches written in folder: mismatches.summary.tsv")
 
 

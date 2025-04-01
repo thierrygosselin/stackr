@@ -8,9 +8,9 @@ reads_stats(
   fq.files,
   read.depth.plot = TRUE,
   min.coverage.fig = 7L,
-  output.dir = NULL,
+  output = "08_stacks_results/02_summary_reads",
   parallel.core = parallel::detectCores() - 1,
-  p,
+  p = NULL,
   verbose = TRUE
 )
 }

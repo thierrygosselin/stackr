@@ -391,7 +391,7 @@ summary_sstacks <- function(sstacks.log, verbose = FALSE) {
 
 
   # Write to working directory
-  readr::write_tsv(x = sum, path = filename)
+  readr::write_tsv(x = sum, file = filename)
   message("File written: ", filename)
 
   timing <- proc.time() - timing

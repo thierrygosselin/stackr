@@ -6,9 +6,13 @@
 #' @param fq.file (character, path). The path to the individual fastq file to check.
 #' Default: \code{fq.file = "my-sample.fq.gz"}.
 
-#' @param min.coverage.fig (character, path). Minimum coverage used to draw the
+#' @param min.coverage.fig (integer). Minimum coverage used to draw the
 #' color on the figure.
 #' Default: \code{min.coverage.fig = 7L}.
+
+
+#' @param output (character, path) Where the figure will be saved.
+#' Default: \code{"08_stacks_results/02_read_depth_plot"}.
 
 
 #' @param parallel.core (integer) Enable parallel execution with the number of threads.
@@ -60,6 +64,7 @@
 read_depth_plot <- function(
   fq.file,
   min.coverage.fig = 7L,
+  output = "08_stacks_results/02_read_depth_plot",
   parallel.core = parallel::detectCores() - 1
 ) {
 
@@ -67,6 +72,8 @@ read_depth_plot <- function(
     rlang::abort('Please install vroom for this option:\n
                  install.packages("vroom")')
   }
+
+  if (!dir.exists(output)) dir.create(output)
 
   # remove pattern from sample name
   clean.names <- stackr::clean_fq_filename(basename(fq.file))
@@ -173,38 +180,64 @@ read_depth_plot <- function(
     }
   }
 
-  read.depth.plot <- ggplot2::ggplot(data = hap.read.depth, ggplot2::aes(x = DEPTH, y = NUMBER_DISTINCT_READS)) +
-    ggplot2::geom_point(ggplot2::aes(colour = hap.read.depth$DEPTH_GROUP)) +
-    ggplot2::labs(
-      title = paste0("Read Depth Groups for sample: ", clean.names),
-      subtitle = paste0("Total reads: ", total.sequences),
-      x = "Depth of sequencing (log10)",
-      y = "Number of distinct reads (log10)"
-    ) +
-    ggplot2::annotation_logticks() +
-    ggplot2::scale_colour_manual(
-      name = "Read coverage groups",
-      labels = hap.read.depth.group.stats$LABELS,
-      values = hap.read.depth.group.stats$GROUP_COLOR
-    ) +
-    ggplot2::scale_x_log10(breaks = c(1, 5, 10, 25, 50, 75, 100, 250, 500, 1000)) +
-    ggplot2::scale_y_log10(breaks = base_breaks()) +
-    ggplot2::theme(
-      axis.title = ggplot2::element_text(size = 16, face = "bold"),
-      legend.title = ggplot2::element_text(size = 16, face = "bold"),
-      legend.text = ggplot2::element_text(size = 16, face = "bold"),
-      legend.position = c(0.7,0.8)
+  # safely generate the fig
+  # with low reads, this generates an error... hence the safe function....
+  rdp <- function(hap.read.depth) {
+    DEPTH <- NULL
+    NUMBER_DISTINCT_READS <- NULL
+    rdp <- ggplot2::ggplot(data = hap.read.depth, ggplot2::aes(x = DEPTH, y = NUMBER_DISTINCT_READS)) +
+      ggplot2::geom_point(ggplot2::aes(colour = DEPTH_GROUP)) +
+      ggplot2::labs(
+        title = paste0("Read Depth Groups for sample: ", clean.names),
+        subtitle = paste0("Total reads: ", total.sequences),
+        x = "Depth of sequencing (log10)",
+        y = "Number of distinct reads (log10)"
+      ) +
+      ggplot2::annotation_logticks() +
+      ggplot2::scale_colour_manual(
+        name = "Read coverage groups",
+        labels = hap.read.depth.group.stats$LABELS,
+        values = hap.read.depth.group.stats$GROUP_COLOR
+      ) +
+      ggplot2::scale_x_log10(breaks = c(1, 5, 10, 25, 50, 75, 100, 250, 500, 1000)) +
+      ggplot2::scale_y_log10(breaks = base_breaks()) +
+      ggplot2::theme(
+        axis.title = ggplot2::element_text(size = 16, face = "bold"),
+        legend.title = ggplot2::element_text(size = 16, face = "bold"),
+        legend.text = ggplot2::element_text(size = 16, face = "bold"),
+        legend.position = c(0.7,0.8)
+      )
+    print(rdp)
+  } #End rdp
+
+  safe_ggplot <- purrr::safely(.f = rdp)
+
+  read.depth.plot <- safe_ggplot(hap.read.depth)
+
+
+  if (is.null(read.depth.plot$error)) {
+    filename.plot <- file.path(output, stringi::stri_join(clean.names, "_hap_read_depth.png"))
+
+    ggplot2::ggsave(
+      plot = read.depth.plot$result,
+      filename = filename.plot,
+      width = 25,
+      height = 15,
+      dpi = 300,
+      units = "cm"
     )
-  filename.plot <- stringi::stri_join(clean.names, "_hap_read_depth.png")
-  ggplot2::ggsave(
-    plot = read.depth.plot,
-    filename = filename.plot,
-    width = 25,
-    height = 15,
-    dpi = 300,
-    units = "cm"
-  )
-  return(read.depth.plot)
+    return(read.depth.plot$result)
+  } else {
+    problem <- stringi::stri_join(
+      "Problem generating read depth plot, probably not enough sequences: ",
+      total.sequences, " total sequences"
+    )
+    message(problem)
+    vroom::vroom_write_lines(
+      x = problem,
+      file = file.path(output, stringi::stri_join(clean.names, "_hap_read_depth_problem.txt")))
+  }
+
 }# End read_depth_plot
 
 

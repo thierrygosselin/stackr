@@ -119,7 +119,9 @@ run_tsv2bam <- function(
   cat("######################## stackr::run_tsv2bam ##########################\n")
   cat("#######################################################################\n")
 
+  # file data and time ---------------------------------------------------------
   timing <- proc.time()
+  file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
 
   # Check directory ------------------------------------------------------------
   if (!dir.exists(P)) dir.create(P)
@@ -135,13 +137,9 @@ run_tsv2bam <- function(
     }
   }
 
-
-  # file data and time ---------------------------------------------------------
-  file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
-
   # logs file ------------------------------------------------------------------
   tsv2bam.log.file <- stringi::stri_join("09_log_files/tsv2bam_", file.date.time,".log")
-  message("For progress, look in the log file:\n", tsv2bam.log.file)
+  cli::cli_progress_step("For progress, open:\n", tsv2bam.log.file)
 
   # tsv2bam arguments ----------------------------------------------------------
 
@@ -173,10 +171,11 @@ run_tsv2bam <- function(
   command.arguments <- paste(P, M, R, t, h)
 
   # run command ----------------------------------------------------------------
+  cli::cli_progress_step("tsv2bam")
   system2(command = "tsv2bam", args = command.arguments, stdout = tsv2bam.log.file)
+  cli::cli_progress_step("tsv2bam completed")
 
   # summarize the log file -----------------------------------------------------
-  message("tsv2bam completed")
   log.file <- list.files(
     path = output.folder, pattern = "tsv2bam.log", full.names = FALSE)
   new.log.file <- stringi::stri_join(
@@ -192,13 +191,13 @@ run_tsv2bam <- function(
     file.rename(from = log.file, to = new.log.file)
     )
 
-  message("\nMoving/Renaming stacks tsv2bam log file:\n", new.log.file)
+  cli::cli_progress_step(stringi::stri_join("\nMoving/Renaming stacks tsv2bam log file:\n", new.log.file))
 
   # Merging BAM files ----------------------------------------------------------
   if (use.samtools) {
-    message("Merging BAM files with SAMtools to generate a catalog.bam file...")
+    cli::cli_progress_step("\n\nMerging BAM files with SAMtools to generate a catalog.bam file...")
   } else {
-    message("Merging BAM files with Sambamba to generate a catalog.bam file...")
+    cli::cli_progress_step("\n\nMerging BAM files with Sambamba to generate a catalog.bam file...")
   }
 
   merge.res <- merge_parallel(
@@ -330,6 +329,7 @@ merge_parallel <- function(cmd.path, output.folder, parallel.core) {
   } else {
     parallel.core <- stringi::stri_join("-t ", shQuote(parallel.core))
   }
+  cli::cli_progress_step("Almost there...")
   command.arguments <- paste(c(cmd.option, parallel.core, catalog.bam, bam.files), collapse = " ")
   system2(command = cmd.path, args = command.arguments)
 

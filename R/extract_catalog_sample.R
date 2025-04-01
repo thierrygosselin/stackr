@@ -94,7 +94,7 @@ extract_catalog_sql_ids <- function(
 
   if (file.exists("08_stacks_results")) {
     filename <- file.path("08_stacks_results", filename)
-    readr::write_tsv(x = sql.ids, path = filename)
+    readr::write_tsv(x = sql.ids, file = filename)
     message("File written: ", filename)
   }
 

@@ -7,21 +7,18 @@
 run_process_radtags(
   project.info,
   path.seq.lanes = "03_sequencing_lanes",
-  P = FALSE,
-  I = FALSE,
-  i = "guess",
-  o = "04_process_radtags",
-  y = "guess",
+  paired.files = FALSE,
+  interleaved = FALSE,
+  input.type = "guess",
+  output.path = "04_process_radtags",
+  output.type = "guess",
   pe.1 = NULL,
   pe.2 = NULL,
-  c = TRUE,
-  q = TRUE,
-  r = TRUE,
-  t = 90,
-  D = FALSE,
-  E = "phred33",
-  w = 0.15,
-  s = 10,
+  clean.data = TRUE,
+  discard.reads = TRUE,
+  rescue.barcodes = TRUE,
+  truncate = 90,
+  capture.discard.reads = FALSE,
   barcode.inline.null = TRUE,
   barcode.index.null = FALSE,
   barcode.null.index = FALSE,
@@ -40,10 +37,14 @@ run_process_radtags(
   merge = FALSE,
   filter.illumina = TRUE,
   disable.rad.check = FALSE,
+  encoding = "phred33",
+  window.size = 0.15,
+  score.limit = 10,
   len.limit = NULL,
   barcode.dist.1 = 1,
   barcode.dist.2 = NULL,
-  parallel.core = parallel::detectCores() - 1
+  threads = min(parallel::detectCores(), 2),
+  parallel.core = floor(parallel::detectCores()/2)
 )
 }
 \arguments{
@@ -56,90 +57,78 @@ processing single-end sequences.
 Same as \code{f} in STACKS command line.
 Default: \code{path.seq.lanes = "03_sequencing_lanes"}.}
 
-\item{P}{(logical) files contained within the directory are paired.
-Default: \code{P = FALSE}.}
+\item{paired.files}{(logical) files contained within the directory are paired.
+Default: \code{paired.files = FALSE}.}
 
-\item{I}{(logical) specify that the paired-end reads are interleaved in
+\item{interleaved}{(logical) specify that the paired-end reads are interleaved in
 single files.
-Default: \code{I = FALSE}.}
+Default: \code{interleaved = FALSE}.}
 
-\item{i}{(character) Input file type, either \code{"fastq"}, \code{"gzfastq"},
-\code{"bam"}, or \code{bustard}. Default: \code{i = "guess"}.}
+\item{input.type}{(character) Input file type, either \code{"fastq"}, \code{"gzfastq"},
+\code{"bam"}, or \code{bustard}. Default: \code{input.type = "guess"}.}
 
-\item{o}{(character, path) Path to output the processed files.
-Default:\code{o = "04_process_radtags"}.}
+\item{output.path}{(character, path) Path to output the processed files.
+Default: \code{output.path = "04_process_radtags"}.}
 
-\item{y}{(character) Output file type: \code{"fastq"}, \code{"gzfastq"},
-\code{"fasta"}, or \code{gzfasta}. Default: \code{y = "guess"} (match input type).}
+\item{output.type}{(character) Output file type: \code{"fastq"}, \code{"gzfastq"},
+\code{"fasta"}, or \code{gzfasta}.
+Default: \code{output.type = "guess"} (match input type).}
 
 \item{pe.1}{(character, path) First input file in a set of
 paired-end sequences.
 In stacks it's the argument \code{1}.
-Default:\code{pe.1 = "FORWARD"}. Corresponding to the \code{FORWARD} column in
+Default: \code{pe.1 = "FORWARD"}. Corresponding to the \code{FORWARD} column in
 the project info file.}
 
 \item{pe.2}{(character, path) Second input file in a set of
 paired-end sequences.
 In stacks it's the argument \code{2}.
-Default:\code{pe.2 = "REVERSE"}. Corresponding to the \code{REVERSE} column in
+Default: \code{pe.2 = "REVERSE"}. Corresponding to the \code{REVERSE} column in
 the project info file.}
 
-\item{c}{(logical) Clean data, remove any read with an uncalled base.
-Default:\code{c = TRUE}.}
+\item{clean.data}{(logical) Clean data, remove any read with an uncalled base.
+Default: \code{clean.data = TRUE}.}
 
-\item{q}{(logical) Discard reads with low quality scores.
-Default:\code{q = TRUE}.}
+\item{discard.reads}{(logical) Discard reads with low quality scores.
+Default: \code{discard.reads = TRUE}.}
 
-\item{r}{(logical) Rescue barcodes and RAD-Tags.
-Default:\code{r = TRUE}.}
+\item{rescue.barcodes}{(logical) Rescue barcodes and RAD-Tags.
+Default: \code{rescue.barcodes = TRUE}.}
 
-\item{t}{(integer) Truncate final read length to this value.
-Default:\code{t = 90}.}
+\item{truncate}{(integer) Truncate final read length to this value.
+Default: \code{truncate = 90}.}
 
-\item{D}{(logical) Capture discarded reads to a file.
-Default:\code{D = FALSE}.}
-
-\item{E}{(character) Specify how quality scores are encoded,
-\code{"phred33"} for Illumina 1.8+/Sanger or \code{"phred64"} for Illumina 1.3-1.5.
-Default:\code{E = "phred33"}.}
-
-\item{w}{(double) Set the size of the sliding window as a fraction of the
-read length, between 0 and 1.
-Default:\code{W = 0.15}.}
-
-\item{s}{(integer) Set the score limit.
-If the average score within the sliding window drops below this value,
-the read is discarded (default 10).
-Default:\code{s = 10}.}
+\item{capture.discard.reads}{(logical) Capture discarded reads to a file.
+Default: \code{capture.discard.reads = FALSE}.}
 
 \item{barcode.inline.null}{(logical) Barcode is inline with sequence,
 occurs only on single-end read.
-Default:\code{barcode.inline.null = TRUE}.}
+Default: \code{barcode.inline.null = TRUE}.}
 
 \item{barcode.index.null}{Barcode is provided in FASTQ header
 (Illumina i5 or i7 read).
-Default:\code{barcode.index.null = FALSE}.}
+Default: \code{barcode.index.null = FALSE}.}
 
 \item{barcode.null.index}{Barcode is provded in FASTQ header
 (Illumina i7 read if both i5 and i7 read are provided).
-Default:\code{barcode.null.index = FALSE}.}
+Default: \code{barcode.null.index = FALSE}.}
 
 \item{barcode.inline.inline}{Barcode is inline with sequence,
 occurs on single and paired-end read.
-Default:\code{barcode.inline.inline = FALSE}.}
+Default: \code{barcode.inline.inline = FALSE}.}
 
 \item{barcode.index.index}{Barcode is provded in FASTQ header
 (Illumina i5 and i7 reads).
-Default:\code{barcode.index.index = FALSE}.}
+Default: \code{barcode.index.index = FALSE}.}
 
 \item{barcode.inline.index}{Barcode is inline with sequence on single-end
 read and occurs in FASTQ header (from either i5 or i7 read).
-Default:\code{barcode.inline.index = FALSE}.}
+Default: \code{barcode.inline.index = FALSE}.}
 
 \item{barcode.index.inline}{Barcode occurs in FASTQ header
 (Illumina i5 or i7 read) and is inline with single-end sequence
 (for single-end data) on paired-end read (for paired-end data).
-Default:\code{barcode.index.inline = FALSE}.}
+Default: \code{barcode.index.inline = FALSE}.}
 
 \item{enzyme}{(character) Provide the restriction enzyme used
 (cut site occurs on single-end read).
@@ -191,6 +180,19 @@ Default: \code{filter.illumina = TRUE}.}
 \item{disable.rad.check}{(logical) Disable checking if the RAD site is intact.
 Default: \code{disable.rad.check = FALSE}.}
 
+\item{encoding}{(character) Specify how quality scores are encoded,
+\code{"phred33"} for Illumina 1.8+/Sanger or \code{"phred64"} for Illumina 1.3-1.5.
+Default: \code{encoding = "phred33"}.}
+
+\item{window.size}{(double) Set the size of the sliding window as a fraction of the
+read length, between 0 and 1.
+Default: \code{window.size = 0.15}.}
+
+\item{score.limit}{(integer) Set the score limit.
+If the average score within the sliding window drops below this value,
+the read is discarded.
+Default: \code{score.limit = 10}.}
+
 \item{len.limit}{(integer) Specify a minimum sequence length
 (useful if your data has already been trimmed).
 Default: \code{len.limit = NULL}.}
@@ -203,9 +205,12 @@ Default: \code{barcode.dist.1 = 1}.}
 rescuing paired-end barcodes.
 Default: \code{barcode.dist.2 = NULL} (will default to barcode.dist.1).}
 
+\item{threads}{(optional) The number of threads to run (stacks, max 24).
+Default: \code{threads = min(parallel::detectCores(), 2)}.}
+
 \item{parallel.core}{(optional) The number of core for parallel
-programming.
-Default: \code{parallel.core = parallel::detectCores() - 1}.}
+processing. Much faster to have higher number here than with \code{threads}.
+Default: \code{floor(parallel::detectCores() / 2)}.}
 }
 \value{
 For stacks specific output see \href{http://catchenlab.life.illinois.edu/stacks/comp/process_radtags.php}{process_radtags}.
@@ -273,8 +278,11 @@ will have -R at the end (e.g STU-QUE-ADU-2017-0001-R for the combination of the 
 process.radtags.tuna <- stackr::run_process_radtags(
 project.info = "02_project_info/project.info.tuna.tsv",
 path.seq.lanes = "03_sequencing_lanes",
-renz.1 = "pstI", renz.2 = "mspI",
-adapter.1 = "CGAGATCGGAAGAGCGGG", adapter.mm = 2)
+renz.1 = "pstI",
+renz.2 = "mspI",
+adapter.1 = "CGAGATCGGAAGAGCGGG",
+adapter.mm = 2
+)
 # remaining arguments are defaults, so carefully look at them in the doc.
 }
 }

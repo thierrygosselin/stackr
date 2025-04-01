@@ -5,8 +5,7 @@
 \title{Counts the number of reads in samples}
 \usage{
 read_counter(
-  path.samples,
-  recursive = FALSE,
+  fq.files,
   strata = NULL,
   plot.reads = TRUE,
   write = TRUE,
@@ -14,12 +13,8 @@ read_counter(
 )
 }
 \arguments{
-\item{path.samples}{(character, path) Path of folder containing the
-samples to count reads}
-
-\item{recursive}{(logical) Should the listing recurse into the directory?
-e.g. when \code{path.samples} contains nested folders with FQ files.
-Default: \code{recursive = FALSE}.}
+\item{fq.files}{(character, path) Path of folder containing the
+1 or more samples to count reads.}
 
 \item{strata}{(optional)
 The strata file is a tab delimited file with 2 columns headers:
@@ -59,15 +54,10 @@ and you want to check the distribution in the number of reads between samples.
 \dontrun{
 library(stackr)
 # To run this function, bioconductor \code{ShortRead} package is necessary:
-source("http://bioconductor.org/biocLite.R")
-biocLite("ShortRead")
-
-# Using OpenMP threads
-nthreads <- .Call(ShortRead:::.set_omp_threads, 1L)
-on.exit(.Call(ShortRead:::.set_omp_threads, nthreads))
+BiocManager::install("ShortRead")
 
 # with defaults
-read.info <- stackr::read_counter(path.samples = "corals")
+read.info <- stackr::read_counter(fq.files = "corals")
 
 # to extract info from the list
 reads = read.info$reads

@@ -4,7 +4,7 @@
 \alias{list_sample_file}
 \title{list_sample_file}
 \usage{
-list_sample_file(f, full.path = FALSE, recursive = FALSE)
+list_sample_file(f, full.path = FALSE, recursive = FALSE, paired.end = FALSE)
 }
 \description{
 List sample file in folder

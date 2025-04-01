@@ -211,7 +211,7 @@ summary_cstacks <- function(cstacks.log, verbose = FALSE) {
       pattern = "loci were newly added to the catalog.")
   ) %>%
     dplyr::mutate(
-      LOCI_ADDED= stringi::stri_extract_all_charclass(
+      LOCI_ADDED = stringi::stri_extract_all_charclass(
         str = CSTACKS,
         pattern = "[0-9]"),
       LOCI_ADDED = as.integer(LOCI_ADDED),
@@ -226,7 +226,7 @@ summary_cstacks <- function(cstacks.log, verbose = FALSE) {
     )
   ) %>%
     dplyr::mutate(
-      LOCI_LINKED= stringi::stri_extract_all_charclass(
+      LOCI_LINKED = stringi::stri_extract_all_charclass(
         str = CSTACKS,
         pattern = "[0-9]"),
       LOCI_LINKED = as.integer(LOCI_LINKED),
@@ -244,7 +244,7 @@ summary_cstacks <- function(cstacks.log, verbose = FALSE) {
     dplyr::mutate(MISMATCHES = mis)
 
   # Write to working directory
-  readr::write_tsv(x = sum, path = filename)
+  readr::write_tsv(x = sum, file = filename)
   message("File written: ", filename)
 
   timing <- proc.time() - timing

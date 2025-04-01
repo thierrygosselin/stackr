@@ -179,34 +179,58 @@ run_sstacks <- function(
 
     # Search for those already matched
     samples.matched <- samples.in.folder %>%
-      dplyr::filter(grepl("matches", INDIVIDUALS_REP)) %>%
-      dplyr::mutate(INDIVIDUALS_REP = stringi::stri_replace_all_fixed(
-        str = INDIVIDUALS_REP,
-        pattern = ".matches.tsv.gz", replacement = "",
-        vectorized_all = FALSE)
-      ) %>%
-      dplyr::distinct(INDIVIDUALS_REP)
+      dplyr::filter(grepl("matches", INDIVIDUALS_REP))
 
-    message(stringi::stri_join("Samples in folder already matched to the catalog: ",
-                               length(samples.matched$INDIVIDUALS_REP)))
+    # Look for file compression ------------------------------------------------
+    compress.file <- suppressWarnings(
+      stringi::stri_detect_regex(
+        str = samples.in.folder$INDIVIDUALS_REP,
+        pattern = ".gz"
+      ) %>%
+      unique
+    )
+
+    pattern.matches <- ".matches.tsv"
+    pattern.alleles <- ".alleles.tsv"
+    if (compress.file) {
+      pattern.matches <- ".matches.tsv.gz"
+      pattern.alleles <- ".alleles.tsv.gz"
+    }
+
+
+    already.match <- length(samples.matched$INDIVIDUALS_REP)
+    if (already.match > 0) {
+      samples.matched %<>%
+        dplyr::mutate(INDIVIDUALS_REP = stringi::stri_replace_all_fixed(
+          str = INDIVIDUALS_REP,
+          pattern = pattern.matches,
+          replacement = "",
+          vectorize_all = FALSE)
+        ) %>%
+        dplyr::distinct(INDIVIDUALS_REP)
+    }
+
+    message("Samples in folder already matched to the catalog: ", already.match)
 
     # Get the name of samples that need to be match to the catalog
     samples.to.match <- samples.in.folder %>%
       dplyr::filter(grepl("alleles", INDIVIDUALS_REP)) %>%
-      dplyr::mutate(INDIVIDUALS_REP = stringi::stri_replace_all_fixed(
-        str = INDIVIDUALS_REP,
-        pattern = ".alleles.tsv.gz", replacement = "",
-        vectorized_all = FALSE)
+      dplyr::mutate(
+        INDIVIDUALS_REP = stringi::stri_replace_all_fixed(
+          str = INDIVIDUALS_REP,
+          pattern = pattern.alleles,
+          replacement = "",
+          vectorize_all = FALSE)
       ) %>%
       dplyr::distinct(INDIVIDUALS_REP) %>%
       dplyr::filter(!INDIVIDUALS_REP %in% samples.matched$INDIVIDUALS_REP)
 
-    message(stringi::stri_join("Samples in folder not matched to the catalog: ", length(samples.to.match$INDIVIDUALS_REP)))
-
+    n.samples.to.match <- length(samples.to.match$INDIVIDUALS_REP)
+    message("Samples in folder not matched to the catalog: ", n.samples.to.match)
 
     if (is.null(sample.list)) {
       s <- stringi::stri_join("-s ", shQuote(stringi::stri_join(P, "/", samples.to.match$INDIVIDUALS_REP)))
-      message(stringi::stri_join("Matching ", length(samples.to.match$INDIVIDUALS_REP), " sample(s) to the catalog..."))
+      message("Matching ", n.samples.to.match, " sample(s) to the catalog...")
     } else {
       sample.list.before <- sample.list
       sample.list <- purrr::keep(.x = sample.list, .p = sample.list %in% samples.to.match$INDIVIDUALS_REP)
@@ -215,9 +239,9 @@ run_sstacks <- function(
 
       samples.to.remove <- length(sample.list) - length(sample.list.before)
       if (samples.to.remove != 0) {
-        message(stringi::stri_join("Removed ", samples.to.remove, " problematic sample(s) from the samples list to match"))
+        message("Removed ", samples.to.remove, " problematic sample(s) from the samples list to match")
       }
-      message(stringi::stri_join("Matching ", length(sample.list), " sample(s) to the catalog..."))
+      message("Matching ", length(sample.list), " sample(s) to the catalog...")
     }
     # remove unwanted // (better solution ? Please tell me!)
     s <- stringi::stri_replace_all_fixed(
@@ -238,7 +262,7 @@ run_sstacks <- function(
   # logs files -----------------------------------------------------------------
   file.date.time <- format(Sys.time(), "%Y%m%d@%H%M")
   log.file <- stringi::stri_join("09_log_files/sstacks_", file.date.time,".log")
-  message(stringi::stri_join("For progress, look in the log file: ", log.file))
+  message("For progress, look in the log file: ", log.file)
 
   # command --------------------------------------------------------------------
   command.arguments <- c(P, M, s, c, p, o, x, disable.gapped, v, h)
@@ -251,15 +275,11 @@ run_sstacks <- function(
     stderr = log.file
   )
   # Summary sstacks ------------------------------------------------------------
-  sum <- stackr::summary_sstacks(
-    sstacks.log = log.file,
-    verbose = FALSE
-  )
+  sum <- stackr::summary_sstacks(sstacks.log = log.file, verbose = FALSE)
   sum <- NULL
 
   timing <- proc.time() - timing
   message("\nComputation time: ", round(timing[[3]]), " sec")
   cat("############################## completed ##############################\n")
   return(res)
-
 }# end run_sstacks

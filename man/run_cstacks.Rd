@@ -78,11 +78,12 @@ Advice: don't modify.
 Default: \code{report.mmatches = FALSE}}
 
 \item{split.catalog}{(integer) In how many samples you want to split the
-catalog population map. This allows to have backup catalog every
+catalog population map. This allows to have a backup catalog every
 \code{split.catalog} samples. Their is obviously a trade-off between the
-integer use here, the time to initialize an existing catalog to often
-and re-starting from zero if everything crash.
-Default: \code{split.catalog = 20}.}
+integer use here, the time to initialize an existing catalog and
+re-starting from zero if everything crash.
+Default: \code{split.catalog = 20}. Very useful on a personal computer or
+university computer cluster....}
 }
 \value{
 \href{http://catchenlab.life.illinois.edu/stacks/comp/sstacks.php}{sstacks}
@@ -92,7 +93,9 @@ returns a \code{.matches.tsv.gz file for each sample}
 Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks}
 module inside R! The function runs a summary of the log file automatically
-at the end (\code{\link{summary_cstacks}}).
+at the end (\code{\link{summary_cstacks}}). In the event of a power outage,
+computer or cluster crash, just re-run the function. The function will start
+over from the last catalog generated.
 }
 \details{
 \strong{Computer or server problem during the cstacks ?} Look
@@ -118,7 +121,7 @@ arrange(desc(RETAINED)) \%>\%
 distinct(INDIVIDUALS_REP, POP_ID)
 # Write file to disk
 readr::write_tsv(x = individuals.catalog,
-path = "02_project_info/population.map.catalog.tsv")
+file = "02_project_info/population.map.catalog.tsv")
 # The next line will give you the list of individuals to include
 individuals.catalog <- individuals.catalog$INDIVIDUALS_REP
 

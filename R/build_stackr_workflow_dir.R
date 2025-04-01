@@ -1,6 +1,6 @@
 #' @name build_stackr_workflow_dir
-#' @title Build stacks workflow directories
-#' @description This prepares the different folder required to run the
+#' @title Automatically build the stacks/stackr workflow directories
+#' @description This prepares the different folders required to run the
 #' \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS} workflow
 #' proposed in stackr.
 

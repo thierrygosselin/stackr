@@ -1,3 +1,9 @@
+# stackr 2.2.2 2022-04-02
+
+* updated some functions
+* added a logo
+* will remove noise reduction and normalization: transfer to standart package
+
 # stackr 2.2.0 2020-10-08
 
 * better `summary_` functions to help decide thresholds, works with *most* stacks version.

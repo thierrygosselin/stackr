@@ -7,6 +7,7 @@
 read_depth_plot(
   fq.file,
   min.coverage.fig = 7L,
+  output = "08_stacks_results/02_read_depth_plot",
   parallel.core = parallel::detectCores() - 1
 )
 }
@@ -14,9 +15,12 @@ read_depth_plot(
 \item{fq.file}{(character, path). The path to the individual fastq file to check.
 Default: \code{fq.file = "my-sample.fq.gz"}.}
 
-\item{min.coverage.fig}{(character, path). Minimum coverage used to draw the
+\item{min.coverage.fig}{(integer). Minimum coverage used to draw the
 color on the figure.
 Default: \code{min.coverage.fig = 7L}.}
+
+\item{output}{(character, path) Where the figure will be saved.
+Default: \code{"08_stacks_results/02_read_depth_plot"}.}
 
 \item{parallel.core}{(integer) Enable parallel execution with the number of threads.
 Default: \code{parallel.core = parallel::detectCores() - 1}.}

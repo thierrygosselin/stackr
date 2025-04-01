@@ -10,6 +10,9 @@
 #' @param fq.files (character, path). The path to the individual fastq file to check.
 #' Default: \code{fq.files = "my-sample.fq.gz"}.
 
+#' @param paired.end (logical) Are the files paired-end.
+#' Default: \code{paired.end = FALSE}.
+
 #' @param min.coverage.threshold (integer). Minimum coverage threshold.
 #' The function will remove distinct reads with coverage <= to the threshold.
 #' To turn off, \code{min.coverage.threshold = NULL or 0L}.
@@ -26,18 +29,18 @@
 #' Default: \code{remove.unique.reads = TRUE}.
 
 #' @param write.blacklist (logical). Write the blacklisted reads to a file.
-#' Default: \code{write.blacklist = FALSE}.
+#' Default: \code{write.blacklist = TRUE}.
 
 #' @param write.blacklist.fasta (logical). Write the blacklisted reads to a
 #' fasta file.
-#' Default: \code{write.blacklist.fasta = FALSE}.
+#' Default: \code{write.blacklist.fasta = TRUE}.
 
 #' @param compress (logical) To compress the output files. If you have the disk
 #' space, don't compress, it's way faster this way to write.
 #' Default: \code{compress = FALSE}.
 
-#' @param output.dir (path) Write the cleaned fq files in a specific directory.
-#' Default: \code{output.dir = NULL}, uses the working directory.
+#' @param output (character, path) Write the cleaned fq files in a specific directory.
+#' Default: \code{output = "08_stacks_results/03_cleaned_fq"}.
 
 #' @param parallel.core (integer) Enable parallel execution with the number of threads.
 #' Default: \code{parallel.core = parallel::detectCores() - 1}.
@@ -66,7 +69,7 @@
 #'   )
 #'
 #' # for multiple samples in parallel
-#' # require(progressr)
+#' # require(progressr) # to get a progress bar
 #'
 #'  progressr::with_progress({
 #'    clean <- stackr::clean_fq(
@@ -75,23 +78,36 @@
 #'       max.coverage.threshold = "high.coverage.unique.reads",
 #'       write.blacklist = TRUE,
 #'       write.blacklist.fasta = TRUE,
-#'       compress = FALSE,
-#'       output.dir = "04_process_radtags/cleaned_fq"
+#'       compress = FALSE
 #'  )
 #'  })
 #' }
 
 clean_fq <- function(
-  fq.files,
-  min.coverage.threshold = 2L,
-  max.coverage.threshold = "high.coverage.unique.reads",
-  remove.unique.reads = TRUE,
-  write.blacklist = TRUE,
-  write.blacklist.fasta = TRUE,
-  compress = FALSE,
-  output.dir = NULL,
-  parallel.core = parallel::detectCores() - 1
+    fq.files,
+    paired.end = FALSE,
+    min.coverage.threshold = 2L,
+    max.coverage.threshold = "high.coverage.unique.reads",
+    remove.unique.reads = TRUE,
+    write.blacklist = TRUE,
+    write.blacklist.fasta = TRUE,
+    compress = FALSE,
+    output = "08_stacks_results/03_cleaned_fq",
+    parallel.core = parallel::detectCores() - 1
 ) {
+
+
+  # testing
+  # fq.files = "04_process_radtags/EPN-CH-0797.fq.gz"
+  # min.coverage.threshold = 7L
+  # max.coverage.threshold = "high.coverage.unique.reads"
+  # remove.unique.reads = TRUE
+  # write.blacklist = TRUE
+  # write.blacklist.fasta = TRUE
+  # output = "08_stacks_results/03_cleaned_fq"
+  # parallel.core = parallel::detectCores() - 1
+  # compress = FALSE
+
   opt.change <- getOption("width")
   options(width = 70)
   cat("#######################################################################\n")
@@ -104,24 +120,13 @@ clean_fq <- function(
     rlang::abort('Please install vroom for this option:\n
                  install.packages("vroom")')
   }
-  # testing
-  # fq.files = "BET-ATL-60002-1682158.fq.gz"
-  # min.coverage.threshold = 7L
-  # max.coverage.threshold = "high.coverage.unique.reads",
-  # remove.unique.reads = TRUE
-  # write.blacklist = TRUE
-  # write.blacklist.fasta = TRUE
-  # parallel.core = parallel::detectCores() - 1
-  # compress = FALSE,
 
-  if (is.null(output.dir)) {
-    output.dir <- getwd()
-  } else {
-    if (!dir.exists(output.dir)) dir.create(output.dir)
-  }
+  if (!dir.exists(output)) dir.create(output)
+  if (!dir.exists(file.path(output, "cleaned_fq"))) dir.create(file.path(output, "cleaned_fq"))
+  if (!dir.exists(file.path(output, "blacklisted"))) dir.create(file.path(output, "blacklisted"))
 
   if (assertthat::is.string(fq.files) && assertthat::is.dir(fq.files)) {
-    fq.files <- stackr::list_sample_file(f =  fq.files, full.path = TRUE, recursive = TRUE)
+    fq.files <- stackr::list_sample_file(f =  fq.files, full.path = TRUE, recursive = TRUE, paired.end = paired.end)
   }
   n.files <- length(fq.files)
 
@@ -147,10 +152,10 @@ clean_fq <- function(
       write.blacklist = write.blacklist,
       write.blacklist.fasta = write.blacklist.fasta,
       compress = compress,
-      output.dir = output.dir,
+      output = output,
       parallel.core = parallel.core,
-      p = p,
-      .progress = FALSE
+      verbose = FALSE,
+      p = p
     )
   } else {
     res <- clean(
@@ -161,8 +166,9 @@ clean_fq <- function(
       write.blacklist = write.blacklist,
       write.blacklist.fasta = write.blacklist.fasta,
       compress = compress,
-      output.dir = output.dir,
+      output = output,
       parallel.core = parallel.core,
+      verbose = TRUE,
       p = NULL
     )
   }
@@ -177,22 +183,23 @@ clean_fq <- function(
 
 # internal function ------------------------------------------------------------
 clean <- function(
-  fq.files,
-  min.coverage.threshold = 2L,
-  max.coverage.threshold = "high.coverage.unique.reads",
-  remove.unique.reads = TRUE,
-  write.blacklist = TRUE,
-  write.blacklist.fasta = TRUE,
-  compress = FALSE,
-  output.dir = NULL,
-  parallel.core = parallel::detectCores() - 1,
-  p = NULL
+    fq.files,
+    min.coverage.threshold = 2L,
+    max.coverage.threshold = "high.coverage.unique.reads",
+    remove.unique.reads = TRUE,
+    write.blacklist = TRUE,
+    write.blacklist.fasta = TRUE,
+    compress = FALSE,
+    output = NULL,
+    parallel.core = parallel::detectCores() - 1,
+    verbose = FALSE,
+    p = NULL
 ) {
 
   if (!is.null(p)) p()
   # Extract sample name
   clean.names <- stackr::clean_fq_filename(basename(fq.files))
-  message("Sample: ", clean.names)
+  if (verbose) message("Sample: ", clean.names)
 
   # sample name and blacklist name
   if (write.blacklist) {
@@ -229,8 +236,8 @@ clean <- function(
     progress = TRUE
   ) %>%
     dplyr::mutate(
-      INFO = seq.int(from = 1L, to = n()),
-      SEQ = rep(1:4, n() / 4)
+      INFO = seq.int(from = 1L, to = dplyr::n()),
+      SEQ = rep(1:4, dplyr::n() / 4)
     )
 
   fq.stats <- fq %>%
@@ -238,20 +245,20 @@ clean <- function(
     dplyr::select(-SEQ)
 
   total.sequences <- nrow(fq.stats)
-  message("Number of reads: ", total.sequences)
+  if (verbose) message("Number of reads: ", total.sequences)
 
   fq.stats %<>%
     dplyr::group_by(READS) %>%
     dplyr::summarise(
       INFO = list(INFO),
-      DEPTH = n(),
+      DEPTH = dplyr::n(),
       .groups = "drop"
     ) %>%
     dplyr::select(-READS) %>%
     dplyr::group_by(DEPTH) %>%
     dplyr::summarise(
       INFO = list(INFO),
-      NUMBER_DISTINCT_READS = n(),
+      NUMBER_DISTINCT_READS = dplyr::n(),
       .groups = "drop"
     )
 
@@ -281,24 +288,24 @@ clean <- function(
     if (max.coverage.threshold == "high.coverage.unique.reads") {
       max.coverage.threshold <- high.coverage.unique.reads
       if (max.coverage.threshold == max.depth) {
-        message("The data as no high coverage unique reads")
-        message("The max.coverage.threshold selected will not blacklist reads in the fq file")
+        if (verbose) message("The data as no high coverage unique reads")
+        if (verbose) message("The max.coverage.threshold selected will not blacklist reads in the fq file")
         remove.unique.reads <- FALSE
         filter.high <- FALSE
       } else {
-        message("The max.coverage.threshold selected will remove all high coverage unique reads")
+        if (verbose) message("The max.coverage.threshold selected will remove all high coverage unique reads")
         remove.unique.reads <- FALSE
         filter.high <- TRUE
       }
     } else {
       if (max.coverage.threshold < high.coverage.unique.reads) {
-        message("The max.coverage.threshold selected will remove all high coverage unique reads")
+        if (verbose) message("The max.coverage.threshold selected will remove all high coverage unique reads")
         remove.unique.reads <- FALSE
         filter.high <- TRUE
       }
       if (max.coverage.threshold > max.depth) {
-        message("The max.coverage.threshold selected is higher than the maximum depth of reads observed")
-        message("The max.coverage.threshold selected will not blacklist reads in the fq file")
+        if (verbose) message("The max.coverage.threshold selected is higher than the maximum depth of reads observed")
+        if (verbose) message("The max.coverage.threshold selected will not blacklist reads in the fq file")
         remove.unique.reads <- FALSE
         filter.high <- FALSE
       }
@@ -310,7 +317,7 @@ clean <- function(
         INFO %>%
         unlist %>%
         sort
-      message("Number of reads blacklisted with max.coverage.threshold: ", length(bl))
+      if (verbose) message("Number of reads blacklisted with max.coverage.threshold: ", length(bl))
 
       if (length(bl) > 0) {
         if (write.blacklist.fasta) {
@@ -319,7 +326,7 @@ clean <- function(
             dplyr::distinct(READS) %>%
             vroom::vroom_write(
               x = .,
-              path =  file.path(output.dir, bl.high.unique.fasta),
+              file =  file.path(output, "blacklisted", bl.high.unique.fasta),
               col_names = FALSE,
               append = FALSE,
               num_threads = parallel.core,
@@ -335,7 +342,7 @@ clean <- function(
             dplyr::select(READS) %>%
             vroom::vroom_write(
               x = .,
-              path =  file.path(output.dir, bl.high.unique.filename),
+              file =  file.path(output, "blacklisted", bl.high.unique.filename),
               col_names = FALSE,
               append = FALSE,
               num_threads = parallel.core,
@@ -356,7 +363,7 @@ clean <- function(
       INFO %>%
       unlist %>%
       sort
-    message("Number of high coverage unique reads blacklisted: ", length(bl))
+    if (verbose) message("Number of high coverage unique reads blacklisted: ", length(bl))
 
     if (length(bl) > 0) {
       if (write.blacklist.fasta) {
@@ -365,7 +372,7 @@ clean <- function(
           dplyr::distinct(READS) %>%
           vroom::vroom_write(
             x = .,
-            path =  file.path(output.dir, bl.high.unique.fasta),
+            file =  file.path(output, "blacklisted", bl.high.unique.fasta),
             col_names = FALSE,
             append = FALSE,
             num_threads = parallel.core,
@@ -381,7 +388,7 @@ clean <- function(
           dplyr::select(READS) %>%
           vroom::vroom_write(
             x = .,
-            path =  file.path(output.dir, bl.high.unique.filename),
+            file =  file.path(output, "blacklisted", bl.high.unique.filename),
             col_names = FALSE,
             append = FALSE,
             num_threads = parallel.core,
@@ -394,18 +401,20 @@ clean <- function(
   } # remove.unique.reads
 
   if (is.null(min.coverage.threshold)) min.coverage.threshold <- 0L
+
   if (min.coverage.threshold <= min.depth) {
-    message("The min.coverage.threshold selected is lower than the minimum depth of reads observed")
-    message("The min.coverage.threshold selected will not blacklist reads in the fq file")
+    if (verbose) message("The min.coverage.threshold selected is lower than the minimum depth of reads observed")
+    if (verbose) message("The min.coverage.threshold selected will not blacklist reads in the fq file")
     min.coverage.threshold <- 0L
   }
+
   if (min.coverage.threshold > 0L) {
     bl <- fq.stats %>%
       dplyr::filter(DEPTH <= min.coverage.threshold) %$%
       INFO %>%
       unlist %>%
       sort
-    message("Number of distinct reads with low coverage blacklisted: ", length(bl))
+    if (verbose) message("Number of distinct reads with low coverage blacklisted: ", length(bl))
 
     if (length(bl) > 0) {
       if (write.blacklist.fasta) {
@@ -414,7 +423,7 @@ clean <- function(
           dplyr::distinct(READS) %>%
           vroom::vroom_write(
             x = .,
-            path =  file.path(output.dir, bl.min.fasta),
+            file =  file.path(output, "blacklisted", bl.min.fasta),
             col_names = FALSE,
             append = FALSE,
             num_threads = parallel.core,
@@ -431,7 +440,7 @@ clean <- function(
           dplyr::select(READS) %>%
           vroom::vroom_write(
             x = .,
-            path =  file.path(output.dir, bl.min.filename),
+            file =  file.path(output, "blacklisted", bl.min.filename),
             col_names = FALSE,
             append = FALSE,
             num_threads = parallel.core,
@@ -446,17 +455,18 @@ clean <- function(
 
   # Write the cleaned fq file---------------------------------------------------
   after.cleaning <- nrow(dplyr::filter(fq, SEQ == 2L))
-  message("Number of reads after cleaning: ", after.cleaning, " (kept ", round(after.cleaning / total.sequences, 2), ")")
+  if (verbose) message("Number of reads after cleaning: ", after.cleaning, " (kept ", round(after.cleaning / total.sequences, 2), ")")
 
-
-  fq %<>%
-    dplyr::select(READS) %>%
-    vroom::vroom_write(
-      x = .,
-      path =  file.path(output.dir, clean.names),
-      col_names = FALSE,
-      num_threads = parallel.core,
-      progress = TRUE
-    )
+  if (after.cleaning > 0L) {
+    fq %<>%
+      dplyr::select(READS) %>%
+      vroom::vroom_write(
+        x = .,
+        file =  file.path(output, "cleaned_fq", clean.names),
+        col_names = FALSE,
+        num_threads = parallel.core,
+        progress = TRUE
+      )
+  }
   return(clean.names)
 }# End clean

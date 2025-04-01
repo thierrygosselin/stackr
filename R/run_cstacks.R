@@ -3,7 +3,9 @@
 #' @description Run \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS}
 #' \href{http://catchenlab.life.illinois.edu/stacks/comp/cstacks.php}{cstacks}
 #' module inside R! The function runs a summary of the log file automatically
-#' at the end (\code{\link{summary_cstacks}}).
+#' at the end (\code{\link{summary_cstacks}}). In the event of a power outage,
+#' computer or cluster crash, just re-run the function. The function will start
+#' over from the last catalog generated.
 
 #' @param P path to the directory containing STACKS files.
 #' Default: \code{P = "06_ustacks_2_gstacks"}.
@@ -63,11 +65,12 @@
 #' Default: \code{report.mmatches = FALSE}
 
 #' @param split.catalog (integer) In how many samples you want to split the
-#' catalog population map. This allows to have backup catalog every
+#' catalog population map. This allows to have a backup catalog every
 #' \code{split.catalog} samples. Their is obviously a trade-off between the
-#' integer use here, the time to initialize an existing catalog to often
-#' and re-starting from zero if everything crash.
-#' Default: \code{split.catalog = 20}.
+#' integer use here, the time to initialize an existing catalog and
+#' re-starting from zero if everything crash.
+#' Default: \code{split.catalog = 20}. Very useful on a personal computer or
+#' university computer cluster....
 
 
 #' @rdname run_cstacks
@@ -98,7 +101,7 @@
 #' distinct(INDIVIDUALS_REP, POP_ID)
 #' # Write file to disk
 #' readr::write_tsv(x = individuals.catalog,
-#' path = "02_project_info/population.map.catalog.tsv")
+#' file = "02_project_info/population.map.catalog.tsv")
 #' # The next line will give you the list of individuals to include
 #' individuals.catalog <- individuals.catalog$INDIVIDUALS_REP
 #'
@@ -132,15 +135,15 @@
 #' Molecular Ecology, 22, 3124-3140.
 
 run_cstacks <- function(
-  P = "06_ustacks_2_gstacks",
-  o = "06_ustacks_2_gstacks",
-  M = "02_project_info/population.map.catalog.tsv",
-  catalog.path = NULL,
-  n = 1,
-  parallel.core = parallel::detectCores() - 1,
-  max.gaps = 2, min.aln.len = 0.8, disable.gapped = FALSE,
-  k.len = NULL, report.mmatches = FALSE,
-  split.catalog = 20
+    P = "06_ustacks_2_gstacks",
+    o = "06_ustacks_2_gstacks",
+    M = "02_project_info/population.map.catalog.tsv",
+    catalog.path = NULL,
+    n = 1,
+    parallel.core = parallel::detectCores() - 1,
+    max.gaps = 2, min.aln.len = 0.8, disable.gapped = FALSE,
+    k.len = NULL, report.mmatches = FALSE,
+    split.catalog = 20
 ) {
 
   # TEST
@@ -150,14 +153,14 @@ run_cstacks <- function(
   # n = 3
   # parallel.core = parallel::detectCores() - 1
   # catalog.path = NULL
-  # catalog.path = "/Volumes/THIERRY_MAC/sturgeons_saskatchewan/sturgeon_saskatchewan/catalog_test/catalog_2"
+  # # catalog.path = "/Volumes/THIERRY_MAC/sturgeons_saskatchewan/sturgeon_saskatchewan/catalog_test/catalog_2"
   # max.gaps = 2
   # min.aln.len = 0.8
   # disable.gapped = FALSE
   # k.len = NULL
   # report.mmatches = FALSE
   # h = FALSE
-  # split.catalog = 20
+  # split.catalog = 3
 
 
   cat("#######################################################################\n")
@@ -171,27 +174,70 @@ run_cstacks <- function(
   if (!dir.exists("08_stacks_results")) dir.create("08_stacks_results")
 
   # spliting catalog -----------------------------------------------------------
+  if (split.catalog == 0L) split.catalog <- 1L
   pop.map <- readr::read_tsv(file = M, col_names = c("INDIVIDUALS", "STRATA"), col_types = "cc")
   if (nrow(pop.map) < split.catalog) {
     split.catalog <- nrow(pop.map)
   }
 
-  if (is.null(catalog.path)) catalog.path <- "06_ustacks_2_gstacks"
+  # Crash session --------------------------------------------------------------
+  # part added when the computer or current crash...
+  if (is.null(catalog.path)) {
+    catalog.path <- "06_ustacks_2_gstacks"
+    catalog.output <- list.files(path = "08_stacks_results", pattern = "catalog_temp_", full.names = TRUE)
+  } else {
+    catalog.output <- 0L
+  }
+  # check the presence of split catalog
 
-  split.catalog <- split_pop_map(
-    pop.map = pop.map,
-    split.catalog = split.catalog,
-    catalog.path = catalog.path
-  )
-  message("Number of catalog split: ", length(split.catalog$list.catalog.numbers), "\n")
+  if (length(catalog.output) > 0) {
+    catstuff <- split_pop_map(
+      pop.map = pop.map,
+      split.catalog = split.catalog,
+      catalog.path = catalog.path,
+      write = FALSE
+    )
+    catstuff.bk <- catstuff
+    catalog.output <- list.files(path = "08_stacks_results", pattern = "catalog_temp_", full.names = TRUE)
+    cat.written <- length(purrr::map(.x = catalog.output, .f = list.files, pattern = "catalog.alleles.") %>% purrr::flatten_chr(.))
+
+    if (cat.written < length(catstuff$list.catalog.numbers)) {
+      message("Number of temporary catalog: ", cat.written)
+      message("Number of catalog split required: ", length(catstuff$list.catalog.numbers))
+      check.log <- sort(list.files(path = "09_log_files", pattern = "cstacks", full.names = FALSE))
+      if (length(check.log) >= cat.written + 1) {
+        n.log <- length(check.log)
+        if (identical(check.log[(cat.written + 1)], check.log[(n.log)])) {
+          message("Interrupted catalog construction, check log file: ", check.log[(cat.written + 1)])
+        } else {
+          message("Interrupted catalog construction, check log file: ", check.log[(n.log)])
+        }
+      }
+      message("\nContinuing catalog construction no. ", cat.written + 1)
+
+      catstuff$list.catalog.numbers <- catstuff$list.catalog.numbers[-(1:cat.written)]
+      catstuff$catalog.output <- catstuff$catalog.output[-(1:cat.written)]
+      catstuff$catalog.path <- catstuff$catalog.path[-(1:cat.written)]
+      catstuff$catalog.pop.map <- catstuff$catalog.pop.map[-(1:cat.written)]
+    }
+  } else {
+    catstuff <- split_pop_map(
+      pop.map = pop.map,
+      split.catalog = split.catalog,
+      catalog.path = catalog.path,
+      write = TRUE
+    )
+    catstuff.bk <- catstuff
+    message("Number of catalog split: ", length(catstuff$list.catalog.numbers), "\n")
+  }
 
   # run cstacks on split pop map -----------------------------------------------
   purrr::pwalk(
     .l = list(
-      catalog.id = split.catalog$list.catalog.numbers,
-      o = split.catalog$catalog.output,
-      M = split.catalog$catalog.pop.map,
-      catalog.path = split.catalog$catalog.path
+      catalog.id = catstuff$list.catalog.numbers,
+      o = catstuff$catalog.output,
+      M = catstuff$catalog.pop.map,
+      catalog.path = catstuff$catalog.path
     ),
     .f = run_split_cstacks,
     P = "06_ustacks_2_gstacks",
@@ -205,18 +251,19 @@ run_cstacks <- function(
   )
 
   # Copy the last catalog to the output folder ---------------------------------
-    file.copy(
-      from = list.files(
-        path = split.catalog$catalog.output[length(split.catalog$list.catalog.numbers)],
-        full.names = TRUE
-        ),
-      to = P,
-      overwrite = TRUE,
-      recursive = TRUE,
-      copy.date = TRUE
+  message("Moving last catalog generated to folder: ", P)
+  file.copy(
+    from = list.files(
+      path = catstuff.bk$catalog.output[length(catstuff.bk$list.catalog.numbers)],
+      full.names = TRUE
+    ),
+    to = P,
+    overwrite = TRUE,
+    recursive = TRUE,
+    copy.date = TRUE
   )
 
-  message("\nCatalog files written in: ", P)
+  # message("\nCatalog files written in: ", P)
 
   timing <- proc.time() - timing
   message("\nOverall computation time: ", round(timing[[3]]), " sec")
@@ -229,7 +276,7 @@ run_cstacks <- function(
 #' @rdname split_pop_map
 #' @export
 #' @keywords internal
-split_pop_map <- function(pop.map, split.catalog, catalog.path) {
+split_pop_map <- function(pop.map, split.catalog, catalog.path, write = TRUE) {
   n.ind <- nrow(pop.map)
 
   pop.map.temp <- tibble::add_column(
@@ -239,21 +286,23 @@ split_pop_map <- function(pop.map, split.catalog, catalog.path) {
     dplyr::group_by(SPLIT_VEC) %>%
     dplyr::group_split(.tbl = .)
 
-  write_catalog_pop_map <- function(pop.map.temp) {
+  write_catalog_pop_map <- function(pop.map.temp, write) {
     c.id <- unique(pop.map.temp$SPLIT_VEC)
     c.path <- paste0("08_stacks_results/catalog_temp_", c.id)
     if (!dir.exists(c.path)) dir.create(c.path)
     c.filename <- file.path("02_project_info", paste0("pop_map_catalog_", c.id, ".tsv"))
 
-    readr::write_tsv(
-      x = dplyr::select(pop.map.temp, -SPLIT_VEC),
-      path = c.filename,
-      col_names = FALSE
-    )
+    if (write) {
+      readr::write_tsv(
+        x = dplyr::select(pop.map.temp, -SPLIT_VEC),
+        file = c.filename,
+        col_names = FALSE
+      )
+    }
     return(res = list(catalog.path = c.path, catalog.pop.map = c.filename))
   } #End write_catalog_pop_map
 
-  catalog.info <- purrr::map(.x = pop.map.temp, .f = write_catalog_pop_map)
+  catalog.info <- purrr::map(.x = pop.map.temp, .f = write_catalog_pop_map, write = write)
 
   return(
     list(
@@ -272,32 +321,30 @@ split_pop_map <- function(pop.map, split.catalog, catalog.path) {
 #' @export
 #' @keywords internal
 run_split_cstacks <- function(
-  catalog.id = NULL,
-  o = "06_ustacks_2_gstacks",
-  M = "02_project_info/population.map.catalog.tsv",
-  catalog.path = NULL,
-  P = "06_ustacks_2_gstacks",
-  n = 1,
-  parallel.core = parallel::detectCores() - 1,
-  max.gaps = 2,
-  min.aln.len = 0.8,
-  disable.gapped = FALSE,
-  k.len = NULL,
-  report.mmatches = FALSE
+    catalog.id = NULL,
+    o = "06_ustacks_2_gstacks",
+    M = "02_project_info/population.map.catalog.tsv",
+    catalog.path = NULL,
+    P = "06_ustacks_2_gstacks",
+    n = 1,
+    parallel.core = parallel::detectCores() - 1,
+    max.gaps = 2,
+    min.aln.len = 0.8,
+    disable.gapped = FALSE,
+    k.len = NULL,
+    report.mmatches = FALSE
 ) {
   timing.catalog <- proc.time()
 
   if (!is.null(catalog.id)) message("Generating catalog: ", catalog.id)
-  # o = split.catalog$catalog.path
-  # M = split.catalog$catalog.pop.map
 
   # Existing catalog -----------------------------------------------------------
   if (is.null(catalog.path)) { # no catalog path, searching in the input path...
     old.catalog <- list.files(path = P, pattern = "catalog")
-    detect.rxstacks.lnls <- list.files(path = P, pattern = "rxstacks_lnls")
-    if (length(detect.rxstacks.lnls) == 1) {
-      old.catalog <- purrr::discard(.x = old.catalog, .p = old.catalog %in% detect.rxstacks.lnls)
-    }
+    # detect.rxstacks.lnls <- list.files(path = P, pattern = "rxstacks_lnls")
+    # if (length(detect.rxstacks.lnls) == 1) {
+    #   old.catalog <- purrr::discard(.x = old.catalog, .p = old.catalog %in% detect.rxstacks.lnls)
+    # }
     if (length(old.catalog) > 0 & length(old.catalog) == 3) {
       message("Found a catalog in the input folder, using files: ")
       message(stringi::stri_join(old.catalog, "\n"))
@@ -312,7 +359,7 @@ run_split_cstacks <- function(
       catalog.path <- stringi::stri_join("--catalog ", shQuote(catalog.path))
     }
     if (length(old.catalog) > 0 & length(old.catalog) < 3) {
-      stop("Incomplete catalog, 3 files are required, see argument documentation")
+      rlang::abort("Incomplete catalog, 3 files are required, see argument documentation")
     }
 
     if (length(old.catalog) == 0) {
@@ -320,25 +367,34 @@ run_split_cstacks <- function(
       catalog.path <- ""
     }
   } else {
-    # Building catalog for the first time --------------------------------------
     old.catalog <- list.files(path = catalog.path, pattern = "catalog")
-    old.catalog <- purrr::keep(.x = old.catalog, .p = !old.catalog %in% "catalog.sql.ids.tsv")
+
+    # second time because after each pwalk, writting the catalog might take longer...
+    if (length(old.catalog) == 0) {
+      Sys.sleep(15)
+      old.catalog <- list.files(path = catalog.path, pattern = "catalog")
+    }
+
+
+    # old.catalog <- purrr::keep(.x = old.catalog, .p = !old.catalog %in% "catalog.sql.ids.tsv")
 
     if (length(old.catalog) > 0) {
       if (length(old.catalog) < 3) {
-        stop("Incomplete catalog, 3 files are required, see argument documentation")
+        rlang::abort("Incomplete catalog, 3 files are required, see argument documentation")
       }
       message("Existing catalog: yes")
       message(stringi::stri_join(old.catalog, "\n"))
 
-      catalog.path <- file.path(
-        catalog.path,
-        stringi::stri_replace_all_fixed(
-          str = old.catalog[1],
-          pattern = ".alleles.tsv.gz",
-          replacement = "",
-          vectorize_all = FALSE
-        ))
+
+      # catalog.path <- file.path(
+      #   catalog.path,
+      #   stringi::stri_replace_all_fixed(
+      #     str = old.catalog[1],
+      #     pattern = ".alleles.tsv.gz",
+      #     replacement = "",
+      #     vectorize_all = FALSE
+      #   ))
+      catalog.path <- file.path(catalog.path, "catalog")
       catalog.path <- stringi::stri_join("--catalog ", shQuote(catalog.path))
     }
 
@@ -417,6 +473,6 @@ run_split_cstacks <- function(
     timing.catalog <- proc.time() - timing.catalog
     message("\nComputation time to build catalog ", catalog.id, ": ", round(timing.catalog[[3]]), " sec\n")
   }
-
+  timing.catalog <- timing <- NULL
 
 }# end run_split_cstacks

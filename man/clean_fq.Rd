@@ -6,19 +6,23 @@
 \usage{
 clean_fq(
   fq.files,
+  paired.end = FALSE,
   min.coverage.threshold = 2L,
   max.coverage.threshold = "high.coverage.unique.reads",
   remove.unique.reads = TRUE,
   write.blacklist = TRUE,
   write.blacklist.fasta = TRUE,
   compress = FALSE,
-  output.dir = NULL,
+  output = "08_stacks_results/03_cleaned_fq",
   parallel.core = parallel::detectCores() - 1
 )
 }
 \arguments{
 \item{fq.files}{(character, path). The path to the individual fastq file to check.
 Default: \code{fq.files = "my-sample.fq.gz"}.}
+
+\item{paired.end}{(logical) Are the files paired-end.
+Default: \code{paired.end = FALSE}.}
 
 \item{min.coverage.threshold}{(integer). Minimum coverage threshold.
 The function will remove distinct reads with coverage <= to the threshold.
@@ -36,25 +40,25 @@ coverage. Likely paralogs or Transposable elements.
 Default: \code{remove.unique.reads = TRUE}.}
 
 \item{write.blacklist}{(logical). Write the blacklisted reads to a file.
-Default: \code{write.blacklist = FALSE}.}
+Default: \code{write.blacklist = TRUE}.}
 
 \item{write.blacklist.fasta}{(logical). Write the blacklisted reads to a
 fasta file.
-Default: \code{write.blacklist.fasta = FALSE}.}
+Default: \code{write.blacklist.fasta = TRUE}.}
 
 \item{compress}{(logical) To compress the output files. If you have the disk
 space, don't compress, it's way faster this way to write.
 Default: \code{compress = FALSE}.}
 
-\item{output.dir}{(path) Write the cleaned fq files in a specific directory.
-Default: \code{output.dir = NULL}, uses the working directory.}
+\item{output}{(character, path) Write the cleaned fq files in a specific directory.
+Default: \code{output = "08_stacks_results/03_cleaned_fq"}.}
 
 \item{parallel.core}{(integer) Enable parallel execution with the number of threads.
 Default: \code{parallel.core = parallel::detectCores() - 1}.}
 }
 \value{
 The function returns a cleaned fq file with the name of the sample and
-\code{-cleaned} appended to the filename.
+\code{-C} appended to the filename.
 }
 \description{
 This function reads the fastq file of an individual and clean it
@@ -79,7 +83,7 @@ clean.id <- stackr::clean_fq(
   )
 
 # for multiple samples in parallel
-# require(progressr)
+# require(progressr) # to get a progress bar
 
  progressr::with_progress({
    clean <- stackr::clean_fq(
@@ -88,8 +92,7 @@ clean.id <- stackr::clean_fq(
       max.coverage.threshold = "high.coverage.unique.reads",
       write.blacklist = TRUE,
       write.blacklist.fasta = TRUE,
-      compress = FALSE,
-      output.dir = "04_process_radtags/cleaned_fq"
+      compress = FALSE
  )
  })
 }

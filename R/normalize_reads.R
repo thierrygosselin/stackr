@@ -197,7 +197,7 @@ normalize_reads <- function(
       LOW_QUALITY = rep(0, n.rep),
       RETAINED = rep(sample.reads, n.rep)
     )
-    readr::write_tsv(x = project.info.normalize, path = stringi::stri_join(project.info.filename, "_normalize.tsv"))
+    readr::write_tsv(x = project.info.normalize, file = stringi::stri_join(project.info.filename, "_normalize.tsv"))
   } else {
     project.info.normalize <- "check folder for normalized samples"
   }

@@ -110,7 +110,7 @@ dplyr::distinct(INDIVIDUALS, POP_ID)
 
 readr::write_tsv(
 x = individuals.catalog.select,
-path = "population.map.octopus.samples.catalog.tsv",
+file = "population.map.octopus.samples.catalog.tsv",
 col_names = FALSE) # stacks doesn't want column header
 }
 }

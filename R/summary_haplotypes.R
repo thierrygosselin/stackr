@@ -331,7 +331,7 @@ summary_haplotypes <- function(
     message("    Details in: blacklist.loci.consensus.txt")
     readr::write_tsv(
       x = blacklist.loci.consensus,
-      path = stringi::stri_join(path.folder, "/blacklist.loci.consensus.txt"),
+      file = stringi::stri_join(path.folder, "/blacklist.loci.consensus.txt"),
       col_names = TRUE
     )
 
@@ -424,7 +424,7 @@ summary_haplotypes <- function(
     }
     readr::write_tsv(
       x = artifacts.ind,
-      path = stringi::stri_join(path.folder, "/", filename.artifacts.ind),
+      file = stringi::stri_join(path.folder, "/", filename.artifacts.ind),
       col_names = TRUE)
     message("    Generated a file with ",
             nrow(artifacts.ind),
@@ -461,7 +461,7 @@ summary_haplotypes <- function(
     }
     readr::write_tsv(
       x = res$artifacts.loci,
-      path = stringi::stri_join(path.folder, "/", filename.paralogs),
+      file = stringi::stri_join(path.folder, "/", filename.paralogs),
       col_names = TRUE
     )
 
@@ -818,7 +818,7 @@ summary_haplotypes <- function(
       dplyr::ungroup(.) %>%
       dplyr::left_join(haplotype.filtered.split, by = c("LOCUS", "HAPLOTYPES")) %>%
       dplyr::select(LOCUS, POP_ID, HAPLOTYPES) %>%
-      readr::write_tsv(x = ., path = file.path(path.folder, "private.haplotypes.tsv"))
+      readr::write_tsv(x = ., file = file.path(path.folder, "private.haplotypes.tsv"))
 
     res$private.haplotypes.summary <- res$private.haplotypes %>%
       dplyr::group_by(POP_ID) %>%
@@ -826,7 +826,7 @@ summary_haplotypes <- function(
       dplyr::ungroup(.) %>%
       tibble::add_row(.data = ., POP_ID = "OVERALL", n = sum(.$n)) %>%
       dplyr::mutate(PRIVATE_HAPLOTYPES = stringi::stri_join(POP_ID, " = ", n)) %>%
-      readr::write_tsv(x = ., path = file.path(path.folder, "private.haplotypes.summary.tsv"))
+      readr::write_tsv(x = ., file = file.path(path.folder, "private.haplotypes.summary.tsv"))
 
     message("Number of private haplotypes = ", nrow(res$private.haplotypes))
     message("Strata with the highest number of private haplotypes = ", res$private.haplotypes.summary$POP_ID[res$private.haplotypes.summary$n == max(res$private.haplotypes.summary$n)])
@@ -921,7 +921,7 @@ summary_haplotypes <- function(
     } else {
       filename.sum <- "haplotype.catalog.loci.summary.pop.filtered.tsv"
     }
-    readr::write_tsv(x = res$summary, path = stringi::stri_join(path.folder, "/",filename.sum))
+    readr::write_tsv(x = res$summary, file = stringi::stri_join(path.folder, "/",filename.sum))
 
     # Figures --------------------------------------------------------------------
     res$scatter.plot.Pi.Fh.ind <- dplyr::filter(res$individual.summary, POP_ID != "OVERALL") %>%

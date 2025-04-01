@@ -337,7 +337,7 @@ summary_genotypes <- function(
 
     # Now write the output
     onemap.file <- file(onemap, "write")
-    cat(paste(nrow(progeny.names), nrow(geno.sum), sep="\t"), sep = "\n", file = onemap.file, append = TRUE)
+    cat(paste(nrow(progeny.names), nrow(geno.sum), sep = "\t"), sep = "\n", file = onemap.file, append = TRUE)
     utils::write.table(onemap.data, file = onemap.file, append = TRUE, col.names = FALSE,
                        row.names = FALSE, sep = ",", quote = FALSE)
     close(onemap.file)
@@ -346,7 +346,7 @@ summary_genotypes <- function(
 
   # Save/Write the file to the working directory--------------------------------
   if (!is.null(filename)) {
-    readr::write_tsv(geno.sum, filename, append = FALSE, col_names = TRUE)
+    readr::write_tsv(x = geno.sum, file = filename, append = FALSE, col_names = TRUE)
     message("genotypes summary written: ", filename)
   }
 

@@ -4,7 +4,7 @@
 \alias{read_count_one}
 \title{read_count_one}
 \usage{
-read_count_one(fastq.files)
+read_count_one(fq.files, verbose = FALSE, p = NULL)
 }
 \description{
 count 1 fq file

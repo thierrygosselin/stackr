@@ -6,7 +6,8 @@
 \usage{
 summary_reads(
   fq.files,
-  output.dir = NULL,
+  paired.end = FALSE,
+  output = "08_stacks_results/02_summary_reads",
   read.depth.plot = TRUE,
   min.coverage.fig = 7L,
   parallel.core = parallel::detectCores() - 1
@@ -16,8 +17,11 @@ summary_reads(
 \item{fq.files}{(character, path) The path to the individual fastq file to check,
 or the entire fq folder.}
 
-\item{output.dir}{(path) Write the output in a specific directory.
-Default: \code{output.dir = NULL}, uses the working directory.}
+\item{paired.end}{(logical) Are the files paired-end.
+Default: \code{paired.end = FALSE}.}
+
+\item{output}{(path) Write the output in a specific directory.
+Default: \code{output = "08_stacks_results/02_summary_reads"}.}
 
 \item{read.depth.plot}{(logical) To get the interesting summaries on
 the read content, the function is very close to similar to
@@ -25,7 +29,7 @@ the read content, the function is very close to similar to
 minimal cost on time.
 Default: \code{read.depth.plot = TRUE}.}
 
-\item{min.coverage.fig}{(character, path). Minimum coverage used to draw the
+\item{min.coverage.fig}{(integer). Minimum coverage used to draw the
 color on the figure.
 Default: \code{min.coverage.fig = 7L}.}
 

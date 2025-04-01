@@ -72,7 +72,7 @@ dplyr::mutate(NEW_FQ = OLD_FQ)
 
 
 # Save the file
-readr::write_tsv(x = fq.new.naming, path = "fq.new.naming.tsv")
+readr::write_tsv(x = fq.new.naming, file = "fq.new.naming.tsv")
 
 # Then, you could edit the NEW_FQ column, by hand, in MS EXCEL,
 # or inside R using dplyr package and mutate function.

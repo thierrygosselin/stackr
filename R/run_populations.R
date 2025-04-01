@@ -302,19 +302,19 @@ run_populations <- function(
   if (is.null(min.maf)) {
     min.maf <- ""
   } else {
-    min.maf <- stringi::stri_join("--min.maf ", min.maf)
+    min.maf <- stringi::stri_join("--min-maf ", min.maf)
   }
 
   if (is.null(min.mac)) {
     min.mac <- ""
   } else {
-    min.mac <- stringi::stri_join("--min.mac ", min.mac)
+    min.mac <- stringi::stri_join("--min-mac ", min.mac)
   }
 
   if (is.null(max.obs.het)) {
     max.obs.het <- ""
   } else {
-    max.obs.het <- stringi::stri_join("--max.obs.het ", max.obs.het)
+    max.obs.het <- stringi::stri_join("--max-obs-het ", max.obs.het)
   }
 
   if (write.single.snp) {

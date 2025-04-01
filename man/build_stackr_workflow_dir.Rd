@@ -2,7 +2,7 @@
 % Please edit documentation in R/build_stackr_workflow_dir.R
 \name{build_stackr_workflow_dir}
 \alias{build_stackr_workflow_dir}
-\title{Build stacks workflow directories}
+\title{Automatically build the stacks/stackr workflow directories}
 \usage{
 build_stackr_workflow_dir(main.folder.name = "stacks_run", date = TRUE)
 }
@@ -20,7 +20,7 @@ A main folder containing different folders used during the stacks
 workflow proposed here.
 }
 \description{
-This prepares the different folder required to run the
+This prepares the different folders required to run the
 \href{http://catchenlab.life.illinois.edu/stacks/}{STACKS} workflow
 proposed in stackr.
 }

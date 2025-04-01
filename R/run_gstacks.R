@@ -338,9 +338,8 @@ run_gstacks <- function(
   )
 
   # run command ----------------------------------------------------------------
-  system2(command = "gstacks", args = command.arguments,
-          stderr = gstacks.log.file,
-          stdout = gstacks.log.file)
+  system2(command = "gstacks", args = command.arguments, stderr = gstacks.log.file)
+  # stdout = gstacks.log.file
 
   # summarize the log file -----------------------------------------------------
   timing <- proc.time() - timing
@@ -349,5 +348,3 @@ run_gstacks <- function(
   res <- "gstacks finished"
   return(res)
 }# end run_gstacks
-
-

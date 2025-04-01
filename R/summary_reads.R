@@ -6,8 +6,11 @@
 #' @param fq.files (character, path) The path to the individual fastq file to check,
 #' or the entire fq folder.
 
-#' @param output.dir (path) Write the output in a specific directory.
-#' Default: \code{output.dir = NULL}, uses the working directory.
+#' @param paired.end (logical) Are the files paired-end.
+#' Default: \code{paired.end = FALSE}.
+
+#' @param output (path) Write the output in a specific directory.
+#' Default: \code{output = "08_stacks_results/02_summary_reads"}.
 
 #' @param read.depth.plot (logical) To get the interesting summaries on
 #' the read content, the function is very close to similar to
@@ -31,11 +34,12 @@
 #' }
 
 summary_reads <- function(
-  fq.files,
-  output.dir = NULL,
-  read.depth.plot = TRUE,
-  min.coverage.fig = 7L,
-  parallel.core = parallel::detectCores() - 1
+    fq.files,
+    paired.end = FALSE,
+    output = "08_stacks_results/02_summary_reads",
+    read.depth.plot = TRUE,
+    min.coverage.fig = 7L,
+    parallel.core = parallel::detectCores() - 1
 ) {
   opt.change <- getOption("width")
   options(width = 70)
@@ -50,9 +54,12 @@ summary_reads <- function(
   }
 
   if (assertthat::is.string(fq.files) && assertthat::is.dir(fq.files)) {
-    fq.files <- stackr::list_sample_file(f =  fq.files, full.path = TRUE, recursive = TRUE)
+    fq.files <- stackr::list_sample_file(f =  fq.files, full.path = TRUE, recursive = TRUE, paired.end = paired.end)
     message("Analysing ", length(fq.files), " samples...")
   }
+
+  if (!dir.exists(output)) dir.create(output)
+
 
 
   if (length(fq.files) > 1) {
@@ -64,11 +71,10 @@ summary_reads <- function(
       .f = reads_stats,
       read.depth.plot = read.depth.plot,
       min.coverage.fig = min.coverage.fig,
-      output.dir = output.dir,
+      output = output,
       parallel.core = parallel.core,
       p = p,
-      verbose = FALSE,
-      .progress = FALSE
+      verbose = FALSE
     )
 
 
@@ -77,8 +83,9 @@ summary_reads <- function(
       fq.files = fq.files,
       read.depth.plot = read.depth.plot,
       min.coverage.fig = min.coverage.fig,
-      output.dir = output.dir,
+      output = output,
       parallel.core = parallel.core,
+      p = NULL,
       verbose = TRUE
     )
   }
@@ -99,19 +106,19 @@ summary_reads <- function(
 #' @export
 #' @keywords internal
 reads_stats <- function(
-  fq.files,
-  read.depth.plot = TRUE,
-  min.coverage.fig = 7L,
-  output.dir = NULL,
-  parallel.core = parallel::detectCores() - 1,
-  p,
-  verbose = TRUE
+    fq.files,
+    read.depth.plot = TRUE,
+    min.coverage.fig = 7L,
+    output = "08_stacks_results/02_summary_reads",
+    parallel.core = parallel::detectCores() - 1,
+    p = NULL,
+    verbose = TRUE
 ) {
 
-  p()
+  if (!is.null(p)) p()
   clean.names <- stackr::clean_fq_filename(basename(fq.files))
-
   if (verbose) message("Sample name: ", clean.names)
+
   read.stats <- vroom::vroom(
     file = fq.files,
     col_names = "READS",
@@ -159,14 +166,11 @@ reads_stats <- function(
     tibble::add_column(.data = ., INDIVIDUALS = clean.names, .before = 1L) %>%
     tibble::add_column(.data = ., TOTAL_READS = total.sequences, .before = 2L)
 
-  if (!is.null(output.dir)) {
-    vroom::vroom_write(x = stats.overall, path = file.path(output.dir, paste0(clean.names, "_stats.overall.tsv")))
-  }
-
+  vroom::vroom_write(x = stats.overall, file = file.path(output, paste0(clean.names, "_stats.overall.tsv")))
 
   read.stats %<>% dplyr::count(DEPTH, name = "NUMBER_DISTINCT_READS")
   depth.group.levels <- c("low coverage", "target", "high coverage", "distinct reads")
-  max.coverage.fig <- min(read.stats$DEPTH[read.stats$NUMBER_DISTINCT_READS == 1L]) - 1
+  max.coverage.fig <- suppressWarnings(min(read.stats$DEPTH[read.stats$NUMBER_DISTINCT_READS == 1L]) - 1)
 
   read.stats %<>%
     dplyr::mutate(
@@ -208,55 +212,73 @@ reads_stats <- function(
       }
     }
 
-    read.depth.plot <- ggplot2::ggplot(
-      data = read.stats, ggplot2::aes(x = DEPTH, y = NUMBER_DISTINCT_READS)
-    ) +
-      ggplot2::geom_point(ggplot2::aes(colour = DEPTH_GROUP)) +
-      ggplot2::labs(
-        title = paste0("Read Depth Groups for sample: ", clean.names),
-        subtitle = paste0("Total reads: ", total.sequences),
-        x = "Depth of sequencing (log10)",
-        y = "Number of distinct reads (log10)"
-      ) +
-      ggplot2::annotation_logticks() +
-      ggplot2::scale_colour_manual(
-        name = "Read coverage groups",
-        labels = hap.read.depth.group.stats$LABELS,
-        values = hap.read.depth.group.stats$GROUP_COLOR
-      ) +
-      ggplot2::scale_x_log10(breaks = c(1, 5, 10, 25, 50, 75, 100, 250, 500, 1000)) +
-      ggplot2::scale_y_log10(breaks = base_breaks()) +
-      ggplot2::theme(
-        axis.title = ggplot2::element_text(size = 16, face = "bold"),
-        legend.title = ggplot2::element_text(size = 16, face = "bold"),
-        legend.text = ggplot2::element_text(size = 16, face = "bold"),
-        legend.position = c(0.7,0.8)
-      )
+    # safely generate the fig
+    # with low reads, this generates an error... hence the safe function....
+    rdp <- function(read.stats) {
+      DEPTH <- NULL
+      NUMBER_DISTINCT_READS <- NULL
+      rdp <- ggplot2::ggplot(data = read.stats, ggplot2::aes(x = DEPTH, y = NUMBER_DISTINCT_READS)) +
+        ggplot2::geom_point(ggplot2::aes(colour = DEPTH_GROUP)) +
+        ggplot2::labs(
+          title = paste0("Read Depth Groups for sample: ", clean.names),
+          subtitle = paste0("Total reads: ", total.sequences),
+          x = "Depth of sequencing (log10)",
+          y = "Number of distinct reads (log10)"
+        ) +
+        ggplot2::annotation_logticks() +
+        ggplot2::scale_colour_manual(
+          name = "Read coverage groups",
+          labels = hap.read.depth.group.stats$LABELS,
+          values = hap.read.depth.group.stats$GROUP_COLOR
+        ) +
+        ggplot2::scale_x_log10(breaks = c(1, 5, 10, 25, 50, 75, 100, 250, 500, 1000)) +
+        ggplot2::scale_y_log10(breaks = base_breaks()) +
+        ggplot2::theme(
+          axis.title = ggplot2::element_text(size = 16, face = "bold"),
+          legend.title = ggplot2::element_text(size = 16, face = "bold"),
+          legend.text = ggplot2::element_text(size = 16, face = "bold"),
+          legend.position = c(0.7,0.8)
+        )
+      rdp
+    } #End rdp
 
-    if (!is.null(output.dir)) {
+    safe_ggplot <- purrr::safely(.f = rdp)
+
+    read.depth.plot <- safe_ggplot(read.stats)
+
+    if (is.null(read.depth.plot$error)) {
+      filename.plot <- file.path(output, stringi::stri_join(clean.names, "_hap_read_depth.png"))
+
       ggplot2::ggsave(
-        plot = read.depth.plot,
-        filename = file.path(output.dir, paste0(clean.names, "_hap_read_depth.png")),
+        plot = read.depth.plot$result,
+        filename = filename.plot,
         width = 25,
         height = 15,
         dpi = 300,
         units = "cm"
       )
+      # read.depth.plot <- read.depth.plot$result
+
+      # results ------------------------------------------------------------------
+      read.stats %<>%
+        dplyr::left_join(indel.stats.by.depth.group, by = "DEPTH") %>%
+        dplyr::left_join(gc.ratio.by.depth.group, by = "DEPTH", suffix = c("_INDEL", "_GC")) %>%
+        tibble::add_column(.data = ., INDIVIDUALS = clean.names, .before = 1L) %>%
+        tibble::add_column(.data = ., TOTAL_READS = total.sequences, .before = 2L)
+
+      vroom::vroom_write(x = read.stats, file = file.path(output, paste0(clean.names, "_stats.by.depth.groups.tsv")))
+      return(clean.names)
+    } else {
+      problem <- stringi::stri_join(
+        "Problem generating read depth plot, probably not enough sequences: ",
+        total.sequences, " total sequences"
+      )
+      if (verbose) message(problem)
+      vroom::vroom_write_lines(
+        x = problem,
+        file = file.path(output, stringi::stri_join(clean.names, "_hap_read_depth_problem.txt")))
+      read.depth.plot <- NULL
+      return(invisible(NULL))
     }
-
-  } else {
-    read.depth.plot <- NULL
   }
-
-  # results ------------------------------------------------------------------
-  read.stats %<>%
-    dplyr::left_join(indel.stats.by.depth.group, by = "DEPTH") %>%
-    dplyr::left_join(gc.ratio.by.depth.group, by = "DEPTH", suffix = c("_INDEL", "_GC")) %>%
-    tibble::add_column(.data = ., INDIVIDUALS = clean.names, .before = 1L) %>%
-    tibble::add_column(.data = ., TOTAL_READS = total.sequences, .before = 2L)
-
-  if (!is.null(output.dir)) {
-    vroom::vroom_write(x = read.stats, path = file.path(output.dir,paste0(clean.names, "_stats.by.depth.groups.tsv")))
-  }
-  return(list(overall = stats.overall, by.read.depth.groups = read.stats, plot = read.depth.plot))
 }# End reads_stats

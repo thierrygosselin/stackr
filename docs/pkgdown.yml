@@ -1,7 +1,6 @@
-pandoc: 2.7.3
-pkgdown: 1.6.1
+pandoc: '3.2'
+pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   stackr: stackr.html
-last_built: 2020-11-05T13:30Z
-
+last_built: 2025-04-01T22:47Z

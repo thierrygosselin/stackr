@@ -109,7 +109,7 @@
 #'
 #' readr::write_tsv(
 #' x = individuals.catalog.select,
-#' path = "population.map.octopus.samples.catalog.tsv",
+#' file = "population.map.octopus.samples.catalog.tsv",
 #' col_names = FALSE) # stacks doesn't want column header
 #' }
 
@@ -376,7 +376,7 @@ summary_ustacks <- function(
   n.ind <- dplyr::n_distinct(res$INDIVIDUALS)
 
   # Write to working directory
-  readr::write_tsv(x = res, path = filename)
+  readr::write_tsv(x = res, file = filename)
   message("File written: ", filename)
 
 
