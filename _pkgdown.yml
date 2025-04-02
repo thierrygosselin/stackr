@@ -24,11 +24,6 @@ reference:
 
 - title: Utility functions
   contents:
-  - read_depth_plot
-  - reads_length_distribution
-  - clean_fq
-  - read_counter
-  - normalize_reads
   - rename_fq
   - extract_catalog_sql_ids
 

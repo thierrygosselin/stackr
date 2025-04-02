@@ -508,13 +508,13 @@ you will get depending on the maximum size threshold selected:</p>
 <p><img src="ion_torrent_2.png"></p>
 <p>The function is:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">size</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/reads_length_distribution.html">reads_length_distribution</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">size</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu">reads_length_distribution</span><span class="op">(</span></span>
 <span>  fq.file <span class="op">=</span> <span class="st">"my-fastq.fastq.gz"</span>, </span>
 <span>  with.future <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>  parallel.core <span class="op">=</span> <span class="fl">12L</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>You can use individual file or entire chip or lane. Function
-documentation: <code><a href="../reference/reads_length_distribution.html">?stackr::reads_length_distribution</a></code></p>
+documentation: <code>?stackr::reads_length_distribution</code></p>
 <p><strong>Remember that depending of types of file (individual or
 entire lane/chip:</strong></p>
 <ul>
@@ -594,7 +594,7 @@ data.</li>
 <h4 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a>
 </h4>
 <p>I prefer Daniel Ilut way of visualizing the information.</p>
-<p>The function <code><a href="../reference/read_depth_plot.html">stackr::read_depth_plot</a></code> requires 1 FQ file
+<p>The function <code>stackr::read_depth_plot</code> requires 1 FQ file
 (after stacks <em>process_radtags</em> or
 <code><a href="../reference/run_process_radtags.html">stackr::run_process_radtags</a></code>) and <strong>is very fast to
 run</strong>. It will highlight read coverage groups of distinct reads
@@ -633,7 +633,7 @@ elements and other high copy number variants.</p></li>
 </ul>
 <p>To run it on your data:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">read.plot</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/read_depth_plot.html">read_depth_plot</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">read.plot</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu">read_depth_plot</span><span class="op">(</span></span>
 <span>  fq.file <span class="op">=</span> <span class="st">"04_process_radtags/my-fq.fq.gz"</span>,</span>
 <span>  min.coverage.fig <span class="op">=</span> <span class="fl">7L</span>, <span class="co">#default</span></span>
 <span>  parallel.core <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span> <span class="co">#default</span></span>
@@ -665,9 +665,9 @@ weeks of computation time that you shave off your project… really.</p>
 <p>You don’t have to believe what I just wrote, test it yourself:</p>
 <p><strong>1. Clean the FQ file</strong></p>
 <p>Use the sample you just used in the read coverage groups, above,
-clean it with <code><a href="../reference/clean_fq.html">stackr::clean_fq</a></code>. It’s very fast to run:</p>
+clean it with <code>stackr::clean_fq</code>. It’s very fast to run:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">clean.fq.name</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/clean_fq.html">clean_fq</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">clean.fq.name</span> <span class="op">&lt;-</span> <span class="fu">stackr</span><span class="fu">::</span><span class="fu">clean_fq</span><span class="op">(</span></span>
 <span>  fq.file <span class="op">=</span> <span class="st">"04_process_radtags/my-fq.fq.gz"</span>, </span>
 <span>  min.coverage.threshold <span class="op">=</span> <span class="fl">2</span>, </span>
 <span>  remove.unique.reads <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">#default</span></span>
@@ -721,7 +721,7 @@ way to go, you can easily do it with this piece of code:</p>
 <span></span>
 <span><span class="va">clean.all</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span></span>
 <span>  .x <span class="op">=</span> <span class="va">fq.to.clean</span>, </span>
-<span>  .f <span class="op">=</span> <span class="fu">stackr</span><span class="fu">::</span><span class="va"><a href="../reference/clean_fq.html">clean_fq</a></span>,</span>
+<span>  .f <span class="op">=</span> <span class="fu">stackr</span><span class="fu">::</span><span class="va">clean_fq</span>,</span>
 <span>  min.coverage.threshold <span class="op">=</span> <span class="fl">5</span>, </span>
 <span>  remove.unique.reads <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">#default</span></span>
 <span>  write.blacklist.fasta <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -848,10 +848,10 @@ documentation and look at the example</a></p>
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"ShortRead"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># using defaults:</span></span>
-<span><span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/normalize_reads.html">normalize_reads</a></span><span class="op">(</span>path.samples <span class="op">=</span> <span class="st">"~/corals"</span><span class="op">)</span></span>
+<span><span class="fu">stackr</span><span class="fu">::</span><span class="fu">normalize_reads</span><span class="op">(</span>path.samples <span class="op">=</span> <span class="st">"~/corals"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># customizing the function:</span></span>
-<span><span class="fu">stackr</span><span class="fu">::</span><span class="fu"><a href="../reference/normalize_reads.html">normalize_reads</a></span><span class="op">(</span></span>
+<span><span class="fu">stackr</span><span class="fu">::</span><span class="fu">normalize_reads</span><span class="op">(</span></span>
 <span>   project.info <span class="op">=</span> <span class="st">"project.info.corals.tsv"</span>,</span>
 <span>   path.samples <span class="op">=</span> <span class="st">"04_process_radtags"</span>,</span>
 <span>   sample.reads <span class="op">=</span> <span class="fl">2000000</span>,</span>
@@ -931,7 +931,7 @@ project info file saved by the function.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">info.stats</span> <span class="op">&lt;-</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html" class="external-link">read_tsv</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"02_project_info/project.info.20191121@1606.tsv"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">info.stats</span>, <span class="va">REPLICATES</span> <span class="op">==</span> <span class="st">"1"</span><span class="op">)</span></span>
-<span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">info.stats</span><span class="op">$</span><span class="va">RETAINED</span><span class="op">)</span></span>
+<span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">info.stats</span><span class="op">$</span><span class="va">RETAINED</span><span class="op">)</span></span>
 <span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">info.stats</span><span class="op">$</span><span class="va">RETAINED</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">read.min</span> <span class="op">&lt;-</span> <span class="va">m</span> <span class="op">-</span> <span class="va">s</span></span>

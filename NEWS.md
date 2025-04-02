@@ -1,8 +1,8 @@
-# stackr 2.2.2 2022-04-02
+# stackr 2.2.2 2025-04-02
 
 * updated some functions
 * added a logo
-* will remove noise reduction and normalization: transfer to standart package
+* will remove noise reduction and normalizationfunctions: transfer to standart package
 
 # stackr 2.2.0 2020-10-08
 

@@ -42,6 +42,7 @@ Suggests:
     tidyr,
     tidyselect,
     utils
+Remotes: thierrygosselin/standart
 License: GPL (>=2)
 LazyLoad: yes
 VignetteBuilder: knitr
